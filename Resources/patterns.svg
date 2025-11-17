@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#3A7BD5;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#5856D6;stop-opacity:1" />
+    </linearGradient>
+
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background with gradient -->
+  <rect width="1024" height="1024" rx="229" ry="229" fill="url(#bgGradient)"/>
+
+  <!-- Pattern overlay - neural network style -->
+  <g opacity="0.15">
+    <!-- Grid pattern -->
+    <path d="M 256 0 L 256 1024 M 512 0 L 512 1024 M 768 0 L 768 1024 M 0 256 L 1024 256 M 0 512 L 1024 512 M 0 768 L 1024 768"
+          stroke="white" stroke-width="2" opacity="0.3"/>
+  </g>
+
+  <!-- Central pattern design - brain/behavioral patterns inspired -->
+  <g filter="url(#glow)">
+    <!-- Center circle -->
+    <circle cx="512" cy="512" r="120" fill="none" stroke="white" stroke-width="8" opacity="0.9"/>
+    <circle cx="512" cy="512" r="100" fill="white" opacity="0.3"/>
+
+    <!-- Outer circles (6 nodes representing different pattern categories) -->
+    <!-- Top -->
+    <circle cx="512" cy="230" r="65" fill="white" opacity="0.85"/>
+    <!-- Top right -->
+    <circle cx="708" cy="338" r="65" fill="white" opacity="0.85"/>
+    <!-- Bottom right -->
+    <circle cx="708" cy="686" r="65" fill="white" opacity="0.85"/>
+    <!-- Bottom -->
+    <circle cx="512" cy="794" r="65" fill="white" opacity="0.85"/>
+    <!-- Bottom left -->
+    <circle cx="316" cy="686" r="65" fill="white" opacity="0.85"/>
+    <!-- Top left -->
+    <circle cx="316" cy="338" r="65" fill="white" opacity="0.85"/>
+
+    <!-- Connecting lines (neural pathways) -->
+    <g stroke="white" stroke-width="4" opacity="0.6" fill="none">
+      <!-- From center to all outer nodes -->
+      <line x1="512" y1="512" x2="512" y2="230"/>
+      <line x1="512" y1="512" x2="708" y2="338"/>
+      <line x1="512" y1="512" x2="708" y2="686"/>
+      <line x1="512" y1="512" x2="512" y2="794"/>
+      <line x1="512" y1="512" x2="316" y2="686"/>
+      <line x1="512" y1="512" x2="316" y2="338"/>
+
+      <!-- Outer connections (hexagonal pattern) -->
+      <line x1="512" y1="230" x2="708" y2="338"/>
+      <line x1="708" y1="338" x2="708" y2="686"/>
+      <line x1="708" y1="686" x2="512" y2="794"/>
+      <line x1="512" y1="794" x2="316" y2="686"/>
+      <line x1="316" y1="686" x2="316" y2="338"/>
+      <line x1="316" y1="338" x2="512" y2="230"/>
+    </g>
+
+    <!-- Smaller intermediate circles -->
+    <circle cx="412" cy="371" r="35" fill="white" opacity="0.7"/>
+    <circle cx="612" cy="371" r="35" fill="white" opacity="0.7"/>
+    <circle cx="710" cy="512" r="35" fill="white" opacity="0.7"/>
+    <circle cx="612" cy="653" r="35" fill="white" opacity="0.7"/>
+    <circle cx="412" cy="653" r="35" fill="white" opacity="0.7"/>
+    <circle cx="314" cy="512" r="35" fill="white" opacity="0.7"/>
+
+    <!-- Inner detail circles -->
+    <circle cx="512" cy="440" r="25" fill="white" opacity="0.6"/>
+    <circle cx="584" cy="512" r="25" fill="white" opacity="0.6"/>
+    <circle cx="512" cy="584" r="25" fill="white" opacity="0.6"/>
+    <circle cx="440" cy="512" r="25" fill="white" opacity="0.6"/>
+  </g>
+
+  <!-- Subtle radial glow from center -->
+  <radialGradient id="centerGlow">
+    <stop offset="0%" style="stop-color:white;stop-opacity:0.2" />
+    <stop offset="100%" style="stop-color:white;stop-opacity:0" />
+  </radialGradient>
+  <circle cx="512" cy="512" r="300" fill="url(#centerGlow)"/>
+</svg>
