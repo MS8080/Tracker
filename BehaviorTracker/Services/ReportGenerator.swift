@@ -184,13 +184,13 @@ class ReportGenerator {
 
             let overloadCount = entries.filter {
                 $0.patternType == PatternType.sensoryOverload.rawValue ||
-                $0.patternType == PatternType.meltdownTrigger.rawValue ||
-                $0.patternType == PatternType.anxietySpike.rawValue
+                $0.patternType == PatternType.meltdown.rawValue ||
+                $0.patternType == PatternType.shutdown.rawValue
             }.count
 
             let positiveCount = entries.filter {
-                $0.patternType == PatternType.hyperfocusEpisode.rawValue ||
-                $0.patternType == PatternType.specialInterestDeepDive.rawValue
+                $0.patternType == PatternType.hyperfocus.rawValue ||
+                $0.patternType == PatternType.specialInterest.rawValue
             }.count
 
             score = Double(positiveCount) - Double(overloadCount)
@@ -309,14 +309,14 @@ class ReportGenerator {
         for day in highEffectivenessDays {
             if let patterns = patternsByDay[day] {
                 let positives = patterns.filter {
-                    $0.patternType == PatternType.hyperfocusEpisode.rawValue ||
-                    $0.patternType == PatternType.specialInterestDeepDive.rawValue
+                    $0.patternType == PatternType.hyperfocus.rawValue ||
+                    $0.patternType == PatternType.specialInterest.rawValue
                 }.count
 
                 let negatives = patterns.filter {
                     $0.patternType == PatternType.sensoryOverload.rawValue ||
-                    $0.patternType == PatternType.meltdownTrigger.rawValue ||
-                    $0.patternType == PatternType.anxietySpike.rawValue
+                    $0.patternType == PatternType.meltdown.rawValue ||
+                    $0.patternType == PatternType.shutdown.rawValue
                 }.count
 
                 positivePatternCount += positives

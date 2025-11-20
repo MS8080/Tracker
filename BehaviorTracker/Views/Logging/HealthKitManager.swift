@@ -114,31 +114,31 @@ class HealthKitManager: ObservableObject {
         
         switch patternType {
         // Emotional Regulation patterns -> State of Mind
-        case .anxietySpike, .overwhelmIndicator, .meltdownTrigger, .shutdownEpisode:
+        case .meltdown, .shutdown:
             await logStateOfMind(
                 for: patternType,
                 intensity: intensity,
                 timestamp: timestamp
             )
-            
+
         // Recovery patterns -> Mindfulness sessions
-        case .restRecoveryPeriod, .socialRecoveryTime, .emotionalRecoveryTime:
+        case .sensoryRecovery, .socialRecovery, .regulatoryStimming:
             if duration > 0 {
                 await logMindfulSession(
                     duration: TimeInterval(duration * 60), // Convert minutes to seconds
                     timestamp: timestamp
                 )
             }
-            
+
         // Sleep patterns -> Sleep Analysis
         case .sleepQuality:
             await logSleepQuality(
                 intensity: intensity,
                 timestamp: timestamp
             )
-            
+
         // Energy patterns -> State of Mind (energy component)
-        case .energyLevel, .burnoutWarning:
+        case .energyLevel, .burnoutIndicator:
             await logEnergyStateOfMind(
                 for: patternType,
                 intensity: intensity,
@@ -168,13 +168,9 @@ class HealthKitManager: ObservableObject {
         var labels: [HKStateOfMind.Label] = []
         
         switch patternType {
-        case .anxietySpike:
-            labels = [.worried, .stressed]
-        case .overwhelmIndicator:
+        case .meltdown:
             labels = [.stressed, .overwhelmed]
-        case .meltdownTrigger:
-            labels = [.stressed, .overwhelmed]
-        case .shutdownEpisode:
+        case .shutdown:
             labels = [.drained]
         default:
             break
@@ -216,7 +212,7 @@ class HealthKitManager: ObservableObject {
             } else if intensity <= 2 {
                 labels = [.drained]
             }
-        case .burnoutWarning:
+        case .burnoutIndicator:
             valence = Double(3 - intensity) / 2.0 // Maps 1->1, 3->0, 5->-1
             labels = [.drained, .stressed]
         default:

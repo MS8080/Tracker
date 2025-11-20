@@ -1,11 +1,12 @@
 import CoreData
 import Foundation
-import CoreData
 
 class DataController: ObservableObject {
     static let shared = DataController()
 
     let container: NSPersistentContainer
+    @Published var hasCriticalError = false
+    @Published var errorMessage: String?
 
     init(inMemory: Bool = false) {
         container = NSPersistentContainer(name: "BehaviorTrackerModel")
@@ -25,17 +26,38 @@ class DataController: ObservableObject {
         
         print("DataController: About to load persistent stores...")
 
-        container.loadPersistentStores { storeDescription, error in
+        container.loadPersistentStores { [weak self] storeDescription, error in
             if let error = error as NSError? {
-                // Log the error but don't try to reload - this can cause deadlocks
-                print("Core Data failed to load: \(error.localizedDescription)")
+                // Log the error for debugging
+                print("❌ Core Data failed to load: \(error.localizedDescription)")
                 print("Error details: \(error.userInfo)")
-                
-                // If you want to handle this, delete the store and restart the app
-                // For now, we'll let it fail gracefully
-                fatalError("Unresolved Core Data error \(error), \(error.userInfo)")
+
+                // Set error state for UI to handle
+                DispatchQueue.main.async {
+                    self?.hasCriticalError = true
+                    self?.errorMessage = "Failed to load data storage. Please try restarting the app. If the problem persists, you may need to reset the app data."
+                }
+
+                // Attempt to delete corrupted store and recreate (last resort)
+                if let storeURL = storeDescription.url {
+                    print("Attempting to remove corrupted store at: \(storeURL)")
+                    try? FileManager.default.removeItem(at: storeURL)
+
+                    // Try to reload once
+                    self?.container.loadPersistentStores { _, retryError in
+                        if let retryError = retryError {
+                            print("❌ Second attempt failed: \(retryError.localizedDescription)")
+                        } else {
+                            print("✅ Store recreated successfully after deletion")
+                            DispatchQueue.main.async {
+                                self?.hasCriticalError = false
+                                self?.errorMessage = nil
+                            }
+                        }
+                    }
+                }
             } else {
-                print("Core Data store loaded successfully: \(storeDescription)")
+                print("✅ Core Data store loaded successfully: \(storeDescription)")
             }
         }
 
