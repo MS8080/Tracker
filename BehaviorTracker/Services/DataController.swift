@@ -29,7 +29,7 @@ class DataController: ObservableObject {
         container.loadPersistentStores { [weak self] storeDescription, error in
             if let error = error as NSError? {
                 // Log the error for debugging
-                print("❌ Core Data failed to load: \(error.localizedDescription)")
+                print("ERROR: Core Data failed to load: \(error.localizedDescription)")
                 print("Error details: \(error.userInfo)")
 
                 // Set error state for UI to handle
@@ -46,9 +46,9 @@ class DataController: ObservableObject {
                     // Try to reload once
                     self?.container.loadPersistentStores { _, retryError in
                         if let retryError = retryError {
-                            print("❌ Second attempt failed: \(retryError.localizedDescription)")
+                            print("ERROR: Second attempt failed: \(retryError.localizedDescription)")
                         } else {
-                            print("✅ Store recreated successfully after deletion")
+                            print("SUCCESS: Store recreated successfully after deletion")
                             DispatchQueue.main.async {
                                 self?.hasCriticalError = false
                                 self?.errorMessage = nil
@@ -57,7 +57,7 @@ class DataController: ObservableObject {
                     }
                 }
             } else {
-                print("✅ Core Data store loaded successfully: \(storeDescription)")
+                print("SUCCESS: Core Data store loaded successfully: \(storeDescription)")
             }
         }
 
