@@ -66,6 +66,10 @@ extension PatternCategory: Identifiable {
     public var id: String { rawValue }
 }
 
+extension PatternType: Identifiable {
+    public var id: String { rawValue }
+}
+
 #Preview {
-    CategoryLoggingView(category: .behavioral, viewModel: LoggingViewModel())
+    CategoryLoggingView(category: .sensory, viewModel: LoggingViewModel())
 }

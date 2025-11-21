@@ -812,12 +812,7 @@ class HealthKitManager: ObservableObject {
                     return
                 }
 
-                var medications: [String] = []
-                for sample in samples {
-                    if let displayName = sample.displayName {
-                        medications.append(displayName)
-                    }
-                }
+                let medications = samples.map { $0.displayName }
                 continuation.resume(returning: medications)
             }
 

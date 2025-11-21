@@ -37,7 +37,7 @@ class LoggingViewModel: ObservableObject {
         dataController.updateStreak()
         
         // Sync to HealthKit
-        Task { [healthKitManager] in
+        Task { @MainActor in
             await healthKitManager.syncPatternToHealthKit(
                 patternType: patternType,
                 intensity: 3,
@@ -71,7 +71,7 @@ class LoggingViewModel: ObservableObject {
         dataController.updateStreak()
         
         // Sync to HealthKit
-        Task { [healthKitManager] in
+        Task { @MainActor in
             await healthKitManager.syncPatternToHealthKit(
                 patternType: patternType,
                 intensity: intensity,
