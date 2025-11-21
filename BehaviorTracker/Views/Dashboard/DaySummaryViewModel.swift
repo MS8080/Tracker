@@ -7,6 +7,7 @@ struct CategoryBreakdown {
     let percentage: Double
 }
 
+@MainActor
 class DaySummaryViewModel: ObservableObject {
     @Published var todayEntries: [PatternEntry] = []
     @Published var categoryBreakdown: [CategoryBreakdown] = []
@@ -95,21 +96,25 @@ class DaySummaryViewModel: ObservableObject {
         let calendar = Calendar.current
         let today = calendar.startOfDay(for: Date())
         let tomorrow = calendar.date(byAdding: .day, value: 1, to: today)!
-        
-        let allEntries = dataController.fetchPatternEntries()
-        todayEntries = allEntries.filter { entry in
-            entry.timestamp >= today && entry.timestamp < tomorrow
-        }.sorted { $0.timestamp < $1.timestamp }
-        
+
+        // Use date filters directly in fetch for better performance
+        todayEntries = dataController.fetchPatternEntries(startDate: today, endDate: tomorrow)
+            .sorted { $0.timestamp < $1.timestamp }
+
         calculateCategoryBreakdown()
         calculateIntensityDistribution()
     }
     
     private func calculateCategoryBreakdown() {
+        guard !todayEntries.isEmpty else {
+            categoryBreakdown = []
+            return
+        }
+
         let grouped = Dictionary(grouping: todayEntries) { entry in
             entry.category
         }
-        
+
         categoryBreakdown = grouped.compactMap { key, entries in
             guard let category = PatternCategory(rawValue: key) else { return nil }
             let percentage = (Double(entries.count) / Double(todayEntries.count)) * 100

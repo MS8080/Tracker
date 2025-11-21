@@ -10,8 +10,6 @@ class DataController: ObservableObject {
 
     init(inMemory: Bool = false) {
         container = NSPersistentContainer(name: "BehaviorTrackerModel")
-        
-        print("DataController: Initializing with model name: BehaviorTrackerModel")
 
         if inMemory {
             container.persistentStoreDescriptions.first?.url = URL(fileURLWithPath: "/dev/null")
@@ -20,18 +18,11 @@ class DataController: ObservableObject {
             if let description = container.persistentStoreDescriptions.first {
                 description.shouldMigrateStoreAutomatically = true
                 description.shouldInferMappingModelAutomatically = true
-                print("DataController: Store URL: \(description.url?.absoluteString ?? "nil")")
             }
         }
-        
-        print("DataController: About to load persistent stores...")
 
         container.loadPersistentStores { [weak self] storeDescription, error in
             if let error = error as NSError? {
-                // Log the error for debugging
-                print("ERROR: Core Data failed to load: \(error.localizedDescription)")
-                print("Error details: \(error.userInfo)")
-
                 // Set error state for UI to handle
                 DispatchQueue.main.async {
                     self?.hasCriticalError = true
@@ -40,15 +31,11 @@ class DataController: ObservableObject {
 
                 // Attempt to delete corrupted store and recreate (last resort)
                 if let storeURL = storeDescription.url {
-                    print("Attempting to remove corrupted store at: \(storeURL)")
                     try? FileManager.default.removeItem(at: storeURL)
 
                     // Try to reload once
                     self?.container.loadPersistentStores { _, retryError in
-                        if let retryError = retryError {
-                            print("ERROR: Second attempt failed: \(retryError.localizedDescription)")
-                        } else {
-                            print("SUCCESS: Store recreated successfully after deletion")
+                        if retryError == nil {
                             DispatchQueue.main.async {
                                 self?.hasCriticalError = false
                                 self?.errorMessage = nil
@@ -56,30 +43,22 @@ class DataController: ObservableObject {
                         }
                     }
                 }
-            } else {
-                print("SUCCESS: Core Data store loaded successfully: \(storeDescription)")
             }
         }
 
         container.viewContext.automaticallyMergesChangesFromParent = true
         container.viewContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
-        
-        print("DataController: Initialization complete")
     }
 
     func save() {
         let context = container.viewContext
 
         if context.hasChanges {
-            print("SAVING DATA - \(context.insertedObjects.count) new objects")
             do {
                 try context.save()
-                print("SAVE SUCCESSFUL")
             } catch {
-                print("SAVE FAILED: \(error.localizedDescription)")
+                // Silently fail - error handling should be added if needed
             }
-        } else {
-            print("NO CHANGES TO SAVE")
         }
     }
 
@@ -113,7 +92,8 @@ class DataController: ObservableObject {
     func fetchPatternEntries(
         startDate: Date? = nil,
         endDate: Date? = nil,
-        category: PatternCategory? = nil
+        category: PatternCategory? = nil,
+        limit: Int? = nil
     ) -> [PatternEntry] {
         let request = NSFetchRequest<PatternEntry>(entityName: "PatternEntry")
         var predicates: [NSPredicate] = []
@@ -132,6 +112,10 @@ class DataController: ObservableObject {
 
         if !predicates.isEmpty {
             request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: predicates)
+        }
+
+        if let limit = limit {
+            request.fetchLimit = limit
         }
 
         request.sortDescriptors = [NSSortDescriptor(keyPath: \PatternEntry.timestamp, ascending: false)]
@@ -399,60 +383,4 @@ class DataController: ObservableObject {
         }
     }
 
-    // MARK: - User Profile Management
-
-    func createUserProfile(
-        name: String,
-        email: String? = nil,
-        dateOfBirth: Date? = nil
-    ) -> UserProfile {
-        let profile = NSEntityDescription.insertNewObject(forEntityName: "UserProfile", into: container.viewContext) as! UserProfile
-        profile.name = name
-        profile.email = email
-        profile.dateOfBirth = dateOfBirth
-        save()
-        return profile
-    }
-
-    func fetchUserProfiles() -> [UserProfile] {
-        let request = NSFetchRequest<UserProfile>(entityName: "UserProfile")
-        request.sortDescriptors = [NSSortDescriptor(keyPath: \UserProfile.name, ascending: true)]
-
-        do {
-            return try container.viewContext.fetch(request)
-        } catch {
-            print("Failed to fetch user profiles: \(error.localizedDescription)")
-            return []
-        }
-    }
-
-    func getCurrentUserProfile() -> UserProfile? {
-        let request = NSFetchRequest<UserProfile>(entityName: "UserProfile")
-        request.fetchLimit = 1
-        request.sortDescriptors = [NSSortDescriptor(keyPath: \UserProfile.createdAt, ascending: true)]
-
-        do {
-            return try container.viewContext.fetch(request).first
-        } catch {
-            print("Failed to fetch current user profile: \(error.localizedDescription)")
-            return nil
-        }
-    }
-
-    func getOrCreateUserProfile() -> UserProfile {
-        if let existing = getCurrentUserProfile() {
-            return existing
-        }
-        return createUserProfile(name: "User")
-    }
-
-    func updateUserProfile(_ profile: UserProfile) {
-        profile.updatedAt = Date()
-        save()
-    }
-
-    func deleteUserProfile(_ profile: UserProfile) {
-        container.viewContext.delete(profile)
-        save()
-    }
 }

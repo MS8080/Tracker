@@ -25,7 +25,7 @@ enum ContributingFactor: String, CaseIterable, Codable {
     case anxiety = "Anxiety"
     case stress = "Stress"
     case uncertainty = "Uncertainty"
-    case timePresure = "Time Pressure"
+    case timePressure = "Time Pressure"
     case decisionOverload = "Too Many Decisions"
     case informationOverload = "Information Overload"
     
@@ -54,7 +54,7 @@ enum ContributingFactor: String, CaseIterable, Codable {
             return "sparkles"
         case .hunger, .thirst, .fatigue, .pain, .illness, .poorSleep:
             return "figure.stand"
-        case .anxiety, .stress, .uncertainty, .timePresure, .decisionOverload, .informationOverload:
+        case .anxiety, .stress, .uncertainty, .timePressure, .decisionOverload, .informationOverload:
             return "brain"
         case .socialDemands, .unexpectedInteraction, .conflictTension, .masking:
             return "person.2"
@@ -75,7 +75,7 @@ enum ContributingFactor: String, CaseIterable, Codable {
             return "Environmental"
         case .hunger, .thirst, .fatigue, .pain, .illness, .poorSleep:
             return "Physical State"
-        case .anxiety, .stress, .uncertainty, .timePresure, .decisionOverload, .informationOverload:
+        case .anxiety, .stress, .uncertainty, .timePressure, .decisionOverload, .informationOverload:
             return "Cognitive/Emotional"
         case .socialDemands, .unexpectedInteraction, .conflictTension, .masking:
             return "Social"

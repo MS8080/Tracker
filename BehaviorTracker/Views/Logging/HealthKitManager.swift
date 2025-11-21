@@ -121,7 +121,9 @@ class HealthKitManager: ObservableObject {
 
         // Medications (iOS 16+)
         if #available(iOS 16.0, *) {
-            types.insert(HKObjectType.clinicalType(forIdentifier: .medicationRecord)!)
+            if let medicationType = HKObjectType.clinicalType(forIdentifier: .medicationRecord) {
+                types.insert(medicationType)
+            }
         }
 
         return types
@@ -194,10 +196,14 @@ class HealthKitManager: ObservableObject {
 
         // Sleep patterns -> Sleep Analysis
         case .sleepQuality:
-            await logSleepQuality(
-                intensity: intensity,
-                timestamp: timestamp
-            )
+            // Only log if duration is provided (actual sleep hours)
+            if duration > 0 {
+                await logSleepQuality(
+                    intensity: intensity,
+                    duration: duration,
+                    timestamp: timestamp
+                )
+            }
 
         // Energy patterns -> State of Mind (energy component)
         case .energyLevel, .burnoutIndicator:
@@ -320,16 +326,20 @@ class HealthKitManager: ObservableObject {
     }
     
     /// Log sleep quality as a sleep analysis sample
-    private func logSleepQuality(intensity: Int16, timestamp: Date) async {
+    /// - Parameters:
+    ///   - intensity: Sleep quality rating (1-5)
+    ///   - duration: Sleep duration in minutes
+    ///   - timestamp: When the sleep ended (typically morning)
+    private func logSleepQuality(intensity: Int16, duration: Int32, timestamp: Date) async {
         guard let sleepType = HKObjectType.categoryType(forIdentifier: .sleepAnalysis) else {
             return
         }
-        
-        // Map intensity to sleep value
-        // This logs a sleep entry for the previous night
+
+        // Use actual duration provided by user (in minutes)
+        let durationInSeconds = TimeInterval(duration * 60)
         let sleepEnd = timestamp
-        let sleepStart = Calendar.current.date(byAdding: .hour, value: -8, to: timestamp) ?? timestamp
-        
+        let sleepStart = timestamp.addingTimeInterval(-durationInSeconds)
+
         let sample = HKCategorySample(
             type: sleepType,
             value: HKCategoryValueSleepAnalysis.asleepUnspecified.rawValue,
@@ -340,7 +350,7 @@ class HealthKitManager: ObservableObject {
                 "PatternIntensity": intensity
             ]
         )
-        
+
         do {
             try await healthStore.save(sample)
         } catch {
@@ -785,7 +795,9 @@ class HealthKitManager: ObservableObject {
     /// Fetch medication records from Apple Health (iOS 16+)
     @available(iOS 16.0, *)
     func fetchMedicationRecords() async -> [String] {
-        let medicationType = HKObjectType.clinicalType(forIdentifier: .medicationRecord)!
+        guard let medicationType = HKObjectType.clinicalType(forIdentifier: .medicationRecord) else {
+            return []
+        }
         let sortDescriptor = NSSortDescriptor(key: HKSampleSortIdentifierEndDate, ascending: false)
 
         return await withCheckedContinuation { continuation in

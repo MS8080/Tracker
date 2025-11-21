@@ -1,6 +1,8 @@
 import SwiftUI
 import CoreData
+import UserNotifications
 
+@MainActor
 class SettingsViewModel: ObservableObject {
     @Published var notificationsEnabled: Bool = false {
         didSet {
@@ -53,9 +55,11 @@ class SettingsViewModel: ObservableObject {
     }
 
     private func requestNotificationPermission() {
-        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound]) { granted, error in
+        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound]) { [weak self] granted, error in
             if granted {
-                self.scheduleNotification()
+                Task { @MainActor in
+                    self?.scheduleNotification()
+                }
             }
         }
     }
@@ -113,12 +117,24 @@ class SettingsViewModel: ObservableObject {
 
         for entry in entries {
             let timestamp = ISO8601DateFormatter().string(from: entry.timestamp)
-            let contextNotes = (entry.contextNotes ?? "").replacingOccurrences(of: ",", with: ";")
-            let specificDetails = (entry.specificDetails ?? "").replacingOccurrences(of: ",", with: ";")
+            let contextNotes = escapeCSVField(entry.contextNotes ?? "")
+            let specificDetails = escapeCSVField(entry.specificDetails ?? "")
+            let category = escapeCSVField(entry.category)
+            let patternType = escapeCSVField(entry.patternType)
 
-            csv += "\(entry.id.uuidString),\(timestamp),\(entry.category),\(entry.patternType),\(entry.intensity),\(entry.duration),\(contextNotes),\(specificDetails)\n"
+            csv += "\(entry.id.uuidString),\(timestamp),\(category),\(patternType),\(entry.intensity),\(entry.duration),\(contextNotes),\(specificDetails)\n"
         }
 
         return csv
+    }
+
+    /// Properly escape a field for CSV format
+    private func escapeCSVField(_ field: String) -> String {
+        // If field contains comma, quote, or newline, wrap in quotes and escape quotes
+        if field.contains(",") || field.contains("\"") || field.contains("\n") || field.contains("\r") {
+            let escaped = field.replacingOccurrences(of: "\"", with: "\"\"")
+            return "\"\(escaped)\""
+        }
+        return field
     }
 }

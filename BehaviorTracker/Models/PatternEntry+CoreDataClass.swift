@@ -45,6 +45,9 @@ public class PatternEntry: NSManagedObject, Identifiable {
         self.isFavorite = false
     }
     
+    /// Valid intensity range (0 = not set, 1-5 = intensity scale)
+    static let validIntensityRange: ClosedRange<Int16> = 0...5
+
     func configure(patternType: BehaviorTracker.PatternType,
                    intensity: Int16 = 0,
                    duration: Int32 = 0,
@@ -53,8 +56,9 @@ public class PatternEntry: NSManagedObject, Identifiable {
                    contributingFactors: [ContributingFactor] = []) {
         self.category = patternType.category.rawValue
         self.patternType = patternType.rawValue
-        self.intensity = intensity
-        self.duration = duration
+        // Clamp intensity to valid range
+        self.intensity = max(Self.validIntensityRange.lowerBound, min(intensity, Self.validIntensityRange.upperBound))
+        self.duration = max(0, duration)
         self.contextNotes = contextNotes
         self.specificDetails = specificDetails
         self.contributingFactors = contributingFactors
