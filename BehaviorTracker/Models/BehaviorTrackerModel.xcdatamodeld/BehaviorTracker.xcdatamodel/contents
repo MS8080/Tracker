@@ -26,6 +26,7 @@
     <entity name="PatternEntry" representedClassName="PatternEntry" syncable="YES">
         <attribute name="category" attributeType="String"/>
         <attribute name="contextNotes" optional="YES" attributeType="String"/>
+        <attribute name="contributingFactorsData" optional="YES" attributeType="Binary"/>
         <attribute name="customPatternName" optional="YES" attributeType="String"/>
         <attribute name="duration" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="id" attributeType="UUID" usesScalarValueType="NO"/>
@@ -60,5 +61,14 @@
         <attribute name="notificationEnabled" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
         <attribute name="notificationTime" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="streakCount" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
+    </entity>
+    <entity name="UserProfile" representedClassName="UserProfile" syncable="YES">
+        <attribute name="createdAt" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="dateOfBirth" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="email" optional="YES" attributeType="String"/>
+        <attribute name="id" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="name" attributeType="String"/>
+        <attribute name="profileImageData" optional="YES" attributeType="Binary"/>
+        <attribute name="updatedAt" attributeType="Date" usesScalarValueType="NO"/>
     </entity>
 </model>

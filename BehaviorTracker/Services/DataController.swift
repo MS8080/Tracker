@@ -383,4 +383,60 @@ class DataController: ObservableObject {
         }
     }
 
+    // MARK: - User Profile Management
+
+    func createUserProfile(
+        name: String,
+        email: String? = nil,
+        dateOfBirth: Date? = nil
+    ) -> UserProfile {
+        let profile = NSEntityDescription.insertNewObject(forEntityName: "UserProfile", into: container.viewContext) as! UserProfile
+        profile.name = name
+        profile.email = email
+        profile.dateOfBirth = dateOfBirth
+        save()
+        return profile
+    }
+
+    func fetchUserProfiles() -> [UserProfile] {
+        let request = NSFetchRequest<UserProfile>(entityName: "UserProfile")
+        request.sortDescriptors = [NSSortDescriptor(keyPath: \UserProfile.name, ascending: true)]
+
+        do {
+            return try container.viewContext.fetch(request)
+        } catch {
+            print("Failed to fetch user profiles: \(error.localizedDescription)")
+            return []
+        }
+    }
+
+    func getCurrentUserProfile() -> UserProfile? {
+        let request = NSFetchRequest<UserProfile>(entityName: "UserProfile")
+        request.fetchLimit = 1
+        request.sortDescriptors = [NSSortDescriptor(keyPath: \UserProfile.createdAt, ascending: true)]
+
+        do {
+            return try container.viewContext.fetch(request).first
+        } catch {
+            print("Failed to fetch current user profile: \(error.localizedDescription)")
+            return nil
+        }
+    }
+
+    func getOrCreateUserProfile() -> UserProfile {
+        if let existing = getCurrentUserProfile() {
+            return existing
+        }
+        return createUserProfile(name: "User")
+    }
+
+    func updateUserProfile(_ profile: UserProfile) {
+        profile.updatedAt = Date()
+        save()
+    }
+
+    func deleteUserProfile(_ profile: UserProfile) {
+        container.viewContext.delete(profile)
+        save()
+    }
 }
