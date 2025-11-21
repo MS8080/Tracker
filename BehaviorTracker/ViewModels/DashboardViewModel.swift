@@ -1,6 +1,7 @@
 import SwiftUI
 import CoreData
 
+@MainActor
 class DashboardViewModel: ObservableObject {
     @Published var streakCount: Int32 = 0
     @Published var todayEntryCount: Int = 0
@@ -13,19 +14,12 @@ class DashboardViewModel: ObservableObject {
     private let dataController = DataController.shared
 
     func loadData() {
-        print("DashboardViewModel: Starting loadData()")
         loadStreak()
-        print("DashboardViewModel: Loaded streak")
         loadTodayStats()
-        print("DashboardViewModel: Loaded today stats")
         loadWeeklyStats()
-        print("DashboardViewModel: Loaded weekly stats")
         loadMonthlyStats()
-        print("DashboardViewModel: Loaded monthly stats")
         loadRecentEntries()
-        print("DashboardViewModel: Loaded recent entries")
         loadMostLoggedPattern()
-        print("DashboardViewModel: Completed loadData()")
     }
 
     private func loadStreak() {
@@ -65,7 +59,7 @@ class DashboardViewModel: ObservableObject {
     }
 
     private func loadRecentEntries() {
-        recentEntries = dataController.fetchPatternEntries()
+        recentEntries = dataController.fetchPatternEntries(limit: 20)
     }
 
     private func loadMostLoggedPattern() {
