@@ -4,11 +4,15 @@ import Charts
 struct ReportsView: View {
     @StateObject private var viewModel = ReportsViewModel()
     @State private var selectedTimeframe: ReportTimeframe = .weekly
+    @State private var showingAIInsights = false
 
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 24) {
+                    // AI Insights Card
+                    aiInsightsCard
+
                     timeframePicker
 
                     if selectedTimeframe == .weekly {
@@ -24,7 +28,53 @@ struct ReportsView: View {
             .onAppear {
                 viewModel.generateReports()
             }
+            .sheet(isPresented: $showingAIInsights) {
+                AIInsightsView()
+            }
         }
+    }
+
+    private var aiInsightsCard: some View {
+        Button {
+            showingAIInsights = true
+        } label: {
+            HStack(spacing: 16) {
+                ZStack {
+                    Circle()
+                        .fill(.purple.gradient)
+                        .frame(width: 50, height: 50)
+
+                    Image(systemName: "sparkles")
+                        .font(.title2)
+                        .foregroundColor(.white)
+                }
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("AI Insights")
+                        .font(.headline)
+                        .foregroundColor(.primary)
+
+                    Text("Get personalized analysis of your patterns")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+
+                Spacer()
+
+                Image(systemName: "chevron.right")
+                    .foregroundColor(.secondary)
+            }
+            .padding(16)
+            .background(
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(.ultraThinMaterial)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 16)
+                    .stroke(.purple.opacity(0.3), lineWidth: 1)
+            )
+        }
+        .buttonStyle(.plain)
     }
 
     private var timeframePicker: some View {
