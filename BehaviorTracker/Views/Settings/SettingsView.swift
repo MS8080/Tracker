@@ -4,7 +4,6 @@ struct SettingsView: View {
     @StateObject private var viewModel = SettingsViewModel()
     @State private var showingExportSheet = false
     @AppStorage("appearance") private var appearance: AppAppearance = .system
-    @State private var currentIcon: String? = nil
 
     var body: some View {
         NavigationStack {
@@ -36,24 +35,8 @@ struct SettingsView: View {
                         }
                     }
                     .pickerStyle(.menu)
-
-                    NavigationLink {
-                        AppIconPickerView(currentIcon: $currentIcon)
-                    } label: {
-                        HStack {
-                            Image(systemName: "app.fill")
-                                .foregroundStyle(.blue)
-                            Text("App Icon")
-                            Spacer()
-                            Text(currentIcon == nil ? "Default" : "Dark")
-                                .foregroundStyle(.secondary)
-                        }
-                    }
                 } header: {
                     Text("Theme")
-                }
-                .onAppear {
-                    currentIcon = UIApplication.shared.alternateIconName
                 }
 
                 Section {
@@ -337,82 +320,6 @@ struct FeatureRow: View {
                 Text(description)
                     .font(.caption)
                     .foregroundStyle(.secondary)
-            }
-        }
-    }
-}
-
-struct AppIconPickerView: View {
-    @Binding var currentIcon: String?
-    @State private var showingError = false
-    @State private var errorMessage = ""
-
-    var body: some View {
-        List {
-            Section {
-                iconOption(name: nil, displayName: "Default", description: "Light app icon")
-                iconOption(name: "AppIcon-Dark", displayName: "Dark", description: "Dark app icon")
-            } footer: {
-                Text("Select your preferred app icon. The change will apply immediately.")
-            }
-        }
-        .navigationTitle("App Icon")
-        .navigationBarTitleDisplayMode(.inline)
-        .alert("Unable to Change Icon", isPresented: $showingError) {
-            Button("OK", role: .cancel) { }
-        } message: {
-            Text(errorMessage)
-        }
-    }
-
-    private func iconOption(name: String?, displayName: String, description: String) -> some View {
-        Button {
-            changeIcon(to: name)
-        } label: {
-            HStack(spacing: 16) {
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(name == nil ? Color.white : Color.black)
-                    .frame(width: 60, height: 60)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 12)
-                            .stroke(Color.gray.opacity(0.3), lineWidth: 1)
-                    )
-
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(displayName)
-                        .font(.headline)
-                        .foregroundStyle(.primary)
-                    Text(description)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-
-                Spacer()
-
-                if currentIcon == name {
-                    Image(systemName: "checkmark.circle.fill")
-                        .foregroundStyle(.blue)
-                        .font(.title2)
-                }
-            }
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-    }
-
-    private func changeIcon(to iconName: String?) {
-        guard UIApplication.shared.supportsAlternateIcons else {
-            errorMessage = "This device does not support alternate icons."
-            showingError = true
-            return
-        }
-
-        UIApplication.shared.setAlternateIconName(iconName) { error in
-            if let error = error {
-                errorMessage = error.localizedDescription
-                showingError = true
-            } else {
-                currentIcon = iconName
             }
         }
     }
