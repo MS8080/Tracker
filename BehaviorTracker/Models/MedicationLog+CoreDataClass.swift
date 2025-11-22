@@ -43,3 +43,18 @@ public class MedicationLog: NSManagedObject, Identifiable {
         self.notes = notes
     }
 }
+
+// MARK: - Generated accessors for journalEntries
+extension MedicationLog {
+    @objc(addJournalEntriesObject:)
+    @NSManaged public func addToJournalEntries(_ value: JournalEntry)
+
+    @objc(removeJournalEntriesObject:)
+    @NSManaged public func removeFromJournalEntries(_ value: JournalEntry)
+
+    @objc(addJournalEntries:)
+    @NSManaged public func addToJournalEntries(_ values: NSSet)
+
+    @objc(removeJournalEntries:)
+    @NSManaged public func removeFromJournalEntries(_ values: NSSet)
+}

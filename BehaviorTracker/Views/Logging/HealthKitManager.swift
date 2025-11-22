@@ -2,13 +2,12 @@ import Foundation
 import HealthKit
 
 /// Manages all HealthKit interactions for syncing pattern data with Apple Health
-@MainActor
 class HealthKitManager: ObservableObject {
     static let shared = HealthKitManager()
-    
-    @Published var isAuthorized = false
-    @Published var authorizationError: String?
-    
+
+    @MainActor @Published var isAuthorized = false
+    @MainActor @Published var authorizationError: String?
+
     private let healthStore = HKHealthStore()
     
     // MARK: - HealthKit Data Types
@@ -119,12 +118,8 @@ class HealthKitManager: ObservableObject {
             types.insert(caffeine)
         }
 
-        // Medications (iOS 16+)
-        if #available(iOS 16.0, *) {
-            if let medicationType = HKObjectType.clinicalType(forIdentifier: .medicationRecord) {
-                types.insert(medicationType)
-            }
-        }
+        // Note: Clinical Health Records (like .medicationRecord) require special entitlements
+        // that need Apple approval. Omitted to prevent crashes.
 
         return types
     }
@@ -144,23 +139,31 @@ class HealthKitManager: ObservableObject {
     /// Request authorization to access HealthKit data
     func requestAuthorization() async {
         guard isHealthKitAvailable else {
-            authorizationError = "HealthKit is not available on this device"
+            await MainActor.run {
+                authorizationError = "HealthKit is not available on this device"
+            }
             return
         }
-        
+
         // Ensure we have types to request
         guard !typesToWrite.isEmpty || !typesToRead.isEmpty else {
-            authorizationError = "No HealthKit types configured"
+            await MainActor.run {
+                authorizationError = "No HealthKit types configured"
+            }
             return
         }
-        
+
         do {
             try await healthStore.requestAuthorization(toShare: typesToWrite, read: typesToRead)
-            isAuthorized = true
-            authorizationError = nil
+            await MainActor.run {
+                isAuthorized = true
+                authorizationError = nil
+            }
         } catch {
-            authorizationError = error.localizedDescription
-            isAuthorized = false
+            await MainActor.run {
+                authorizationError = error.localizedDescription
+                isAuthorized = false
+            }
             print("HealthKit authorization error: \(error)")
         }
     }
@@ -174,7 +177,8 @@ class HealthKitManager: ObservableObject {
         duration: Int32,
         timestamp: Date = Date()
     ) async {
-        guard isAuthorized else { return }
+        let authorized = await MainActor.run { isAuthorized }
+        guard authorized else { return }
         
         switch patternType {
         // Emotional Regulation patterns -> State of Mind
@@ -784,41 +788,6 @@ class HealthKitManager: ObservableObject {
 
                 let mg = sum.doubleValue(for: .gramUnit(with: .milli))
                 continuation.resume(returning: mg)
-            }
-
-            healthStore.execute(query)
-        }
-    }
-
-    // MARK: - Medication Records
-
-    /// Fetch medication records from Apple Health (iOS 16+)
-    @available(iOS 16.0, *)
-    func fetchMedicationRecords() async -> [String] {
-        guard let medicationType = HKObjectType.clinicalType(forIdentifier: .medicationRecord) else {
-            return []
-        }
-        let sortDescriptor = NSSortDescriptor(key: HKSampleSortIdentifierEndDate, ascending: false)
-
-        return await withCheckedContinuation { continuation in
-            let query = HKSampleQuery(
-                sampleType: medicationType,
-                predicate: nil,
-                limit: HKObjectQueryNoLimit,
-                sortDescriptors: [sortDescriptor]
-            ) { _, samples, _ in
-                guard let samples = samples as? [HKClinicalRecord] else {
-                    continuation.resume(returning: [])
-                    return
-                }
-
-                var medications: [String] = []
-                for sample in samples {
-                    if let displayName = sample.displayName {
-                        medications.append(displayName)
-                    }
-                }
-                continuation.resume(returning: medications)
             }
 
             healthStore.execute(query)

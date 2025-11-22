@@ -14,7 +14,6 @@ class LoggingViewModel: ObservableObject {
     }
     
     /// Request HealthKit authorization
-    @MainActor
     func requestHealthKitAuthorization() async {
         await healthKitManager.requestAuthorization()
         isHealthKitEnabled = healthKitManager.isAuthorized
@@ -35,10 +34,10 @@ class LoggingViewModel: ObservableObject {
             specificDetails: nil
         )
         dataController.updateStreak()
-        
-        // Sync to HealthKit
-        Task { [healthKitManager] in
-            await healthKitManager.syncPatternToHealthKit(
+
+        // Sync to HealthKit in background
+        Task.detached {
+            await self.healthKitManager.syncPatternToHealthKit(
                 patternType: patternType,
                 intensity: 3,
                 duration: 0
@@ -69,10 +68,10 @@ class LoggingViewModel: ObservableObject {
         }
 
         dataController.updateStreak()
-        
-        // Sync to HealthKit
-        Task { [healthKitManager] in
-            await healthKitManager.syncPatternToHealthKit(
+
+        // Sync to HealthKit in background
+        Task.detached {
+            await self.healthKitManager.syncPatternToHealthKit(
                 patternType: patternType,
                 intensity: intensity,
                 duration: duration

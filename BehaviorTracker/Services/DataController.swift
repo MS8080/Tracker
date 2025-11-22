@@ -22,7 +22,7 @@ class DataController: ObservableObject {
         }
 
         container.loadPersistentStores { [weak self] storeDescription, error in
-            if let error = error as NSError? {
+            if (error as NSError?) != nil {
                 // Set error state for UI to handle
                 DispatchQueue.main.async {
                     self?.hasCriticalError = true
