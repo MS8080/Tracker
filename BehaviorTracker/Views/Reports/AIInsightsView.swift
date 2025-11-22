@@ -253,7 +253,7 @@ struct AIInsightsView: View {
 
             Divider()
 
-            Text(insights.content)
+            Text(markdownToAttributedString(insights.content))
                 .font(.body)
                 .lineSpacing(4)
 
@@ -276,6 +276,16 @@ struct AIInsightsView: View {
         .padding()
         .background(Color(.secondarySystemGroupedBackground))
         .cornerRadius(12)
+    }
+
+    // MARK: - Markdown Helper
+
+    private func markdownToAttributedString(_ markdown: String) -> AttributedString {
+        do {
+            return try AttributedString(markdown: markdown, options: AttributedString.MarkdownParsingOptions(interpretedSyntax: .inlineOnlyPreservingWhitespace))
+        } catch {
+            return AttributedString(markdown)
+        }
     }
 }
 
