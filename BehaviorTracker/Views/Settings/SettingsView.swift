@@ -9,16 +9,6 @@ struct SettingsView: View {
         NavigationStack {
             Form {
                 Section {
-                    NavigationLink {
-                        ThemePickerView()
-                    } label: {
-                        HStack {
-                            Image(systemName: "photo.fill")
-                                .foregroundStyle(.purple)
-                            Text("Background Theme")
-                        }
-                    }
-
                     Picker(selection: $appearance) {
                         ForEach(AppAppearance.allCases, id: \.self) { option in
                             HStack {
@@ -241,9 +231,15 @@ struct AboutView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 24) {
-                Image(systemName: "brain.head.profile")
-                    .font(.system(size: 80))
-                    .foregroundStyle(.blue.gradient)
+                Image(systemName: "infinity")
+                    .font(.system(size: 80, weight: .medium))
+                    .foregroundStyle(
+                        LinearGradient(
+                            colors: [.red, .orange, .yellow, .green, .blue, .purple],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
                     .padding(.top, 40)
 
                 Text("Behavior Tracker")
@@ -253,12 +249,6 @@ struct AboutView: View {
                 Text("Version 1.0.0")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
-
-                Text("Created by MS")
-                    .font(.subheadline)
-                    .fontWeight(.medium)
-                    .foregroundStyle(.blue)
-                    .padding(.top, 4)
 
                 Text("A comprehensive tool for tracking autism spectrum behavioral patterns throughout the day and generating insightful analytical reports.")
                     .font(.body)
@@ -293,6 +283,14 @@ struct AboutView: View {
                 }
                 .padding(.horizontal, 32)
                 .padding(.vertical, 24)
+
+                Spacer(minLength: 40)
+
+                Text("Created by MS")
+                    .font(.subheadline)
+                    .fontWeight(.medium)
+                    .foregroundStyle(.secondary)
+                    .padding(.bottom, 32)
             }
         }
         .navigationTitle("About")

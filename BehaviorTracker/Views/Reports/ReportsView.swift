@@ -5,6 +5,11 @@ struct ReportsView: View {
     @StateObject private var viewModel = ReportsViewModel()
     @State private var selectedTimeframe: ReportTimeframe = .weekly
     @State private var showingAIInsights = false
+    @Binding var showingProfile: Bool
+
+    init(showingProfile: Binding<Bool> = .constant(false)) {
+        self._showingProfile = showingProfile
+    }
 
     var body: some View {
         NavigationStack {
@@ -25,6 +30,11 @@ struct ReportsView: View {
             }
             .scrollContentBackground(.hidden)
             .navigationTitle("Reports")
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    ProfileButton(showingProfile: $showingProfile)
+                }
+            }
             .onAppear {
                 viewModel.generateReports()
             }

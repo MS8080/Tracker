@@ -5,6 +5,11 @@ struct DashboardView: View {
     @Environment(\.managedObjectContext) private var viewContext
     @StateObject private var viewModel = DashboardViewModel()
     @StateObject private var medicationViewModel = MedicationViewModel()
+    @Binding var showingProfile: Bool
+
+    init(showingProfile: Binding<Bool> = .constant(false)) {
+        self._showingProfile = showingProfile
+    }
 
     var body: some View {
         NavigationStack {
@@ -24,6 +29,11 @@ struct DashboardView: View {
             }
             .scrollContentBackground(.hidden)
             .navigationTitle("Dashboard")
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    ProfileButton(showingProfile: $showingProfile)
+                }
+            }
             .onAppear {
                 viewModel.loadData()
                 medicationViewModel.loadMedications()
@@ -367,6 +377,32 @@ struct InsightRow: View {
                 .font(.subheadline)
                 .fontWeight(.medium)
                 .foregroundStyle(.secondary)
+        }
+    }
+}
+
+// MARK: - Profile Button
+
+struct ProfileButton: View {
+    @Binding var showingProfile: Bool
+    @ObservedObject private var dataController = DataController.shared
+
+    var body: some View {
+        Button {
+            showingProfile = true
+        } label: {
+            if let profile = dataController.getCurrentUserProfile(),
+               let profileImage = profile.profileImage {
+                Image(uiImage: profileImage)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: 32, height: 32)
+                    .clipShape(Circle())
+            } else {
+                Image(systemName: "person.circle.fill")
+                    .font(.title2)
+                    .foregroundColor(.blue)
+            }
         }
     }
 }

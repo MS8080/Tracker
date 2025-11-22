@@ -104,21 +104,21 @@ struct MedicationDetailView: View {
             }
 
             HStack(spacing: 12) {
-                StatCard(
+                MedicationStatCard(
                     title: "Adherence",
                     value: "\(Int(viewModel.getAdherenceRate(for: medication, days: selectedDays)))%",
                     icon: "checkmark.circle.fill",
                     color: .green
                 )
 
-                StatCard(
+                MedicationStatCard(
                     title: "Avg Effect",
                     value: String(format: "%.1f/5", viewModel.getAverageEffectiveness(for: medication, days: selectedDays)),
                     icon: "star.fill",
                     color: .yellow
                 )
 
-                StatCard(
+                MedicationStatCard(
                     title: "Avg Mood",
                     value: String(format: "%.1f/5", viewModel.getAverageMood(for: medication, days: selectedDays)),
                     icon: "face.smiling.fill",
@@ -211,7 +211,7 @@ struct MedicationDetailView: View {
     }
 }
 
-struct StatCard: View {
+struct MedicationStatCard: View {
     let title: String
     let value: String
     let icon: String

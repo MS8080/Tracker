@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ContentView: View {
     @State private var selectedTab = 0
+    @State private var showingProfile = false
     @AppStorage("appearance") private var appearance: AppAppearance = .system
     @AppStorage("selectedTheme") private var selectedThemeRaw: String = AppTheme.purple.rawValue
 
@@ -15,43 +16,34 @@ struct ContentView: View {
                 .ignoresSafeArea()
 
             TabView(selection: $selectedTab) {
-            DashboardView()
-                .tabItem {
-                    Label("Dashboard", systemImage: "chart.line.uptrend.xyaxis")
-                }
-                .tag(0)
+                DashboardView(showingProfile: $showingProfile)
+                    .tabItem {
+                        Label("Dashboard", systemImage: "chart.line.uptrend.xyaxis")
+                    }
+                    .tag(0)
 
-            LoggingView()
-                .tabItem {
-                    Label("Log", systemImage: "plus.circle.fill")
-                }
-                .tag(1)
+                LoggingView(showingProfile: $showingProfile)
+                    .tabItem {
+                        Label("Log", systemImage: "plus.circle.fill")
+                    }
+                    .tag(1)
 
-            JournalListView()
-                .tabItem {
-                    Label("Journal", systemImage: "book.fill")
-                }
-                .tag(2)
+                JournalListView(showingProfile: $showingProfile)
+                    .tabItem {
+                        Label("Journal", systemImage: "book.fill")
+                    }
+                    .tag(2)
 
-            MedicationView()
-                .tabItem {
-                    Label("Medications", systemImage: "pills.fill")
-                }
-                .tag(3)
-
-            ReportsView()
-                .tabItem {
-                    Label("Reports", systemImage: "chart.bar.doc.horizontal")
-                }
-                .tag(4)
-
-            SettingsView()
-                .tabItem {
-                    Label("Settings", systemImage: "gear")
-                }
-                .tag(5)
+                ReportsView(showingProfile: $showingProfile)
+                    .tabItem {
+                        Label("Reports", systemImage: "chart.bar.doc.horizontal")
+                    }
+                    .tag(3)
             }
             .preferredColorScheme(appearance.colorScheme)
+        }
+        .sheet(isPresented: $showingProfile) {
+            ProfileContainerView()
         }
     }
 }

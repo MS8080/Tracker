@@ -6,9 +6,14 @@ struct JournalListView: View {
     @State private var showingNewEntry = false
     @State private var selectedEntry: JournalEntry?
     @State private var searchText = ""
+    @Binding var showingProfile: Bool
+
+    init(showingProfile: Binding<Bool> = .constant(false)) {
+        self._showingProfile = showingProfile
+    }
 
     var body: some View {
-        NavigationView {
+        NavigationStack {
             VStack(spacing: 0) {
                 // Search Bar
                 SearchBar(text: $searchText)
@@ -32,12 +37,16 @@ struct JournalListView: View {
             .navigationTitle("Journal")
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(action: {
-                        showingNewEntry = true
-                    }) {
-                        Image(systemName: "plus.circle.fill")
-                            .font(.title2)
-                            .accessibilityLabel("Add new journal entry")
+                    HStack(spacing: 16) {
+                        Button(action: {
+                            showingNewEntry = true
+                        }) {
+                            Image(systemName: "plus.circle.fill")
+                                .font(.title2)
+                                .accessibilityLabel("Add new journal entry")
+                        }
+
+                        ProfileButton(showingProfile: $showingProfile)
                     }
                 }
             }

@@ -5,6 +5,11 @@ struct LoggingView: View {
     @StateObject private var viewModel = LoggingViewModel()
     @State private var selectedCategory: PatternCategory?
     @State private var showingQuickLog = false
+    @Binding var showingProfile: Bool
+
+    init(showingProfile: Binding<Bool> = .constant(false)) {
+        self._showingProfile = showingProfile
+    }
 
     var body: some View {
         NavigationStack {
@@ -21,6 +26,11 @@ struct LoggingView: View {
             }
             .scrollContentBackground(.hidden)
             .navigationTitle("Log Pattern")
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    ProfileButton(showingProfile: $showingProfile)
+                }
+            }
             .onAppear {
                 viewModel.loadFavorites()
             }

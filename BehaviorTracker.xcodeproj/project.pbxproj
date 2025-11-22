@@ -38,19 +38,27 @@
 		4E4295F32ECE39AF006C6B00 /* UserProfile+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E4295F22ECE39AF006C6B00 /* UserProfile+CoreDataClass.swift */; };
 		4E4295F52ECE39D4006C6B00 /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E4295F42ECE39D4006C6B00 /* ProfileView.swift */; };
 		4E86BDC42ECD0C9F00AD04F7 /* HealthKitManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E86BDC32ECD0C9F00AD04F7 /* HealthKitManager.swift */; };
-		4EF642022ECBA4D00055E3FB /* MedicationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EF642012ECBA4D00055E3FB /* MedicationView.swift */; };
 		4EF642062ECBA50F0055E3FB /* MedicationViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EF642052ECBA50F0055E3FB /* MedicationViewModel.swift */; };
 		4EF642082ECBA5B60055E3FB /* ThemePickerView 2.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EF642072ECBA5B60055E3FB /* ThemePickerView 2.swift */; };
-		4EF6420A2ECBA6F00055E3FB /* JournalListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EF642092ECBA6F00055E3FB /* JournalListView.swift */; };
+		4EJRNL0012EE0000000000001 /* JournalListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EJRNL0012EE0000000000002 /* JournalListView.swift */; };
+		4EJRNL0012EE0000000000007 /* JournalEntryDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EJRNL0012EE0000000000004 /* JournalEntryDetailView.swift */; };
+		4EJRNL0012EE0000000000008 /* JournalEntryEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EJRNL0012EE0000000000006 /* JournalEntryEditorView.swift */; };
 		4EF6420E2ECBA7070055E3FB /* JournalEntryFormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EF6420D2ECBA7070055E3FB /* JournalEntryFormView.swift */; };
 		4EF642102ECBA7220055E3FB /* JournalDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EF6420F2ECBA7220055E3FB /* JournalDetailView.swift */; };
-		4EF642112ECBAAD20055E3FB /* JournalViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EF6420B2ECBA6F80055E3FB /* JournalViewModel.swift */; };
-		4EF9A5792ECBA3990091380A /* JournalEntry+CoreDataClass 2.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EF9A5782ECBA3990091380A /* JournalEntry+CoreDataClass 2.swift */; };
+		4EJVM00012EE0000000000002 /* JournalViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EJVM00012EE0000000000001 /* JournalViewModel.swift */; };
+		4EJNL00012EE0000000000001 /* JournalEntry+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EJNL00012EE0000000000002 /* JournalEntry+CoreDataClass.swift */; };
 		4E0091071EC1372900D8A0D1 /* Medication+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E0091072EC1372900D8A0D1 /* Medication+CoreDataClass.swift */; };
 		4E00910A2EC1372900D8A0D2 /* MedicationLog+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E00910A1EC1372900D8A0D1 /* MedicationLog+CoreDataClass.swift */; };
 		4EAI00012EE0000000000001 /* GeminiService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EAI00012EE0000000000002 /* GeminiService.swift */; };
+		4ETTS00012EE0000000000001 /* TextToSpeechService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ETTS00012EE0000000000002 /* TextToSpeechService.swift */; };
 		4EAI00012EE0000000000003 /* AIAnalysisService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EAI00012EE0000000000004 /* AIAnalysisService.swift */; };
 		4EAI00012EE0000000000005 /* AIInsightsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EAI00012EE0000000000006 /* AIInsightsView.swift */; };
+		4EPROF0012EE0000000000001 /* ProfileContainerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EPROF0012EE0000000000002 /* ProfileContainerView.swift */; };
+		4EMED00012EE0000000000001 /* AddMedicationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EMED00012EE0000000000002 /* AddMedicationView.swift */; };
+		4EMED00012EE0000000000003 /* LogMedicationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EMED00012EE0000000000004 /* LogMedicationView.swift */; };
+		4EMED00012EE0000000000005 /* MedicationDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EMED00012EE0000000000006 /* MedicationDetailView.swift */; };
+		4EMED00012EE0000000000007 /* MedicationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EMED00012EE0000000000008 /* MedicationView.swift */; };
+		4EMEDFREQ012EE00000000001 /* MedicationFrequency.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EMEDFREQ012EE00000000002 /* MedicationFrequency.swift */; };
 		A3B6464C00000001 /* BehaviorTrackerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3B6464C00000002 /* BehaviorTrackerApp.swift */; };
 		A3B6464C00000003 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3B6464C00000004 /* ContentView.swift */; };
 		A3B6464C00000005 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A3B6464C00000006 /* Assets.xcassets */; };
@@ -67,7 +75,14 @@
 		4E00910C2EC1372900D8A0D1 /* ReportGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReportGenerator.swift; sourceTree = "<group>"; };
 		4EAI00012EE0000000000002 /* GeminiService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeminiService.swift; sourceTree = "<group>"; };
 		4EAI00012EE0000000000004 /* AIAnalysisService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIAnalysisService.swift; sourceTree = "<group>"; };
+		4ETTS00012EE0000000000002 /* TextToSpeechService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextToSpeechService.swift; sourceTree = "<group>"; };
 		4EAI00012EE0000000000006 /* AIInsightsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIInsightsView.swift; sourceTree = "<group>"; };
+		4EPROF0012EE0000000000002 /* ProfileContainerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileContainerView.swift; sourceTree = "<group>"; };
+		4EMED00012EE0000000000002 /* AddMedicationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddMedicationView.swift; sourceTree = "<group>"; };
+		4EMED00012EE0000000000004 /* LogMedicationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogMedicationView.swift; sourceTree = "<group>"; };
+		4EMED00012EE0000000000006 /* MedicationDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MedicationDetailView.swift; sourceTree = "<group>"; };
+		4EMED00012EE0000000000008 /* MedicationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MedicationView.swift; sourceTree = "<group>"; };
+		4EMEDFREQ012EE00000000002 /* MedicationFrequency.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MedicationFrequency.swift; sourceTree = "<group>"; };
 		4E00910E2EC1372900D8A0D1 /* Accessibility+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Accessibility+Extensions.swift"; sourceTree = "<group>"; };
 		4E00910F2EC1372900D8A0D1 /* AccessibilityLabels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessibilityLabels.swift; sourceTree = "<group>"; };
 		4E0091102EC1372900D8A0D1 /* Date+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Date+Extensions.swift"; sourceTree = "<group>"; };
@@ -96,15 +111,16 @@
 		4E86BDC32ECD0C9F00AD04F7 /* HealthKitManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitManager.swift; sourceTree = "<group>"; };
 		4E86BDC52ECD0D6700AD04F7 /* BehaviorTracker.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = BehaviorTracker.entitlements; sourceTree = "<group>"; };
 		4EICON0012EE0000000000001 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		4EF642012ECBA4D00055E3FB /* MedicationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MedicationView.swift; sourceTree = "<group>"; };
 		4EF642032ECBA4D00055E3FB /* JournalListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JournalListView.swift; sourceTree = "<group>"; };
 		4EF642052ECBA50F0055E3FB /* MedicationViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MedicationViewModel.swift; sourceTree = "<group>"; };
 		4EF642072ECBA5B60055E3FB /* ThemePickerView 2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ThemePickerView 2.swift"; sourceTree = "<group>"; };
-		4EF642092ECBA6F00055E3FB /* JournalListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JournalListView.swift; sourceTree = "<group>"; };
-		4EF6420B2ECBA6F80055E3FB /* JournalViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JournalViewModel.swift; sourceTree = "<group>"; };
+		4EJRNL0012EE0000000000002 /* JournalListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JournalListView.swift; sourceTree = "<group>"; };
+		4EJRNL0012EE0000000000004 /* JournalEntryDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JournalEntryDetailView.swift; sourceTree = "<group>"; };
+		4EJRNL0012EE0000000000006 /* JournalEntryEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JournalEntryEditorView.swift; sourceTree = "<group>"; };
+		4EJVM00012EE0000000000001 /* JournalViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JournalViewModel.swift; sourceTree = "<group>"; };
+		4EJNL00012EE0000000000002 /* JournalEntry+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "JournalEntry+CoreDataClass.swift"; sourceTree = "<group>"; };
 		4EF6420D2ECBA7070055E3FB /* JournalEntryFormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JournalEntryFormView.swift; sourceTree = "<group>"; };
 		4EF6420F2ECBA7220055E3FB /* JournalDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JournalDetailView.swift; sourceTree = "<group>"; };
-		4EF9A5782ECBA3990091380A /* JournalEntry+CoreDataClass 2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "JournalEntry+CoreDataClass 2.swift"; sourceTree = "<group>"; };
 		619FF56700000001 /* BehaviorTracker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BehaviorTracker.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A3B6464C00000002 /* BehaviorTrackerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BehaviorTrackerApp.swift; sourceTree = "<group>"; };
 		A3B6464C00000004 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -130,12 +146,13 @@
 				4E0091062EC1372900D8A0D1 /* PatternEntry+CoreDataClass.swift */,
 				4E0091072EC1372900D8A0D1 /* Medication+CoreDataClass.swift */,
 				4E00910A1EC1372900D8A0D1 /* MedicationLog+CoreDataClass.swift */,
+				4EJNL00012EE0000000000002 /* JournalEntry+CoreDataClass.swift */,
 				4E0091082EC1372900D8A0D1 /* Tag+CoreDataClass.swift */,
 				4E0091092EC1372900D8A0D1 /* UserPreferences+CoreDataClass.swift */,
-				4EF9A5782ECBA3990091380A /* JournalEntry+CoreDataClass 2.swift */,
 				4E4295F22ECE39AF006C6B00 /* UserProfile+CoreDataClass.swift */,
 				4E4295F42ECE39D4006C6B00 /* ProfileView.swift */,
 				4E16DE662ECE7DF200FEFBD8 /* ContributingFactor.swift */,
+				4EMEDFREQ012EE00000000002 /* MedicationFrequency.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -147,6 +164,7 @@
 				4E00910C2EC1372900D8A0D1 /* ReportGenerator.swift */,
 				4EAI00012EE0000000000002 /* GeminiService.swift */,
 				4EAI00012EE0000000000004 /* AIAnalysisService.swift */,
+				4ETTS00012EE0000000000002 /* TextToSpeechService.swift */,
 				4E16DE682ECE7F6F00FEFBD8 /* PatternCategory.swift */,
 				4E16DE6A2ECE7F8900FEFBD8 /* PatternType.swift */,
 			);
@@ -169,7 +187,9 @@
 			children = (
 				4E0091132EC1372900D8A0D1 /* DashboardViewModel.swift */,
 				4E0091142EC1372900D8A0D1 /* HistoryViewModel.swift */,
+				4EJVM00012EE0000000000001 /* JournalViewModel.swift */,
 				4E0091152EC1372900D8A0D1 /* LoggingViewModel.swift */,
+				4EF642052ECBA50F0055E3FB /* MedicationViewModel.swift */,
 				4E0091162EC1372900D8A0D1 /* ReportsViewModel.swift */,
 				4E0091172EC1372900D8A0D1 /* SettingsViewModel.swift */,
 			);
@@ -181,7 +201,6 @@
 			children = (
 				4E0091192EC1372900D8A0D1 /* DashboardView.swift */,
 				4E00911A2EC1372900D8A0D1 /* HistoryView.swift */,
-				4EF642052ECBA50F0055E3FB /* MedicationViewModel.swift */,
 				4E2910DB2ECBACBF00E73735 /* DaySummaryView.swift */,
 				4E2910DD2ECBACD100E73735 /* DaySummaryViewModel.swift */,
 			);
@@ -214,23 +233,51 @@
 				4E0091222EC1372900D8A0D1 /* ExportDataView.swift */,
 				4E0091232EC1372900D8A0D1 /* SettingsView.swift */,
 				4EF642072ECBA5B60055E3FB /* ThemePickerView 2.swift */,
-				4EF642092ECBA6F00055E3FB /* JournalListView.swift */,
-				4EF6420B2ECBA6F80055E3FB /* JournalViewModel.swift */,
-				4EF6420D2ECBA7070055E3FB /* JournalEntryFormView.swift */,
-				4EF6420F2ECBA7220055E3FB /* JournalDetailView.swift */,
 			);
 			path = Settings;
+			sourceTree = "<group>";
+		};
+		4EJRNL0012EE0000000000003 /* Journal */ = {
+			isa = PBXGroup;
+			children = (
+				4EJRNL0012EE0000000000002 /* JournalListView.swift */,
+				4EJRNL0012EE0000000000004 /* JournalEntryDetailView.swift */,
+				4EJRNL0012EE0000000000006 /* JournalEntryEditorView.swift */,
+			);
+			path = Journal;
 			sourceTree = "<group>";
 		};
 		4E0091252EC1372900D8A0D1 /* Views */ = {
 			isa = PBXGroup;
 			children = (
 				4E00911B2EC1372900D8A0D1 /* Dashboard */,
+				4EJRNL0012EE0000000000003 /* Journal */,
 				4E00911F2EC1372900D8A0D1 /* Logging */,
+				4EMED00012EE0000000000009 /* Medications */,
+				4EPROF0012EE0000000000003 /* Profile */,
 				4E0091212EC1372900D8A0D1 /* Reports */,
 				4E0091242EC1372900D8A0D1 /* Settings */,
 			);
 			path = Views;
+			sourceTree = "<group>";
+		};
+		4EMED00012EE0000000000009 /* Medications */ = {
+			isa = PBXGroup;
+			children = (
+				4EMED00012EE0000000000008 /* MedicationView.swift */,
+				4EMED00012EE0000000000002 /* AddMedicationView.swift */,
+				4EMED00012EE0000000000004 /* LogMedicationView.swift */,
+				4EMED00012EE0000000000006 /* MedicationDetailView.swift */,
+			);
+			path = Medications;
+			sourceTree = "<group>";
+		};
+		4EPROF0012EE0000000000003 /* Profile */ = {
+			isa = PBXGroup;
+			children = (
+				4EPROF0012EE0000000000002 /* ProfileContainerView.swift */,
+			);
+			path = Profile;
 			sourceTree = "<group>";
 		};
 		7990D6AB00000001 = {
@@ -255,7 +302,6 @@
 				A3B6464C00000004 /* ContentView.swift */,
 				A3B6464C00000006 /* Assets.xcassets */,
 				7990D6AB00000004 /* Preview Content */,
-				4EF642012ECBA4D00055E3FB /* MedicationView.swift */,
 				4EF642032ECBA4D00055E3FB /* JournalListView.swift */,
 			);
 			path = BehaviorTracker;
@@ -350,7 +396,7 @@
 				4EF642022ECBA4D00055E3FB /* MedicationView.swift in Sources */,
 				4EF642062ECBA50F0055E3FB /* MedicationViewModel.swift in Sources */,
 				4E0091272EC1372900D8A0D1 /* LoggingViewModel.swift in Sources */,
-				4EF642112ECBAAD20055E3FB /* JournalViewModel.swift in Sources */,
+				4EJVM00012EE0000000000002 /* JournalViewModel.swift in Sources */,
 				4E2910DE2ECBACD100E73735 /* DaySummaryViewModel.swift in Sources */,
 				4E00912A2EC1372900D8A0D1 /* CategoryLoggingView.swift in Sources */,
 				4E00912B2EC1372900D8A0D1 /* DashboardViewModel.swift in Sources */,
@@ -363,7 +409,6 @@
 				4E0091312EC1372900D8A0D1 /* Accessibility+Extensions.swift in Sources */,
 				4E0091322EC1372900D8A0D1 /* LoggingView.swift in Sources */,
 				4E4295F32ECE39AF006C6B00 /* UserProfile+CoreDataClass.swift in Sources */,
-				4EF9A5792ECBA3990091380A /* JournalEntry+CoreDataClass 2.swift in Sources */,
 				4E86BDC42ECD0C9F00AD04F7 /* HealthKitManager.swift in Sources */,
 				4E0091332EC1372900D8A0D1 /* ReportGenerator.swift in Sources */,
 				4E0091342EC1372900D8A0D1 /* Date+Extensions.swift in Sources */,
@@ -371,19 +416,27 @@
 				4E0091352EC1372900D8A0D1 /* PatternEntry+CoreDataClass.swift in Sources */,
 				4E0091071EC1372900D8A0D1 /* Medication+CoreDataClass.swift in Sources */,
 				4E00910A2EC1372900D8A0D2 /* MedicationLog+CoreDataClass.swift in Sources */,
+				4EJNL00012EE0000000000001 /* JournalEntry+CoreDataClass.swift in Sources */,
 				4E0091362EC1372900D8A0D1 /* SettingsView.swift in Sources */,
 				4E0091372EC1372900D8A0D1 /* HistoryView.swift in Sources */,
 				4E16DE692ECE7F6F00FEFBD8 /* PatternCategory.swift in Sources */,
-				4EF642102ECBA7220055E3FB /* JournalDetailView.swift in Sources */,
+				4EJRNL0012EE0000000000007 /* JournalEntryDetailView.swift in Sources */,
 				4E16DE672ECE7DF200FEFBD8 /* ContributingFactor.swift in Sources */,
-				4EF6420E2ECBA7070055E3FB /* JournalEntryFormView.swift in Sources */,
+				4EJRNL0012EE0000000000008 /* JournalEntryEditorView.swift in Sources */,
 				4E0091382EC1372900D8A0D1 /* BehaviorTrackerModel.xcdatamodeld in Sources */,
-				4EF6420A2ECBA6F00055E3FB /* JournalListView.swift in Sources */,
+				4EJRNL0012EE0000000000001 /* JournalListView.swift in Sources */,
 				4E0091392EC1372900D8A0D1 /* PatternEntryFormView.swift in Sources */,
 				4E00913A2EC1372900D8A0D1 /* DataController.swift in Sources */,
 				4EAI00012EE0000000000001 /* GeminiService.swift in Sources */,
+				4ETTS00012EE0000000000001 /* TextToSpeechService.swift in Sources */,
 				4EAI00012EE0000000000003 /* AIAnalysisService.swift in Sources */,
 				4EAI00012EE0000000000005 /* AIInsightsView.swift in Sources */,
+				4EPROF0012EE0000000000001 /* ProfileContainerView.swift in Sources */,
+				4EMED00012EE0000000000001 /* AddMedicationView.swift in Sources */,
+				4EMED00012EE0000000000003 /* LogMedicationView.swift in Sources */,
+				4EMED00012EE0000000000005 /* MedicationDetailView.swift in Sources */,
+				4EMED00012EE0000000000007 /* MedicationView.swift in Sources */,
+				4EMEDFREQ012EE00000000001 /* MedicationFrequency.swift in Sources */,
 				4E00913B2EC1372900D8A0D1 /* SettingsViewModel.swift in Sources */,
 				4E00913C2EC1372900D8A0D1 /* DashboardView.swift in Sources */,
 				4E16DE6B2ECE7F8900FEFBD8 /* PatternType.swift in Sources */,
