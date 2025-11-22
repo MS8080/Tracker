@@ -23,6 +23,10 @@ enum PatternType: String, CaseIterable, Codable {
     case meltdown = "Meltdown"
     case shutdown = "Shutdown"
     case regulatoryStimming = "Regulatory Stimming"
+    case emotionalOverwhelm = "Emotional Overwhelm"
+    case rumination = "Rumination/Thought Loops"
+    case flowState = "Flow State Achieved"
+    case authenticityMoment = "Authenticity Moment"
     
     // MARK: - Social & Communication
     case socialInteraction = "Social Interaction"
@@ -60,7 +64,7 @@ enum PatternType: String, CaseIterable, Codable {
             return .sensory
         case .taskInitiation, .taskSwitching, .timeBlindness, .decisionFatigue, .hyperfocus:
             return .executiveFunction
-        case .energyLevel, .maskingIntensity, .burnoutIndicator, .meltdown, .shutdown, .regulatoryStimming:
+        case .energyLevel, .maskingIntensity, .burnoutIndicator, .meltdown, .shutdown, .regulatoryStimming, .emotionalOverwhelm, .rumination, .flowState, .authenticityMoment:
             return .energyRegulation
         case .socialInteraction, .socialRecovery, .miscommunication, .communicationDifficulty, .processingTime:
             return .social
@@ -78,11 +82,12 @@ enum PatternType: String, CaseIterable, Codable {
     /// Whether this pattern should have an intensity scale (1-5)
     var hasIntensityScale: Bool {
         switch self {
-        case .sensoryOverload, .environmentalSensitivity, .energyLevel, .maskingIntensity, 
+        case .sensoryOverload, .environmentalSensitivity, .energyLevel, .maskingIntensity,
              .burnoutIndicator, .meltdown, .shutdown, .socialInteraction, .socialRecovery,
-             .routineDisruption, .unexpectedChange, .taskAvoidance, .internalDemand, 
+             .routineDisruption, .unexpectedChange, .taskAvoidance, .internalDemand,
              .externalDemand, .autonomyNeed, .sleepQuality, .physicalTension, .specialInterest,
-             .decisionFatigue, .samenessNeed:
+             .decisionFatigue, .samenessNeed, .emotionalOverwhelm, .rumination, .flowState,
+             .authenticityMoment:
             return true
         default:
             return false
@@ -93,7 +98,8 @@ enum PatternType: String, CaseIterable, Codable {
     var hasDuration: Bool {
         switch self {
         case .sensoryRecovery, .hyperfocus, .meltdown, .shutdown, .socialInteraction,
-             .socialRecovery, .processingTime, .specialInterest, .regulatoryStimming:
+             .socialRecovery, .processingTime, .specialInterest, .regulatoryStimming,
+             .rumination, .flowState, .emotionalOverwhelm:
             return true
         default:
             return false
@@ -171,6 +177,14 @@ enum PatternType: String, CaseIterable, Codable {
             return "What interest? How did it affect your mood?"
         case .disengagementDifficulty:
             return "What couldn't you stop doing?"
+        case .emotionalOverwhelm:
+            return "What triggered it? What emotions?"
+        case .rumination:
+            return "What thoughts kept repeating? What triggered it?"
+        case .flowState:
+            return "What activity? What made it possible?"
+        case .authenticityMoment:
+            return "What felt authentic? Who were you with?"
         }
     }
     

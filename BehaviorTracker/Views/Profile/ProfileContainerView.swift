@@ -79,20 +79,20 @@ struct ProfileContainerView: View {
                     .overlay(Circle().stroke(Color.blue, lineWidth: 3))
             }
 
-            VStack(spacing: 4) {
+            VStack(spacing: 6) {
                 Text(profile?.name ?? "User")
-                    .font(.title2)
+                    .font(.title)
                     .fontWeight(.bold)
 
                 if let email = profile?.email, !email.isEmpty {
                     Text(email)
-                        .font(.subheadline)
+                        .font(.body)
                         .foregroundColor(.secondary)
                 }
 
                 if let age = profile?.age {
                     Text("\(age) years old")
-                        .font(.caption)
+                        .font(.subheadline)
                         .foregroundColor(.secondary)
                 }
             }
@@ -100,7 +100,7 @@ struct ProfileContainerView: View {
             Button("Edit Profile") {
                 showingEditProfile = true
             }
-            .font(.subheadline)
+            .font(.body)
             .foregroundColor(.blue)
         }
         .padding()
@@ -116,8 +116,10 @@ struct ProfileContainerView: View {
             HStack {
                 Image(systemName: "heart.fill")
                     .foregroundColor(.red)
+                    .font(.title3)
                 Text("Health Data")
-                    .font(.headline)
+                    .font(.title3)
+                    .fontWeight(.semibold)
 
                 Spacer()
 
@@ -137,7 +139,7 @@ struct ProfileContainerView: View {
             if !healthKitManager.isAuthorized {
                 VStack(spacing: 12) {
                     Text("Connect to Apple Health to see your health data")
-                        .font(.subheadline)
+                        .font(.body)
                         .foregroundColor(.secondary)
                         .multilineTextAlignment(.center)
 
@@ -247,8 +249,10 @@ struct ProfileContainerView: View {
             HStack {
                 Image(systemName: "pills.fill")
                     .foregroundColor(.blue)
+                    .font(.title3)
                 Text("Medications")
-                    .font(.headline)
+                    .font(.title3)
+                    .fontWeight(.semibold)
 
                 Spacer()
 
@@ -296,8 +300,10 @@ struct ProfileContainerView: View {
             HStack {
                 Image(systemName: "gear")
                     .foregroundColor(.gray)
+                    .font(.title3)
                 Text("Settings")
-                    .font(.headline)
+                    .font(.title3)
+                    .fontWeight(.semibold)
             }
 
             VStack(spacing: 0) {
@@ -392,16 +398,16 @@ struct HealthStatCard: View {
             HStack {
                 Image(systemName: icon)
                     .foregroundColor(color)
-                    .font(.caption)
+                    .font(.subheadline)
                 Spacer()
             }
 
             Text(value)
-                .font(.headline)
+                .font(.title3)
                 .fontWeight(.semibold)
 
             Text(title)
-                .font(.caption)
+                .font(.subheadline)
                 .foregroundColor(.secondary)
         }
         .padding(12)
@@ -418,13 +424,13 @@ struct ProfileMedicationRowView: View {
         HStack {
             VStack(alignment: .leading, spacing: 4) {
                 Text(medication.name)
-                    .font(.subheadline)
+                    .font(.body)
                     .fontWeight(.medium)
                     .foregroundColor(.primary)
 
                 if let dosage = medication.dosage {
                     Text(dosage)
-                        .font(.caption)
+                        .font(.subheadline)
                         .foregroundColor(.secondary)
                 }
             }
@@ -437,10 +443,10 @@ struct ProfileMedicationRowView: View {
             }
 
             Image(systemName: "chevron.right")
-                .font(.caption)
+                .font(.subheadline)
                 .foregroundColor(.secondary)
         }
-        .padding(.vertical, 8)
+        .padding(.vertical, 10)
     }
 }
 
@@ -450,21 +456,23 @@ struct SettingsRow: View {
     let title: String
 
     var body: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: 14) {
             Image(systemName: icon)
                 .foregroundColor(iconColor)
-                .frame(width: 24)
+                .font(.body)
+                .frame(width: 28)
 
             Text(title)
+                .font(.body)
                 .foregroundColor(.primary)
 
             Spacer()
 
             Image(systemName: "chevron.right")
-                .font(.caption)
+                .font(.subheadline)
                 .foregroundColor(.secondary)
         }
-        .padding(.vertical, 12)
+        .padding(.vertical, 14)
     }
 }
 

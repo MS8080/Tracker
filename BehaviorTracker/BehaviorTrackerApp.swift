@@ -29,9 +29,15 @@ struct SplashView: View {
                 .ignoresSafeArea()
 
             VStack(spacing: 20) {
-                Image(systemName: "brain.head.profile")
-                    .font(.system(size: 80))
-                    .foregroundStyle(.blue.gradient)
+                Image(systemName: "infinity")
+                    .font(.system(size: 80, weight: .medium))
+                    .foregroundStyle(
+                        LinearGradient(
+                            colors: [.red, .orange, .yellow, .green, .blue, .purple],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
 
                 Text("Behavior Tracker")
                     .font(.title)
