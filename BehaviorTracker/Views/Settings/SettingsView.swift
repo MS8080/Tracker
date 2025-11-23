@@ -153,7 +153,7 @@ struct FavoritePatternsView: View {
             }
         }
         .navigationTitle("Favorite Patterns")
-        .navigationBarTitleDisplayMode(.inline)
+        .navigationBarTitleDisplayModeInline()
     }
 
     private func patternsInCategory(_ category: PatternCategory) -> [PatternType] {
@@ -200,7 +200,7 @@ struct DataPrivacyView: View {
             .padding()
         }
         .navigationTitle("Privacy & Security")
-        .navigationBarTitleDisplayMode(.inline)
+        .navigationBarTitleDisplayModeInline()
     }
 
     private func privacySection(icon: String, color: Color, title: String, description: String) -> some View {
@@ -294,7 +294,7 @@ struct AboutView: View {
             }
         }
         .navigationTitle("About")
-        .navigationBarTitleDisplayMode(.inline)
+        .navigationBarTitleDisplayModeInline()
     }
 }
 

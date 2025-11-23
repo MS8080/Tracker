@@ -15,7 +15,9 @@ struct AddMedicationView: View {
                 Section("Medication Information") {
                     TextField("Medication Name", text: $name)
                         .textContentType(.none)
+                        #if os(iOS)
                         .autocapitalization(.words)
+                        #endif
 
                     TextField("Dosage (e.g., 10mg)", text: $dosage)
                         .textContentType(.none)
@@ -40,15 +42,17 @@ struct AddMedicationView: View {
                 }
             }
             .navigationTitle("Add Medication")
-            .navigationBarTitleDisplayMode(.inline)
+            #if os(iOS)
+            .navigationBarTitleDisplayModeInline()
+            #endif
             .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
+                ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") {
                         dismiss()
                     }
                 }
 
-                ToolbarItem(placement: .navigationBarTrailing) {
+                ToolbarItem(placement: .confirmationAction) {
                     Button("Save") {
                         saveMedication()
                     }

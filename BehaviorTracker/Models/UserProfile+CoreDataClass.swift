@@ -1,6 +1,16 @@
 import Foundation
 import CoreData
+#if os(iOS)
 import UIKit
+#elseif os(macOS)
+import AppKit
+#endif
+
+#if os(iOS)
+public typealias PlatformImage = UIImage
+#elseif os(macOS)
+public typealias PlatformImage = NSImage
+#endif
 
 @objc(UserProfile)
 public class UserProfile: NSManagedObject, Identifiable {
@@ -11,26 +21,33 @@ public class UserProfile: NSManagedObject, Identifiable {
     @NSManaged public var createdAt: Date
     @NSManaged public var updatedAt: Date
     @NSManaged private var profileImageData: Data?
-    
+
     // MARK: - Profile Image Handling
-    
-    /// Get or set the profile image as a UIImage
-    public var profileImage: UIImage? {
+
+    /// Get or set the profile image
+    public var profileImage: PlatformImage? {
         get {
             guard let data = profileImageData else { return nil }
-            return UIImage(data: data)
+            return PlatformImage(data: data)
         }
         set {
             // Compress and resize image to save storage space
             if let image = newValue {
+                #if os(iOS)
                 profileImageData = image.jpegData(compressionQuality: 0.7)
+                #elseif os(macOS)
+                if let tiffData = image.tiffRepresentation,
+                   let bitmap = NSBitmapImageRep(data: tiffData) {
+                    profileImageData = bitmap.representation(using: .jpeg, properties: [.compressionFactor: 0.7])
+                }
+                #endif
             } else {
                 profileImageData = nil
             }
             updatedAt = Date()
         }
     }
-    
+
     /// Check if user has a profile image
     public var hasProfileImage: Bool {
         return profileImageData != nil
@@ -98,23 +115,45 @@ public class UserProfile: NSManagedObject, Identifiable {
     }
 }
 
-// MARK: - UIImage Extension for Resizing
+// MARK: - Image Extension for Resizing
 
+#if os(iOS)
 extension UIImage {
     /// Resize image to a maximum dimension while maintaining aspect ratio
     func resized(toMaxDimension maxDimension: CGFloat) -> UIImage {
         let aspectRatio = size.width / size.height
         var newSize: CGSize
-        
+
         if size.width > size.height {
             newSize = CGSize(width: maxDimension, height: maxDimension / aspectRatio)
         } else {
             newSize = CGSize(width: maxDimension * aspectRatio, height: maxDimension)
         }
-        
+
         let renderer = UIGraphicsImageRenderer(size: newSize)
         return renderer.image { _ in
             draw(in: CGRect(origin: .zero, size: newSize))
         }
     }
 }
+#elseif os(macOS)
+extension NSImage {
+    /// Resize image to a maximum dimension while maintaining aspect ratio
+    func resized(toMaxDimension maxDimension: CGFloat) -> NSImage {
+        let aspectRatio = size.width / size.height
+        var newSize: CGSize
+
+        if size.width > size.height {
+            newSize = CGSize(width: maxDimension, height: maxDimension / aspectRatio)
+        } else {
+            newSize = CGSize(width: maxDimension * aspectRatio, height: maxDimension)
+        }
+
+        let newImage = NSImage(size: newSize)
+        newImage.lockFocus()
+        draw(in: NSRect(origin: .zero, size: newSize))
+        newImage.unlockFocus()
+        return newImage
+    }
+}
+#endif

@@ -30,7 +30,7 @@ struct DashboardView: View {
             .scrollContentBackground(.hidden)
             .navigationTitle("Dashboard")
             .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
+                ToolbarItem(placement: .primaryAction) {
                     ProfileButton(showingProfile: $showingProfile)
                 }
             }
@@ -393,11 +393,19 @@ struct ProfileButton: View {
         } label: {
             if let profile = dataController.getCurrentUserProfile(),
                let profileImage = profile.profileImage {
+                #if os(iOS)
                 Image(uiImage: profileImage)
                     .resizable()
                     .scaledToFill()
                     .frame(width: 32, height: 32)
                     .clipShape(Circle())
+                #elseif os(macOS)
+                Image(nsImage: profileImage)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: 32, height: 32)
+                    .clipShape(Circle())
+                #endif
             } else {
                 Image(systemName: "person.circle.fill")
                     .font(.title2)

@@ -33,9 +33,9 @@ struct ProfileContainerView: View {
             }
             .background(Color(.systemGroupedBackground))
             .navigationTitle("Profile")
-            .navigationBarTitleDisplayMode(.inline)
+            .navigationBarTitleDisplayModeInline()
             .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
+                ToolbarItem(placement: .confirmationAction) {
                     Button("Done") {
                         dismiss()
                     }
@@ -60,12 +60,21 @@ struct ProfileContainerView: View {
         VStack(spacing: 16) {
             // Profile Image
             if let profileImage = profile?.profileImage {
+                #if os(iOS)
                 Image(uiImage: profileImage)
                     .resizable()
                     .scaledToFill()
                     .frame(width: 100, height: 100)
                     .clipShape(Circle())
                     .overlay(Circle().stroke(Color.blue, lineWidth: 3))
+                #elseif os(macOS)
+                Image(nsImage: profileImage)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: 100, height: 100)
+                    .clipShape(Circle())
+                    .overlay(Circle().stroke(Color.blue, lineWidth: 3))
+                #endif
             } else {
                 Circle()
                     .fill(Color.blue.opacity(0.2))
@@ -487,9 +496,11 @@ struct EditProfileView: View {
     @State private var email: String = ""
     @State private var dateOfBirth: Date = Date()
     @State private var hasDateOfBirth: Bool = false
-    @State private var selectedImage: UIImage?
+    @State private var selectedImage: PlatformImage?
     @State private var showImagePicker: Bool = false
+    #if os(iOS)
     @State private var imageSourceType: UIImagePickerController.SourceType = .photoLibrary
+    #endif
     @State private var showImageSourcePicker: Bool = false
 
     var body: some View {
@@ -516,8 +527,10 @@ struct EditProfileView: View {
 
                     TextField("Email", text: $email)
                         .textContentType(.emailAddress)
+                        #if os(iOS)
                         .keyboardType(.emailAddress)
                         .autocapitalization(.none)
+                        #endif
 
                     Toggle("Date of Birth", isOn: $hasDateOfBirth)
 
@@ -532,7 +545,7 @@ struct EditProfileView: View {
                 }
             }
             .navigationTitle("Edit Profile")
-            .navigationBarTitleDisplayMode(.inline)
+            .navigationBarTitleDisplayModeInline()
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") {
@@ -550,6 +563,7 @@ struct EditProfileView: View {
             .onAppear {
                 loadProfile()
             }
+            #if os(iOS)
             .confirmationDialog("Choose Photo Source", isPresented: $showImageSourcePicker) {
                 Button("Camera") {
                     imageSourceType = .camera
@@ -564,12 +578,14 @@ struct EditProfileView: View {
             .sheet(isPresented: $showImagePicker) {
                 ImagePicker(image: $selectedImage, sourceType: imageSourceType)
             }
+            #endif
         }
     }
 
     @ViewBuilder
     private var profileImageView: some View {
         ZStack {
+            #if os(iOS)
             if let image = selectedImage {
                 Image(uiImage: image)
                     .resizable()
@@ -592,6 +608,30 @@ struct EditProfileView: View {
                             .font(.title2)
                     )
             }
+            #elseif os(macOS)
+            if let image = selectedImage {
+                Image(nsImage: image)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: 100, height: 100)
+                    .clipShape(Circle())
+            } else if let profileImage = profile?.profileImage {
+                Image(nsImage: profileImage)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: 100, height: 100)
+                    .clipShape(Circle())
+            } else {
+                Circle()
+                    .fill(Color.blue.opacity(0.2))
+                    .frame(width: 100, height: 100)
+                    .overlay(
+                        Image(systemName: "person.fill")
+                            .foregroundColor(.blue)
+                            .font(.title2)
+                    )
+            }
+            #endif
         }
         .overlay(Circle().stroke(Color.blue, lineWidth: 2))
     }
@@ -653,7 +693,7 @@ struct AppearanceSettingsView: View {
             }
         }
         .navigationTitle("Appearance")
-        .navigationBarTitleDisplayMode(.inline)
+        .navigationBarTitleDisplayModeInline()
     }
 }
 
@@ -685,7 +725,7 @@ struct NotificationSettingsView: View {
             }
         }
         .navigationTitle("Notifications")
-        .navigationBarTitleDisplayMode(.inline)
+        .navigationBarTitleDisplayModeInline()
     }
 }
 

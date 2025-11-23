@@ -27,7 +27,7 @@ struct ThemePickerView: View {
             }
         }
         .navigationTitle("Themes")
-        .navigationBarTitleDisplayMode(.inline)
+        .navigationBarTitleDisplayModeInline()
     }
 }
 

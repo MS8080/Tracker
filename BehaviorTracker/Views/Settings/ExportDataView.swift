@@ -74,7 +74,7 @@ struct ExportDataView: View {
                 .padding(.bottom, 32)
             }
             .navigationTitle("Export")
-            .navigationBarTitleDisplayMode(.inline)
+            .navigationBarTitleDisplayModeInline()
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Close") {
@@ -126,6 +126,9 @@ enum ExportFormat {
     case csv
 }
 
+#if os(iOS)
+import UIKit
+
 struct ShareSheet: UIViewControllerRepresentable {
     let items: [Any]
 
@@ -135,6 +138,24 @@ struct ShareSheet: UIViewControllerRepresentable {
 
     func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
 }
+#elseif os(macOS)
+import AppKit
+
+struct ShareSheet: View {
+    let items: [Any]
+
+    var body: some View {
+        Button("Share") {
+            if let url = items.first as? URL {
+                let picker = NSSharingServicePicker(items: [url])
+                if let window = NSApplication.shared.keyWindow {
+                    picker.show(relativeTo: .zero, of: window.contentView!, preferredEdge: .minY)
+                }
+            }
+        }
+    }
+}
+#endif
 
 #Preview {
     ExportDataView(viewModel: SettingsViewModel())

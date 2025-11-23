@@ -25,9 +25,9 @@ struct MedicationDetailView: View {
             .padding()
         }
         .navigationTitle(medication.name)
-        .navigationBarTitleDisplayMode(.large)
+        .navigationBarTitleDisplayModeLarge()
         .toolbar {
-            ToolbarItem(placement: .navigationBarTrailing) {
+            ToolbarItem(placement: .primaryAction) {
                 Button(action: {
                     showingLogSheet = true
                 }) {

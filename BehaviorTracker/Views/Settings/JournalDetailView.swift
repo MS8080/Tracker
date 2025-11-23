@@ -106,7 +106,7 @@ struct JournalDetailView: View {
             }
             .padding()
         }
-        .navigationBarTitleDisplayMode(.inline)
+        .navigationBarTitleDisplayModeInline()
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
                 if isEditing {

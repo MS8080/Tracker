@@ -4,50 +4,86 @@ import Foundation
 class DataController: ObservableObject {
     static let shared = DataController()
 
+    // MARK: - iCloud Sync Configuration
+    // Set this to true when you have an Apple Developer Program membership ($99/year)
+    // Then enable iCloud capability in Xcode for both iOS and macOS targets
+    static let iCloudSyncEnabled = false
+
     let container: NSPersistentContainer
     @Published var hasCriticalError = false
     @Published var errorMessage: String?
+    @Published var syncStatus: SyncStatus = .localOnly
+
+    enum SyncStatus {
+        case localOnly
+        case syncing
+        case synced
+        case error(String)
+    }
+
+    var isSyncEnabled: Bool {
+        DataController.iCloudSyncEnabled
+    }
 
     init(inMemory: Bool = false) {
-        container = NSPersistentContainer(name: "BehaviorTrackerModel")
+        // Use CloudKit container only if sync is enabled
+        if DataController.iCloudSyncEnabled {
+            container = NSPersistentCloudKitContainer(name: "BehaviorTrackerModel")
+        } else {
+            container = NSPersistentContainer(name: "BehaviorTrackerModel")
+        }
 
         if inMemory {
             container.persistentStoreDescriptions.first?.url = URL(fileURLWithPath: "/dev/null")
         } else {
-            // Enable lightweight migration on the existing store description
             if let description = container.persistentStoreDescriptions.first {
+                // Enable lightweight migration
                 description.shouldMigrateStoreAutomatically = true
                 description.shouldInferMappingModelAutomatically = true
+
+                // Configure CloudKit sync only if enabled
+                if DataController.iCloudSyncEnabled {
+                    description.cloudKitContainerOptions = NSPersistentCloudKitContainerOptions(
+                        containerIdentifier: "iCloud.com.behaviortracker.BehaviorTracker"
+                    )
+                    description.setOption(true as NSNumber, forKey: NSPersistentStoreRemoteChangeNotificationPostOptionKey)
+                    description.setOption(true as NSNumber, forKey: NSPersistentHistoryTrackingKey)
+                }
             }
         }
 
         container.loadPersistentStores { [weak self] storeDescription, error in
-            if (error as NSError?) != nil {
-                // Set error state for UI to handle
+            if let error = error as NSError? {
                 DispatchQueue.main.async {
                     self?.hasCriticalError = true
-                    self?.errorMessage = "Failed to load data storage. Please try restarting the app. If the problem persists, you may need to reset the app data."
+                    self?.errorMessage = "Failed to load data storage: \(error.localizedDescription)"
+                    self?.syncStatus = .error(error.localizedDescription)
                 }
-
-                // Attempt to delete corrupted store and recreate (last resort)
-                if let storeURL = storeDescription.url {
-                    try? FileManager.default.removeItem(at: storeURL)
-
-                    // Try to reload once
-                    self?.container.loadPersistentStores { _, retryError in
-                        if retryError == nil {
-                            DispatchQueue.main.async {
-                                self?.hasCriticalError = false
-                                self?.errorMessage = nil
-                            }
-                        }
-                    }
+            } else {
+                DispatchQueue.main.async {
+                    self?.syncStatus = DataController.iCloudSyncEnabled ? .synced : .localOnly
                 }
             }
         }
 
         container.viewContext.automaticallyMergesChangesFromParent = true
         container.viewContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
+
+        // Listen for remote changes only if sync is enabled
+        if DataController.iCloudSyncEnabled {
+            NotificationCenter.default.addObserver(
+                self,
+                selector: #selector(handleRemoteChange),
+                name: .NSPersistentStoreRemoteChange,
+                object: container.persistentStoreCoordinator
+            )
+        }
+    }
+
+    @objc private func handleRemoteChange(_ notification: Notification) {
+        DispatchQueue.main.async { [weak self] in
+            self?.syncStatus = .synced
+        }
     }
 
     func save() {

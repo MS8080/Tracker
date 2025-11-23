@@ -37,7 +37,7 @@ struct CategoryLoggingView: View {
                 }
             }
             .navigationTitle(category.rawValue)
-            .navigationBarTitleDisplayMode(.inline)
+            .navigationBarTitleDisplayModeInline()
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Close") {

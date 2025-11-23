@@ -39,6 +39,7 @@ class AudioRecordingService: NSObject, ObservableObject {
     }
 
     func checkPermission() {
+        #if os(iOS)
         switch AVAudioSession.sharedInstance().recordPermission {
         case .granted:
             hasPermission = true
@@ -49,9 +50,22 @@ class AudioRecordingService: NSObject, ObservableObject {
         @unknown default:
             hasPermission = false
         }
+        #elseif os(macOS)
+        switch AVCaptureDevice.authorizationStatus(for: .audio) {
+        case .authorized:
+            hasPermission = true
+        case .denied, .restricted:
+            hasPermission = false
+        case .notDetermined:
+            hasPermission = false
+        @unknown default:
+            hasPermission = false
+        }
+        #endif
     }
 
     func requestPermission() async -> Bool {
+        #if os(iOS)
         return await withCheckedContinuation { continuation in
             AVAudioSession.sharedInstance().requestRecordPermission { granted in
                 DispatchQueue.main.async {
@@ -60,6 +74,16 @@ class AudioRecordingService: NSObject, ObservableObject {
                 }
             }
         }
+        #elseif os(macOS)
+        return await withCheckedContinuation { continuation in
+            AVCaptureDevice.requestAccess(for: .audio) { granted in
+                DispatchQueue.main.async {
+                    self.hasPermission = granted
+                    continuation.resume(returning: granted)
+                }
+            }
+        }
+        #endif
     }
 
     func startRecording() -> String? {
@@ -79,9 +103,11 @@ class AudioRecordingService: NSObject, ObservableObject {
         ]
 
         do {
+            #if os(iOS)
             let session = AVAudioSession.sharedInstance()
             try session.setCategory(.playAndRecord, mode: .default, options: [.defaultToSpeaker])
             try session.setActive(true)
+            #endif
 
             audioRecorder = try AVAudioRecorder(url: fileURL, settings: settings)
             audioRecorder?.isMeteringEnabled = true
@@ -120,7 +146,9 @@ class AudioRecordingService: NSObject, ObservableObject {
         levelTimer = nil
         audioLevel = 0
 
+        #if os(iOS)
         try? AVAudioSession.sharedInstance().setActive(false)
+        #endif
     }
 
     func cancelRecording(fileName: String?) {
@@ -141,9 +169,11 @@ class AudioRecordingService: NSObject, ObservableObject {
         }
 
         do {
+            #if os(iOS)
             let session = AVAudioSession.sharedInstance()
             try session.setCategory(.playback, mode: .default)
             try session.setActive(true)
+            #endif
 
             audioPlayer = try AVAudioPlayer(contentsOf: fileURL)
             audioPlayer?.delegate = self
@@ -183,7 +213,9 @@ class AudioRecordingService: NSObject, ObservableObject {
         playbackTimer?.invalidate()
         playbackTimer = nil
 
+        #if os(iOS)
         try? AVAudioSession.sharedInstance().setActive(false)
+        #endif
     }
 
     func seekTo(time: TimeInterval) {

@@ -34,8 +34,8 @@ public class PatternEntry: NSManagedObject, Identifiable {
         }
     }
 
-    var patternTypeEnum: BehaviorTracker.PatternType? {
-        BehaviorTracker.PatternType(rawValue: patternType)
+    var patternTypeEnum: PatternType? {
+        PatternType(rawValue: patternType)
     }
 
     public override func awakeFromInsert() {
@@ -48,7 +48,7 @@ public class PatternEntry: NSManagedObject, Identifiable {
     /// Valid intensity range (0 = not set, 1-5 = intensity scale)
     static let validIntensityRange: ClosedRange<Int16> = 0...5
 
-    func configure(patternType: BehaviorTracker.PatternType,
+    func configure(patternType: PatternType,
                    intensity: Int16 = 0,
                    duration: Int32 = 0,
                    contextNotes: String? = nil,

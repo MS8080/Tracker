@@ -152,16 +152,16 @@ struct JournalEntryEditorView: View {
                 }
             }
             .navigationTitle(entry == nil ? "New Entry" : "Edit Entry")
-            .navigationBarTitleDisplayMode(.inline)
+            .navigationBarTitleDisplayModeInline()
             .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
+                ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") {
                         dismiss()
                     }
                     .accessibilityLabel("Cancel")
                 }
 
-                ToolbarItem(placement: .navigationBarTrailing) {
+                ToolbarItem(placement: .confirmationAction) {
                     Button("Save") {
                         saveEntry()
                     }

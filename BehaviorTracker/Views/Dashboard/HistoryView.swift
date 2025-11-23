@@ -36,18 +36,18 @@ struct HistoryView: View {
             }
         }
         .navigationTitle("History")
-        .navigationBarTitleDisplayMode(.inline)
+        .navigationBarTitleDisplayModeInline()
         .searchable(text: $searchText, prompt: "Search patterns")
         .toolbar {
-            ToolbarItem(placement: .navigationBarLeading) {
+            ToolbarItem(placement: .cancellationAction) {
                 Button {
                     showDaySummary = true
                 } label: {
                     Label("Today's Summary", systemImage: "chart.bar.doc.horizontal")
                 }
             }
-            
-            ToolbarItem(placement: .navigationBarTrailing) {
+
+            ToolbarItem(placement: .primaryAction) {
                 Menu {
                     Button {
                         selectedCategory = nil

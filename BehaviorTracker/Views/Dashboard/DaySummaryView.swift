@@ -41,14 +41,16 @@ struct DaySummaryView: View {
                         EncouragementSlide(viewModel: viewModel)
                             .tag(4)
                     }
+                    #if os(iOS)
                     .tabViewStyle(.page(indexDisplayMode: .always))
                     .indexViewStyle(.page(backgroundDisplayMode: .always))
+                    #endif
                 }
             }
             .navigationTitle("Today's Summary")
-            .navigationBarTitleDisplayMode(.inline)
+            .navigationBarTitleDisplayModeInline()
             .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
+                ToolbarItem(placement: .confirmationAction) {
                     Button("Done") {
                         dismiss()
                     }

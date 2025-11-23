@@ -40,7 +40,7 @@ struct ThemePickerView: View {
             }
         }
         .navigationTitle("Background Theme")
-        .navigationBarTitleDisplayMode(.inline)
+        .navigationBarTitleDisplayModeInline()
     }
 }
 

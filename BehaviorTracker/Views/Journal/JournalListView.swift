@@ -36,7 +36,7 @@ struct JournalListView: View {
             }
             .navigationTitle("Journal")
             .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
+                ToolbarItem(placement: .primaryAction) {
                     HStack(spacing: 16) {
                         Button(action: {
                             showingNewEntry = true
@@ -102,7 +102,9 @@ struct JournalListView: View {
                     }
             }
         }
+        #if os(iOS)
         .listStyle(.insetGrouped)
+        #endif
     }
 
     private var emptyStateView: some View {

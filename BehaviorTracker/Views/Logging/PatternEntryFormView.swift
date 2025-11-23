@@ -79,7 +79,9 @@ struct PatternEntryFormView: View {
                                         Text("\(hour)h").tag(hour)
                                     }
                                 }
+                                #if os(iOS)
                                 .pickerStyle(.wheel)
+                                #endif
                                 .frame(width: 80)
 
                                 Picker("Minutes", selection: $minutes) {
@@ -87,7 +89,9 @@ struct PatternEntryFormView: View {
                                         Text("\(minute)m").tag(minute)
                                     }
                                 }
+                                #if os(iOS)
                                 .pickerStyle(.wheel)
+                                #endif
                                 .frame(width: 80)
                             }
                         }
@@ -186,7 +190,7 @@ struct PatternEntryFormView: View {
                 }
             }
             .navigationTitle("New Entry")
-            .navigationBarTitleDisplayMode(.inline)
+            .navigationBarTitleDisplayModeInline()
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") {

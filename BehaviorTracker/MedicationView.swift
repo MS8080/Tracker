@@ -215,7 +215,7 @@ struct AddMedicationView: View {
                 }
             }
             .navigationTitle("Add Medication")
-            .navigationBarTitleDisplayMode(.inline)
+            .navigationBarTitleDisplayModeInline()
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") {
@@ -294,7 +294,7 @@ struct EditMedicationView: View {
                 }
             }
             .navigationTitle("Edit Medication")
-            .navigationBarTitleDisplayMode(.inline)
+            .navigationBarTitleDisplayModeInline()
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") {
@@ -376,7 +376,7 @@ struct LogMedicationView: View {
                 }
             }
             .navigationTitle("Log \(medication.name)")
-            .navigationBarTitleDisplayMode(.inline)
+            .navigationBarTitleDisplayModeInline()
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") {

@@ -40,16 +40,16 @@ struct JournalEntryDetailView: View {
                 .padding()
             }
             .navigationTitle("Journal Entry")
-            .navigationBarTitleDisplayMode(.inline)
+            .navigationBarTitleDisplayModeInline()
             .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
+                ToolbarItem(placement: .cancellationAction) {
                     Button("Done") {
                         dismiss()
                     }
                     .accessibilityLabel("Close journal entry")
                 }
 
-                ToolbarItem(placement: .navigationBarTrailing) {
+                ToolbarItem(placement: .primaryAction) {
                     Menu {
                         Button(action: {
                             isEditing = true

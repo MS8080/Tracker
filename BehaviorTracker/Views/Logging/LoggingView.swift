@@ -27,7 +27,7 @@ struct LoggingView: View {
             .scrollContentBackground(.hidden)
             .navigationTitle("Log Pattern")
             .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
+                ToolbarItem(placement: .primaryAction) {
                     ProfileButton(showingProfile: $showingProfile)
                 }
             }

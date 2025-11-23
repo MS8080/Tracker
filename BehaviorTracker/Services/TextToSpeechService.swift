@@ -101,6 +101,7 @@ class TextToSpeechService: NSObject, ObservableObject {
     // MARK: - Helpers
 
     private func configureAudioSession() {
+        #if os(iOS)
         do {
             let audioSession = AVAudioSession.sharedInstance()
             try audioSession.setCategory(.playback, mode: .spokenAudio, options: [.duckOthers])
@@ -108,6 +109,8 @@ class TextToSpeechService: NSObject, ObservableObject {
         } catch {
             print("Failed to configure audio session: \(error.localizedDescription)")
         }
+        #endif
+        // macOS doesn't require AVAudioSession configuration
     }
 
     private func getMoodDescription(for mood: Int16) -> String {

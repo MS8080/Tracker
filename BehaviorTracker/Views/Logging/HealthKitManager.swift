@@ -1,3 +1,4 @@
+#if os(iOS)
 import Foundation
 import HealthKit
 
@@ -884,3 +885,67 @@ struct HealthDataSummary {
         return duration / 3600.0
     }
 }
+#else
+// macOS stub - HealthKit is not available on macOS
+import Foundation
+
+class HealthKitManager: ObservableObject {
+    static let shared = HealthKitManager()
+
+    @MainActor @Published var isAuthorized = false
+    @MainActor @Published var authorizationError: String?
+
+    var isHealthKitAvailable: Bool { false }
+
+    func requestAuthorization() async {
+        await MainActor.run {
+            authorizationError = "HealthKit is not available on macOS"
+        }
+    }
+
+    func syncPatternToHealthKit(patternType: PatternType, intensity: Int16, duration: Int32, timestamp: Date = Date()) async {}
+    func fetchRecentHeartRate() async -> Double? { nil }
+    func fetchTodayActiveEnergy() async -> Double? { nil }
+    func fetchLatestWeight() async -> (value: Double, date: Date)? { nil }
+    func fetchWeightHistory(startDate: Date, endDate: Date = Date()) async -> [(value: Double, date: Date)] { [] }
+    func fetchSleepData(startDate: Date, endDate: Date = Date()) async -> [(duration: TimeInterval, quality: String, date: Date)] { [] }
+    func fetchLastNightSleep() async -> TimeInterval? { nil }
+    func fetchRestingHeartRate() async -> Double? { nil }
+    func fetchHeartRateVariability() async -> Double? { nil }
+    func fetchLatestBloodPressure() async -> (systolic: Double, diastolic: Double, date: Date)? { nil }
+    func fetchTodaySteps() async -> Double? { nil }
+    func fetchTodayExerciseMinutes() async -> Double? { nil }
+    func fetchTodayWaterIntake() async -> Double? { nil }
+    func fetchTodayCaffeineIntake() async -> Double? { nil }
+    func fetchMindfulnessSessions(startDate: Date, endDate: Date = Date()) async -> [(duration: TimeInterval, date: Date)] { [] }
+    func fetchHealthSummary() async -> HealthDataSummary {
+        HealthDataSummary(
+            weight: nil, weightDate: nil, sleepDuration: nil, heartRate: nil,
+            restingHeartRate: nil, heartRateVariability: nil, bloodPressure: nil,
+            bloodPressureDate: nil, steps: nil, exerciseMinutes: nil,
+            activeEnergy: nil, waterIntake: nil, caffeineIntake: nil
+        )
+    }
+}
+
+struct HealthDataSummary {
+    let weight: Double?
+    let weightDate: Date?
+    let sleepDuration: TimeInterval?
+    let heartRate: Double?
+    let restingHeartRate: Double?
+    let heartRateVariability: Double?
+    let bloodPressure: (systolic: Double, diastolic: Double)?
+    let bloodPressureDate: Date?
+    let steps: Double?
+    let exerciseMinutes: Double?
+    let activeEnergy: Double?
+    let waterIntake: Double?
+    let caffeineIntake: Double?
+
+    var sleepHours: Double? {
+        guard let duration = sleepDuration else { return nil }
+        return duration / 3600.0
+    }
+}
+#endif

@@ -76,7 +76,7 @@ struct JournalEntryFormView: View {
                 }
             }
             .navigationTitle("New Journal Entry")
-            .navigationBarTitleDisplayMode(.inline)
+            .navigationBarTitleDisplayModeInline()
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") {

@@ -1,5 +1,7 @@
-import UIKit
 import SwiftUI
+#if os(iOS)
+import UIKit
+#endif
 
 enum HapticFeedback {
     case light
@@ -11,6 +13,7 @@ enum HapticFeedback {
     case selection
 
     func trigger() {
+        #if os(iOS)
         switch self {
         case .light:
             UIImpactFeedbackGenerator(style: .light).impactOccurred()
@@ -27,6 +30,9 @@ enum HapticFeedback {
         case .selection:
             UISelectionFeedbackGenerator().selectionChanged()
         }
+        #else
+        // Haptic feedback is not available on macOS
+        #endif
     }
 }
 

@@ -1,4 +1,9 @@
 import SwiftUI
+#if os(iOS)
+import UIKit
+#elseif os(macOS)
+import AppKit
+#endif
 
 struct AIInsightsView: View {
     @StateObject private var viewModel = AIInsightsViewModel()
@@ -23,11 +28,11 @@ struct AIInsightsView: View {
                 }
                 .padding()
             }
-            .background(Color(.systemGroupedBackground))
+            .background(Color(PlatformColor.systemGroupedBackground))
             .navigationTitle("AI Insights")
-            .navigationBarTitleDisplayMode(.inline)
+            .navigationBarTitleDisplayModeInline()
             .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
+                ToolbarItem(placement: .confirmationAction) {
                     Button("Done") {
                         dismiss()
                     }
@@ -79,7 +84,7 @@ struct AIInsightsView: View {
                     .foregroundColor(.secondary)
             }
             .padding()
-            .background(Color(.secondarySystemGroupedBackground))
+            .background(Color(PlatformColor.secondarySystemGroupedBackground))
             .cornerRadius(12)
 
             Button {
@@ -128,11 +133,13 @@ struct AIInsightsView: View {
 
                 TextField("Paste your API key here", text: $viewModel.apiKeyInput)
                     .textFieldStyle(.roundedBorder)
+                    #if os(iOS)
                     .autocapitalization(.none)
+                    #endif
                     .autocorrectionDisabled()
             }
             .padding()
-            .background(Color(.secondarySystemGroupedBackground))
+            .background(Color(PlatformColor.secondarySystemGroupedBackground))
             .cornerRadius(12)
 
             Button {
@@ -173,7 +180,7 @@ struct AIInsightsView: View {
                 .pickerStyle(.segmented)
             }
             .padding()
-            .background(Color(.secondarySystemGroupedBackground))
+            .background(Color(PlatformColor.secondarySystemGroupedBackground))
             .cornerRadius(12)
 
             // Analyze button
@@ -259,7 +266,12 @@ struct AIInsightsView: View {
 
             // Copy button
             Button {
+                #if os(iOS)
                 UIPasteboard.general.string = insights.content
+                #elseif os(macOS)
+                NSPasteboard.general.clearContents()
+                NSPasteboard.general.setString(insights.content, forType: .string)
+                #endif
                 viewModel.showCopiedFeedback = true
                 DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
                     viewModel.showCopiedFeedback = false
@@ -274,7 +286,7 @@ struct AIInsightsView: View {
             }
         }
         .padding()
-        .background(Color(.secondarySystemGroupedBackground))
+        .background(Color(PlatformColor.secondarySystemGroupedBackground))
         .cornerRadius(12)
     }
 
@@ -300,7 +312,9 @@ struct AISettingsView: View {
             Form {
                 Section("API Key") {
                     SecureField("Gemini API Key", text: $viewModel.apiKeyInput)
+                        #if os(iOS)
                         .autocapitalization(.none)
+                        #endif
                         .autocorrectionDisabled()
 
                     Button("Update API Key") {
@@ -335,9 +349,9 @@ struct AISettingsView: View {
                 }
             }
             .navigationTitle("AI Settings")
-            .navigationBarTitleDisplayMode(.inline)
+            .navigationBarTitleDisplayModeInline()
             .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
+                ToolbarItem(placement: .confirmationAction) {
                     Button("Done") {
                         dismiss()
                     }

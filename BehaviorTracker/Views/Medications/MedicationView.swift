@@ -7,7 +7,7 @@ struct MedicationView: View {
     var body: some View {
         NavigationView {
             ZStack {
-                Color(.systemGroupedBackground)
+                Color(PlatformColor.systemGroupedBackground)
                     .ignoresSafeArea()
 
                 ScrollView {
@@ -23,7 +23,7 @@ struct MedicationView: View {
             }
             .navigationTitle("Medications")
             .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
+                ToolbarItem(placement: .primaryAction) {
                     Button(action: {
                         showingAddMedication = true
                     }) {
@@ -57,7 +57,7 @@ struct MedicationView: View {
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 40)
-                .background(Color(.systemBackground))
+                .background(Color(PlatformColor.systemBackground))
                 .cornerRadius(12)
                 .padding(.horizontal)
             } else {
@@ -138,7 +138,7 @@ struct MedicationDailyCard: View {
             }
         }
         .padding()
-        .background(Color(.systemBackground))
+        .background(Color(PlatformColor.systemBackground))
         .cornerRadius(12)
         .shadow(color: Color.black.opacity(0.05), radius: 5, x: 0, y: 2)
         .sheet(isPresented: $showingLogSheet) {
@@ -186,7 +186,7 @@ struct MedicationListCard: View {
             }
         }
         .padding()
-        .background(Color(.systemBackground))
+        .background(Color(PlatformColor.systemBackground))
         .cornerRadius(12)
         .shadow(color: Color.black.opacity(0.05), radius: 5, x: 0, y: 2)
     }
@@ -222,7 +222,7 @@ struct StatBadge: View {
         }
         .padding(.horizontal, 8)
         .padding(.vertical, 6)
-        .background(Color(.systemGray6))
+        .background(Color(PlatformColor.systemGray6))
         .cornerRadius(8)
     }
 }

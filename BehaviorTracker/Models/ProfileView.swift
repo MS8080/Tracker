@@ -1,23 +1,28 @@
 import SwiftUI
 import PhotosUI
+#if os(iOS)
+import UIKit
+#endif
 
 struct ProfileView: View {
     @Environment(\.managedObjectContext) private var viewContext
     @ObservedObject var dataController: DataController
-    
+
     @State private var profile: UserProfile?
     @State private var name: String = ""
     @State private var email: String = ""
     @State private var dateOfBirth: Date = Date()
     @State private var showDatePicker: Bool = false
     @State private var hasDateOfBirth: Bool = false
-    
+
     // Image picker states
     @State private var showImagePicker: Bool = false
     @State private var showImageSourcePicker: Bool = false
-    @State private var selectedImage: UIImage?
+    @State private var selectedImage: PlatformImage?
+    #if os(iOS)
     @State private var imageSourceType: UIImagePickerController.SourceType = .photoLibrary
-    
+    #endif
+
     @State private var showSaveConfirmation: Bool = false
     
     var body: some View {
@@ -49,8 +54,10 @@ struct ProfileView: View {
                     
                     TextField("Email", text: $email)
                         .textContentType(.emailAddress)
+                        #if os(iOS)
                         .keyboardType(.emailAddress)
                         .autocapitalization(.none)
+                        #endif
                         .autocorrectionDisabled()
                     
                     Toggle("Date of Birth", isOn: $hasDateOfBirth)
@@ -103,17 +110,18 @@ struct ProfileView: View {
             .onAppear {
                 loadProfile()
             }
+            #if os(iOS)
             .confirmationDialog("Choose Photo Source", isPresented: $showImageSourcePicker) {
                 Button("Camera") {
                     imageSourceType = .camera
                     showImagePicker = true
                 }
-                
+
                 Button("Photo Library") {
                     imageSourceType = .photoLibrary
                     showImagePicker = true
                 }
-                
+
                 Button("Cancel", role: .cancel) { }
             }
             .sheet(isPresented: $showImagePicker) {
@@ -122,6 +130,7 @@ struct ProfileView: View {
                     sourceType: imageSourceType
                 )
             }
+            #endif
             .alert("Profile Saved", isPresented: $showSaveConfirmation) {
                 Button("OK", role: .cancel) { }
             } message: {
@@ -135,6 +144,7 @@ struct ProfileView: View {
     @ViewBuilder
     private var profileImageView: some View {
         ZStack {
+            #if os(iOS)
             if let image = selectedImage {
                 Image(uiImage: image)
                     .resizable()
@@ -148,18 +158,26 @@ struct ProfileView: View {
                     .frame(width: 120, height: 120)
                     .clipShape(Circle())
             } else {
-                // Placeholder with initials
-                Circle()
-                    .fill(Color.blue.opacity(0.2))
-                    .frame(width: 120, height: 120)
-                    .overlay(
-                        Text(profile?.initials ?? "?")
-                            .font(.largeTitle)
-                            .fontWeight(.semibold)
-                            .foregroundColor(.blue)
-                    )
+                placeholderCircle
             }
-            
+            #elseif os(macOS)
+            if let image = selectedImage {
+                Image(nsImage: image)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: 120, height: 120)
+                    .clipShape(Circle())
+            } else if let profileImage = profile?.profileImage {
+                Image(nsImage: profileImage)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: 120, height: 120)
+                    .clipShape(Circle())
+            } else {
+                placeholderCircle
+            }
+            #endif
+
             // Camera overlay
             Circle()
                 .fill(Color.black.opacity(0.4))
@@ -177,6 +195,18 @@ struct ProfileView: View {
                 .stroke(Color.blue, lineWidth: 3)
         )
         .shadow(radius: 5)
+    }
+
+    private var placeholderCircle: some View {
+        Circle()
+            .fill(Color.blue.opacity(0.2))
+            .frame(width: 120, height: 120)
+            .overlay(
+                Text(profile?.initials ?? "?")
+                    .font(.largeTitle)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.blue)
+            )
     }
     
     // MARK: - Methods
@@ -214,12 +244,13 @@ struct ProfileView: View {
 
 // MARK: - Image Picker
 
+#if os(iOS)
 struct ImagePicker: UIViewControllerRepresentable {
     @Binding var image: UIImage?
     @Environment(\.dismiss) private var dismiss
-    
+
     var sourceType: UIImagePickerController.SourceType
-    
+
     func makeUIViewController(context: Context) -> UIImagePickerController {
         let picker = UIImagePickerController()
         picker.sourceType = sourceType
@@ -227,20 +258,20 @@ struct ImagePicker: UIViewControllerRepresentable {
         picker.allowsEditing = true
         return picker
     }
-    
+
     func updateUIViewController(_ uiViewController: UIImagePickerController, context: Context) {}
-    
+
     func makeCoordinator() -> Coordinator {
         Coordinator(self)
     }
-    
+
     class Coordinator: NSObject, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
         let parent: ImagePicker
-        
+
         init(_ parent: ImagePicker) {
             self.parent = parent
         }
-        
+
         func imagePickerController(
             _ picker: UIImagePickerController,
             didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey: Any]
@@ -252,12 +283,13 @@ struct ImagePicker: UIViewControllerRepresentable {
             }
             parent.dismiss()
         }
-        
+
         func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
             parent.dismiss()
         }
     }
 }
+#endif
 
 // MARK: - Preview
 
