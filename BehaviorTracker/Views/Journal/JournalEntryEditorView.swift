@@ -10,8 +10,6 @@ struct JournalEntryEditorView: View {
 
     @State private var title: String
     @State private var content: String
-    @State private var mood: Int16
-    @State private var showingMoodPicker = false
     @State private var audioFileName: String?
     @State private var showingDeleteAudioAlert = false
     @FocusState private var contentIsFocused: Bool
@@ -20,7 +18,6 @@ struct JournalEntryEditorView: View {
         self.entry = entry
         _title = State(initialValue: entry?.title ?? "")
         _content = State(initialValue: entry?.content ?? "")
-        _mood = State(initialValue: entry?.mood ?? 0)
         _audioFileName = State(initialValue: entry?.audioFileName)
     }
 
@@ -30,125 +27,36 @@ struct JournalEntryEditorView: View {
                 Section {
                     TextField("Title (optional)", text: $title)
                         .font(.headline)
-                        .accessibilityLabel("Journal entry title")
                 } header: {
                     Text("Title")
                 }
 
                 Section {
-                    ZStack(alignment: .topLeading) {
-                        if content.isEmpty {
-                            Text("Write your thoughts here...")
-                                .foregroundColor(.gray)
-                                .padding(.top, 8)
-                                .padding(.leading, 4)
-                                .accessibilityHidden(true)
+                    VStack(alignment: .leading, spacing: 12) {
+                        ZStack(alignment: .topLeading) {
+                            if content.isEmpty && !contentIsFocused {
+                                Text("Write your thoughts here...")
+                                    .foregroundColor(.gray)
+                                    .padding(.top, 8)
+                                    .padding(.leading, 4)
+                            }
+
+                            TextEditor(text: $content)
+                                .frame(minHeight: contentIsFocused ? 300 : 150)
+                                .animation(.easeInOut(duration: 0.2), value: contentIsFocused)
+                                .focused($contentIsFocused)
                         }
 
-                        TextEditor(text: $content)
-                            .frame(minHeight: 200)
-                            .focused($contentIsFocused)
-                            .accessibilityLabel("Journal entry content")
+                        // Voice note inside content section
+                        Divider()
+
+                        voiceNoteCompact
                     }
                 } header: {
                     Text("Content")
                 } footer: {
-                    HStack {
-                        Text("\(content.count) characters")
-                            .foregroundColor(.secondary)
-                        Spacer()
-                    }
-                }
-
-                Section {
-                    voiceNoteSection
-                } header: {
-                    Text("Voice Note (Optional)")
-                } footer: {
-                    Text("Record a voice memo instead of or in addition to text")
-                }
-
-                Section {
-                    Button(action: {
-                        showingMoodPicker.toggle()
-                    }) {
-                        HStack {
-                            Text("Mood")
-                            Spacer()
-                            if mood > 0 {
-                                HStack(spacing: 4) {
-                                    Image(systemName: "face.smiling")
-                                        .foregroundColor(.blue)
-                                    Text(moodText(for: mood))
-                                        .foregroundColor(.blue)
-                                }
-                            } else {
-                                Text("Not set")
-                                    .foregroundColor(.secondary)
-                            }
-                            Image(systemName: "chevron.right")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                        }
-                    }
-                    .accessibilityLabel("Mood: \(mood > 0 ? moodText(for: mood) : "Not set")")
-                    .accessibilityHint("Tap to select mood")
-                } header: {
-                    Text("Mood (Optional)")
-                }
-
-                if showingMoodPicker {
-                    Section {
-                        ForEach([
-                            (value: Int16(0), label: "Not set"),
-                            (value: Int16(1), label: "Very Low"),
-                            (value: Int16(2), label: "Low"),
-                            (value: Int16(3), label: "Neutral"),
-                            (value: Int16(4), label: "Good"),
-                            (value: Int16(5), label: "Very Good")
-                        ], id: \.value) { moodOption in
-                            Button(action: {
-                                mood = moodOption.value
-                                withAnimation {
-                                    showingMoodPicker = false
-                                }
-                            }) {
-                                HStack {
-                                    Text(moodOption.label)
-                                        .foregroundColor(.primary)
-                                    Spacer()
-                                    if mood == moodOption.value {
-                                        Image(systemName: "checkmark")
-                                            .foregroundColor(.accentColor)
-                                    }
-                                }
-                            }
-                            .accessibilityLabel("\(moodOption.label) mood")
-                            .accessibilityHint(mood == moodOption.value ? "Currently selected" : "")
-                        }
-                    }
-                }
-
-                Section {
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text("Accessibility Features")
-                            .font(.headline)
-
-                        Label("Text-to-speech available in detail view", systemImage: "speaker.wave.2")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-
-                        Label("All fields support VoiceOver", systemImage: "accessibility")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-
-                        Label("Dynamic Type supported", systemImage: "textformat.size")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
-                    .padding(.vertical, 4)
-                } header: {
-                    Text("Accessibility")
+                    Text("\(content.count) characters")
+                        .foregroundColor(.secondary)
                 }
             }
             .navigationTitle(entry == nil ? "New Entry" : "Edit Entry")
@@ -158,7 +66,6 @@ struct JournalEntryEditorView: View {
                     Button("Cancel") {
                         dismiss()
                     }
-                    .accessibilityLabel("Cancel")
                 }
 
                 ToolbarItem(placement: .confirmationAction) {
@@ -166,12 +73,9 @@ struct JournalEntryEditorView: View {
                         saveEntry()
                     }
                     .disabled(content.isEmpty)
-                    .accessibilityLabel("Save journal entry")
-                    .accessibilityHint(content.isEmpty ? "Content is required" : "")
                 }
             }
             .onAppear {
-                // Auto-focus on content when creating new entry
                 if entry == nil {
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
                         contentIsFocused = true
@@ -181,171 +85,132 @@ struct JournalEntryEditorView: View {
         }
     }
 
+    // MARK: - Compact Voice Note (inside content section)
     @ViewBuilder
-    private var voiceNoteSection: some View {
+    private var voiceNoteCompact: some View {
         if audioService.isRecording {
             // Recording in progress
-            VStack(spacing: 16) {
-                HStack {
-                    Circle()
-                        .fill(Color.red)
-                        .frame(width: 12, height: 12)
-                        .opacity(audioService.isRecording ? 1 : 0)
-                        .animation(.easeInOut(duration: 0.5).repeatForever(), value: audioService.isRecording)
+            HStack(spacing: 12) {
+                Circle()
+                    .fill(Color.red)
+                    .frame(width: 10, height: 10)
 
-                    Text("Recording...")
-                        .font(.headline)
-                        .foregroundColor(.red)
+                Text("Recording...")
+                    .font(.subheadline)
+                    .foregroundColor(.red)
 
-                    Spacer()
+                Text(audioService.formatTime(audioService.recordingTime))
+                    .font(.subheadline)
+                    .monospacedDigit()
+                    .foregroundColor(.secondary)
 
-                    Text(audioService.formatTime(audioService.recordingTime))
+                Spacer()
+
+                Button {
+                    audioService.cancelRecording(fileName: audioFileName)
+                    audioFileName = nil
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.title3)
+                        .foregroundColor(.secondary)
+                }
+
+                Button {
+                    audioService.stopRecording()
+                } label: {
+                    Image(systemName: "stop.circle.fill")
                         .font(.title2)
-                        .monospacedDigit()
-                }
-
-                // Audio level indicator
-                GeometryReader { geometry in
-                    RoundedRectangle(cornerRadius: 4)
-                        .fill(Color.red.opacity(0.3))
-                        .frame(width: geometry.size.width * CGFloat(audioService.audioLevel), height: 8)
-                        .animation(.easeOut(duration: 0.1), value: audioService.audioLevel)
-                }
-                .frame(height: 8)
-
-                HStack(spacing: 20) {
-                    Button {
-                        audioService.cancelRecording(fileName: audioFileName)
-                        audioFileName = nil
-                    } label: {
-                        Label("Cancel", systemImage: "xmark.circle.fill")
-                            .foregroundColor(.secondary)
-                    }
-
-                    Spacer()
-
-                    Button {
-                        audioService.stopRecording()
-                    } label: {
-                        Image(systemName: "stop.circle.fill")
-                            .font(.system(size: 44))
-                            .foregroundColor(.red)
-                    }
-
-                    Spacer()
-                    Spacer()
+                        .foregroundColor(.red)
                 }
             }
-            .padding(.vertical, 8)
+            .padding(.vertical, 4)
+
         } else if let fileName = audioFileName, !fileName.isEmpty {
             // Has recorded audio
-            VStack(spacing: 12) {
-                HStack {
-                    Image(systemName: "waveform")
-                        .foregroundColor(.blue)
-
-                    Text("Voice Note Recorded")
-                        .font(.subheadline)
-
-                    Spacer()
-
-                    if let duration = audioService.getAudioDuration(fileName: fileName) {
-                        Text(audioService.formatTime(duration))
-                            .font(.caption)
-                            .foregroundColor(.secondary)
+            HStack(spacing: 12) {
+                Button {
+                    if audioService.isPlaying {
+                        audioService.pausePlayback()
+                    } else {
+                        audioService.playAudio(fileName: fileName)
                     }
+                } label: {
+                    Image(systemName: audioService.isPlaying ? "pause.circle.fill" : "play.circle.fill")
+                        .font(.title2)
+                        .foregroundColor(.blue)
                 }
 
-                HStack(spacing: 16) {
-                    Button {
-                        if audioService.isPlaying {
-                            audioService.pausePlayback()
-                        } else {
-                            audioService.playAudio(fileName: fileName)
-                        }
-                    } label: {
-                        Image(systemName: audioService.isPlaying ? "pause.circle.fill" : "play.circle.fill")
-                            .font(.system(size: 36))
-                            .foregroundColor(.blue)
-                    }
+                Image(systemName: "waveform")
+                    .foregroundColor(.blue)
+                    .font(.caption)
 
-                    if audioService.isPlaying {
-                        Text(audioService.formatTime(audioService.playbackTime))
-                            .font(.caption)
-                            .monospacedDigit()
-                            .foregroundColor(.secondary)
-                    }
+                if let duration = audioService.getAudioDuration(fileName: fileName) {
+                    Text(audioService.formatTime(audioService.isPlaying ? audioService.playbackTime : duration))
+                        .font(.caption)
+                        .monospacedDigit()
+                        .foregroundColor(.secondary)
+                }
 
-                    Spacer()
+                Spacer()
 
-                    Button {
-                        showingDeleteAudioAlert = true
-                    } label: {
-                        Image(systemName: "trash.circle.fill")
-                            .font(.system(size: 28))
-                            .foregroundColor(.red)
-                    }
+                Button {
+                    showingDeleteAudioAlert = true
+                } label: {
+                    Image(systemName: "trash")
+                        .font(.subheadline)
+                        .foregroundColor(.red)
                 }
             }
             .padding(.vertical, 4)
             .alert("Delete Voice Note?", isPresented: $showingDeleteAudioAlert) {
                 Button("Cancel", role: .cancel) { }
                 Button("Delete", role: .destructive) {
-                    if let fileName = audioFileName {
-                        audioService.stopPlayback()
-                        audioService.deleteAudioFile(fileName: fileName)
-                        audioFileName = nil
-                    }
+                    audioService.stopPlayback()
+                    audioService.deleteAudioFile(fileName: fileName)
+                    audioFileName = nil
                 }
             } message: {
                 Text("This cannot be undone.")
             }
-        } else {
-            // No audio - show record button
-            VStack(spacing: 12) {
-                if !audioService.hasPermission {
-                    Text("Microphone access required for voice notes")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
 
-                    Button("Grant Permission") {
+        } else {
+            // No audio - show compact record button
+            HStack(spacing: 8) {
+                if !audioService.hasPermission {
+                    Button {
                         Task {
                             await audioService.requestPermission()
                         }
+                    } label: {
+                        HStack(spacing: 6) {
+                            Image(systemName: "mic.slash")
+                                .font(.subheadline)
+                            Text("Enable microphone")
+                                .font(.caption)
+                        }
+                        .foregroundColor(.secondary)
                     }
-                    .buttonStyle(.bordered)
                 } else {
                     Button {
                         audioFileName = audioService.startRecording()
                     } label: {
-                        HStack {
+                        HStack(spacing: 6) {
                             Image(systemName: "mic.circle.fill")
-                                .font(.system(size: 36))
-                            Text("Tap to Record")
-                                .font(.body)
+                                .font(.title3)
+                            Text("Add voice note")
+                                .font(.subheadline)
                         }
                         .foregroundColor(.blue)
                     }
                 }
-            }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 8)
-        }
-    }
 
-    private func moodText(for mood: Int16) -> String {
-        switch mood {
-        case 1: return "Very Low"
-        case 2: return "Low"
-        case 3: return "Neutral"
-        case 4: return "Good"
-        case 5: return "Very Good"
-        default: return "Not set"
+                Spacer()
+            }
+            .padding(.vertical, 4)
         }
     }
 
     private func saveEntry() {
-        // Stop any ongoing recording or playback
         if audioService.isRecording {
             audioService.stopRecording()
         }
@@ -354,18 +219,16 @@ struct JournalEntryEditorView: View {
         }
 
         if let existingEntry = entry {
-            // Update existing entry
             existingEntry.title = title.isEmpty ? nil : title
             existingEntry.content = content
-            existingEntry.mood = mood
+            existingEntry.mood = 0
             existingEntry.audioFileName = audioFileName
             dataController.updateJournalEntry(existingEntry)
         } else {
-            // Create new entry
             _ = dataController.createJournalEntry(
                 title: title.isEmpty ? nil : title,
                 content: content,
-                mood: mood,
+                mood: 0,
                 audioFileName: audioFileName
             )
         }

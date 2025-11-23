@@ -14,6 +14,7 @@ struct ProfileContainerView: View {
     @State private var showingAddMedication = false
 
     @AppStorage("fontSizeScale") private var fontSizeScale: Double = 1.0
+    @AppStorage("blueLightFilterEnabled") private var blueLightFilterEnabled: Bool = false
 
     var body: some View {
         NavigationStack {
@@ -38,36 +39,74 @@ struct ProfileContainerView: View {
             .navigationBarTitleDisplayModeInline()
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
-                    HStack(spacing: 0) {
-                        Button {
-                            if fontSizeScale > 0.8 {
-                                fontSizeScale -= 0.1
+                    HStack(spacing: 10) {
+                        // Font size controls - liquid crystal pill shape
+                        HStack(spacing: 0) {
+                            Button {
+                                if fontSizeScale > 0.8 {
+                                    fontSizeScale -= 0.1
+                                    HapticFeedback.light.trigger()
+                                }
+                            } label: {
+                                Image(systemName: "textformat.size.smaller")
+                                    .font(.system(size: 12, weight: .medium))
+                                    .foregroundStyle(fontSizeScale <= 0.8 ? .secondary : .primary)
+                                    .frame(width: 32, height: 32)
                             }
-                        } label: {
-                            Image(systemName: "textformat.size.smaller")
-                                .font(.body)
-                                .frame(width: 36, height: 28)
-                        }
-                        .disabled(fontSizeScale <= 0.8)
+                            .disabled(fontSizeScale <= 0.8)
 
-                        Divider()
-                            .frame(height: 20)
+                            Divider()
+                                .frame(height: 18)
+                                .opacity(0.5)
 
-                        Button {
-                            if fontSizeScale < 1.4 {
-                                fontSizeScale += 0.1
+                            Button {
+                                if fontSizeScale < 1.4 {
+                                    fontSizeScale += 0.1
+                                    HapticFeedback.light.trigger()
+                                }
+                            } label: {
+                                Image(systemName: "textformat.size.larger")
+                                    .font(.system(size: 12, weight: .medium))
+                                    .foregroundStyle(fontSizeScale >= 1.4 ? .secondary : .primary)
+                                    .frame(width: 32, height: 32)
                             }
-                        } label: {
-                            Image(systemName: "textformat.size.larger")
-                                .font(.body)
-                                .frame(width: 36, height: 28)
+                            .disabled(fontSizeScale >= 1.4)
                         }
-                        .disabled(fontSizeScale >= 1.4)
+                        .background(
+                            Capsule()
+                                .fill(.ultraThinMaterial)
+                                .shadow(color: .black.opacity(0.1), radius: 4, y: 2)
+                        )
+                        .overlay(
+                            Capsule()
+                                .stroke(.white.opacity(0.2), lineWidth: 0.5)
+                        )
+
+                        // Blue light filter - liquid crystal circle
+                        Button {
+                            withAnimation(.easeInOut(duration: 0.3)) {
+                                blueLightFilterEnabled.toggle()
+                            }
+                            HapticFeedback.light.trigger()
+                        } label: {
+                            ZStack {
+                                Circle()
+                                    .fill(.ultraThinMaterial)
+                                    .shadow(color: .black.opacity(0.1), radius: 4, y: 2)
+
+                                Circle()
+                                    .fill(blueLightFilterEnabled ? Color.orange.opacity(0.8) : Color.clear)
+
+                                Circle()
+                                    .stroke(.white.opacity(0.2), lineWidth: 0.5)
+
+                                Image(systemName: blueLightFilterEnabled ? "moon.fill" : "moon")
+                                    .font(.system(size: 13, weight: .medium))
+                                    .foregroundStyle(blueLightFilterEnabled ? .white : .primary)
+                            }
+                            .frame(width: 32, height: 32)
+                        }
                     }
-                    .background(
-                        RoundedRectangle(cornerRadius: 8)
-                            .fill(.ultraThinMaterial)
-                    )
                 }
 
                 ToolbarItem(placement: .confirmationAction) {
@@ -377,15 +416,6 @@ struct ProfileContainerView: View {
                     NotificationSettingsView(viewModel: settingsViewModel)
                 } label: {
                     SettingsRow(icon: "bell.fill", iconColor: .red, title: "Notifications")
-                }
-
-                Divider().padding(.leading, 44)
-
-                // Favorites
-                NavigationLink {
-                    FavoritePatternsView(viewModel: settingsViewModel)
-                } label: {
-                    SettingsRow(icon: "star.fill", iconColor: .yellow, title: "Favorite Patterns")
                 }
 
                 Divider().padding(.leading, 44)

@@ -299,7 +299,7 @@ struct ReportsView: View {
                 }
             }
 
-            reportCard(
+            equalSizeReportCard(
                 title: "Correlation Insights",
                 subtitle: "Pattern relationships"
             ) {
@@ -308,19 +308,16 @@ struct ReportsView: View {
                         HStack(alignment: .top, spacing: 8) {
                             Image(systemName: "lightbulb.fill")
                                 .foregroundStyle(.yellow)
-                                .font(.caption)
+                                .font(.subheadline)
 
                             Text(correlation)
-                                .font(.caption)
+                                .font(.subheadline)
                                 .foregroundStyle(.secondary)
                         }
                     }
 
                     if viewModel.monthlyReport.correlations.isEmpty {
-                        Text("Not enough data for correlation analysis")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                            .padding()
+                        emptyStateView(message: "Not enough data for correlation analysis")
                     }
                 }
             }

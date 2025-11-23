@@ -6,6 +6,7 @@ struct ContentView: View {
     @AppStorage("appearance") private var appearance: AppAppearance = .dark
     @AppStorage("selectedTheme") private var selectedThemeRaw: String = AppTheme.purple.rawValue
     @AppStorage("fontSizeScale") private var fontSizeScale: Double = 1.0
+    @AppStorage("blueLightFilterEnabled") private var blueLightFilterEnabled: Bool = false
 
     private var theme: AppTheme {
         AppTheme(rawValue: selectedThemeRaw) ?? .purple
@@ -24,41 +25,61 @@ struct ContentView: View {
     }
 
     var body: some View {
-        TabView(selection: $selectedTab) {
-            DashboardView(showingProfile: $showingProfile)
-                .themedBackground()
-                .tabItem {
-                    Label("Dashboard", systemImage: "chart.line.uptrend.xyaxis")
-                }
-                .tag(0)
+        ZStack {
+            TabView(selection: $selectedTab) {
+                DashboardView(showingProfile: $showingProfile)
+                    .themedBackground()
+                    .tabItem {
+                        Label("Dashboard", systemImage: "chart.line.uptrend.xyaxis")
+                    }
+                    .tag(0)
 
-            LoggingView(showingProfile: $showingProfile)
-                .themedBackground()
-                .tabItem {
-                    Label("Log", systemImage: "plus.circle.fill")
-                }
-                .tag(1)
+                LoggingView(showingProfile: $showingProfile)
+                    .themedBackground()
+                    .tabItem {
+                        Label("Log", systemImage: "plus.circle.fill")
+                    }
+                    .tag(1)
 
-            JournalListView(showingProfile: $showingProfile)
-                .themedBackground()
-                .tabItem {
-                    Label("Journal", systemImage: "book.fill")
-                }
-                .tag(2)
+                JournalListView(showingProfile: $showingProfile)
+                    .themedBackground()
+                    .tabItem {
+                        Label("Journal", systemImage: "book.fill")
+                    }
+                    .tag(2)
 
-            ReportsView(showingProfile: $showingProfile)
-                .themedBackground()
-                .tabItem {
-                    Label("Reports", systemImage: "chart.bar.doc.horizontal")
-                }
-                .tag(3)
+                ReportsView(showingProfile: $showingProfile)
+                    .themedBackground()
+                    .tabItem {
+                        Label("Reports", systemImage: "chart.bar.doc.horizontal")
+                    }
+                    .tag(3)
+            }
+
+            // Blue light filter overlay
+            if blueLightFilterEnabled {
+                Color.orange
+                    .opacity(0.08)
+                    .ignoresSafeArea()
+                    .allowsHitTesting(false)
+            }
         }
         .preferredColorScheme(appearance.colorScheme)
         .dynamicTypeSize(dynamicTypeSize)
         .sheet(isPresented: $showingProfile) {
-            ProfileContainerView()
-                .themedBackground()
-                .dynamicTypeSize(dynamicTypeSize)
+            ZStack {
+                ProfileContainerView()
+                    .themedBackground()
+                    .dynamicTypeSize(dynamicTypeSize)
+
+                // Blue light filter for sheet too
+                if blueLightFilterEnabled {
+                    Color.orange
+                        .opacity(0.08)
+                        .ignoresSafeArea()
+                        .allowsHitTesting(false)
+                }
+            }
         }
     }
 }
