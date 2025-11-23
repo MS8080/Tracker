@@ -1,8 +1,10 @@
 import SwiftUI
+import AVFoundation
 
 struct JournalEntryEditorView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var viewModel = JournalViewModel()
+    @StateObject private var audioService = AudioRecordingService.shared
 
     var entry: JournalEntry?
 
@@ -10,6 +12,8 @@ struct JournalEntryEditorView: View {
     @State private var content: String
     @State private var mood: Int16
     @State private var showingMoodPicker = false
+    @State private var audioFileName: String?
+    @State private var showingDeleteAudioAlert = false
     @FocusState private var contentIsFocused: Bool
 
     init(entry: JournalEntry? = nil) {
@@ -17,6 +21,7 @@ struct JournalEntryEditorView: View {
         _title = State(initialValue: entry?.title ?? "")
         _content = State(initialValue: entry?.content ?? "")
         _mood = State(initialValue: entry?.mood ?? 0)
+        _audioFileName = State(initialValue: entry?.audioFileName)
     }
 
     var body: some View {
@@ -53,6 +58,14 @@ struct JournalEntryEditorView: View {
                             .foregroundColor(.secondary)
                         Spacer()
                     }
+                }
+
+                Section {
+                    voiceNoteSection
+                } header: {
+                    Text("Voice Note (Optional)")
+                } footer: {
+                    Text("Record a voice memo instead of or in addition to text")
                 }
 
                 Section {
@@ -168,6 +181,158 @@ struct JournalEntryEditorView: View {
         }
     }
 
+    @ViewBuilder
+    private var voiceNoteSection: some View {
+        if audioService.isRecording {
+            // Recording in progress
+            VStack(spacing: 16) {
+                HStack {
+                    Circle()
+                        .fill(Color.red)
+                        .frame(width: 12, height: 12)
+                        .opacity(audioService.isRecording ? 1 : 0)
+                        .animation(.easeInOut(duration: 0.5).repeatForever(), value: audioService.isRecording)
+
+                    Text("Recording...")
+                        .font(.headline)
+                        .foregroundColor(.red)
+
+                    Spacer()
+
+                    Text(audioService.formatTime(audioService.recordingTime))
+                        .font(.title2)
+                        .monospacedDigit()
+                }
+
+                // Audio level indicator
+                GeometryReader { geometry in
+                    RoundedRectangle(cornerRadius: 4)
+                        .fill(Color.red.opacity(0.3))
+                        .frame(width: geometry.size.width * CGFloat(audioService.audioLevel), height: 8)
+                        .animation(.easeOut(duration: 0.1), value: audioService.audioLevel)
+                }
+                .frame(height: 8)
+
+                HStack(spacing: 20) {
+                    Button {
+                        audioService.cancelRecording(fileName: audioFileName)
+                        audioFileName = nil
+                    } label: {
+                        Label("Cancel", systemImage: "xmark.circle.fill")
+                            .foregroundColor(.secondary)
+                    }
+
+                    Spacer()
+
+                    Button {
+                        audioService.stopRecording()
+                    } label: {
+                        Image(systemName: "stop.circle.fill")
+                            .font(.system(size: 44))
+                            .foregroundColor(.red)
+                    }
+
+                    Spacer()
+                    Spacer()
+                }
+            }
+            .padding(.vertical, 8)
+        } else if let fileName = audioFileName, !fileName.isEmpty {
+            // Has recorded audio
+            VStack(spacing: 12) {
+                HStack {
+                    Image(systemName: "waveform")
+                        .foregroundColor(.blue)
+
+                    Text("Voice Note Recorded")
+                        .font(.subheadline)
+
+                    Spacer()
+
+                    if let duration = audioService.getAudioDuration(fileName: fileName) {
+                        Text(audioService.formatTime(duration))
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                }
+
+                HStack(spacing: 16) {
+                    Button {
+                        if audioService.isPlaying {
+                            audioService.pausePlayback()
+                        } else {
+                            audioService.playAudio(fileName: fileName)
+                        }
+                    } label: {
+                        Image(systemName: audioService.isPlaying ? "pause.circle.fill" : "play.circle.fill")
+                            .font(.system(size: 36))
+                            .foregroundColor(.blue)
+                    }
+
+                    if audioService.isPlaying {
+                        Text(audioService.formatTime(audioService.playbackTime))
+                            .font(.caption)
+                            .monospacedDigit()
+                            .foregroundColor(.secondary)
+                    }
+
+                    Spacer()
+
+                    Button {
+                        showingDeleteAudioAlert = true
+                    } label: {
+                        Image(systemName: "trash.circle.fill")
+                            .font(.system(size: 28))
+                            .foregroundColor(.red)
+                    }
+                }
+            }
+            .padding(.vertical, 4)
+            .alert("Delete Voice Note?", isPresented: $showingDeleteAudioAlert) {
+                Button("Cancel", role: .cancel) { }
+                Button("Delete", role: .destructive) {
+                    if let fileName = audioFileName {
+                        audioService.stopPlayback()
+                        audioService.deleteAudioFile(fileName: fileName)
+                        audioFileName = nil
+                    }
+                }
+            } message: {
+                Text("This cannot be undone.")
+            }
+        } else {
+            // No audio - show record button
+            VStack(spacing: 12) {
+                if !audioService.hasPermission {
+                    Text("Microphone access required for voice notes")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+
+                    Button("Grant Permission") {
+                        Task {
+                            await audioService.requestPermission()
+                        }
+                    }
+                    .buttonStyle(.bordered)
+                } else {
+                    Button {
+                        audioFileName = audioService.startRecording()
+                    } label: {
+                        HStack {
+                            Image(systemName: "mic.circle.fill")
+                                .font(.system(size: 36))
+                            Text("Tap to Record")
+                                .font(.body)
+                        }
+                        .foregroundColor(.blue)
+                    }
+                }
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 8)
+        }
+    }
+
     private func moodText(for mood: Int16) -> String {
         switch mood {
         case 1: return "Very Low"
@@ -180,18 +345,28 @@ struct JournalEntryEditorView: View {
     }
 
     private func saveEntry() {
+        // Stop any ongoing recording or playback
+        if audioService.isRecording {
+            audioService.stopRecording()
+        }
+        if audioService.isPlaying {
+            audioService.stopPlayback()
+        }
+
         if let existingEntry = entry {
             // Update existing entry
             existingEntry.title = title.isEmpty ? nil : title
             existingEntry.content = content
             existingEntry.mood = mood
+            existingEntry.audioFileName = audioFileName
             DataController.shared.updateJournalEntry(existingEntry)
         } else {
             // Create new entry
             viewModel.createEntry(
                 title: title.isEmpty ? nil : title,
                 content: content,
-                mood: mood
+                mood: mood,
+                audioFileName: audioFileName
             )
         }
         dismiss()

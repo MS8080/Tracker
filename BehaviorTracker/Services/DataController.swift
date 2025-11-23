@@ -308,6 +308,7 @@ class DataController: ObservableObject {
         title: String? = nil,
         content: String,
         mood: Int16 = 0,
+        audioFileName: String? = nil,
         relatedPatternEntry: PatternEntry? = nil,
         relatedMedicationLog: MedicationLog? = nil
     ) -> JournalEntry {
@@ -319,6 +320,7 @@ class DataController: ObservableObject {
             relatedPatternEntry: relatedPatternEntry,
             relatedMedicationLog: relatedMedicationLog
         )
+        entry.audioFileName = audioFileName
         save()
         return entry
     }

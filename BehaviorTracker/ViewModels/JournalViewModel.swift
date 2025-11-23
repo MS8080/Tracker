@@ -36,6 +36,7 @@ class JournalViewModel: ObservableObject {
         title: String? = nil,
         content: String,
         mood: Int16 = 0,
+        audioFileName: String? = nil,
         relatedPatternEntry: PatternEntry? = nil,
         relatedMedicationLog: MedicationLog? = nil
     ) {
@@ -43,6 +44,7 @@ class JournalViewModel: ObservableObject {
             title: title,
             content: content,
             mood: mood,
+            audioFileName: audioFileName,
             relatedPatternEntry: relatedPatternEntry,
             relatedMedicationLog: relatedMedicationLog
         )

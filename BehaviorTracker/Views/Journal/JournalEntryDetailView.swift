@@ -3,6 +3,7 @@ import SwiftUI
 struct JournalEntryDetailView: View {
     @ObservedObject var entry: JournalEntry
     @StateObject private var ttsService = TextToSpeechService.shared
+    @StateObject private var audioService = AudioRecordingService.shared
     @Environment(\.dismiss) private var dismiss
     @State private var isEditing = false
     @State private var showingDeleteConfirmation = false
@@ -16,7 +17,13 @@ struct JournalEntryDetailView: View {
 
                     Divider()
 
-                    // Voice Playback Controls
+                    // Voice Note Playback (if exists)
+                    if entry.hasVoiceNote {
+                        voiceNotePlaybackSection
+                        Divider()
+                    }
+
+                    // Text-to-Speech Controls
                     voicePlaybackControls
 
                     Divider()
@@ -217,6 +224,76 @@ struct JournalEntryDetailView: View {
                     Spacer()
                 }
                 .accessibilityLabel("Currently reading entry")
+            }
+        }
+        .padding()
+        .background(Color(.systemGray6))
+        .cornerRadius(12)
+    }
+
+    private var voiceNotePlaybackSection: some View {
+        VStack(spacing: 12) {
+            HStack {
+                Image(systemName: "waveform")
+                    .font(.title2)
+                    .foregroundColor(.blue)
+
+                Text("Voice Note")
+                    .font(.headline)
+
+                Spacer()
+
+                if let fileName = entry.audioFileName,
+                   let duration = audioService.getAudioDuration(fileName: fileName) {
+                    Text(audioService.formatTime(duration))
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                }
+            }
+
+            if let fileName = entry.audioFileName {
+                HStack(spacing: 20) {
+                    Button {
+                        if audioService.isPlaying {
+                            audioService.pausePlayback()
+                        } else {
+                            audioService.playAudio(fileName: fileName)
+                        }
+                    } label: {
+                        Image(systemName: audioService.isPlaying ? "pause.circle.fill" : "play.circle.fill")
+                            .font(.system(size: 50))
+                            .foregroundColor(.blue)
+                    }
+
+                    VStack(alignment: .leading, spacing: 4) {
+                        if audioService.isPlaying || audioService.playbackTime > 0 {
+                            ProgressView(value: audioService.playbackTime, total: audioService.playbackDuration)
+                                .tint(.blue)
+
+                            HStack {
+                                Text(audioService.formatTime(audioService.playbackTime))
+                                Spacer()
+                                Text(audioService.formatTime(audioService.playbackDuration))
+                            }
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        } else {
+                            Text("Tap to play voice note")
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+
+                    if audioService.isPlaying {
+                        Button {
+                            audioService.stopPlayback()
+                        } label: {
+                            Image(systemName: "stop.circle.fill")
+                                .font(.system(size: 32))
+                                .foregroundColor(.red)
+                        }
+                    }
+                }
             }
         }
         .padding()

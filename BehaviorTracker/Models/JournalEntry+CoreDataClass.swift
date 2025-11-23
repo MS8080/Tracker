@@ -9,9 +9,21 @@ public class JournalEntry: NSManagedObject, Identifiable {
     @NSManaged public var content: String
     @NSManaged public var mood: Int16
     @NSManaged public var isFavorite: Bool
+    @NSManaged public var audioFileName: String?
     @NSManaged public var tags: NSSet?
     @NSManaged public var relatedPatternEntry: PatternEntry?
     @NSManaged public var relatedMedicationLog: MedicationLog?
+
+    var hasVoiceNote: Bool {
+        guard let fileName = audioFileName, !fileName.isEmpty else { return false }
+        return FileManager.default.fileExists(atPath: audioFileURL?.path ?? "")
+    }
+
+    var audioFileURL: URL? {
+        guard let fileName = audioFileName, !fileName.isEmpty else { return nil }
+        let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+        return documentsPath.appendingPathComponent("VoiceNotes").appendingPathComponent(fileName)
+    }
 
     public override func awakeFromInsert() {
         super.awakeFromInsert()
