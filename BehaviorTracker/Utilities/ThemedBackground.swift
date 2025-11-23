@@ -1,11 +1,7 @@
 import SwiftUI
 
 struct ThemedBackgroundModifier: ViewModifier {
-    @AppStorage("selectedTheme") private var selectedThemeRaw: String = AppTheme.purple.rawValue
-
-    private var theme: AppTheme {
-        AppTheme(rawValue: selectedThemeRaw) ?? .purple
-    }
+    let theme: AppTheme
 
     func body(content: Content) -> some View {
         ZStack {
@@ -13,13 +9,12 @@ struct ThemedBackgroundModifier: ViewModifier {
                 .ignoresSafeArea()
 
             content
-                .foregroundColor(theme.textColor)
         }
     }
 }
 
 extension View {
-    func themedBackground() -> some View {
-        modifier(ThemedBackgroundModifier())
+    func themedBackground(theme: AppTheme) -> some View {
+        modifier(ThemedBackgroundModifier(theme: theme))
     }
 }

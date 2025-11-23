@@ -4,7 +4,9 @@ import Charts
 struct MedicationDetailView: View {
     let medication: Medication
     @ObservedObject var viewModel: MedicationViewModel
+    @Environment(\.dismiss) private var dismiss
     @State private var showingLogSheet = false
+    @State private var showingDeleteAlert = false
     @State private var selectedDays = 7
 
     var body: some View {
@@ -21,6 +23,9 @@ struct MedicationDetailView: View {
 
                 // Recent Logs
                 recentLogsSection
+
+                // Delete button at bottom
+                deleteSection
             }
             .padding()
         }
@@ -28,16 +33,54 @@ struct MedicationDetailView: View {
         .navigationBarTitleDisplayModeLarge()
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
-                Button(action: {
-                    showingLogSheet = true
-                }) {
-                    Image(systemName: "plus.circle.fill")
+                Menu {
+                    Button(action: {
+                        showingLogSheet = true
+                    }) {
+                        Label("Log Medication", systemImage: "plus.circle")
+                    }
+
+                    Divider()
+
+                    Button(role: .destructive, action: {
+                        showingDeleteAlert = true
+                    }) {
+                        Label("Delete Medication", systemImage: "trash")
+                    }
+                } label: {
+                    Image(systemName: "ellipsis.circle")
                 }
             }
         }
         .sheet(isPresented: $showingLogSheet) {
             LogMedicationView(medication: medication, viewModel: viewModel)
         }
+        .alert("Delete Medication", isPresented: $showingDeleteAlert) {
+            Button("Cancel", role: .cancel) { }
+            Button("Delete", role: .destructive) {
+                viewModel.deleteMedication(medication)
+                dismiss()
+            }
+        } message: {
+            Text("Are you sure you want to delete \(medication.name)? This will also delete all logs associated with this medication.")
+        }
+    }
+
+    private var deleteSection: some View {
+        Button(role: .destructive, action: {
+            showingDeleteAlert = true
+        }) {
+            HStack {
+                Image(systemName: "trash")
+                Text("Delete Medication")
+            }
+            .frame(maxWidth: .infinity)
+            .padding()
+            .background(Color.red.opacity(0.1))
+            .foregroundColor(.red)
+            .cornerRadius(12)
+        }
+        .padding(.top, 20)
     }
 
     private var medicationHeader: some View {

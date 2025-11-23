@@ -13,6 +13,8 @@ struct ProfileContainerView: View {
     @State private var showingEditProfile = false
     @State private var showingAddMedication = false
 
+    @AppStorage("fontSizeScale") private var fontSizeScale: Double = 1.0
+
     var body: some View {
         NavigationStack {
             ScrollView {
@@ -31,10 +33,43 @@ struct ProfileContainerView: View {
                 }
                 .padding()
             }
-            .background(Color(.systemGroupedBackground))
+            .scrollContentBackground(.hidden)
             .navigationTitle("Profile")
             .navigationBarTitleDisplayModeInline()
             .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    HStack(spacing: 0) {
+                        Button {
+                            if fontSizeScale > 0.8 {
+                                fontSizeScale -= 0.1
+                            }
+                        } label: {
+                            Image(systemName: "textformat.size.smaller")
+                                .font(.body)
+                                .frame(width: 36, height: 28)
+                        }
+                        .disabled(fontSizeScale <= 0.8)
+
+                        Divider()
+                            .frame(height: 20)
+
+                        Button {
+                            if fontSizeScale < 1.4 {
+                                fontSizeScale += 0.1
+                            }
+                        } label: {
+                            Image(systemName: "textformat.size.larger")
+                                .font(.body)
+                                .frame(width: 36, height: 28)
+                        }
+                        .disabled(fontSizeScale >= 1.4)
+                    }
+                    .background(
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(.ultraThinMaterial)
+                    )
+                }
+
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Done") {
                         dismiss()
@@ -43,10 +78,20 @@ struct ProfileContainerView: View {
             }
             .onAppear {
                 loadProfile()
-                loadHealthData()
+                medicationViewModel.loadMedications()
+                Task {
+                    await healthKitManager.checkAuthorizationStatus()
+                    loadHealthData()
+                }
             }
             .sheet(isPresented: $showingEditProfile) {
                 EditProfileView(dataController: dataController, profile: $profile)
+            }
+            .onChange(of: showingEditProfile) { _, isShowing in
+                if !isShowing {
+                    // Reload profile when edit sheet is dismissed
+                    loadProfile()
+                }
             }
             .sheet(isPresented: $showingAddMedication) {
                 AddMedicationView(viewModel: medicationViewModel)
@@ -114,8 +159,6 @@ struct ProfileContainerView: View {
         }
         .padding()
         .frame(maxWidth: .infinity)
-        .background(Color(.systemBackground))
-        .cornerRadius(16)
     }
 
     // MARK: - Health Data Section
@@ -247,8 +290,10 @@ struct ProfileContainerView: View {
             }
         }
         .padding()
-        .background(Color(.systemBackground))
-        .cornerRadius(16)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(.ultraThinMaterial)
+        )
     }
 
     // MARK: - Medications Section
@@ -298,8 +343,10 @@ struct ProfileContainerView: View {
             }
         }
         .padding()
-        .background(Color(.systemBackground))
-        .cornerRadius(16)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(.ultraThinMaterial)
+        )
     }
 
     // MARK: - Settings Section
@@ -352,15 +399,6 @@ struct ProfileContainerView: View {
 
                 Divider().padding(.leading, 44)
 
-                // Privacy
-                NavigationLink {
-                    DataPrivacyView()
-                } label: {
-                    SettingsRow(icon: "lock.shield", iconColor: .blue, title: "Privacy & Security")
-                }
-
-                Divider().padding(.leading, 44)
-
                 // About
                 NavigationLink {
                     AboutView()
@@ -370,8 +408,10 @@ struct ProfileContainerView: View {
             }
         }
         .padding()
-        .background(Color(.systemBackground))
-        .cornerRadius(16)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(.ultraThinMaterial)
+        )
     }
 
     // MARK: - Methods
@@ -667,31 +707,129 @@ struct EditProfileView: View {
 
 struct AppearanceSettingsView: View {
     @ObservedObject var viewModel: SettingsViewModel
-    @AppStorage("appearance") private var appearance: AppAppearance = .system
+    @AppStorage("appearance") private var appearance: AppAppearance = .dark
+    @AppStorage("selectedTheme") private var selectedThemeRaw: String = AppTheme.purple.rawValue
+
+    private var selectedTheme: AppTheme {
+        get { AppTheme(rawValue: selectedThemeRaw) ?? .purple }
+        nonmutating set { selectedThemeRaw = newValue.rawValue }
+    }
 
     var body: some View {
-        Form {
-            Section {
-                Picker(selection: $appearance) {
-                    ForEach(AppAppearance.allCases, id: \.self) { option in
-                        HStack {
-                            Image(systemName: option.icon)
-                            Text(option.displayName)
+        ScrollView {
+            VStack(spacing: 24) {
+                // Theme Colors
+                VStack(alignment: .leading, spacing: 16) {
+                    Text("Theme")
+                        .font(.headline)
+                        .foregroundStyle(.secondary)
+
+                    LazyVGrid(columns: [
+                        GridItem(.flexible()),
+                        GridItem(.flexible()),
+                        GridItem(.flexible()),
+                        GridItem(.flexible()),
+                        GridItem(.flexible())
+                    ], spacing: 16) {
+                        ForEach(AppTheme.allCases, id: \.self) { theme in
+                            Button {
+                                selectedThemeRaw = theme.rawValue
+                            } label: {
+                                ZStack {
+                                    Circle()
+                                        .fill(theme.primaryColor)
+                                        .frame(width: 50, height: 50)
+
+                                    if selectedThemeRaw == theme.rawValue {
+                                        Circle()
+                                            .stroke(Color.white, lineWidth: 3)
+                                            .frame(width: 50, height: 50)
+
+                                        Image(systemName: "checkmark")
+                                            .foregroundColor(.white)
+                                            .fontWeight(.bold)
+                                    }
+                                }
+                            }
+                            .buttonStyle(.plain)
                         }
-                        .tag(option)
-                    }
-                } label: {
-                    HStack {
-                        Image(systemName: "paintbrush.fill")
-                            .foregroundStyle(.purple)
-                        Text("Appearance")
                     }
                 }
-                .pickerStyle(.inline)
-            } header: {
-                Text("Display Mode")
+                .padding()
+                .background(
+                    RoundedRectangle(cornerRadius: 16)
+                        .fill(.ultraThinMaterial)
+                )
+
+                // Light/Dark Mode
+                VStack(alignment: .leading, spacing: 16) {
+                    Text("Mode")
+                        .font(.headline)
+                        .foregroundStyle(.secondary)
+
+                    HStack(spacing: 16) {
+                        // Light Mode
+                        Button {
+                            appearance = .light
+                        } label: {
+                            VStack(spacing: 8) {
+                                ZStack {
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .fill(Color.white)
+                                        .frame(width: 70, height: 50)
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 12)
+                                                .stroke(appearance == .light ? Color.blue : Color.gray.opacity(0.3), lineWidth: appearance == .light ? 3 : 1)
+                                        )
+
+                                    Image(systemName: "sun.max.fill")
+                                        .foregroundColor(.orange)
+                                }
+
+                                Text("Light")
+                                    .font(.subheadline)
+                                    .foregroundColor(appearance == .light ? .primary : .secondary)
+                            }
+                        }
+                        .buttonStyle(.plain)
+
+                        // Dark Mode
+                        Button {
+                            appearance = .dark
+                        } label: {
+                            VStack(spacing: 8) {
+                                ZStack {
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .fill(Color.black)
+                                        .frame(width: 70, height: 50)
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 12)
+                                                .stroke(appearance == .dark ? Color.blue : Color.gray.opacity(0.3), lineWidth: appearance == .dark ? 3 : 1)
+                                        )
+
+                                    Image(systemName: "moon.fill")
+                                        .foregroundColor(.yellow)
+                                }
+
+                                Text("Dark")
+                                    .font(.subheadline)
+                                    .foregroundColor(appearance == .dark ? .primary : .secondary)
+                            }
+                        }
+                        .buttonStyle(.plain)
+
+                        Spacer()
+                    }
+                }
+                .padding()
+                .background(
+                    RoundedRectangle(cornerRadius: 16)
+                        .fill(.ultraThinMaterial)
+                )
             }
+            .padding()
         }
+        .scrollContentBackground(.hidden)
         .navigationTitle("Appearance")
         .navigationBarTitleDisplayModeInline()
     }

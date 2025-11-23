@@ -3,13 +3,66 @@ import Foundation
 import HealthKit
 
 /// Manages all HealthKit interactions for syncing pattern data with Apple Health
-class HealthKitManager: ObservableObject {
+class HealthKitManager: ObservableObject, @unchecked Sendable {
     static let shared = HealthKitManager()
 
     @MainActor @Published var isAuthorized = false
     @MainActor @Published var authorizationError: String?
 
     private let healthStore = HKHealthStore()
+
+    init() {
+        // Authorization status will be checked when views appear
+        // Don't call async code in init to avoid crashes
+    }
+
+    /// Check if we already have HealthKit authorization
+    @MainActor
+    func checkAuthorizationStatus() async {
+        guard isHealthKitAvailable else {
+            isAuthorized = false
+            return
+        }
+
+        // Check authorization status for a key type we need
+        // If any read type is authorized, consider it connected
+        if let stepType = HKObjectType.quantityType(forIdentifier: .stepCount) {
+            _ = healthStore.authorizationStatus(for: stepType)
+            // .sharingAuthorized means we have write permission
+            // For read permission, we can't directly check, but if we requested before
+            // and user granted, the data will be available
+
+            // Try to determine if we have some level of authorization
+            // by checking if we can query data
+            let authorized = await checkIfCanReadHealthData()
+            isAuthorized = authorized
+        }
+    }
+
+    /// Try to read some health data to verify we have authorization
+    private func checkIfCanReadHealthData() async -> Bool {
+        guard let stepType = HKObjectType.quantityType(forIdentifier: .stepCount) else {
+            return false
+        }
+
+        return await withCheckedContinuation { continuation in
+            let query = HKSampleQuery(
+                sampleType: stepType,
+                predicate: nil,
+                limit: 1,
+                sortDescriptors: nil
+            ) { _, samples, error in
+                // If we get samples or no error, we likely have authorization
+                // Note: empty samples with no error also means authorized but no data
+                if error == nil {
+                    continuation.resume(returning: true)
+                } else {
+                    continuation.resume(returning: false)
+                }
+            }
+            healthStore.execute(query)
+        }
+    }
     
     // MARK: - HealthKit Data Types
     

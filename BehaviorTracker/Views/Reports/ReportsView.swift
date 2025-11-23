@@ -7,28 +7,39 @@ struct ReportsView: View {
     @State private var showingAIInsights = false
     @Binding var showingProfile: Bool
 
+    @AppStorage("selectedTheme") private var selectedThemeRaw: String = AppTheme.purple.rawValue
+
+    private var theme: AppTheme {
+        AppTheme(rawValue: selectedThemeRaw) ?? .purple
+    }
+
     init(showingProfile: Binding<Bool> = .constant(false)) {
         self._showingProfile = showingProfile
     }
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(spacing: 24) {
-                    // AI Insights Card
-                    aiInsightsCard
+            ZStack {
+                theme.gradient
+                    .ignoresSafeArea()
 
-                    timeframePicker
+                ScrollView {
+                    VStack(spacing: 24) {
+                        // AI Insights Card
+                        aiInsightsCard
 
-                    if selectedTimeframe == .weekly {
-                        weeklyReportView
-                    } else {
-                        monthlyReportView
+                        timeframePicker
+
+                        if selectedTimeframe == .weekly {
+                            weeklyReportView
+                        } else {
+                            monthlyReportView
+                        }
                     }
+                    .padding()
                 }
-                .padding()
+                .scrollContentBackground(.hidden)
             }
-            .scrollContentBackground(.hidden)
             .navigationTitle("Reports")
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
@@ -109,114 +120,111 @@ struct ReportsView: View {
                 }
             }
 
-            // Three cards in a grid layout with equal sizes
-            LazyVGrid(columns: [
-                GridItem(.flexible(), spacing: 16),
-                GridItem(.flexible(), spacing: 16),
-                GridItem(.flexible(), spacing: 16)
-            ], spacing: 16) {
-                // Pattern Frequency Card
-                equalSizeReportCard(
-                    title: "Pattern Frequency",
-                    subtitle: "Top patterns this week"
-                ) {
-                    if viewModel.weeklyReport.patternFrequency.isEmpty {
-                        Text("No data available")
-                            .foregroundStyle(.secondary)
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    } else {
+            // Category Distribution Card
+            equalSizeReportCard(
+                title: "Category Distribution",
+                subtitle: "Breakdown by category"
+            ) {
+                if viewModel.weeklyReport.categoryBreakdown.isEmpty {
+                    emptyStateView(message: "No data available")
+                } else {
+                    VStack(spacing: 12) {
                         Chart {
-                            ForEach(Array(viewModel.weeklyReport.patternFrequency.prefix(5)), id: \.key) { pattern, count in
-                                BarMark(
-                                    x: .value("Count", count),
-                                    y: .value("Pattern", pattern)
+                            ForEach(Array(viewModel.weeklyReport.categoryBreakdown), id: \.key) { category, count in
+                                SectorMark(
+                                    angle: .value("Count", count),
+                                    innerRadius: .ratio(0.5),
+                                    angularInset: 2
                                 )
-                                .foregroundStyle(.blue.gradient)
+                                .foregroundStyle(category.color)
+                                .opacity(0.8)
                             }
                         }
-                    }
-                }
+                        .frame(height: 150)
 
-                // Category Distribution Card
-                equalSizeReportCard(
-                    title: "Category Distribution",
-                    subtitle: "Breakdown by category"
-                ) {
-                    if viewModel.weeklyReport.categoryBreakdown.isEmpty {
-                        Text("No data available")
-                            .foregroundStyle(.secondary)
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    } else {
-                        VStack(spacing: 8) {
-                            Chart {
-                                ForEach(Array(viewModel.weeklyReport.categoryBreakdown), id: \.key) { category, count in
-                                    SectorMark(
-                                        angle: .value("Count", count),
-                                        innerRadius: .ratio(0.5),
-                                        angularInset: 2
-                                    )
-                                    .foregroundStyle(category.color)
-                                    .opacity(0.8)
-                                }
-                            }
-                            .frame(height: 120)
+                        VStack(alignment: .leading, spacing: 8) {
+                            ForEach(Array(viewModel.weeklyReport.categoryBreakdown.sorted(by: { $0.value > $1.value })), id: \.key) { category, count in
+                                HStack(spacing: 8) {
+                                    Circle()
+                                        .fill(category.color)
+                                        .frame(width: 10, height: 10)
 
-                            ScrollView {
-                                VStack(alignment: .leading, spacing: 6) {
-                                    ForEach(Array(viewModel.weeklyReport.categoryBreakdown.sorted(by: { $0.value > $1.value })), id: \.key) { category, count in
-                                        HStack(spacing: 8) {
-                                            Circle()
-                                                .fill(category.color)
-                                                .frame(width: 10, height: 10)
+                                    Text(category.rawValue)
+                                        .font(.subheadline)
+                                        .lineLimit(1)
 
-                                            Text(category.rawValue)
-                                                .font(.caption)
-                                                .lineLimit(1)
+                                    Spacer()
 
-                                            Spacer()
-
-                                            Text("\(count)")
-                                                .font(.caption)
-                                                .fontWeight(.medium)
-                                        }
-                                    }
+                                    Text("\(count)")
+                                        .font(.subheadline)
+                                        .fontWeight(.medium)
                                 }
                             }
                         }
                     }
                 }
+            }
 
-                // Energy Trends Card
-                equalSizeReportCard(
-                    title: "Energy Trends",
-                    subtitle: "Average energy levels"
-                ) {
-                    if viewModel.weeklyReport.energyTrend.isEmpty {
-                        Text("No energy data logged")
-                            .foregroundStyle(.secondary)
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    } else {
-                        Chart {
-                            ForEach(viewModel.weeklyReport.energyTrend, id: \.date) { dataPoint in
-                                LineMark(
-                                    x: .value("Day", dataPoint.date, unit: .day),
-                                    y: .value("Energy", dataPoint.value)
-                                )
-                                .foregroundStyle(.yellow.gradient)
-                                .interpolationMethod(.catmullRom)
+            // Energy Trends Card - same size as Category Distribution
+            equalSizeReportCard(
+                title: "Energy Trends",
+                subtitle: "Average energy levels"
+            ) {
+                if viewModel.weeklyReport.energyTrend.isEmpty {
+                    emptyStateView(message: "No energy data logged")
+                } else {
+                    Chart {
+                        ForEach(viewModel.weeklyReport.energyTrend, id: \.date) { dataPoint in
+                            LineMark(
+                                x: .value("Day", dataPoint.date, unit: .day),
+                                y: .value("Energy", dataPoint.value)
+                            )
+                            .foregroundStyle(.yellow.gradient)
+                            .interpolationMethod(.catmullRom)
 
-                                PointMark(
-                                    x: .value("Day", dataPoint.date, unit: .day),
-                                    y: .value("Energy", dataPoint.value)
-                                )
-                                .foregroundStyle(.yellow)
-                            }
+                            PointMark(
+                                x: .value("Day", dataPoint.date, unit: .day),
+                                y: .value("Energy", dataPoint.value)
+                            )
+                            .foregroundStyle(.yellow)
                         }
-                        .chartYScale(domain: 1...5)
+                    }
+                    .chartYScale(domain: 1...5)
+                }
+            }
+
+            // Pattern Frequency Card
+            equalSizeReportCard(
+                title: "Pattern Frequency",
+                subtitle: "Top patterns this week"
+            ) {
+                if viewModel.weeklyReport.patternFrequency.isEmpty {
+                    emptyStateView(message: "No data available")
+                } else {
+                    Chart {
+                        ForEach(Array(viewModel.weeklyReport.patternFrequency.prefix(5)), id: \.key) { pattern, count in
+                            BarMark(
+                                x: .value("Count", count),
+                                y: .value("Pattern", pattern)
+                            )
+                            .foregroundStyle(.blue.gradient)
+                        }
                     }
                 }
             }
         }
+    }
+
+    private func emptyStateView(message: String) -> some View {
+        VStack(spacing: 12) {
+            Image(systemName: "chart.bar.xaxis")
+                .font(.system(size: 40))
+                .foregroundStyle(.secondary.opacity(0.5))
+            Text(message)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     private func equalSizeReportCard<Content: View>(
@@ -235,12 +243,12 @@ struct ReportsView: View {
             }
 
             content()
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .frame(maxWidth: .infinity, minHeight: 200)
         }
-        .padding(16)
-        .frame(height: 300)
+        .padding(20)
+        .frame(minHeight: 280)
         .background(
-            RoundedRectangle(cornerRadius: 16)
+            RoundedRectangle(cornerRadius: 20)
                 .fill(.ultraThinMaterial)
         )
     }

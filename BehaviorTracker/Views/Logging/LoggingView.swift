@@ -7,25 +7,39 @@ struct LoggingView: View {
     @State private var showingQuickLog = false
     @Binding var showingProfile: Bool
 
+    @AppStorage("selectedTheme") private var selectedThemeRaw: String = AppTheme.purple.rawValue
+
+    private var theme: AppTheme {
+        AppTheme(rawValue: selectedThemeRaw) ?? .purple
+    }
+
     init(showingProfile: Binding<Bool> = .constant(false)) {
         self._showingProfile = showingProfile
     }
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(spacing: 20) {
-                    if viewModel.favoritePatterns.isEmpty {
-                        allCategoriesView
-                    } else {
-                        favoritesSection
-                        allCategoriesView
+            ZStack {
+                theme.gradient
+                    .ignoresSafeArea()
+
+                ScrollView {
+                    VStack(spacing: 20) {
+                        if viewModel.favoritePatterns.isEmpty {
+                            allCategoriesView
+                        } else {
+                            favoritesSection
+                            allCategoriesView
+                        }
+
+                        // Medication section at bottom (expandable bar)
+                        MedicationQuickLogView()
                     }
+                    .padding()
                 }
-                .padding()
+                .scrollContentBackground(.hidden)
             }
-            .scrollContentBackground(.hidden)
-            .navigationTitle("Log Pattern")
+            .navigationTitle("Log")
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
                     ProfileButton(showingProfile: $showingProfile)

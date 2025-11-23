@@ -4,63 +4,98 @@ struct JournalListView: View {
     @StateObject private var viewModel = JournalViewModel()
     @State private var showingNewEntry = false
     @State private var searchText = ""
-    
+    @Binding var showingProfile: Bool
+
+    @AppStorage("selectedTheme") private var selectedThemeRaw: String = AppTheme.purple.rawValue
+
+    private var theme: AppTheme {
+        AppTheme(rawValue: selectedThemeRaw) ?? .purple
+    }
+
+    init(showingProfile: Binding<Bool> = .constant(false)) {
+        self._showingProfile = showingProfile
+    }
+
     var body: some View {
         NavigationStack {
             ZStack {
-                if viewModel.entries.isEmpty && searchText.isEmpty {
-                    // Empty state
-                    ContentUnavailableView {
-                        Label("No Journal Entries", systemImage: "book")
-                    } description: {
-                        Text("Start writing your first journal entry")
-                    } actions: {
-                        Button {
-                            showingNewEntry = true
-                        } label: {
-                            Text("New Entry")
-                        }
-                        .buttonStyle(.borderedProminent)
+                theme.gradient
+                    .ignoresSafeArea()
+
+                VStack(spacing: 0) {
+                    // Custom rounded search bar
+                    HStack {
+                        Image(systemName: "magnifyingglass")
+                            .foregroundStyle(.secondary)
+                        TextField("Search journal entries", text: $searchText)
                     }
-                } else {
-                    List {
-                        ForEach(filteredEntries) { entry in
-                            NavigationLink {
-                                JournalDetailView(entry: entry, viewModel: viewModel)
+                    .padding(12)
+                    .background(
+                        RoundedRectangle(cornerRadius: 20)
+                            .fill(.ultraThinMaterial)
+                    )
+                    .padding(.horizontal)
+                    .padding(.top, 8)
+
+                    if viewModel.entries.isEmpty && searchText.isEmpty {
+                        // Empty state
+                        Spacer()
+                        ContentUnavailableView {
+                            Label("No Journal Entries", systemImage: "book")
+                        } description: {
+                            Text("Start writing your first journal entry")
+                        } actions: {
+                            Button {
+                                showingNewEntry = true
                             } label: {
-                                JournalEntryRow(entry: entry)
+                                Text("New Entry")
                             }
+                            .buttonStyle(.borderedProminent)
                         }
-                        .onDelete(perform: deleteEntries)
+                        Spacer()
+                    } else {
+                        ScrollView {
+                            LazyVStack(spacing: 12) {
+                                ForEach(filteredEntries) { entry in
+                                    NavigationLink {
+                                        JournalDetailView(entry: entry, viewModel: viewModel)
+                                    } label: {
+                                        JournalEntryRow(entry: entry)
+                                            .padding(16)
+                                            .background(
+                                                RoundedRectangle(cornerRadius: 16)
+                                                    .fill(.ultraThinMaterial)
+                                            )
+                                    }
+                                    .buttonStyle(.plain)
+                                }
+                            }
+                            .padding()
+                        }
                     }
-                    .searchable(text: $searchText, prompt: "Search journal entries")
+
+                    // New Entry button at bottom
+                    Button {
+                        showingNewEntry = true
+                    } label: {
+                        HStack {
+                            Image(systemName: "plus.circle.fill")
+                            Text("New Entry")
+                                .fontWeight(.semibold)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(theme.primaryColor)
+                        .foregroundStyle(.white)
+                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                    }
+                    .padding()
                 }
             }
             .navigationTitle("Journal")
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
-                    Button {
-                        showingNewEntry = true
-                    } label: {
-                        Image(systemName: "plus")
-                    }
-                }
-                
-                if !viewModel.entries.isEmpty {
-                    ToolbarItem(placement: .topBarLeading) {
-                        Menu {
-                            Button {
-                                viewModel.showFavoritesOnly.toggle()
-                            } label: {
-                                Label(
-                                    viewModel.showFavoritesOnly ? "Show All" : "Show Favorites",
-                                    systemImage: viewModel.showFavoritesOnly ? "star.slash" : "star"
-                                )
-                            }
-                        } label: {
-                            Image(systemName: "line.3.horizontal.decrease.circle")
-                        }
-                    }
+                    ProfileButton(showingProfile: $showingProfile)
                 }
             }
             .sheet(isPresented: $showingNewEntry) {

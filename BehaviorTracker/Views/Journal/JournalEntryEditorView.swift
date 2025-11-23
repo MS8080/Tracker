@@ -3,9 +3,9 @@ import AVFoundation
 
 struct JournalEntryEditorView: View {
     @Environment(\.dismiss) private var dismiss
-    @StateObject private var viewModel = JournalViewModel()
     @StateObject private var audioService = AudioRecordingService.shared
 
+    private let dataController = DataController.shared
     var entry: JournalEntry?
 
     @State private var title: String
@@ -359,10 +359,10 @@ struct JournalEntryEditorView: View {
             existingEntry.content = content
             existingEntry.mood = mood
             existingEntry.audioFileName = audioFileName
-            DataController.shared.updateJournalEntry(existingEntry)
+            dataController.updateJournalEntry(existingEntry)
         } else {
             // Create new entry
-            viewModel.createEntry(
+            _ = dataController.createJournalEntry(
                 title: title.isEmpty ? nil : title,
                 content: content,
                 mood: mood,

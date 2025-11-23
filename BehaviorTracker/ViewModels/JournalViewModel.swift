@@ -57,8 +57,12 @@ class JournalViewModel: ObservableObject {
     }
 
     func deleteEntry(_ entry: JournalEntry) {
+        // Remove from local array first to prevent SwiftUI from accessing deleted object
+        let entryId = entry.id
+        journalEntries.removeAll { $0.id == entryId }
+
+        // Then delete from Core Data
         dataController.deleteJournalEntry(entry)
-        loadJournalEntries()
     }
 
     func toggleFavorite(_ entry: JournalEntry) {

@@ -3,7 +3,7 @@ import SwiftUI
 struct SettingsView: View {
     @StateObject private var viewModel = SettingsViewModel()
     @State private var showingExportSheet = false
-    @AppStorage("appearance") private var appearance: AppAppearance = .system
+    @AppStorage("appearance") private var appearance: AppAppearance = .dark
 
     var body: some View {
         NavigationStack {

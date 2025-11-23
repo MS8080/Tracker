@@ -371,7 +371,11 @@ struct JournalEntryDetailView: View {
     }
 
     private func deleteEntry() {
-        DataController.shared.deleteJournalEntry(entry)
+        // Dismiss first to prevent accessing deleted object
         dismiss()
+        // Delete after a short delay to ensure view is dismissed
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            DataController.shared.deleteJournalEntry(entry)
+        }
     }
 }

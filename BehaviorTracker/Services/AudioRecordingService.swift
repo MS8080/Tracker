@@ -40,7 +40,7 @@ class AudioRecordingService: NSObject, ObservableObject {
 
     func checkPermission() {
         #if os(iOS)
-        switch AVAudioSession.sharedInstance().recordPermission {
+        switch AVAudioApplication.shared.recordPermission {
         case .granted:
             hasPermission = true
         case .denied:
@@ -66,12 +66,33 @@ class AudioRecordingService: NSObject, ObservableObject {
 
     func requestPermission() async -> Bool {
         #if os(iOS)
-        return await withCheckedContinuation { continuation in
-            AVAudioSession.sharedInstance().requestRecordPermission { granted in
-                DispatchQueue.main.async {
-                    self.hasPermission = granted
-                    continuation.resume(returning: granted)
+        if #available(iOS 17.0, *) {
+            let granted = await AVAudioApplication.requestRecordPermission()
+            await MainActor.run {
+                self.hasPermission = granted
+            }
+            return granted
+        } else {
+            // Fallback for iOS < 17.0
+            return await withCheckedContinuation { continuation in
+                #if compiler(>=5.9)
+                // Silence deprecation warning - this code only runs on iOS < 17
+                if #unavailable(iOS 17.0) {
+                    AVAudioSession.sharedInstance().requestRecordPermission { granted in
+                        DispatchQueue.main.async {
+                            self.hasPermission = granted
+                            continuation.resume(returning: granted)
+                        }
+                    }
                 }
+                #else
+                AVAudioSession.sharedInstance().requestRecordPermission { granted in
+                    DispatchQueue.main.async {
+                        self.hasPermission = granted
+                        continuation.resume(returning: granted)
+                    }
+                }
+                #endif
             }
         }
         #elseif os(macOS)

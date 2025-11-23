@@ -3,47 +3,62 @@ import SwiftUI
 struct ContentView: View {
     @State private var selectedTab = 0
     @State private var showingProfile = false
-    @AppStorage("appearance") private var appearance: AppAppearance = .system
+    @AppStorage("appearance") private var appearance: AppAppearance = .dark
     @AppStorage("selectedTheme") private var selectedThemeRaw: String = AppTheme.purple.rawValue
+    @AppStorage("fontSizeScale") private var fontSizeScale: Double = 1.0
 
     private var theme: AppTheme {
         AppTheme(rawValue: selectedThemeRaw) ?? .purple
     }
 
-    var body: some View {
-        ZStack {
-            theme.gradient
-                .ignoresSafeArea()
-
-            TabView(selection: $selectedTab) {
-                DashboardView(showingProfile: $showingProfile)
-                    .tabItem {
-                        Label("Dashboard", systemImage: "chart.line.uptrend.xyaxis")
-                    }
-                    .tag(0)
-
-                LoggingView(showingProfile: $showingProfile)
-                    .tabItem {
-                        Label("Log", systemImage: "plus.circle.fill")
-                    }
-                    .tag(1)
-
-                JournalListView(showingProfile: $showingProfile)
-                    .tabItem {
-                        Label("Journal", systemImage: "book.fill")
-                    }
-                    .tag(2)
-
-                ReportsView(showingProfile: $showingProfile)
-                    .tabItem {
-                        Label("Reports", systemImage: "chart.bar.doc.horizontal")
-                    }
-                    .tag(3)
-            }
-            .preferredColorScheme(appearance.colorScheme)
+    private var dynamicTypeSize: DynamicTypeSize {
+        switch fontSizeScale {
+        case ..<0.85: return .xSmall
+        case 0.85..<0.95: return .small
+        case 0.95..<1.05: return .medium
+        case 1.05..<1.15: return .large
+        case 1.15..<1.25: return .xLarge
+        case 1.25..<1.35: return .xxLarge
+        default: return .xxxLarge
         }
+    }
+
+    var body: some View {
+        TabView(selection: $selectedTab) {
+            DashboardView(showingProfile: $showingProfile)
+                .themedBackground()
+                .tabItem {
+                    Label("Dashboard", systemImage: "chart.line.uptrend.xyaxis")
+                }
+                .tag(0)
+
+            LoggingView(showingProfile: $showingProfile)
+                .themedBackground()
+                .tabItem {
+                    Label("Log", systemImage: "plus.circle.fill")
+                }
+                .tag(1)
+
+            JournalListView(showingProfile: $showingProfile)
+                .themedBackground()
+                .tabItem {
+                    Label("Journal", systemImage: "book.fill")
+                }
+                .tag(2)
+
+            ReportsView(showingProfile: $showingProfile)
+                .themedBackground()
+                .tabItem {
+                    Label("Reports", systemImage: "chart.bar.doc.horizontal")
+                }
+                .tag(3)
+        }
+        .preferredColorScheme(appearance.colorScheme)
+        .dynamicTypeSize(dynamicTypeSize)
         .sheet(isPresented: $showingProfile) {
             ProfileContainerView()
+                .themedBackground()
+                .dynamicTypeSize(dynamicTypeSize)
         }
     }
 }
@@ -55,36 +70,66 @@ enum AppTheme: String, CaseIterable {
     case green = "Green"
     case orange = "Orange"
     case pink = "Pink"
-    
+
+    var primaryColor: Color {
+        switch self {
+        case .purple: return .purple
+        case .blue: return .blue
+        case .green: return .green
+        case .orange: return .orange
+        case .pink: return .pink
+        }
+    }
+
     var gradient: LinearGradient {
         switch self {
         case .purple:
             return LinearGradient(
-                colors: [Color.purple.opacity(0.3), Color.blue.opacity(0.2)],
+                colors: [
+                    Color(red: 0.3, green: 0.1, blue: 0.4),
+                    Color(red: 0.15, green: 0.1, blue: 0.35),
+                    Color(red: 0.1, green: 0.05, blue: 0.2)
+                ],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             )
         case .blue:
             return LinearGradient(
-                colors: [Color.blue.opacity(0.3), Color.cyan.opacity(0.2)],
+                colors: [
+                    Color(red: 0.1, green: 0.2, blue: 0.4),
+                    Color(red: 0.05, green: 0.15, blue: 0.35),
+                    Color(red: 0.05, green: 0.1, blue: 0.25)
+                ],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             )
         case .green:
             return LinearGradient(
-                colors: [Color.green.opacity(0.3), Color.mint.opacity(0.2)],
+                colors: [
+                    Color(red: 0.1, green: 0.3, blue: 0.2),
+                    Color(red: 0.05, green: 0.2, blue: 0.15),
+                    Color(red: 0.05, green: 0.15, blue: 0.1)
+                ],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             )
         case .orange:
             return LinearGradient(
-                colors: [Color.orange.opacity(0.3), Color.yellow.opacity(0.2)],
+                colors: [
+                    Color(red: 0.4, green: 0.2, blue: 0.1),
+                    Color(red: 0.3, green: 0.15, blue: 0.05),
+                    Color(red: 0.2, green: 0.1, blue: 0.05)
+                ],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             )
         case .pink:
             return LinearGradient(
-                colors: [Color.pink.opacity(0.3), Color.purple.opacity(0.2)],
+                colors: [
+                    Color(red: 0.4, green: 0.1, blue: 0.25),
+                    Color(red: 0.3, green: 0.1, blue: 0.2),
+                    Color(red: 0.2, green: 0.05, blue: 0.15)
+                ],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             )
@@ -94,7 +139,6 @@ enum AppTheme: String, CaseIterable {
 
 // AppAppearance enum must be accessible here
 enum AppAppearance: String, CaseIterable {
-    case system = "System"
     case light = "Light"
     case dark = "Dark"
 
@@ -104,8 +148,6 @@ enum AppAppearance: String, CaseIterable {
 
     var icon: String {
         switch self {
-        case .system:
-            return "circle.lefthalf.filled"
         case .light:
             return "sun.max.fill"
         case .dark:
@@ -115,13 +157,36 @@ enum AppAppearance: String, CaseIterable {
 
     var colorScheme: ColorScheme? {
         switch self {
-        case .system:
-            return nil
         case .light:
             return .light
         case .dark:
             return .dark
         }
+    }
+}
+
+// MARK: - Themed Background Modifier
+
+struct ThemedBackgroundModifier: ViewModifier {
+    @AppStorage("selectedTheme") private var selectedThemeRaw: String = AppTheme.purple.rawValue
+
+    private var theme: AppTheme {
+        AppTheme(rawValue: selectedThemeRaw) ?? .purple
+    }
+
+    func body(content: Content) -> some View {
+        ZStack {
+            theme.gradient
+                .ignoresSafeArea()
+
+            content
+        }
+    }
+}
+
+extension View {
+    func themedBackground() -> some View {
+        modifier(ThemedBackgroundModifier())
     }
 }
 

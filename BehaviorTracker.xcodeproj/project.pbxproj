@@ -45,6 +45,7 @@
 		4EAI00012EE0000000000005 /* AIInsightsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EAI00012EE0000000000006 /* AIInsightsView.swift */; };
 		4EAUD00012EE0000000000001 /* AudioRecordingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EAUD00012EE0000000000002 /* AudioRecordingService.swift */; };
 		4EF642062ECBA50F0055E3FB /* MedicationViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EF642052ECBA50F0055E3FB /* MedicationViewModel.swift */; };
+		4EMEDLOG0012EE00000001 /* MedicationQuickLogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EMEDLOG0012EE00000002 /* MedicationQuickLogView.swift */; };
 		4EF642082ECBA5B60055E3FB /* ThemePickerView 2.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EF642072ECBA5B60055E3FB /* ThemePickerView 2.swift */; };
 		4EJNL00012EE0000000000001 /* JournalEntry+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EJNL00012EE0000000000002 /* JournalEntry+CoreDataClass.swift */; };
 		4EJRNL0012EE0000000000001 /* JournalListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EJRNL0012EE0000000000002 /* JournalListView.swift */; };
@@ -160,6 +161,7 @@
 		4EAUD00012EE0000000000002 /* AudioRecordingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioRecordingService.swift; sourceTree = "<group>"; };
 		4EF642032ECBA4D00055E3FB /* JournalListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JournalListView.swift; sourceTree = "<group>"; };
 		4EF642052ECBA50F0055E3FB /* MedicationViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MedicationViewModel.swift; sourceTree = "<group>"; };
+		4EMEDLOG0012EE00000002 /* MedicationQuickLogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MedicationQuickLogView.swift; sourceTree = "<group>"; };
 		4EF642072ECBA5B60055E3FB /* ThemePickerView 2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ThemePickerView 2.swift"; sourceTree = "<group>"; };
 		4EICON0012EE0000000000001 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		4EJNL00012EE0000000000002 /* JournalEntry+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "JournalEntry+CoreDataClass.swift"; sourceTree = "<group>"; };
@@ -274,6 +276,7 @@
 			children = (
 				4E00911C2EC1372900D8A0D1 /* CategoryLoggingView.swift */,
 				4E00911D2EC1372900D8A0D1 /* LoggingView.swift */,
+				4EMEDLOG0012EE00000002 /* MedicationQuickLogView.swift */,
 				4E00911E2EC1372900D8A0D1 /* PatternEntryFormView.swift */,
 				4E86BDC32ECD0C9F00AD04F7 /* HealthKitManager.swift */,
 			);
@@ -500,6 +503,7 @@
 				4E0091302EC1372900D8A0D1 /* Tag+CoreDataClass.swift in Sources */,
 				4E0091312EC1372900D8A0D1 /* Accessibility+Extensions.swift in Sources */,
 				4E0091322EC1372900D8A0D1 /* LoggingView.swift in Sources */,
+				4EMEDLOG0012EE00000001 /* MedicationQuickLogView.swift in Sources */,
 				4E4295F32ECE39AF006C6B00 /* UserProfile+CoreDataClass.swift in Sources */,
 				4E86BDC42ECD0C9F00AD04F7 /* HealthKitManager.swift in Sources */,
 				4E0091332EC1372900D8A0D1 /* ReportGenerator.swift in Sources */,
@@ -618,7 +622,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = BehaviorTracker/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "";
+				INFOPLIST_KEY_CFBundleDisplayName = Cortex;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
 				INFOPLIST_KEY_NSHealthShareUsageDescription = " BehaviorTracker reads your health data to provide personalized insights.";
 				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "BehaviorTracker syncs your behavior patterns with HealthKit to help you track your wellness.";
@@ -654,7 +658,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = BehaviorTracker/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "";
+				INFOPLIST_KEY_CFBundleDisplayName = Cortex;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
 				INFOPLIST_KEY_NSHealthShareUsageDescription = " BehaviorTracker reads your health data to provide personalized insights.";
 				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "BehaviorTracker syncs your behavior patterns with HealthKit to help you track your wellness.";
@@ -812,7 +816,7 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = "Behavior Tracker";
+				INFOPLIST_KEY_CFBundleDisplayName = Cortex;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "This app uses the microphone to record voice notes in your journal entries.";
@@ -844,7 +848,7 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = "Behavior Tracker";
+				INFOPLIST_KEY_CFBundleDisplayName = Cortex;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "This app uses the microphone to record voice notes in your journal entries.";

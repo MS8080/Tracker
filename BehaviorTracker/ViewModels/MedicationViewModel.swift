@@ -8,21 +8,36 @@ class MedicationViewModel: ObservableObject {
     @Published var showingAddMedication = false
     @Published var showingLogMedication = false
     @Published var selectedMedication: Medication?
+    @Published var isLoading = false
 
     private let dataController: DataController
+    private var hasLoadedInitially = false
 
     init(dataController: DataController = .shared) {
         self.dataController = dataController
-        loadMedications()
-        loadTodaysLogs()
+        // Don't load in init - let views call loadMedications() in onAppear
     }
 
     func loadMedications() {
-        medications = dataController.fetchMedications(activeOnly: true)
+        // Load on background thread to avoid blocking UI
+        Task { @MainActor in
+            let meds = dataController.fetchMedications(activeOnly: true)
+            self.medications = meds
+        }
     }
 
     func loadTodaysLogs() {
-        todaysLogs = dataController.getTodaysMedicationLogs()
+        Task { @MainActor in
+            let logs = dataController.getTodaysMedicationLogs()
+            self.todaysLogs = logs
+        }
+    }
+
+    func loadDataIfNeeded() {
+        guard !hasLoadedInitially else { return }
+        hasLoadedInitially = true
+        loadMedications()
+        loadTodaysLogs()
     }
 
     func addMedication(name: String, dosage: String?, frequency: MedicationFrequency, notes: String?) {
