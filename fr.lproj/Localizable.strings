@@ -1,0 +1,120 @@
+/*
+  Localizable.strings (French)
+  BehaviorTracker
+*/
+
+// MARK: - Common
+"ok" = "OK";
+"cancel" = "Annuler";
+"delete" = "Supprimer";
+"edit" = "Modifier";
+"save" = "Enregistrer";
+"done" = "Terminé";
+"close" = "Fermer";
+"search" = "Rechercher";
+
+// MARK: - Tab Bar
+"tab.dashboard" = "Tableau de bord";
+"tab.log" = "Enregistrer";
+"tab.journal" = "Journal";
+"tab.reports" = "Rapports";
+
+// MARK: - Journal
+"journal.title" = "Journal";
+"journal.new_entry" = "Nouvelle entrée";
+"journal.no_entries" = "Aucune entrée de journal";
+"journal.search_placeholder" = "Rechercher dans le journal";
+"journal.entry.untitled" = "Sans titre";
+"journal.entry.title" = "Titre";
+"journal.entry.title_optional" = "Titre (optionnel)";
+"journal.entry.content" = "Contenu";
+"journal.entry.content_placeholder" = "Écrivez vos pensées ici...";
+"journal.entry.created_on" = "Créé le %@";
+"journal.entry.mood" = "Humeur : %@";
+"journal.entry.favorite" = "Favori";
+"journal.entry.add_to_favorites" = "Ajouter aux favoris";
+"journal.entry.remove_from_favorites" = "Retirer des favoris";
+"journal.entry.delete_title" = "Supprimer l'entrée";
+"journal.entry.delete_message" = "Êtes-vous sûr de vouloir supprimer cette entrée de journal ? Cette action est irréversible.";
+"journal.entry.character_count" = "%d caractères";
+"journal.entry.voice_note" = "Note vocale";
+"journal.entry.related_items" = "Éléments associés";
+"journal.entry.related_pattern" = "Schéma associé";
+"journal.entry.related_medication" = "Journal de médicament associé";
+"journal.entry.read_aloud" = "Lire à voix haute";
+
+// MARK: - Journal Time
+"time.today" = "Aujourd'hui";
+"time.yesterday" = "Hier";
+
+// MARK: - Mood Levels
+"mood.very_low" = "Très bas";
+"mood.low" = "Bas";
+"mood.neutral" = "Neutre";
+"mood.good" = "Bon";
+"mood.very_good" = "Très bon";
+
+// MARK: - Dashboard
+"dashboard.title" = "Tableau de bord";
+"dashboard.welcome" = "Bienvenue";
+"dashboard.streak_days" = "Série de %d jours";
+"dashboard.keep_going" = "Continuez comme ça !";
+"dashboard.entries_today" = "Entrées aujourd'hui";
+"dashboard.todays_summary" = "Résumé d'aujourd'hui";
+"dashboard.no_entries_today" = "Aucune entrée enregistrée aujourd'hui";
+"dashboard.recent_patterns" = "Schémas récents";
+"dashboard.medication_summary" = "Résumé des médicaments";
+"dashboard.medications_taken" = "Pris aujourd'hui";
+"dashboard.medications_missed" = "Manqué";
+"dashboard.quick_insights" = "Aperçus rapides";
+"dashboard.view_all" = "Voir tout";
+
+// MARK: - Logging
+"logging.title" = "Enregistrer un schéma";
+"logging.quick_log" = "Enregistrement rapide";
+"logging.favorites" = "Favoris";
+"logging.all_categories" = "Toutes les catégories";
+"logging.intensity" = "Intensité";
+"logging.duration" = "Durée";
+"logging.context_notes" = "Notes contextuelles";
+"logging.specific_details" = "Détails spécifiques";
+"logging.contributing_factors" = "Facteurs contributifs";
+
+// MARK: - Medications
+"medications.title" = "Médicaments";
+"medications.add" = "Ajouter un médicament";
+"medications.log" = "Enregistrer un médicament";
+"medications.name" = "Nom";
+"medications.dosage" = "Dosage";
+"medications.frequency" = "Fréquence";
+"medications.taken" = "Pris";
+"medications.skipped" = "Sauté";
+"medications.side_effects" = "Effets secondaires";
+"medications.effectiveness" = "Efficacité";
+"medications.notes" = "Notes";
+
+// MARK: - Reports
+"reports.title" = "Rapports";
+"reports.generate" = "Générer un rapport";
+"reports.export" = "Exporter";
+"reports.date_range" = "Période";
+
+// MARK: - Settings
+"settings.title" = "Paramètres";
+"settings.theme" = "Thème";
+"settings.language" = "Langue";
+"settings.export_data" = "Exporter les données";
+"settings.privacy" = "Confidentialité";
+"settings.about" = "À propos";
+
+// MARK: - Accessibility
+"accessibility.create_entry" = "Créer une nouvelle entrée de journal";
+"accessibility.close_entry" = "Fermer l'entrée de journal";
+"accessibility.show_search" = "Afficher la recherche";
+"accessibility.hide_search" = "Masquer la recherche";
+"accessibility.more_options" = "Plus d'options";
+
+// MARK: - Errors
+"error.title" = "Erreur";
+"error.generic" = "Une erreur s'est produite. Veuillez réessayer.";
+"error.validation" = "Veuillez vérifier votre saisie et réessayer.";

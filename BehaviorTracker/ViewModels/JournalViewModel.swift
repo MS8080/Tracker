@@ -17,6 +17,8 @@ class JournalViewModel: ObservableObject {
             loadJournalEntries()
         }
     }
+    @Published var errorMessage: String?
+    @Published var showError: Bool = false
 
     private let dataController = DataController.shared
 
@@ -39,16 +41,23 @@ class JournalViewModel: ObservableObject {
         audioFileName: String? = nil,
         relatedPatternEntry: PatternEntry? = nil,
         relatedMedicationLog: MedicationLog? = nil
-    ) {
-        _ = dataController.createJournalEntry(
-            title: title,
-            content: content,
-            mood: mood,
-            audioFileName: audioFileName,
-            relatedPatternEntry: relatedPatternEntry,
-            relatedMedicationLog: relatedMedicationLog
-        )
-        loadJournalEntries()
+    ) -> Bool {
+        do {
+            _ = try dataController.createJournalEntry(
+                title: title,
+                content: content,
+                mood: mood,
+                audioFileName: audioFileName,
+                relatedPatternEntry: relatedPatternEntry,
+                relatedMedicationLog: relatedMedicationLog
+            )
+            loadJournalEntries()
+            return true
+        } catch {
+            errorMessage = error.localizedDescription
+            showError = true
+            return false
+        }
     }
 
     func updateEntry(_ entry: JournalEntry) {

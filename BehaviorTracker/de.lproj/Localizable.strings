@@ -1,0 +1,137 @@
+/*
+  Localizable.strings (German)
+  BehaviorTracker
+*/
+
+// MARK: - Common
+"ok" = "OK";
+"cancel" = "Abbrechen";
+"delete" = "Löschen";
+"edit" = "Bearbeiten";
+"save" = "Speichern";
+"done" = "Fertig";
+"close" = "Schließen";
+"search" = "Suchen";
+
+// MARK: - Tab Bar
+"tab.dashboard" = "Übersicht";
+"tab.log" = "Erfassen";
+"tab.journal" = "Tagebuch";
+"tab.reports" = "Berichte";
+
+// MARK: - Journal
+"journal.title" = "Tagebuch";
+"journal.new_entry" = "Neuer Eintrag";
+"journal.no_entries" = "Keine Tagebucheinträge";
+"journal.search_placeholder" = "Tagebucheinträge durchsuchen";
+"journal.entry.untitled" = "Ohne Titel";
+"journal.entry.title" = "Titel";
+"journal.entry.title_optional" = "Titel (optional)";
+"journal.entry.content" = "Inhalt";
+"journal.entry.content_placeholder" = "Schreibe deine Gedanken hier...";
+"journal.entry.created_on" = "Erstellt am %@";
+"journal.entry.mood" = "Stimmung: %@";
+"journal.entry.favorite" = "Favorit";
+"journal.entry.add_to_favorites" = "Zu Favoriten hinzufügen";
+"journal.entry.remove_from_favorites" = "Von Favoriten entfernen";
+"journal.entry.delete_title" = "Eintrag löschen";
+"journal.entry.delete_message" = "Möchtest du diesen Tagebucheintrag wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.";
+"journal.entry.character_count" = "%d Zeichen";
+"journal.entry.voice_note" = "Sprachnotiz";
+"journal.entry.related_items" = "Verknüpfte Elemente";
+"journal.entry.related_pattern" = "Verknüpftes Muster";
+"journal.entry.related_medication" = "Verknüpfter Medikamenteneintrag";
+"journal.entry.read_aloud" = "Vorlesen";
+
+// MARK: - Journal Time
+"time.today" = "Heute";
+"time.yesterday" = "Gestern";
+
+// MARK: - Mood Levels
+"mood.very_low" = "Sehr niedrig";
+"mood.low" = "Niedrig";
+"mood.neutral" = "Neutral";
+"mood.good" = "Gut";
+"mood.very_good" = "Sehr gut";
+
+// MARK: - Dashboard
+"dashboard.title" = "Übersicht";
+"dashboard.welcome" = "Willkommen";
+"dashboard.streak_days" = "%d Tage Streak";
+"dashboard.keep_going" = "Mach weiter so!";
+"dashboard.entries_today" = "Einträge heute";
+"dashboard.todays_summary" = "Zusammenfassung heute";
+"dashboard.no_entries_today" = "Keine Einträge heute erfasst";
+"dashboard.recent_patterns" = "Letzte Muster";
+"dashboard.medication_summary" = "Medikamentenübersicht";
+"dashboard.medications_taken" = "Heute eingenommen";
+"dashboard.medications_missed" = "Vergessen";
+"dashboard.quick_insights" = "Schnelle Einblicke";
+"dashboard.view_all" = "Alle anzeigen";
+
+// MARK: - Logging
+"logging.title" = "Muster erfassen";
+"logging.quick_log" = "Schnellerfassung";
+"logging.favorites" = "Favoriten";
+"logging.all_categories" = "Alle Kategorien";
+"logging.intensity" = "Intensität";
+"logging.duration" = "Dauer";
+"logging.context_notes" = "Kontextnotizen";
+"logging.specific_details" = "Spezifische Details";
+"logging.contributing_factors" = "Beitragende Faktoren";
+
+// MARK: - Medications
+"medications.title" = "Medikamente";
+"medications.add" = "Medikament hinzufügen";
+"medications.log" = "Medikament erfassen";
+"medications.name" = "Name";
+"medications.dosage" = "Dosierung";
+"medications.frequency" = "Häufigkeit";
+"medications.taken" = "Eingenommen";
+"medications.skipped" = "Ausgelassen";
+"medications.side_effects" = "Nebenwirkungen";
+"medications.effectiveness" = "Wirksamkeit";
+"medications.notes" = "Notizen";
+
+// MARK: - Reports
+"reports.title" = "Berichte";
+"reports.generate" = "Bericht erstellen";
+"reports.export" = "Exportieren";
+"reports.date_range" = "Zeitraum";
+
+// MARK: - Settings
+"settings.title" = "Einstellungen";
+"settings.theme" = "Design";
+"settings.language" = "Sprache";
+"settings.export_data" = "Daten exportieren";
+"settings.privacy" = "Datenschutz";
+"settings.about" = "Über";
+
+// MARK: - Accessibility
+"accessibility.create_entry" = "Neuen Tagebucheintrag erstellen";
+"accessibility.close_entry" = "Tagebucheintrag schließen";
+"accessibility.show_search" = "Suche anzeigen";
+"accessibility.hide_search" = "Suche ausblenden";
+"accessibility.more_options" = "Weitere Optionen";
+
+// MARK: - Correlations
+"correlation.title" = "Korrelationen";
+"correlation.analysis_period" = "Analysezeitraum";
+"correlation.filter.all" = "Alle";
+"correlation.filter.medications" = "Medikamente";
+"correlation.filter.time" = "Zeit";
+"correlation.filter.factors" = "Faktoren";
+"correlation.filter.mood" = "Stimmung";
+"correlation.strength" = "Korrelationsstärke";
+"correlation.sample_size" = "Basierend auf %d Datenpunkten";
+"correlation.confidence.low" = "Niedrig";
+"correlation.confidence.medium" = "Mittel";
+"correlation.confidence.high" = "Hoch";
+"correlation.empty.title" = "Noch nicht genug Daten";
+"correlation.empty.message" = "Erfasse weiterhin Muster und Medikamente, um Korrelationen zu sehen";
+"correlation.analyzing" = "Analysiere Muster...";
+
+// MARK: - Errors
+"error.title" = "Fehler";
+"error.generic" = "Ein Fehler ist aufgetreten. Bitte versuche es erneut.";
+"error.validation" = "Bitte überprüfe deine Eingabe und versuche es erneut.";

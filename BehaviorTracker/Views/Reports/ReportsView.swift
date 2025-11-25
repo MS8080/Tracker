@@ -5,6 +5,7 @@ struct ReportsView: View {
     @StateObject private var viewModel = ReportsViewModel()
     @State private var selectedTimeframe: ReportTimeframe = .weekly
     @State private var showingAIInsights = false
+    @State private var showingCorrelations = false
     @Binding var showingProfile: Bool
 
     @AppStorage("selectedTheme") private var selectedThemeRaw: String = AppTheme.purple.rawValue
@@ -25,6 +26,9 @@ struct ReportsView: View {
 
                 ScrollView {
                     VStack(spacing: 24) {
+                        // Correlation Insights Card
+                        correlationInsightsCard
+
                         // AI Insights Card
                         aiInsightsCard
 
@@ -52,7 +56,53 @@ struct ReportsView: View {
             .sheet(isPresented: $showingAIInsights) {
                 AIInsightsView()
             }
+            .sheet(isPresented: $showingCorrelations) {
+                CorrelationInsightsView()
+            }
         }
+    }
+
+    private var correlationInsightsCard: some View {
+        Button {
+            showingCorrelations = true
+        } label: {
+            HStack(spacing: 16) {
+                ZStack {
+                    Circle()
+                        .fill(.blue.gradient)
+                        .frame(width: 50, height: 50)
+
+                    Image(systemName: "chart.line.uptrend.xyaxis")
+                        .font(.title2)
+                        .foregroundColor(.white)
+                }
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Correlation Analysis")
+                        .font(.headline)
+                        .foregroundColor(.primary)
+
+                    Text("Discover what triggers your patterns")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+
+                Spacer()
+
+                Image(systemName: "chevron.right")
+                    .foregroundColor(.secondary)
+            }
+            .padding(16)
+            .background(
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(.ultraThinMaterial)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 16)
+                    .stroke(.blue.opacity(0.3), lineWidth: 1)
+            )
+        }
+        .buttonStyle(.plain)
     }
 
     private var aiInsightsCard: some View {

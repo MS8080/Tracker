@@ -311,7 +311,7 @@ struct MedicationSlideToLogCard: View {
         let finalDose = doseLevel
         let doseNote = "Dose: \(finalDose * 10)% (\(finalDose)/10)"
 
-        viewModel.logMedication(
+        _ = viewModel.logMedication(
             medication: medication,
             taken: true,
             skippedReason: nil,

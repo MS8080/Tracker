@@ -222,7 +222,7 @@ struct PatternEntryFormView: View {
     private func saveEntry() {
         let totalMinutes = (hours * 60) + minutes
 
-        viewModel.logPattern(
+        _ = viewModel.logPattern(
             patternType: patternType,
             intensity: Int16(intensity),
             duration: Int32(totalMinutes),

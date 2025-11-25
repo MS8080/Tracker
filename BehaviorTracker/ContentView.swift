@@ -30,30 +30,37 @@ struct ContentView: View {
                 DashboardView(showingProfile: $showingProfile)
                     .themedBackground()
                     .tabItem {
-                        Label("Dashboard", systemImage: "chart.line.uptrend.xyaxis")
+                        Label(NSLocalizedString("tab.dashboard", comment: ""), systemImage: "house.fill")
                     }
                     .tag(0)
+
+                CalendarView(showingProfile: $showingProfile)
+                    .themedBackground()
+                    .tabItem {
+                        Label(NSLocalizedString("tab.calendar", comment: ""), systemImage: "calendar")
+                    }
+                    .tag(1)
 
                 LoggingView(showingProfile: $showingProfile)
                     .themedBackground()
                     .tabItem {
-                        Label("Log", systemImage: "plus.circle.fill")
+                        Label(NSLocalizedString("tab.log", comment: ""), systemImage: "plus.circle.fill")
                     }
-                    .tag(1)
+                    .tag(2)
 
                 JournalListView(showingProfile: $showingProfile)
                     .themedBackground()
                     .tabItem {
-                        Label("Journal", systemImage: "book.fill")
+                        Label(NSLocalizedString("tab.journal", comment: ""), systemImage: "book.fill")
                     }
-                    .tag(2)
+                    .tag(3)
 
                 ReportsView(showingProfile: $showingProfile)
                     .themedBackground()
                     .tabItem {
-                        Label("Reports", systemImage: "chart.bar.doc.horizontal")
+                        Label(NSLocalizedString("tab.reports", comment: ""), systemImage: "chart.bar.doc.horizontal")
                     }
-                    .tag(3)
+                    .tag(4)
             }
 
             // Blue light filter overlay

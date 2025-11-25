@@ -1,0 +1,148 @@
+/*
+  Localizable.strings (English - Base)
+  BehaviorTracker
+*/
+
+// MARK: - Common
+"ok" = "OK";
+"cancel" = "Cancel";
+"delete" = "Delete";
+"edit" = "Edit";
+"save" = "Save";
+"done" = "Done";
+"close" = "Close";
+"search" = "Search";
+
+// MARK: - Tab Bar
+"tab.dashboard" = "Dashboard";
+"tab.calendar" = "Calendar";
+"tab.log" = "Log";
+"tab.journal" = "Journal";
+"tab.reports" = "Reports";
+
+// MARK: - Calendar
+"calendar.title" = "Calendar";
+"calendar.today" = "Today";
+"calendar.no_entries" = "No entries for this day";
+"calendar.view_details" = "View Details";
+"calendar.day_summary" = "Day Summary";
+"calendar.patterns" = "Patterns";
+"calendar.medications" = "Medications";
+"calendar.legend" = "Legend";
+
+// MARK: - Journal
+"journal.title" = "Journal";
+"journal.new_entry" = "New Entry";
+"journal.no_entries" = "No Journal Entries";
+"journal.search_placeholder" = "Search journal entries";
+"journal.entry.untitled" = "Untitled Entry";
+"journal.entry.title" = "Title";
+"journal.entry.title_optional" = "Title (optional)";
+"journal.entry.content" = "Content";
+"journal.entry.content_placeholder" = "Write your thoughts here...";
+"journal.entry.created_on" = "Created on %@";
+"journal.entry.mood" = "Mood: %@";
+"journal.entry.favorite" = "Favorite";
+"journal.entry.add_to_favorites" = "Add to Favorites";
+"journal.entry.remove_from_favorites" = "Remove from Favorites";
+"journal.entry.delete_title" = "Delete Entry";
+"journal.entry.delete_message" = "Are you sure you want to delete this journal entry? This action cannot be undone.";
+"journal.entry.character_count" = "%d characters";
+"journal.entry.voice_note" = "Voice Note";
+"journal.entry.related_items" = "Related Items";
+"journal.entry.related_pattern" = "Related Pattern";
+"journal.entry.related_medication" = "Related Medication Log";
+"journal.entry.read_aloud" = "Read Aloud";
+
+// MARK: - Journal Time
+"time.today" = "Today";
+"time.yesterday" = "Yesterday";
+
+// MARK: - Mood Levels
+"mood.very_low" = "Very Low";
+"mood.low" = "Low";
+"mood.neutral" = "Neutral";
+"mood.good" = "Good";
+"mood.very_good" = "Very Good";
+
+// MARK: - Dashboard
+"dashboard.title" = "Dashboard";
+"dashboard.welcome" = "Welcome";
+"dashboard.streak_days" = "%d Day Streak";
+"dashboard.keep_going" = "Keep it going!";
+"dashboard.entries_today" = "Entries today";
+"dashboard.todays_summary" = "Today's Summary";
+"dashboard.no_entries_today" = "No entries logged today";
+"dashboard.recent_patterns" = "Recent Patterns";
+"dashboard.medication_summary" = "Medication Summary";
+"dashboard.medications_taken" = "Taken Today";
+"dashboard.medications_missed" = "Missed";
+"dashboard.quick_insights" = "Quick Insights";
+"dashboard.view_all" = "View All";
+
+// MARK: - Logging
+"logging.title" = "Log Pattern";
+"logging.quick_log" = "Quick Log";
+"logging.favorites" = "Favorites";
+"logging.all_categories" = "All Categories";
+"logging.intensity" = "Intensity";
+"logging.duration" = "Duration";
+"logging.context_notes" = "Context Notes";
+"logging.specific_details" = "Specific Details";
+"logging.contributing_factors" = "Contributing Factors";
+
+// MARK: - Medications
+"medications.title" = "Medications";
+"medications.add" = "Add Medication";
+"medications.log" = "Log Medication";
+"medications.name" = "Name";
+"medications.dosage" = "Dosage";
+"medications.frequency" = "Frequency";
+"medications.taken" = "Taken";
+"medications.skipped" = "Skipped";
+"medications.side_effects" = "Side Effects";
+"medications.effectiveness" = "Effectiveness";
+"medications.notes" = "Notes";
+
+// MARK: - Reports
+"reports.title" = "Reports";
+"reports.generate" = "Generate Report";
+"reports.export" = "Export";
+"reports.date_range" = "Date Range";
+
+// MARK: - Settings
+"settings.title" = "Settings";
+"settings.theme" = "Theme";
+"settings.language" = "Language";
+"settings.export_data" = "Export Data";
+"settings.privacy" = "Privacy";
+"settings.about" = "About";
+
+// MARK: - Accessibility
+"accessibility.create_entry" = "Create new journal entry";
+"accessibility.close_entry" = "Close journal entry";
+"accessibility.show_search" = "Show search";
+"accessibility.hide_search" = "Hide search";
+"accessibility.more_options" = "More options";
+
+// MARK: - Correlations
+"correlation.title" = "Correlations";
+"correlation.analysis_period" = "Analysis Period";
+"correlation.filter.all" = "All";
+"correlation.filter.medications" = "Medications";
+"correlation.filter.time" = "Time";
+"correlation.filter.factors" = "Factors";
+"correlation.filter.mood" = "Mood";
+"correlation.strength" = "Correlation Strength";
+"correlation.sample_size" = "Based on %d data points";
+"correlation.confidence.low" = "Low";
+"correlation.confidence.medium" = "Medium";
+"correlation.confidence.high" = "High";
+"correlation.empty.title" = "Not enough data yet";
+"correlation.empty.message" = "Keep tracking patterns and medications to see correlations";
+"correlation.analyzing" = "Analyzing patterns...";
+
+// MARK: - Errors
+"error.title" = "Error";
+"error.generic" = "An error occurred. Please try again.";
+"error.validation" = "Please check your input and try again.";

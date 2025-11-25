@@ -9,7 +9,20 @@ class GeminiService {
 
     var apiKey: String? {
         get { UserDefaults.standard.string(forKey: "gemini_api_key") }
-        set { UserDefaults.standard.set(newValue, forKey: "gemini_api_key") }
+        set {
+            // Validate API key before storing
+            if let key = newValue {
+                do {
+                    try validateAPIKey(key)
+                    UserDefaults.standard.set(key, forKey: "gemini_api_key")
+                } catch {
+                    // Invalid key, don't store it
+                    print("API key validation failed: \(error.localizedDescription)")
+                }
+            } else {
+                UserDefaults.standard.removeObject(forKey: "gemini_api_key")
+            }
+        }
     }
 
     var isConfigured: Bool {
@@ -17,10 +30,21 @@ class GeminiService {
         return !key.isEmpty
     }
 
+    private func validateAPIKey(_ key: String) throws {
+        try Validator(key, fieldName: "API key")
+            .notEmpty()
+            .minLength(20, message: "API key is too short")
+            .maxLength(200, message: "API key is too long")
+            .matches(pattern: "^[A-Za-z0-9_-]+$", message: "API key contains invalid characters")
+    }
+
     func generateContent(prompt: String) async throws -> String {
         guard let apiKey = apiKey, !apiKey.isEmpty else {
             throw GeminiError.noAPIKey
         }
+
+        // Validate API key format before using
+        try validateAPIKey(apiKey)
 
         guard let url = URL(string: "\(baseURL)?key=\(apiKey)") else {
             throw GeminiError.invalidURL

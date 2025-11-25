@@ -5,7 +5,9 @@ import CoreData
 class LoggingViewModel: ObservableObject {
     @Published var favoritePatterns: [String] = []
     @Published var isHealthKitEnabled = false
-    
+    @Published var errorMessage: String?
+    @Published var showError: Bool = false
+
     private let dataController = DataController.shared
     private let healthKitManager = HealthKitManager.shared
 
@@ -25,23 +27,30 @@ class LoggingViewModel: ObservableObject {
         favoritePatterns = preferences.favoritePatterns
     }
 
-    func quickLog(patternType: PatternType) {
-        let _ = dataController.createPatternEntry(
-            patternType: patternType,
-            intensity: 3,
-            duration: 0,
-            contextNotes: nil,
-            specificDetails: nil
-        )
-        dataController.updateStreak()
-
-        // Sync to HealthKit in background
-        Task.detached {
-            await self.healthKitManager.syncPatternToHealthKit(
+    func quickLog(patternType: PatternType) -> Bool {
+        do {
+            let _ = try dataController.createPatternEntry(
                 patternType: patternType,
                 intensity: 3,
-                duration: 0
+                duration: 0,
+                contextNotes: nil,
+                specificDetails: nil
             )
+            dataController.updateStreak()
+
+            // Sync to HealthKit in background
+            Task.detached {
+                await self.healthKitManager.syncPatternToHealthKit(
+                    patternType: patternType,
+                    intensity: 3,
+                    duration: 0
+                )
+            }
+            return true
+        } catch {
+            errorMessage = error.localizedDescription
+            showError = true
+            return false
         }
     }
 
@@ -53,29 +62,36 @@ class LoggingViewModel: ObservableObject {
         specificDetails: String?,
         isFavorite: Bool,
         contributingFactors: [ContributingFactor] = []
-    ) {
-        _ = dataController.createPatternEntry(
-            patternType: patternType,
-            intensity: intensity,
-            duration: duration,
-            contextNotes: contextNotes,
-            specificDetails: specificDetails,
-            contributingFactors: contributingFactors
-        )
-
-        if isFavorite && !favoritePatterns.contains(patternType.rawValue) {
-            addToFavorites(patternType: patternType)
-        }
-
-        dataController.updateStreak()
-
-        // Sync to HealthKit in background
-        Task.detached {
-            await self.healthKitManager.syncPatternToHealthKit(
+    ) -> Bool {
+        do {
+            _ = try dataController.createPatternEntry(
                 patternType: patternType,
                 intensity: intensity,
-                duration: duration
+                duration: duration,
+                contextNotes: contextNotes,
+                specificDetails: specificDetails,
+                contributingFactors: contributingFactors
             )
+
+            if isFavorite && !favoritePatterns.contains(patternType.rawValue) {
+                addToFavorites(patternType: patternType)
+            }
+
+            dataController.updateStreak()
+
+            // Sync to HealthKit in background
+            Task.detached {
+                await self.healthKitManager.syncPatternToHealthKit(
+                    patternType: patternType,
+                    intensity: intensity,
+                    duration: duration
+                )
+            }
+            return true
+        } catch {
+            errorMessage = error.localizedDescription
+            showError = true
+            return false
         }
     }
 

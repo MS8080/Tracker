@@ -9,6 +9,8 @@ class MedicationViewModel: ObservableObject {
     @Published var showingLogMedication = false
     @Published var selectedMedication: Medication?
     @Published var isLoading = false
+    @Published var errorMessage: String?
+    @Published var showError: Bool = false
 
     private let dataController: DataController
     private var hasLoadedInitially = false
@@ -40,14 +42,21 @@ class MedicationViewModel: ObservableObject {
         loadTodaysLogs()
     }
 
-    func addMedication(name: String, dosage: String?, frequency: MedicationFrequency, notes: String?) {
-        _ = dataController.createMedication(
-            name: name,
-            dosage: dosage,
-            frequency: frequency.rawValue,
-            notes: notes
-        )
-        loadMedications()
+    func addMedication(name: String, dosage: String?, frequency: MedicationFrequency, notes: String?) -> Bool {
+        do {
+            _ = try dataController.createMedication(
+                name: name,
+                dosage: dosage,
+                frequency: frequency.rawValue,
+                notes: notes
+            )
+            loadMedications()
+            return true
+        } catch {
+            errorMessage = error.localizedDescription
+            showError = true
+            return false
+        }
     }
 
     func deactivateMedication(_ medication: Medication) {
@@ -70,18 +79,25 @@ class MedicationViewModel: ObservableObject {
         mood: Int,
         energyLevel: Int,
         notes: String?
-    ) {
-        _ = dataController.createMedicationLog(
-            medication: medication,
-            taken: taken,
-            skippedReason: skippedReason,
-            sideEffects: sideEffects,
-            effectiveness: Int16(effectiveness),
-            mood: Int16(mood),
-            energyLevel: Int16(energyLevel),
-            notes: notes
-        )
-        loadTodaysLogs()
+    ) -> Bool {
+        do {
+            _ = try dataController.createMedicationLog(
+                medication: medication,
+                taken: taken,
+                skippedReason: skippedReason,
+                sideEffects: sideEffects,
+                effectiveness: Int16(effectiveness),
+                mood: Int16(mood),
+                energyLevel: Int16(energyLevel),
+                notes: notes
+            )
+            loadTodaysLogs()
+            return true
+        } catch {
+            errorMessage = error.localizedDescription
+            showError = true
+            return false
+        }
     }
 
     func hasTakenToday(medication: Medication) -> Bool {

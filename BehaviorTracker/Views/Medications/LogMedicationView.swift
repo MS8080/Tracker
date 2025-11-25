@@ -104,7 +104,7 @@ struct LogMedicationView: View {
     }
 
     private func saveMedicationLog() {
-        viewModel.logMedication(
+        let success = viewModel.logMedication(
             medication: medication,
             taken: taken,
             skippedReason: taken ? nil : (skippedReason.isEmpty ? nil : skippedReason),
@@ -114,6 +114,10 @@ struct LogMedicationView: View {
             energyLevel: taken ? energyLevel : 0,
             notes: notes.isEmpty ? nil : notes
         )
-        dismiss()
+        
+        if success {
+            dismiss()
+        }
+        // If not successful, the viewModel will show the error via its @Published properties
     }
 }

@@ -63,13 +63,17 @@ struct AddMedicationView: View {
     }
 
     private func saveMedication() {
-        viewModel.addMedication(
+        let success = viewModel.addMedication(
             name: name,
             dosage: dosage.isEmpty ? nil : dosage,
             frequency: selectedFrequency,
             notes: notes.isEmpty ? nil : notes
         )
-        dismiss()
+        
+        if success {
+            dismiss()
+        }
+        // If not successful, the viewModel will show an error through its published properties
     }
 }
 

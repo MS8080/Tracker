@@ -39,7 +39,7 @@ struct DashboardView: View {
                 }
                 .scrollContentBackground(.hidden)
             }
-            .navigationTitle("Dashboard")
+            .navigationTitle(NSLocalizedString("dashboard.title", comment: ""))
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
                     ProfileButton(showingProfile: $showingProfile)

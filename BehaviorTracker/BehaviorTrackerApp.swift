@@ -4,6 +4,7 @@ import SwiftUI
 struct BehaviorTrackerApp: App {
     private let dataController = DataController.shared
     @State private var isReady = false
+    @Environment(\.scenePhase) private var scenePhase
 
     var body: some Scene {
         WindowGroup {
@@ -13,10 +14,21 @@ struct BehaviorTrackerApp: App {
             } else {
                 SplashView()
                     .onAppear {
+                        // Process any pending widget logs
+                        dataController.processPendingWidgetLogs()
+                        // Sync widget data
+                        dataController.syncWidgetData()
+
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                             isReady = true
                         }
                     }
+            }
+        }
+        .onChange(of: scenePhase) { _, newPhase in
+            if newPhase == .active {
+                // Process pending widget logs when app becomes active
+                dataController.processPendingWidgetLogs()
             }
         }
     }

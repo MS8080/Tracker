@@ -1,5 +1,6 @@
 import CoreData
 import Foundation
+import WidgetKit
 
 class DataController: ObservableObject {
     static let shared = DataController()
@@ -106,17 +107,45 @@ class DataController: ObservableObject {
         contextNotes: String? = nil,
         specificDetails: String? = nil,
         contributingFactors: [ContributingFactor] = []
-    ) -> PatternEntry {
+    ) throws -> PatternEntry {
+        // Validate intensity
+        try Validator(intensity, fieldName: "Intensity")
+            .inRange(0...5)
+
+        // Validate duration (in minutes, reasonable max is 24 hours = 1440 minutes)
+        try Validator(duration, fieldName: "Duration")
+            .inRange(0...1440)
+
+        // Validate context notes if provided
+        try Validator(contextNotes, fieldName: "Context notes")
+            .ifPresent { validator in
+                try validator.maxLength(1000)
+            }
+
+        // Validate specific details if provided
+        try Validator(specificDetails, fieldName: "Specific details")
+            .ifPresent { validator in
+                try validator.maxLength(1000)
+            }
+
+        // Validate contributing factors count
+        try Validator(contributingFactors, fieldName: "Contributing factors")
+            .maxCount(20, message: "You can select up to 20 contributing factors")
+
         let entry = NSEntityDescription.insertNewObject(forEntityName: "PatternEntry", into: container.viewContext) as! PatternEntry
         entry.configure(
             patternType: patternType,
             intensity: intensity,
             duration: duration,
-            contextNotes: contextNotes,
-            specificDetails: specificDetails,
+            contextNotes: contextNotes?.trimmingCharacters(in: .whitespacesAndNewlines),
+            specificDetails: specificDetails?.trimmingCharacters(in: .whitespacesAndNewlines),
             contributingFactors: contributingFactors
         )
         save()
+
+        // Update widget data after logging
+        syncWidgetData()
+
         return entry
     }
 
@@ -223,13 +252,35 @@ class DataController: ObservableObject {
         dosage: String? = nil,
         frequency: String,
         notes: String? = nil
-    ) -> Medication {
+    ) throws -> Medication {
+        // Validate medication name
+        try Validator(name, fieldName: "Medication name")
+            .notEmpty()
+            .maxLength(100)
+
+        // Validate dosage if provided
+        try Validator(dosage, fieldName: "Dosage")
+            .ifPresent { validator in
+                try validator.maxLength(50)
+            }
+
+        // Validate frequency
+        try Validator(frequency, fieldName: "Frequency")
+            .notEmpty()
+            .maxLength(50)
+
+        // Validate notes if provided
+        try Validator(notes, fieldName: "Notes")
+            .ifPresent { validator in
+                try validator.maxLength(500)
+            }
+
         let medication = NSEntityDescription.insertNewObject(forEntityName: "Medication", into: container.viewContext) as! Medication
         medication.configure(
-            name: name,
-            dosage: dosage,
-            frequency: frequency,
-            notes: notes
+            name: name.trimmingCharacters(in: .whitespacesAndNewlines),
+            dosage: dosage?.trimmingCharacters(in: .whitespacesAndNewlines),
+            frequency: frequency.trimmingCharacters(in: .whitespacesAndNewlines),
+            notes: notes?.trimmingCharacters(in: .whitespacesAndNewlines)
         )
         save()
         return medication
@@ -272,17 +323,39 @@ class DataController: ObservableObject {
         mood: Int16 = 0,
         energyLevel: Int16 = 0,
         notes: String? = nil
-    ) -> MedicationLog {
+    ) throws -> MedicationLog {
+        // Validate effectiveness
+        try Validator(effectiveness, fieldName: "Effectiveness")
+            .inRange(0...5)
+
+        // Validate mood
+        try Validator(mood, fieldName: "Mood")
+            .inRange(0...5)
+
+        // Validate energy level
+        try Validator(energyLevel, fieldName: "Energy level")
+            .inRange(0...5)
+
+        // Validate optional fields
+        try Validator(skippedReason, fieldName: "Skipped reason")
+            .ifPresent { try $0.maxLength(200) }
+
+        try Validator(sideEffects, fieldName: "Side effects")
+            .ifPresent { try $0.maxLength(500) }
+
+        try Validator(notes, fieldName: "Notes")
+            .ifPresent { try $0.maxLength(500) }
+
         let log = NSEntityDescription.insertNewObject(forEntityName: "MedicationLog", into: container.viewContext) as! MedicationLog
         log.configure(
             medication: medication,
             taken: taken,
-            skippedReason: skippedReason,
-            sideEffects: sideEffects,
+            skippedReason: skippedReason?.trimmingCharacters(in: .whitespacesAndNewlines),
+            sideEffects: sideEffects?.trimmingCharacters(in: .whitespacesAndNewlines),
             effectiveness: effectiveness,
             mood: mood,
             energyLevel: energyLevel,
-            notes: notes
+            notes: notes?.trimmingCharacters(in: .whitespacesAndNewlines)
         )
         save()
         return log
@@ -347,11 +420,34 @@ class DataController: ObservableObject {
         audioFileName: String? = nil,
         relatedPatternEntry: PatternEntry? = nil,
         relatedMedicationLog: MedicationLog? = nil
-    ) -> JournalEntry {
+    ) throws -> JournalEntry {
+        // Validate content
+        try Validator(content, fieldName: "Journal content")
+            .notEmpty()
+            .maxLength(50000)
+
+        // Validate title if provided
+        try Validator(title, fieldName: "Journal title")
+            .ifPresent { validator in
+                try validator.maxLength(200)
+                try validator.noSpecialCharacters()
+            }
+
+        // Validate mood
+        try Validator(mood, fieldName: "Mood")
+            .inRange(0...5)
+
+        // Validate audio file name if provided
+        try Validator(audioFileName, fieldName: "Audio file name")
+            .ifPresent { validator in
+                try validator.maxLength(255)
+                try validator.matches(pattern: "^[a-zA-Z0-9_.-]+$", message: "Audio file name contains invalid characters")
+            }
+
         let entry = NSEntityDescription.insertNewObject(forEntityName: "JournalEntry", into: container.viewContext) as! JournalEntry
         entry.configure(
-            title: title,
-            content: content,
+            title: title?.trimmingCharacters(in: .whitespacesAndNewlines),
+            content: content.trimmingCharacters(in: .whitespacesAndNewlines),
             mood: mood,
             relatedPatternEntry: relatedPatternEntry,
             relatedMedicationLog: relatedMedicationLog
@@ -476,5 +572,118 @@ class DataController: ObservableObject {
     func deleteUserProfile(_ profile: UserProfile) {
         container.viewContext.delete(profile)
         save()
+    }
+
+    // MARK: - Widget Integration
+
+    /// App Group identifier for sharing data with widgets
+    private let appGroupIdentifier = "group.com.behaviortracker.shared"
+
+    private var sharedDefaults: UserDefaults? {
+        UserDefaults(suiteName: appGroupIdentifier)
+    }
+
+    /// Sync data to widget after any changes
+    func syncWidgetData() {
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        let tomorrow = calendar.date(byAdding: .day, value: 1, to: today)!
+
+        // Get today's entry count
+        let todayEntries = fetchPatternEntries(startDate: today, endDate: tomorrow)
+        let todayCount = todayEntries.count
+
+        // Get streak
+        let preferences = getUserPreferences()
+        let streakCount = Int(preferences.streakCount)
+
+        // Get favorite patterns (most logged in last 30 days)
+        let thirtyDaysAgo = calendar.date(byAdding: .day, value: -30, to: Date())!
+        let recentEntries = fetchPatternEntries(startDate: thirtyDaysAgo)
+        let patternCounts = Dictionary(grouping: recentEntries) { $0.patternType }
+            .mapValues { $0.count }
+            .sorted { $0.value > $1.value }
+
+        // Create QuickLogPattern array for top patterns
+        var quickPatterns: [[String: String]] = []
+        for (patternType, _) in patternCounts.prefix(6) {
+            if let patternTypeEnum = PatternType(rawValue: patternType) {
+                let pattern: [String: String] = [
+                    "name": patternType,
+                    "patternType": patternType,
+                    "category": patternTypeEnum.category.rawValue,
+                    "icon": patternTypeEnum.category.icon,
+                    "colorHex": patternTypeEnum.category.color.toHex() ?? "AF52DE"
+                ]
+                quickPatterns.append(pattern)
+            }
+        }
+
+        // If no recent patterns, use defaults
+        if quickPatterns.isEmpty {
+            quickPatterns = [
+                ["name": "Sensory Overload", "patternType": "Sensory Overload", "category": "Sensory", "icon": "eye.circle", "colorHex": "AF52DE"],
+                ["name": "Meltdown", "patternType": "Meltdown", "category": "Energy & Regulation", "icon": "bolt.circle", "colorHex": "FF3B30"],
+                ["name": "Stimming", "patternType": "Stimming", "category": "Energy & Regulation", "icon": "hands.sparkles", "colorHex": "FF9500"],
+                ["name": "Masking Fatigue", "patternType": "Masking Fatigue", "category": "Social & Communication", "icon": "theatermasks", "colorHex": "34C759"]
+            ]
+        }
+
+        // Save to shared UserDefaults
+        sharedDefaults?.set(todayCount, forKey: "todayLogCount")
+        sharedDefaults?.set(today, forKey: "todayLogDate")
+        sharedDefaults?.set(streakCount, forKey: "streakCount")
+
+        // Save quick log patterns as JSON
+        if let patternsData = try? JSONSerialization.data(withJSONObject: quickPatterns) {
+            sharedDefaults?.set(patternsData, forKey: "quickLogPatterns")
+        }
+
+        sharedDefaults?.set(Date(), forKey: "lastUpdateDate")
+
+        // Reload widgets
+        WidgetCenter.shared.reloadAllTimelines()
+    }
+
+    /// Process any pending pattern logs from widget
+    func processPendingWidgetLogs() {
+        guard let data = sharedDefaults?.data(forKey: "pendingPatternLogs"),
+              let logs = try? JSONDecoder().decode([PendingPatternLog].self, from: data),
+              !logs.isEmpty else {
+            return
+        }
+
+        for log in logs {
+            // Try to find matching PatternType
+            if let patternType = PatternType(rawValue: log.patternType) {
+                do {
+                    _ = try createPatternEntry(
+                        patternType: patternType,
+                        intensity: 3, // Default moderate intensity for quick logs
+                        contextNotes: "Logged from widget"
+                    )
+                } catch {
+                    print("Failed to create pattern entry from widget: \(error)")
+                }
+            }
+        }
+
+        // Clear pending logs
+        sharedDefaults?.removeObject(forKey: "pendingPatternLogs")
+
+        // Update streak
+        updateStreak()
+
+        // Sync updated data back to widget
+        syncWidgetData()
+    }
+
+    /// Pending pattern log structure (matches SharedDataManager)
+    private struct PendingPatternLog: Codable {
+        let id: String
+        let patternName: String
+        let patternType: String
+        let category: String
+        let timestamp: Date
     }
 }

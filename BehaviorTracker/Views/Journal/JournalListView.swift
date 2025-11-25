@@ -5,6 +5,7 @@ struct JournalListView: View {
     @StateObject private var ttsService = TextToSpeechService.shared
     @State private var showingNewEntry = false
     @State private var selectedEntry: JournalEntry?
+    @State private var entryToDelete: JournalEntry?
     @State private var searchText = ""
     @Binding var showingProfile: Bool
 
@@ -24,40 +25,48 @@ struct JournalListView: View {
                 theme.gradient
                     .ignoresSafeArea()
 
-                VStack(spacing: 0) {
-                    // Search Bar
-                    RoundedSearchBar(text: $searchText)
-                        .padding(.horizontal)
-                        .padding(.top, 8)
-                        .accessibilityLabel("Search journal entries")
+                // Journal Entries List
+                if viewModel.journalEntries.isEmpty {
+                    emptyStateView
+                } else {
+                    journalEntriesListWithOffset
+                }
 
-                    // Journal Entries List
-                    if viewModel.journalEntries.isEmpty {
-                        emptyStateView
-                    } else {
-                        journalEntriesList
-
-                        // New Entry button at bottom (only when there are entries)
+                // Floating Action Button - bottom right
+                VStack {
+                    Spacer()
+                    HStack {
+                        Spacer()
                         Button(action: {
                             showingNewEntry = true
+                            HapticFeedback.medium.trigger()
                         }) {
-                            HStack {
-                                Image(systemName: "plus.circle.fill")
-                                Text("New Entry")
-                                    .fontWeight(.semibold)
+                            ZStack {
+                                Circle()
+                                    .fill(.ultraThinMaterial)
+                                    .frame(width: 56, height: 56)
+                                    .shadow(color: .black.opacity(0.15), radius: 8, y: 4)
+
+                                Circle()
+                                    .fill(theme.primaryColor.opacity(0.8))
+                                    .frame(width: 56, height: 56)
+
+                                Circle()
+                                    .stroke(.white.opacity(0.3), lineWidth: 0.5)
+                                    .frame(width: 56, height: 56)
+
+                                Image(systemName: "square.and.pencil")
+                                    .font(.system(size: 22, weight: .medium))
+                                    .foregroundStyle(.white)
                             }
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(theme.primaryColor)
-                            .foregroundStyle(.white)
-                            .clipShape(RoundedRectangle(cornerRadius: 16))
                         }
-                        .padding()
-                        .accessibilityLabel("Create new journal entry")
+                        .accessibilityLabel(NSLocalizedString("accessibility.create_entry", comment: ""))
+                        .padding(.trailing, 20)
+                        .padding(.bottom, 20)
                     }
                 }
             }
-            .navigationTitle("Journal")
+            .navigationTitle(NSLocalizedString("journal.title", comment: ""))
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
                     ProfileButton(showingProfile: $showingProfile)
@@ -73,12 +82,23 @@ struct JournalListView: View {
                 }
             }
             .sheet(item: $selectedEntry) { entry in
-                JournalEntryDetailView(entry: entry)
+                JournalEntryDetailView(entry: entry) {
+                    // Mark this entry for deletion
+                    entryToDelete = entry
+                }
             }
             .onChange(of: selectedEntry) { _, newValue in
                 if newValue == nil {
-                    // Refresh when detail sheet closes
-                    viewModel.loadJournalEntries()
+                    // If we have an entry marked for deletion, delete it now
+                    if let entryToDelete = entryToDelete {
+                        withAnimation {
+                            viewModel.deleteEntry(entryToDelete)
+                        }
+                        self.entryToDelete = nil
+                    } else {
+                        // Otherwise just refresh the list
+                        viewModel.loadJournalEntries()
+                    }
                 }
             }
         }
@@ -90,7 +110,11 @@ struct JournalListView: View {
     // Group entries by day
     private var entriesGroupedByDay: [(date: Date, entries: [JournalEntry])] {
         let calendar = Calendar.current
-        let grouped = Dictionary(grouping: viewModel.journalEntries) { entry in
+
+        // Filter out deleted entries first to prevent crashes
+        let validEntries = viewModel.journalEntries.filter { !$0.isDeleted }
+
+        let grouped = Dictionary(grouping: validEntries) { entry in
             calendar.startOfDay(for: entry.timestamp)
         }
         return grouped.sorted { $0.key > $1.key }.map { (date: $0.key, entries: $0.value.sorted { $0.timestamp > $1.timestamp }) }
@@ -125,6 +149,43 @@ struct JournalListView: View {
         }
     }
 
+    private var journalEntriesListWithOffset: some View {
+        ScrollView {
+            VStack(spacing: 0) {
+                // Search bar at the top - scrolls away naturally
+                RoundedSearchBar(text: $searchText)
+                    .padding(.horizontal)
+                    .padding(.top, 8)
+                    .padding(.bottom, 8)
+
+                LazyVStack(spacing: 16) {
+                    ForEach(entriesGroupedByDay, id: \.date) { dayGroup in
+                        DayTimelineCard(
+                            date: dayGroup.date,
+                            entries: dayGroup.entries,
+                            theme: theme,
+                            onEntryTap: { entry in
+                                selectedEntry = entry
+                            },
+                            onToggleFavorite: { entry in
+                                viewModel.toggleFavorite(entry)
+                            },
+                            onSpeak: { entry in
+                                ttsService.speakJournalEntry(entry)
+                            },
+                            onDelete: { entry in
+                                withAnimation {
+                                    viewModel.deleteEntry(entry)
+                                }
+                            }
+                        )
+                    }
+                }
+                .padding()
+            }
+        }
+    }
+
     private var emptyStateView: some View {
         VStack(spacing: 20) {
             Spacer()
@@ -134,26 +195,10 @@ struct JournalListView: View {
                 .foregroundStyle(.secondary)
                 .accessibilityHidden(true)
 
-            Text("No Journal Entries")
+            Text(NSLocalizedString("journal.no_entries", comment: ""))
                 .font(.title2)
                 .fontWeight(.semibold)
-                .accessibilityLabel("No journal entries found")
-
-            Button(action: {
-                showingNewEntry = true
-            }) {
-                HStack {
-                    Image(systemName: "plus.circle.fill")
-                    Text("New Entry")
-                        .fontWeight(.semibold)
-                }
-                .padding(.horizontal, 24)
-                .padding(.vertical, 12)
-                .background(theme.primaryColor)
-                .foregroundStyle(.white)
-                .clipShape(RoundedRectangle(cornerRadius: 12))
-            }
-            .accessibilityLabel("Create new journal entry")
+                .accessibilityLabel(NSLocalizedString("journal.no_entries", comment: ""))
 
             Spacer()
         }
@@ -237,9 +282,9 @@ struct RoundedSearchBar: View {
                 .foregroundStyle(.secondary)
                 .accessibilityHidden(true)
 
-            TextField("Search journal entries...", text: $text)
+            TextField(NSLocalizedString("journal.search_placeholder", comment: "Search placeholder"), text: $text)
                 .textFieldStyle(PlainTextFieldStyle())
-                .accessibilityLabel("Search journal entries")
+                .accessibilityLabel(NSLocalizedString("journal.search_placeholder", comment: ""))
 
             if !text.isEmpty {
                 Button(action: {
@@ -247,7 +292,7 @@ struct RoundedSearchBar: View {
                 }) {
                     Image(systemName: "xmark.circle.fill")
                         .foregroundStyle(.secondary)
-                        .accessibilityLabel("Clear search")
+                        .accessibilityLabel(NSLocalizedString("accessibility.hide_search", comment: ""))
                 }
             }
         }
@@ -276,9 +321,9 @@ struct DayTimelineCard: View {
 
     private var dateHeader: String {
         if isToday {
-            return "Today"
+            return NSLocalizedString("time.today", comment: "")
         } else if Calendar.current.isDateInYesterday(date) {
-            return "Yesterday"
+            return NSLocalizedString("time.yesterday", comment: "")
         } else {
             let formatter = DateFormatter()
             formatter.dateFormat = "EEEE, MMMM d"
@@ -342,13 +387,16 @@ struct JournalTimelineEntryRow: View {
     }
 
     var body: some View {
-        HStack(alignment: .top, spacing: 12) {
-            // Timeline with bullet point
-            VStack(spacing: 0) {
-                // Bullet point
-                Circle()
+        // Safety check: don't render if entry is deleted
+        if !entry.isDeleted {
+            HStack(alignment: .top, spacing: 12) {
+                // Timeline with bullet point
+                VStack(spacing: 0) {
+                    // Bullet point - aligned with time text center
+                    Circle()
                     .fill(theme.primaryColor)
                     .frame(width: 10, height: 10)
+                    .padding(.top, 4) // Align with center of time text
 
                 // Vertical line (if not last)
                 if !isLast {
@@ -427,6 +475,7 @@ struct JournalTimelineEntryRow: View {
                     .font(.caption)
             }
         }
+        }
     }
 
     private func moodEmoji(for mood: Int16) -> String {
@@ -449,6 +498,15 @@ struct JournalTimelineEntryRow: View {
         case 5: return "Very Good"
         default: return ""
         }
+    }
+}
+
+// MARK: - Scroll Offset Tracking
+
+struct ScrollOffsetPreferenceKey: PreferenceKey {
+    static var defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = nextValue()
     }
 }
 

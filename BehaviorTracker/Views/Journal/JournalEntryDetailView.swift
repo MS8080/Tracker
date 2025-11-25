@@ -1,12 +1,11 @@
 import SwiftUI
 
 struct JournalEntryDetailView: View {
-    @ObservedObject var entry: JournalEntry
-    @StateObject private var ttsService = TextToSpeechService.shared
+    let entry: JournalEntry  // Changed from @ObservedObject to let
+    let onDelete: () -> Void  // Changed to take no parameters
     @StateObject private var audioService = AudioRecordingService.shared
     @Environment(\.dismiss) private var dismiss
     @State private var isEditing = false
-    @State private var showingDeleteConfirmation = false
 
     var body: some View {
         NavigationView {
@@ -22,11 +21,6 @@ struct JournalEntryDetailView: View {
                         voiceNotePlaybackSection
                         Divider()
                     }
-
-                    // Text-to-Speech Controls
-                    voicePlaybackControls
-
-                    Divider()
 
                     // Content
                     entryContent
@@ -71,7 +65,7 @@ struct JournalEntryDetailView: View {
                         Divider()
 
                         Button(role: .destructive, action: {
-                            showingDeleteConfirmation = true
+                            deleteEntry()
                         }) {
                             Label("Delete", systemImage: "trash")
                         }
@@ -84,14 +78,6 @@ struct JournalEntryDetailView: View {
             }
             .sheet(isPresented: $isEditing) {
                 JournalEntryEditorView(entry: entry)
-            }
-            .alert("Delete Entry", isPresented: $showingDeleteConfirmation) {
-                Button("Cancel", role: .cancel) { }
-                Button("Delete", role: .destructive) {
-                    deleteEntry()
-                }
-            } message: {
-                Text("Are you sure you want to delete this journal entry? This action cannot be undone.")
             }
         }
     }
@@ -136,99 +122,6 @@ struct JournalEntryDetailView: View {
                 }
             }
         }
-    }
-
-    private var voicePlaybackControls: some View {
-        VStack(spacing: 12) {
-            Text("Text-to-Speech Controls")
-                .font(.headline)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .accessibilityLabel("Text to speech controls")
-
-            HStack(spacing: 16) {
-                // Play/Pause Button
-                Button(action: {
-                    if ttsService.isSpeaking {
-                        if ttsService.isPaused {
-                            ttsService.resume()
-                        } else {
-                            ttsService.pause()
-                        }
-                    } else {
-                        ttsService.speakJournalEntry(entry)
-                    }
-                }) {
-                    HStack {
-                        Image(systemName: ttsService.isSpeaking ? (ttsService.isPaused ? "play.fill" : "pause.fill") : "play.fill")
-                        Text(ttsService.isSpeaking ? (ttsService.isPaused ? "Resume" : "Pause") : "Read Aloud")
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(Color.accentColor)
-                    .foregroundColor(.white)
-                    .cornerRadius(10)
-                }
-                .accessibilityLabel(ttsService.isSpeaking ? (ttsService.isPaused ? "Resume reading" : "Pause reading") : "Read entry aloud")
-
-                // Stop Button
-                if ttsService.isSpeaking {
-                    Button(action: {
-                        ttsService.stop()
-                    }) {
-                        HStack {
-                            Image(systemName: "stop.fill")
-                            Text("Stop")
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.red)
-                        .foregroundColor(.white)
-                        .cornerRadius(10)
-                    }
-                    .accessibilityLabel("Stop reading")
-                }
-            }
-
-            // Speed Control
-            VStack(alignment: .leading, spacing: 8) {
-                HStack {
-                    Text("Reading Speed")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
-                    Spacer()
-                    Text(String(format: "%.1fx", ttsService.currentRate * 2))
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
-                }
-                .accessibilityLabel("Reading speed: \(String(format: "%.1f", ttsService.currentRate * 2)) times normal")
-
-                Slider(
-                    value: Binding(
-                        get: { Double(ttsService.currentRate) },
-                        set: { ttsService.setRate(Float($0)) }
-                    ),
-                    in: 0.1...0.6,
-                    step: 0.05
-                )
-                .accessibilityLabel("Adjust reading speed")
-                .accessibilityValue("\(String(format: "%.1f", ttsService.currentRate * 2)) times normal speed")
-            }
-
-            if ttsService.isSpeaking {
-                HStack {
-                    Image(systemName: "speaker.wave.2.fill")
-                        .foregroundColor(.accentColor)
-                    Text("Reading...")
-                        .font(.subheadline)
-                        .foregroundColor(.accentColor)
-                    Spacer()
-                }
-                .accessibilityLabel("Currently reading entry")
-            }
-        }
-        .padding()
-        .background(Color(.systemGray6))
-        .cornerRadius(12)
     }
 
     private var voiceNotePlaybackSection: some View {
@@ -371,11 +264,10 @@ struct JournalEntryDetailView: View {
     }
 
     private func deleteEntry() {
-        // Dismiss first to prevent accessing deleted object
+        // Mark for deletion first
+        onDelete()
+
+        // Then dismiss - the actual deletion will happen after dismiss completes
         dismiss()
-        // Delete after a short delay to ensure view is dismissed
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            DataController.shared.deleteJournalEntry(entry)
-        }
     }
 }
