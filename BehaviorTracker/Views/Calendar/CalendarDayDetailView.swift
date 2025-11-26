@@ -6,6 +6,7 @@ struct CalendarDayDetailView: View {
     let entries: [PatternEntry]
     let medicationLogs: [MedicationLog]
     let journalEntries: [JournalEntry]
+    var calendarEvents: [CalendarEvent] = []
 
     @AppStorage("selectedTheme") private var selectedThemeRaw: String = AppTheme.purple.rawValue
 
@@ -25,6 +26,10 @@ struct CalendarDayDetailView: View {
         journalEntries.sorted { $0.timestamp < $1.timestamp }
     }
 
+    private var sortedCalendarEvents: [CalendarEvent] {
+        calendarEvents.sorted { $0.startDate < $1.startDate }
+    }
+
     var body: some View {
         NavigationStack {
             ZStack {
@@ -34,6 +39,10 @@ struct CalendarDayDetailView: View {
                 ScrollView {
                     VStack(spacing: 20) {
                         daySummaryCard
+
+                        if !sortedCalendarEvents.isEmpty {
+                            calendarEventsSection
+                        }
 
                         if !sortedEntries.isEmpty {
                             patternEntriesSection
@@ -47,7 +56,7 @@ struct CalendarDayDetailView: View {
                             journalEntriesSection
                         }
 
-                        if sortedEntries.isEmpty && sortedMedicationLogs.isEmpty && sortedJournalEntries.isEmpty {
+                        if sortedEntries.isEmpty && sortedMedicationLogs.isEmpty && sortedJournalEntries.isEmpty && sortedCalendarEvents.isEmpty {
                             emptyStateView
                         }
                     }
@@ -88,7 +97,16 @@ struct CalendarDayDetailView: View {
                 Spacer()
             }
 
-            HStack(spacing: 24) {
+            HStack(spacing: 16) {
+                if !calendarEvents.isEmpty {
+                    SummaryStatView(
+                        icon: "calendar",
+                        color: .cyan,
+                        value: "\(calendarEvents.count)",
+                        label: "Events"
+                    )
+                }
+
                 SummaryStatView(
                     icon: "chart.line.uptrend.xyaxis",
                     color: .blue,
@@ -100,7 +118,7 @@ struct CalendarDayDetailView: View {
                     icon: "pills.fill",
                     color: .green,
                     value: "\(medicationLogs.count)",
-                    label: "Medications"
+                    label: "Meds"
                 )
 
                 SummaryStatView(
@@ -137,8 +155,8 @@ struct CalendarDayDetailView: View {
         }
         .padding(20)
         .background(
-            RoundedRectangle(cornerRadius: 20)
-                .fill(.ultraThinMaterial)
+            RoundedRectangle(cornerRadius: 24)
+                .fill(theme.cardBackground)
         )
     }
 
@@ -163,6 +181,30 @@ struct CalendarDayDetailView: View {
         }.sorted { $0.count > $1.count }
     }
 
+    // MARK: - Calendar Events Section
+
+    private var calendarEventsSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            HStack {
+                Image(systemName: "calendar")
+                    .foregroundStyle(.cyan)
+                Text("Calendar Events")
+                    .font(.headline)
+            }
+
+            VStack(spacing: 12) {
+                ForEach(sortedCalendarEvents) { event in
+                    CalendarEventRow(event: event)
+                }
+            }
+        }
+        .padding(20)
+        .background(
+            RoundedRectangle(cornerRadius: 24)
+                .fill(theme.cardBackground)
+        )
+    }
+
     // MARK: - Pattern Entries Section
 
     private var patternEntriesSection: some View {
@@ -178,8 +220,8 @@ struct CalendarDayDetailView: View {
         }
         .padding(20)
         .background(
-            RoundedRectangle(cornerRadius: 20)
-                .fill(.ultraThinMaterial)
+            RoundedRectangle(cornerRadius: 24)
+                .fill(theme.cardBackground)
         )
     }
 
@@ -198,8 +240,8 @@ struct CalendarDayDetailView: View {
         }
         .padding(20)
         .background(
-            RoundedRectangle(cornerRadius: 20)
-                .fill(.ultraThinMaterial)
+            RoundedRectangle(cornerRadius: 24)
+                .fill(theme.cardBackground)
         )
     }
 
@@ -218,8 +260,8 @@ struct CalendarDayDetailView: View {
         }
         .padding(20)
         .background(
-            RoundedRectangle(cornerRadius: 20)
-                .fill(.ultraThinMaterial)
+            RoundedRectangle(cornerRadius: 24)
+                .fill(theme.cardBackground)
         )
     }
 
@@ -242,8 +284,8 @@ struct CalendarDayDetailView: View {
         .frame(maxWidth: .infinity)
         .padding(40)
         .background(
-            RoundedRectangle(cornerRadius: 20)
-                .fill(.ultraThinMaterial)
+            RoundedRectangle(cornerRadius: 24)
+                .fill(theme.cardBackground)
         )
     }
 }
@@ -306,6 +348,11 @@ struct IntensityIndicator: View {
 struct PatternEntryRow: View {
     let entry: PatternEntry
 
+    @AppStorage("selectedTheme") private var selectedThemeRaw: String = AppTheme.purple.rawValue
+    private var theme: AppTheme {
+        AppTheme(rawValue: selectedThemeRaw) ?? .purple
+    }
+
     var body: some View {
         HStack(spacing: 12) {
             if let category = entry.patternCategoryEnum {
@@ -357,7 +404,7 @@ struct PatternEntryRow: View {
         .padding(12)
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(.thinMaterial)
+                .fill(theme.cardBackground)
         )
     }
 
@@ -375,6 +422,11 @@ struct PatternEntryRow: View {
 
 struct CalendarMedicationLogRow: View {
     let log: MedicationLog
+
+    @AppStorage("selectedTheme") private var selectedThemeRaw: String = AppTheme.purple.rawValue
+    private var theme: AppTheme {
+        AppTheme(rawValue: selectedThemeRaw) ?? .purple
+    }
 
     var body: some View {
         HStack(spacing: 12) {
@@ -430,13 +482,18 @@ struct CalendarMedicationLogRow: View {
         .padding(12)
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(.thinMaterial)
+                .fill(theme.cardBackground)
         )
     }
 }
 
 struct CalendarJournalEntryRow: View {
     let entry: JournalEntry
+
+    @AppStorage("selectedTheme") private var selectedThemeRaw: String = AppTheme.purple.rawValue
+    private var theme: AppTheme {
+        AppTheme(rawValue: selectedThemeRaw) ?? .purple
+    }
 
     var body: some View {
         HStack(spacing: 12) {
@@ -475,7 +532,7 @@ struct CalendarJournalEntryRow: View {
         .padding(12)
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(.thinMaterial)
+                .fill(theme.cardBackground)
         )
     }
 
@@ -488,6 +545,92 @@ struct CalendarJournalEntryRow: View {
         case 5: return "😊"
         default: return "📝"
         }
+    }
+}
+
+// MARK: - Calendar Event Row
+
+struct CalendarEventRow: View {
+    let event: CalendarEvent
+
+    @AppStorage("selectedTheme") private var selectedThemeRaw: String = AppTheme.purple.rawValue
+    private var theme: AppTheme {
+        AppTheme(rawValue: selectedThemeRaw) ?? .purple
+    }
+
+    var body: some View {
+        HStack(spacing: 12) {
+            // Time indicator
+            VStack(spacing: 2) {
+                if event.isAllDay {
+                    Image(systemName: "sun.max.fill")
+                        .font(.title2)
+                        .foregroundStyle(.cyan)
+                } else {
+                    Text(event.timeString)
+                        .font(.caption)
+                        .fontWeight(.medium)
+                        .foregroundStyle(.cyan)
+                }
+            }
+            .frame(width: 50)
+
+            // Color bar from calendar
+            RoundedRectangle(cornerRadius: 2)
+                .fill(calendarColor)
+                .frame(width: 4)
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text(event.title)
+                    .font(.body)
+                    .fontWeight(.medium)
+
+                HStack(spacing: 8) {
+                    if !event.isAllDay {
+                        Text(event.durationString)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+
+                    if let calendarTitle = event.calendarTitle {
+                        Text(calendarTitle)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+
+                if let location = event.location, !location.isEmpty {
+                    HStack(spacing: 4) {
+                        Image(systemName: "location.fill")
+                            .font(.caption2)
+                        Text(location)
+                            .font(.caption)
+                    }
+                    .foregroundStyle(.secondary)
+                }
+
+                if let notes = event.notes, !notes.isEmpty {
+                    Text(notes)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(2)
+                }
+            }
+
+            Spacer()
+        }
+        .padding(12)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(theme.cardBackground)
+        )
+    }
+
+    private var calendarColor: Color {
+        if let cgColor = event.calendarColor {
+            return Color(cgColor: cgColor)
+        }
+        return .cyan
     }
 }
 

@@ -166,6 +166,11 @@ struct FavoritePatternsView: View {
 }
 
 struct DataPrivacyView: View {
+    @AppStorage("selectedTheme") private var selectedThemeRaw: String = AppTheme.purple.rawValue
+    private var theme: AppTheme {
+        AppTheme(rawValue: selectedThemeRaw) ?? .purple
+    }
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
@@ -222,7 +227,7 @@ struct DataPrivacyView: View {
         .padding(16)
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(.ultraThinMaterial)
+                .fill(theme.cardBackground)
         )
     }
 }
@@ -231,58 +236,30 @@ struct AboutView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 24) {
-                Image(systemName: "infinity")
+                Image(systemName: "brain.head.profile")
                     .font(.system(size: 80, weight: .medium))
                     .foregroundStyle(
                         LinearGradient(
-                            colors: [.red, .orange, .yellow, .green, .blue, .purple],
-                            startPoint: .leading,
-                            endPoint: .trailing
+                            colors: [.purple, .blue, .cyan],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
                         )
                     )
                     .padding(.top, 40)
 
-                Text("Behavior Tracker")
-                    .font(.title)
+                Text("Cortex")
+                    .font(.largeTitle)
                     .fontWeight(.bold)
 
                 Text("Version 1.0.0")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
 
-                Text("A comprehensive tool for tracking autism spectrum behavioral patterns throughout the day and generating insightful analytical reports.")
+                Text("A comprehensive tool for tracking behavioral patterns and generating insightful analytical reports.")
                     .font(.body)
                     .multilineTextAlignment(.center)
                     .foregroundStyle(.secondary)
                     .padding(.horizontal, 32)
-
-                VStack(alignment: .leading, spacing: 16) {
-                    FeatureRow(
-                        icon: "plus.circle.fill",
-                        title: "Quick Logging",
-                        description: "Log patterns in 3-5 taps"
-                    )
-
-                    FeatureRow(
-                        icon: "chart.bar.fill",
-                        title: "Weekly & Monthly Reports",
-                        description: "Detailed analytics and insights"
-                    )
-
-                    FeatureRow(
-                        icon: "lock.fill",
-                        title: "Privacy First",
-                        description: "All data stored locally"
-                    )
-
-                    FeatureRow(
-                        icon: "paintbrush.fill",
-                        title: "Beautiful Design",
-                        description: "Modern iOS interface"
-                    )
-                }
-                .padding(.horizontal, 32)
-                .padding(.vertical, 24)
 
                 Spacer(minLength: 40)
 
@@ -294,32 +271,7 @@ struct AboutView: View {
             }
         }
         .navigationTitle("About")
-        .navigationBarTitleDisplayModeInline()
-    }
-}
-
-struct FeatureRow: View {
-    let icon: String
-    let title: String
-    let description: String
-
-    var body: some View {
-        HStack(alignment: .top, spacing: 12) {
-            Image(systemName: icon)
-                .foregroundStyle(.blue)
-                .font(.title3)
-                .frame(width: 32)
-
-            VStack(alignment: .leading, spacing: 4) {
-                Text(title)
-                    .font(.subheadline)
-                    .fontWeight(.semibold)
-
-                Text(description)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-        }
+        .navigationBarTitleDisplayMode(.inline)
     }
 }
 

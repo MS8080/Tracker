@@ -34,31 +34,31 @@ struct ContentView: View {
                     }
                     .tag(0)
 
-                CalendarView(showingProfile: $showingProfile)
-                    .themedBackground()
-                    .tabItem {
-                        Label(NSLocalizedString("tab.calendar", comment: ""), systemImage: "calendar")
-                    }
-                    .tag(1)
-
                 LoggingView(showingProfile: $showingProfile)
                     .themedBackground()
                     .tabItem {
                         Label(NSLocalizedString("tab.log", comment: ""), systemImage: "plus.circle.fill")
                     }
-                    .tag(2)
+                    .tag(1)
 
                 JournalListView(showingProfile: $showingProfile)
                     .themedBackground()
                     .tabItem {
                         Label(NSLocalizedString("tab.journal", comment: ""), systemImage: "book.fill")
                     }
-                    .tag(3)
+                    .tag(2)
 
                 ReportsView(showingProfile: $showingProfile)
                     .themedBackground()
                     .tabItem {
                         Label(NSLocalizedString("tab.reports", comment: ""), systemImage: "chart.bar.doc.horizontal")
+                    }
+                    .tag(3)
+
+                AIInsightsTabView(showingProfile: $showingProfile)
+                    .themedBackground()
+                    .tabItem {
+                        Label("Analyze", systemImage: "sparkles")
                     }
                     .tag(4)
             }
@@ -92,76 +92,121 @@ struct ContentView: View {
 }
 
 // AppTheme enum for gradient backgrounds
-enum AppTheme: String, CaseIterable {
+enum AppTheme: String, CaseIterable, Identifiable {
     case purple = "Purple"
     case blue = "Blue"
     case green = "Green"
     case orange = "Orange"
-    case pink = "Pink"
+    case burgundy = "Burgundy"
+    case grey = "Grey"
+
+    var id: String { rawValue }
 
     var primaryColor: Color {
         switch self {
-        case .purple: return .purple
-        case .blue: return .blue
-        case .green: return .green
-        case .orange: return .orange
-        case .pink: return .pink
+        case .purple: return Color(red: 0.55, green: 0.35, blue: 0.75)
+        case .blue: return Color(red: 0.3, green: 0.5, blue: 0.8)
+        case .green: return Color(red: 0.3, green: 0.6, blue: 0.45)
+        case .orange: return Color(red: 0.8, green: 0.5, blue: 0.3)
+        case .burgundy: return Color(red: 0.6, green: 0.25, blue: 0.35)
+        case .grey: return Color(red: 0.45, green: 0.45, blue: 0.50)
         }
     }
 
+    /// Gradient: colored accent at top fading to dark at bottom
     var gradient: LinearGradient {
         switch self {
         case .purple:
             return LinearGradient(
                 colors: [
-                    Color(red: 0.3, green: 0.1, blue: 0.4),
-                    Color(red: 0.15, green: 0.1, blue: 0.35),
-                    Color(red: 0.1, green: 0.05, blue: 0.2)
+                    Color(red: 0.32, green: 0.20, blue: 0.45),
+                    Color(red: 0.22, green: 0.16, blue: 0.32),
+                    Color(red: 0.16, green: 0.14, blue: 0.20),
+                    Color(red: 0.12, green: 0.12, blue: 0.14)
                 ],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
+                startPoint: .top,
+                endPoint: .bottom
             )
         case .blue:
             return LinearGradient(
                 colors: [
-                    Color(red: 0.1, green: 0.2, blue: 0.4),
-                    Color(red: 0.05, green: 0.15, blue: 0.35),
-                    Color(red: 0.05, green: 0.1, blue: 0.25)
+                    Color(red: 0.16, green: 0.24, blue: 0.42),
+                    Color(red: 0.14, green: 0.18, blue: 0.30),
+                    Color(red: 0.12, green: 0.14, blue: 0.20),
+                    Color(red: 0.12, green: 0.12, blue: 0.14)
                 ],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
+                startPoint: .top,
+                endPoint: .bottom
             )
         case .green:
             return LinearGradient(
                 colors: [
-                    Color(red: 0.1, green: 0.3, blue: 0.2),
-                    Color(red: 0.05, green: 0.2, blue: 0.15),
-                    Color(red: 0.05, green: 0.15, blue: 0.1)
+                    Color(red: 0.14, green: 0.30, blue: 0.22),
+                    Color(red: 0.12, green: 0.22, blue: 0.18),
+                    Color(red: 0.12, green: 0.16, blue: 0.14),
+                    Color(red: 0.12, green: 0.12, blue: 0.14)
                 ],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
+                startPoint: .top,
+                endPoint: .bottom
             )
         case .orange:
             return LinearGradient(
                 colors: [
-                    Color(red: 0.4, green: 0.2, blue: 0.1),
-                    Color(red: 0.3, green: 0.15, blue: 0.05),
-                    Color(red: 0.2, green: 0.1, blue: 0.05)
+                    Color(red: 0.45, green: 0.28, blue: 0.16),
+                    Color(red: 0.30, green: 0.22, blue: 0.16),
+                    Color(red: 0.18, green: 0.16, blue: 0.14),
+                    Color(red: 0.12, green: 0.12, blue: 0.14)
                 ],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
+                startPoint: .top,
+                endPoint: .bottom
             )
-        case .pink:
+        case .burgundy:
             return LinearGradient(
                 colors: [
-                    Color(red: 0.4, green: 0.1, blue: 0.25),
-                    Color(red: 0.3, green: 0.1, blue: 0.2),
-                    Color(red: 0.2, green: 0.05, blue: 0.15)
+                    Color(red: 0.45, green: 0.16, blue: 0.24),
+                    Color(red: 0.30, green: 0.16, blue: 0.20),
+                    Color(red: 0.18, green: 0.14, blue: 0.16),
+                    Color(red: 0.12, green: 0.12, blue: 0.14)
                 ],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
+                startPoint: .top,
+                endPoint: .bottom
+            )
+        case .grey:
+            return LinearGradient(
+                colors: [
+                    Color(red: 0.28, green: 0.28, blue: 0.32),
+                    Color(red: 0.22, green: 0.22, blue: 0.26),
+                    Color(red: 0.16, green: 0.16, blue: 0.18),
+                    Color(red: 0.12, green: 0.12, blue: 0.14)
+                ],
+                startPoint: .top,
+                endPoint: .bottom
             )
         }
+    }
+
+    var previewColor: Color {
+        switch self {
+        case .purple: return Color(red: 0.50, green: 0.27, blue: 0.70)
+        case .blue: return Color(red: 0.20, green: 0.35, blue: 0.55)
+        case .green: return Color(red: 0.20, green: 0.40, blue: 0.30)
+        case .orange: return Color(red: 0.55, green: 0.35, blue: 0.20)
+        case .burgundy: return Color(red: 0.50, green: 0.20, blue: 0.28)
+        case .grey: return Color(red: 0.40, green: 0.40, blue: 0.45)
+        }
+    }
+
+    var textColor: Color {
+        return .white
+    }
+
+    var secondaryTextColor: Color {
+        textColor.opacity(0.7)
+    }
+
+    /// Card/tile background - clear transparent
+    var cardBackground: Color {
+        return Color.white.opacity(0.08)
     }
 }
 
@@ -171,7 +216,10 @@ enum AppAppearance: String, CaseIterable {
     case dark = "Dark"
 
     var displayName: String {
-        rawValue
+        switch self {
+        case .light: return "Light"
+        case .dark: return "Dark"
+        }
     }
 
     var icon: String {

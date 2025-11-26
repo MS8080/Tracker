@@ -31,8 +31,8 @@ struct JournalListView: View {
                     }
                     .padding(12)
                     .background(
-                        RoundedRectangle(cornerRadius: 20)
-                            .fill(.ultraThinMaterial)
+                        RoundedRectangle(cornerRadius: 24)
+                            .fill(theme.cardBackground)
                     )
                     .padding(.horizontal)
                     .padding(.top, 8)
@@ -63,8 +63,8 @@ struct JournalListView: View {
                                         JournalEntryRow(entry: entry)
                                             .padding(16)
                                             .background(
-                                                RoundedRectangle(cornerRadius: 16)
-                                                    .fill(.ultraThinMaterial)
+                                                RoundedRectangle(cornerRadius: 20)
+                                                    .fill(theme.cardBackground)
                                             )
                                     }
                                     .buttonStyle(.plain)
@@ -87,7 +87,7 @@ struct JournalListView: View {
                         .padding()
                         .background(theme.primaryColor)
                         .foregroundStyle(.white)
-                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                        .clipShape(RoundedRectangle(cornerRadius: 20))
                     }
                     .padding()
                 }

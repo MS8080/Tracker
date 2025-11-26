@@ -8,8 +8,11 @@ class CalendarViewModel: ObservableObject {
     @Published var entriesByDate: [Date: [PatternEntry]] = [:]
     @Published var medicationLogsByDate: [Date: [MedicationLog]] = [:]
     @Published var journalEntriesByDate: [Date: [JournalEntry]] = [:]
+    @Published var calendarEventsByDate: [Date: [CalendarEvent]] = [:]
+    @Published var isCalendarAuthorized: Bool = false
 
     private let dataController = DataController.shared
+    private let calendarEventService = CalendarEventService.shared
     private let calendar = Calendar.current
 
     // MARK: - Month Navigation
@@ -86,6 +89,27 @@ class CalendarViewModel: ObservableObject {
         loadPatternEntries(from: startDate, to: endDate)
         loadMedicationLogs(from: startDate, to: endDate)
         loadJournalEntries(from: startDate, to: endDate)
+        loadCalendarEvents()
+    }
+
+    // MARK: - Calendar Events
+
+    func requestCalendarAccess() async {
+        let granted = await calendarEventService.requestAccess()
+        isCalendarAuthorized = granted
+        if granted {
+            loadCalendarEvents()
+        }
+    }
+
+    func checkCalendarAuthorization() {
+        calendarEventService.checkAuthorizationStatus()
+        isCalendarAuthorized = calendarEventService.isAuthorized
+    }
+
+    private func loadCalendarEvents() {
+        guard calendarEventService.isAuthorized else { return }
+        calendarEventsByDate = calendarEventService.fetchEventsForMonth(containing: currentMonth)
     }
 
     private func loadPatternEntries(from startDate: Date, to endDate: Date) {
@@ -176,5 +200,20 @@ class CalendarViewModel: ObservableObject {
 
     func hasJournalEntriesForDate(_ date: Date) -> Bool {
         !journalEntriesForDate(date).isEmpty
+    }
+
+    // MARK: - Calendar Events Helpers
+
+    func calendarEventsForDate(_ date: Date) -> [CalendarEvent] {
+        let day = calendar.startOfDay(for: date)
+        return calendarEventsByDate[day] ?? []
+    }
+
+    func hasCalendarEventsForDate(_ date: Date) -> Bool {
+        !calendarEventsForDate(date).isEmpty
+    }
+
+    func calendarEventCountForDate(_ date: Date) -> Int {
+        calendarEventsForDate(date).count
     }
 }

@@ -43,7 +43,7 @@ struct JournalListView: View {
                         }) {
                             ZStack {
                                 Circle()
-                                    .fill(.ultraThinMaterial)
+                                    .fill(theme.cardBackground)
                                     .frame(width: 56, height: 56)
                                     .shadow(color: .black.opacity(0.15), radius: 8, y: 4)
 
@@ -276,6 +276,11 @@ struct JournalEntryRow: View {
 struct RoundedSearchBar: View {
     @Binding var text: String
 
+    @AppStorage("selectedTheme") private var selectedThemeRaw: String = AppTheme.purple.rawValue
+    private var theme: AppTheme {
+        AppTheme(rawValue: selectedThemeRaw) ?? .purple
+    }
+
     var body: some View {
         HStack {
             Image(systemName: "magnifyingglass")
@@ -299,7 +304,7 @@ struct RoundedSearchBar: View {
         .padding(12)
         .background(
             RoundedRectangle(cornerRadius: 20)
-                .fill(.ultraThinMaterial)
+                .fill(theme.cardBackground)
         )
     }
 }
@@ -366,7 +371,7 @@ struct DayTimelineCard: View {
         .padding(16)
         .background(
             RoundedRectangle(cornerRadius: 16)
-                .fill(.ultraThinMaterial)
+                .fill(theme.cardBackground)
         )
     }
 }

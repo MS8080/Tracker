@@ -9,6 +9,7 @@ public class UserPreferences: NSManagedObject, Identifiable {
     // MARK: - Core Data Managed Properties
     
     /// Unique identifier for the preferences record
+    ///
     @NSManaged public var id: UUID
     
     /// Whether daily reminder notifications are enabled

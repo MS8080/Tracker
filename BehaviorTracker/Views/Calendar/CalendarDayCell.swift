@@ -10,6 +10,8 @@ struct CalendarDayCell: View {
     let averageIntensity: Double?
     let hasMedication: Bool
     let hasJournal: Bool
+    var hasCalendarEvents: Bool = false
+    var calendarEventCount: Int = 0
 
     private let calendar = Calendar.current
 
@@ -26,8 +28,13 @@ struct CalendarDayCell: View {
                 .foregroundStyle(textColor)
 
             // Activity indicators
-            if entryCount > 0 || hasMedication || hasJournal {
+            if entryCount > 0 || hasMedication || hasJournal || hasCalendarEvents {
                 HStack(spacing: 2) {
+                    if hasCalendarEvents {
+                        Circle()
+                            .fill(.cyan)
+                            .frame(width: 6, height: 6)
+                    }
                     if entryCount > 0 {
                         Circle()
                             .fill(dominantCategory?.color ?? .blue)

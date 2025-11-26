@@ -4,6 +4,7 @@ struct CalendarView: View {
     @StateObject private var viewModel = CalendarViewModel()
     @Binding var showingProfile: Bool
     @State private var showingDayDetail = false
+    @AppStorage("calendarBannerDismissed") private var calendarBannerDismissed = false
 
     @AppStorage("selectedTheme") private var selectedThemeRaw: String = AppTheme.purple.rawValue
 
@@ -25,6 +26,11 @@ struct CalendarView: View {
 
                 ScrollView {
                     VStack(spacing: 20) {
+                        // Calendar permission banner (only show if not authorized and not dismissed)
+                        if !viewModel.isCalendarAuthorized && !calendarBannerDismissed && !CalendarEventService.shared.currentAuthorizationStatus {
+                            calendarPermissionBanner
+                        }
+
                         monthNavigationHeader
                         weekdayHeader
                         calendarGrid
@@ -54,6 +60,7 @@ struct CalendarView: View {
                 }
             }
             .onAppear {
+                viewModel.checkCalendarAuthorization()
                 viewModel.loadMonthData()
             }
             .sheet(isPresented: $showingDayDetail) {
@@ -62,11 +69,65 @@ struct CalendarView: View {
                         date: selectedDate,
                         entries: viewModel.entriesForDate(selectedDate),
                         medicationLogs: viewModel.medicationLogsForDate(selectedDate),
-                        journalEntries: viewModel.journalEntriesForDate(selectedDate)
+                        journalEntries: viewModel.journalEntriesForDate(selectedDate),
+                        calendarEvents: viewModel.calendarEventsForDate(selectedDate)
                     )
                 }
             }
         }
+    }
+
+    // MARK: - Calendar Permission Banner
+
+    private var calendarPermissionBanner: some View {
+        HStack(spacing: 12) {
+            Image(systemName: "calendar.badge.plus")
+                .font(.title2)
+                .foregroundStyle(.cyan)
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Import Calendar Events")
+                    .font(.subheadline)
+                    .fontWeight(.medium)
+                Text("See your appointments alongside your patterns")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            Spacer()
+
+            Button {
+                Task {
+                    await viewModel.requestCalendarAccess()
+                }
+            } label: {
+                Text("Enable")
+                    .font(.subheadline)
+                    .fontWeight(.medium)
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(
+                        Capsule()
+                            .fill(.cyan)
+                    )
+            }
+
+            Button {
+                withAnimation {
+                    calendarBannerDismissed = true
+                }
+            } label: {
+                Image(systemName: "xmark")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .padding()
+        .background(
+            RoundedRectangle(cornerRadius: 20)
+                .fill(theme.cardBackground)
+        )
     }
 
     // MARK: - Month Navigation
@@ -136,7 +197,9 @@ struct CalendarView: View {
                     dominantCategory: viewModel.dominantCategoryForDate(date),
                     averageIntensity: viewModel.averageIntensityForDate(date),
                     hasMedication: viewModel.hasMedicationLogsForDate(date),
-                    hasJournal: viewModel.hasJournalEntriesForDate(date)
+                    hasJournal: viewModel.hasJournalEntriesForDate(date),
+                    hasCalendarEvents: viewModel.hasCalendarEventsForDate(date),
+                    calendarEventCount: viewModel.calendarEventCountForDate(date)
                 )
                 .onTapGesture {
                     withAnimation(.easeInOut(duration: 0.15)) {
@@ -151,8 +214,8 @@ struct CalendarView: View {
         }
         .padding(12)
         .background(
-            RoundedRectangle(cornerRadius: 20)
-                .fill(.ultraThinMaterial)
+            RoundedRectangle(cornerRadius: 24)
+                .fill(theme.cardBackground)
         )
     }
 
@@ -163,6 +226,7 @@ struct CalendarView: View {
         let categories = viewModel.categoriesForDate(date)
         let medicationLogs = viewModel.medicationLogsForDate(date)
         let journalEntries = viewModel.journalEntriesForDate(date)
+        let calendarEvents = viewModel.calendarEventsForDate(date)
 
         return VStack(alignment: .leading, spacing: 16) {
             HStack {
@@ -171,7 +235,7 @@ struct CalendarView: View {
 
                 Spacer()
 
-                if !entries.isEmpty || !medicationLogs.isEmpty || !journalEntries.isEmpty {
+                if !entries.isEmpty || !medicationLogs.isEmpty || !journalEntries.isEmpty || !calendarEvents.isEmpty {
                     Button {
                         showingDayDetail = true
                     } label: {
@@ -182,7 +246,7 @@ struct CalendarView: View {
                 }
             }
 
-            if entries.isEmpty && medicationLogs.isEmpty && journalEntries.isEmpty {
+            if entries.isEmpty && medicationLogs.isEmpty && journalEntries.isEmpty && calendarEvents.isEmpty {
                 Text("No entries for this day")
                     .font(.body)
                     .foregroundStyle(.secondary)
@@ -190,6 +254,39 @@ struct CalendarView: View {
                     .padding(.vertical, 20)
             } else {
                 VStack(spacing: 12) {
+                    // Calendar events summary
+                    if !calendarEvents.isEmpty {
+                        HStack {
+                            Image(systemName: "calendar")
+                                .foregroundStyle(.cyan)
+                            Text("\(calendarEvents.count) event\(calendarEvents.count == 1 ? "" : "s")")
+                                .font(.subheadline)
+                            Spacer()
+                        }
+
+                        // Show first few events
+                        VStack(spacing: 6) {
+                            ForEach(calendarEvents.prefix(3)) { event in
+                                HStack(spacing: 8) {
+                                    Text(event.timeString)
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                        .frame(width: 60, alignment: .leading)
+                                    Text(event.title)
+                                        .font(.caption)
+                                        .lineLimit(1)
+                                    Spacer()
+                                }
+                            }
+                            if calendarEvents.count > 3 {
+                                Text("+\(calendarEvents.count - 3) more")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                        .padding(.leading, 24)
+                    }
+
                     // Pattern entries summary
                     if !entries.isEmpty {
                         HStack {
@@ -239,8 +336,8 @@ struct CalendarView: View {
         }
         .padding(20)
         .background(
-            RoundedRectangle(cornerRadius: 20)
-                .fill(.ultraThinMaterial)
+            RoundedRectangle(cornerRadius: 24)
+                .fill(theme.cardBackground)
         )
     }
 
@@ -270,6 +367,14 @@ struct CalendarView: View {
 
             HStack(spacing: 16) {
                 HStack(spacing: 6) {
+                    Circle()
+                        .fill(.cyan)
+                        .frame(width: 8, height: 8)
+                    Text("Calendar")
+                        .font(.caption)
+                }
+
+                HStack(spacing: 6) {
                     Image(systemName: "pills.fill")
                         .font(.caption)
                         .foregroundStyle(.green)
@@ -288,8 +393,8 @@ struct CalendarView: View {
         }
         .padding(20)
         .background(
-            RoundedRectangle(cornerRadius: 20)
-                .fill(.ultraThinMaterial)
+            RoundedRectangle(cornerRadius: 24)
+                .fill(theme.cardBackground)
         )
     }
 }

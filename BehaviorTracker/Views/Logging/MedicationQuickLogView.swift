@@ -68,8 +68,8 @@ struct MedicationQuickLogView: View {
             .padding(.vertical, 16)
             .frame(maxWidth: .infinity)
             .background(
-                RoundedRectangle(cornerRadius: 20, style: .continuous)
-                    .fill(.ultraThinMaterial)
+                RoundedRectangle(cornerRadius: 24, style: .continuous)
+                    .fill(theme.cardBackground)
             )
         }
         .buttonStyle(.plain)
@@ -129,7 +129,7 @@ struct MedicationQuickLogView: View {
         .padding(20)
         .background(
             RoundedRectangle(cornerRadius: 28, style: .continuous)
-                .fill(.ultraThinMaterial)
+                .fill(theme.cardBackground)
                 .shadow(color: .black.opacity(0.15), radius: 20, y: 10)
         )
         .transition(.asymmetric(

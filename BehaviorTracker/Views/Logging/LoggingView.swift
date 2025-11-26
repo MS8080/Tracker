@@ -1,10 +1,12 @@
 import SwiftUI
+import Speech
 
 struct LoggingView: View {
     @Environment(\.managedObjectContext) private var viewContext
     @StateObject private var viewModel = LoggingViewModel()
     @State private var selectedCategory: PatternCategory?
     @State private var showingQuickLog = false
+    @State private var showingCrisisMode = false
     @Binding var showingProfile: Bool
 
     @AppStorage("selectedTheme") private var selectedThemeRaw: String = AppTheme.purple.rawValue
@@ -24,16 +26,15 @@ struct LoggingView: View {
                     .ignoresSafeArea()
 
                 ScrollView {
-                    VStack(spacing: 20) {
-                        if viewModel.favoritePatterns.isEmpty {
-                            allCategoriesView
-                        } else {
-                            favoritesSection
-                            allCategoriesView
-                        }
-
-                        // Medication section at bottom (expandable bar)
+                    VStack(spacing: 10) {
+                        // Medication section at top
                         MedicationQuickLogView()
+                        // Favorites
+                        if !viewModel.favoritePatterns.isEmpty {
+                            favoritesSection
+                        }
+                        // All categories
+                        allCategoriesView
                     }
                     .padding()
                 }
@@ -41,12 +42,21 @@ struct LoggingView: View {
             }
             .navigationTitle("Log")
             .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button {
+                        showingCrisisMode = true
+                    } label: {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .foregroundStyle(.orange)
+                    }
+                }
                 ToolbarItem(placement: .primaryAction) {
                     ProfileButton(showingProfile: $showingProfile)
                 }
             }
             .onAppear {
                 viewModel.loadFavorites()
+                viewModel.loadRecentEntries()
             }
             .task {
                 await viewModel.requestHealthKitAuthorization()
@@ -54,6 +64,9 @@ struct LoggingView: View {
         }
         .sheet(item: $selectedCategory) { category in
             CategoryLoggingView(category: category, viewModel: viewModel)
+        }
+        .sheet(isPresented: $showingCrisisMode) {
+            CrisisModeView(viewModel: viewModel)
         }
     }
 
@@ -98,6 +111,11 @@ struct CategoryButton: View {
     let category: PatternCategory
     let action: () -> Void
 
+    @AppStorage("selectedTheme") private var selectedThemeRaw: String = AppTheme.purple.rawValue
+    private var theme: AppTheme {
+        AppTheme(rawValue: selectedThemeRaw) ?? .purple
+    }
+
     var body: some View {
         Button(action: action) {
             VStack(spacing: 12) {
@@ -114,8 +132,8 @@ struct CategoryButton: View {
             .frame(maxWidth: .infinity)
             .padding(.vertical, 20)
             .background(
-                RoundedRectangle(cornerRadius: 16)
-                    .fill(.ultraThinMaterial)
+                RoundedRectangle(cornerRadius: 24)
+                    .fill(theme.cardBackground)
             )
         }
         .buttonStyle(.plain)
@@ -125,6 +143,11 @@ struct CategoryButton: View {
 struct QuickLogButton: View {
     let patternType: PatternType
     let action: () -> Void
+
+    @AppStorage("selectedTheme") private var selectedThemeRaw: String = AppTheme.purple.rawValue
+    private var theme: AppTheme {
+        AppTheme(rawValue: selectedThemeRaw) ?? .purple
+    }
 
     var body: some View {
         Button(action: action) {
@@ -149,11 +172,185 @@ struct QuickLogButton: View {
             .padding(.horizontal, 12)
             .padding(.vertical, 12)
             .background(
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(.thinMaterial)
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(theme.cardBackground)
             )
         }
         .buttonStyle(.plain)
+    }
+}
+
+// MARK: - Crisis Mode View
+
+struct CrisisModeView: View {
+    @Environment(\.dismiss) private var dismiss
+    @ObservedObject var viewModel: LoggingViewModel
+    @State private var selectedAction: CrisisAction?
+
+    enum CrisisAction: String, CaseIterable {
+        case meltdown = "Meltdown"
+        case shutdown = "Shutdown"
+        case overwhelm = "Overwhelmed"
+        case needBreak = "Need a Break"
+
+        var icon: String {
+            switch self {
+            case .meltdown: return "flame.fill"
+            case .shutdown: return "poweroff"
+            case .overwhelm: return "exclamationmark.triangle.fill"
+            case .needBreak: return "pause.circle.fill"
+            }
+        }
+
+        var color: Color {
+            switch self {
+            case .meltdown: return .red
+            case .shutdown: return .purple
+            case .overwhelm: return .orange
+            case .needBreak: return .blue
+            }
+        }
+
+        var patternType: PatternType {
+            switch self {
+            case .meltdown: return .meltdown
+            case .shutdown: return .shutdown
+            case .overwhelm: return .emotionalOverwhelm
+            case .needBreak: return .sensoryRecovery
+            }
+        }
+
+        var helpText: String {
+            switch self {
+            case .meltdown: return "It's okay. This will pass. Try to find a quiet space."
+            case .shutdown: return "Give yourself permission to rest. You don't have to respond."
+            case .overwhelm: return "One thing at a time. What's the smallest next step?"
+            case .needBreak: return "Taking breaks is essential, not optional."
+            }
+        }
+    }
+
+    // Warm red gradient for warning feel
+    private var warningGradient: LinearGradient {
+        LinearGradient(
+            colors: [
+                Color(red: 0.6, green: 0.15, blue: 0.1),
+                Color(red: 0.4, green: 0.1, blue: 0.08),
+                Color(red: 0.25, green: 0.08, blue: 0.05)
+            ],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+    }
+
+    var body: some View {
+        ZStack {
+            warningGradient
+                .ignoresSafeArea()
+
+            VStack(spacing: 30) {
+                // Header
+                VStack(spacing: 8) {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .font(.system(size: 50))
+                        .foregroundStyle(.orange)
+                        .padding(.bottom, 8)
+
+                    Text("What's happening?")
+                        .font(.title)
+                        .fontWeight(.bold)
+                        .foregroundStyle(.white)
+
+                    Text("Tap to log. Take your time.")
+                        .font(.subheadline)
+                        .foregroundStyle(.white.opacity(0.7))
+                }
+                .padding(.top, 40)
+
+                // Crisis buttons - large, easy to tap
+                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 20) {
+                    ForEach(CrisisAction.allCases, id: \.self) { action in
+                        CrisisButton(action: action, isSelected: selectedAction == action) {
+                            selectedAction = action
+                            _ = viewModel.quickLog(patternType: action.patternType, intensity: 4)
+
+                            // Show help text briefly then dismiss
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                                dismiss()
+                            }
+                        }
+                    }
+                }
+                .padding(.horizontal)
+
+                // Help text
+                if let action = selectedAction {
+                    Text(action.helpText)
+                        .font(.body)
+                        .foregroundStyle(.white.opacity(0.9))
+                        .multilineTextAlignment(.center)
+                        .padding()
+                        .background(
+                            RoundedRectangle(cornerRadius: 16)
+                                .fill(Color(white: 0.2).opacity(0.6))
+                        )
+                        .padding(.horizontal)
+                        .transition(.opacity.combined(with: .scale))
+                }
+
+                Spacer()
+
+                // Quick exit
+                Button {
+                    dismiss()
+                } label: {
+                    Text("I'm okay")
+                        .font(.headline)
+                        .foregroundStyle(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(
+                            RoundedRectangle(cornerRadius: 24)
+                                .fill(Color(white: 0.2).opacity(0.6))
+                        )
+                }
+                .padding(.horizontal)
+                .padding(.bottom, 30)
+            }
+        }
+    }
+}
+
+struct CrisisButton: View {
+    let action: CrisisModeView.CrisisAction
+    let isSelected: Bool
+    let onTap: () -> Void
+
+    var body: some View {
+        Button(action: onTap) {
+            VStack(spacing: 16) {
+                Image(systemName: action.icon)
+                    .font(.system(size: 44))
+                    .foregroundStyle(action.color)
+
+                Text(action.rawValue)
+                    .font(.headline)
+                    .foregroundStyle(.white)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 30)
+            .background(
+                RoundedRectangle(cornerRadius: 24)
+                    .fill(isSelected ? action.color.opacity(0.3) : .white.opacity(0.15))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 24)
+                            .stroke(isSelected ? action.color : .clear, lineWidth: 3)
+                    )
+            )
+        }
+        .buttonStyle(.plain)
+        .scaleEffect(isSelected ? 1.05 : 1.0)
+        .animation(.spring(response: 0.3), value: isSelected)
     }
 }
 

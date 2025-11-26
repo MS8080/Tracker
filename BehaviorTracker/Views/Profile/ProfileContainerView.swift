@@ -12,9 +12,16 @@ struct ProfileContainerView: View {
     @State private var isLoadingHealth = false
     @State private var showingEditProfile = false
     @State private var showingAddMedication = false
+    @State private var isMedicationsExpanded = false
+    @State private var isSettingsExpanded = false
 
     @AppStorage("fontSizeScale") private var fontSizeScale: Double = 1.0
     @AppStorage("blueLightFilterEnabled") private var blueLightFilterEnabled: Bool = false
+    @AppStorage("selectedTheme") private var selectedThemeRaw: String = AppTheme.purple.rawValue
+
+    private var theme: AppTheme {
+        AppTheme(rawValue: selectedThemeRaw) ?? .purple
+    }
 
     var body: some View {
         NavigationStack {
@@ -74,7 +81,7 @@ struct ProfileContainerView: View {
                         }
                         .background(
                             Capsule()
-                                .fill(.ultraThinMaterial)
+                                .fill(.white.opacity(0.15))
                                 .shadow(color: .black.opacity(0.1), radius: 4, y: 2)
                         )
                         .overlay(
@@ -91,7 +98,7 @@ struct ProfileContainerView: View {
                         } label: {
                             ZStack {
                                 Circle()
-                                    .fill(.ultraThinMaterial)
+                                    .fill(.white.opacity(0.15))
                                     .shadow(color: .black.opacity(0.1), radius: 4, y: 2)
 
                                 Circle()
@@ -142,35 +149,53 @@ struct ProfileContainerView: View {
 
     private var profileHeaderSection: some View {
         VStack(spacing: 16) {
-            // Profile Image
-            if let profileImage = profile?.profileImage {
-                #if os(iOS)
-                Image(uiImage: profileImage)
-                    .resizable()
-                    .scaledToFill()
-                    .frame(width: 100, height: 100)
-                    .clipShape(Circle())
-                    .overlay(Circle().stroke(Color.blue, lineWidth: 3))
-                #elseif os(macOS)
-                Image(nsImage: profileImage)
-                    .resizable()
-                    .scaledToFill()
-                    .frame(width: 100, height: 100)
-                    .clipShape(Circle())
-                    .overlay(Circle().stroke(Color.blue, lineWidth: 3))
-                #endif
-            } else {
-                Circle()
-                    .fill(Color.blue.opacity(0.2))
-                    .frame(width: 100, height: 100)
-                    .overlay(
-                        Text(profile?.initials ?? "?")
-                            .font(.title)
-                            .fontWeight(.semibold)
-                            .foregroundColor(.blue)
-                    )
-                    .overlay(Circle().stroke(Color.blue, lineWidth: 3))
+            // Profile Image - tappable to edit
+            Button {
+                showingEditProfile = true
+            } label: {
+                ZStack {
+                    if let profileImage = profile?.profileImage {
+                        #if os(iOS)
+                        Image(uiImage: profileImage)
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: 100, height: 100)
+                            .clipShape(Circle())
+                            .overlay(Circle().stroke(Color.blue, lineWidth: 3))
+                        #elseif os(macOS)
+                        Image(nsImage: profileImage)
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: 100, height: 100)
+                            .clipShape(Circle())
+                            .overlay(Circle().stroke(Color.blue, lineWidth: 3))
+                        #endif
+                    } else {
+                        Circle()
+                            .fill(Color.blue.opacity(0.2))
+                            .frame(width: 100, height: 100)
+                            .overlay(
+                                Text(profile?.initials ?? "?")
+                                    .font(.title)
+                                    .fontWeight(.semibold)
+                                    .foregroundColor(.blue)
+                            )
+                            .overlay(Circle().stroke(Color.blue, lineWidth: 3))
+                    }
+
+                    // Edit indicator
+                    Circle()
+                        .fill(.blue)
+                        .frame(width: 28, height: 28)
+                        .overlay(
+                            Image(systemName: "pencil")
+                                .font(.system(size: 12, weight: .semibold))
+                                .foregroundColor(.white)
+                        )
+                        .offset(x: 36, y: 36)
+                }
             }
+            .buttonStyle(.plain)
 
             VStack(spacing: 6) {
                 Text(profile?.name ?? "User")
@@ -190,11 +215,6 @@ struct ProfileContainerView: View {
                 }
             }
 
-            Button("Edit Profile") {
-                showingEditProfile = true
-            }
-            .font(.body)
-            .foregroundColor(.blue)
         }
         .padding()
         .frame(maxWidth: .infinity)
@@ -302,15 +322,6 @@ struct ProfileContainerView: View {
                         )
                     }
 
-                    if let hrv = summary.heartRateVariability {
-                        HealthStatCard(
-                            icon: "waveform.path.ecg",
-                            title: "HRV",
-                            value: "\(Int(hrv)) ms",
-                            color: .pink
-                        )
-                    }
-
                     if let water = summary.waterIntake {
                         HealthStatCard(
                             icon: "drop.fill",
@@ -330,15 +341,16 @@ struct ProfileContainerView: View {
         }
         .padding()
         .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(.ultraThinMaterial)
+            RoundedRectangle(cornerRadius: 24)
+                .fill(theme.cardBackground)
         )
     }
 
     // MARK: - Medications Section
 
     private var medicationsSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 0) {
+            // Header - always visible
             HStack {
                 Image(systemName: "pills.fill")
                     .foregroundColor(.blue)
@@ -346,102 +358,190 @@ struct ProfileContainerView: View {
                 Text("Medications")
                     .font(.title3)
                     .fontWeight(.semibold)
+                    .foregroundStyle(.primary)
+
+                if !medicationViewModel.medications.isEmpty {
+                    Text("\(medicationViewModel.medications.count)")
+                        .font(.caption)
+                        .fontWeight(.medium)
+                        .foregroundStyle(.secondary)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 2)
+                        .background(Capsule().fill(.white.opacity(0.12)))
+                }
 
                 Spacer()
 
-                Button {
-                    showingAddMedication = true
-                } label: {
-                    Image(systemName: "plus")
-                        .foregroundColor(.blue)
-                }
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(.tertiary)
+                    .rotationEffect(.degrees(isMedicationsExpanded ? 90 : 0))
             }
+            .padding(.bottom, isMedicationsExpanded ? 12 : 0)
 
-            if medicationViewModel.medications.isEmpty {
-                VStack(spacing: 8) {
-                    Text("No medications added")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
+            // Expandable content with proper clipping
+            if isMedicationsExpanded {
+                VStack(spacing: 12) {
+                    if medicationViewModel.medications.isEmpty {
+                        VStack(spacing: 12) {
+                            Text("No medications added")
+                                .font(.subheadline)
+                                .foregroundColor(.white.opacity(0.6))
 
-                    Button("Add Medication") {
-                        showingAddMedication = true
+                            Button {
+                                showingAddMedication = true
+                            } label: {
+                                HStack {
+                                    Image(systemName: "plus.circle.fill")
+                                    Text("Add Medication")
+                                }
+                                .font(.subheadline)
+                                .fontWeight(.medium)
+                                .foregroundStyle(.white)
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 8)
+                                .background(Capsule().fill(.cyan.opacity(0.8)))
+                            }
+                            .buttonStyle(.plain)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                    } else {
+                        ForEach(medicationViewModel.medications) { medication in
+                            NavigationLink {
+                                MedicationDetailView(medication: medication, viewModel: medicationViewModel)
+                            } label: {
+                                ProfileMedicationRowView(medication: medication, viewModel: medicationViewModel)
+                            }
+                            .buttonStyle(PlainButtonStyle())
+                        }
+
+                        // Add button at the bottom
+                        Button {
+                            showingAddMedication = true
+                        } label: {
+                            HStack {
+                                Image(systemName: "plus.circle.fill")
+                                    .foregroundStyle(.cyan)
+                                Text("Add Medication")
+                                    .font(.subheadline)
+                                    .fontWeight(.medium)
+                                    .foregroundStyle(.white.opacity(0.9))
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 10)
+                        }
+                        .buttonStyle(.plain)
                     }
-                    .font(.subheadline)
-                }
-                .frame(maxWidth: .infinity)
-                .padding()
-            } else {
-                ForEach(medicationViewModel.medications) { medication in
-                    NavigationLink {
-                        MedicationDetailView(medication: medication, viewModel: medicationViewModel)
-                    } label: {
-                        ProfileMedicationRowView(medication: medication, viewModel: medicationViewModel)
-                    }
-                    .buttonStyle(PlainButtonStyle())
                 }
             }
         }
         .padding()
         .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(.ultraThinMaterial)
+            RoundedRectangle(cornerRadius: 24)
+                .fill(theme.cardBackground)
         )
+        .clipShape(RoundedRectangle(cornerRadius: 24))
+        .contentShape(Rectangle())
+        .onTapGesture {
+            withAnimation(.easeInOut(duration: 0.25)) {
+                isMedicationsExpanded.toggle()
+            }
+        }
     }
 
     // MARK: - Settings Section
 
     private var settingsSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 0) {
+            // Header - always visible
             HStack {
-                Image(systemName: "gear")
-                    .foregroundColor(.gray)
+                Image(systemName: "gearshape.fill")
+                    .foregroundStyle(.gray)
                     .font(.title3)
                 Text("Settings")
                     .font(.title3)
                     .fontWeight(.semibold)
+                    .foregroundStyle(.primary)
+
+                Spacer()
+
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(.tertiary)
+                    .rotationEffect(.degrees(isSettingsExpanded ? 90 : 0))
             }
+            .padding(.bottom, isSettingsExpanded ? 16 : 0)
 
-            VStack(spacing: 0) {
-                // Appearance
-                NavigationLink {
-                    AppearanceSettingsView(viewModel: settingsViewModel)
-                } label: {
-                    SettingsRow(icon: "paintbrush.fill", iconColor: .purple, title: "Appearance")
-                }
+            // Expandable content
+            if isSettingsExpanded {
+                VStack(spacing: 12) {
+                    // Appearance
+                    NavigationLink {
+                        AppearanceSettingsView(viewModel: settingsViewModel)
+                    } label: {
+                        ModernSettingsRow(
+                            icon: "paintbrush.fill",
+                            iconColor: .purple,
+                            iconBackground: .purple.opacity(0.15),
+                            title: "Appearance",
+                            subtitle: "Theme & display"
+                        )
+                    }
 
-                Divider().padding(.leading, 44)
+                    // Notifications
+                    NavigationLink {
+                        NotificationSettingsView(viewModel: settingsViewModel)
+                    } label: {
+                        ModernSettingsRow(
+                            icon: "bell.badge.fill",
+                            iconColor: .red,
+                            iconBackground: .red.opacity(0.15),
+                            title: "Notifications",
+                            subtitle: "Reminders & alerts"
+                        )
+                    }
 
-                // Notifications
-                NavigationLink {
-                    NotificationSettingsView(viewModel: settingsViewModel)
-                } label: {
-                    SettingsRow(icon: "bell.fill", iconColor: .red, title: "Notifications")
-                }
+                    // Export
+                    NavigationLink {
+                        ExportDataView(viewModel: settingsViewModel)
+                    } label: {
+                        ModernSettingsRow(
+                            icon: "square.and.arrow.up.fill",
+                            iconColor: .green,
+                            iconBackground: .green.opacity(0.15),
+                            title: "Export Data",
+                            subtitle: "Backup your data"
+                        )
+                    }
 
-                Divider().padding(.leading, 44)
-
-                // Export
-                NavigationLink {
-                    ExportDataView(viewModel: settingsViewModel)
-                } label: {
-                    SettingsRow(icon: "square.and.arrow.up", iconColor: .green, title: "Export Data")
-                }
-
-                Divider().padding(.leading, 44)
-
-                // About
-                NavigationLink {
-                    AboutView()
-                } label: {
-                    SettingsRow(icon: "info.circle", iconColor: .blue, title: "About")
+                    // About
+                    NavigationLink {
+                        AboutView()
+                    } label: {
+                        ModernSettingsRow(
+                            icon: "info.circle.fill",
+                            iconColor: .cyan,
+                            iconBackground: .cyan.opacity(0.15),
+                            title: "About",
+                            subtitle: "Version & info"
+                        )
+                    }
                 }
             }
         }
         .padding()
         .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(.ultraThinMaterial)
+            RoundedRectangle(cornerRadius: 24)
+                .fill(theme.cardBackground)
         )
+        .clipShape(RoundedRectangle(cornerRadius: 24))
+        .contentShape(Rectangle())
+        .onTapGesture {
+            withAnimation(.easeInOut(duration: 0.25)) {
+                isSettingsExpanded.toggle()
+            }
+        }
     }
 
     // MARK: - Methods
@@ -472,6 +572,11 @@ struct HealthStatCard: View {
     let value: String
     let color: Color
 
+    @AppStorage("selectedTheme") private var selectedThemeRaw: String = AppTheme.purple.rawValue
+    private var theme: AppTheme {
+        AppTheme(rawValue: selectedThemeRaw) ?? .purple
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
@@ -489,9 +594,11 @@ struct HealthStatCard: View {
                 .font(.subheadline)
                 .foregroundColor(.secondary)
         }
-        .padding(12)
-        .background(Color(.systemGray6))
-        .cornerRadius(12)
+        .padding(14)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(theme.cardBackground)
+        )
     }
 }
 
@@ -529,29 +636,49 @@ struct ProfileMedicationRowView: View {
     }
 }
 
-struct SettingsRow: View {
+struct ModernSettingsRow: View {
     let icon: String
     let iconColor: Color
+    let iconBackground: Color
     let title: String
+    let subtitle: String
 
     var body: some View {
         HStack(spacing: 14) {
-            Image(systemName: icon)
-                .foregroundColor(iconColor)
-                .font(.body)
-                .frame(width: 28)
+            // Icon with background
+            ZStack {
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(iconBackground)
+                    .frame(width: 40, height: 40)
 
-            Text(title)
-                .font(.body)
-                .foregroundColor(.primary)
+                Image(systemName: icon)
+                    .foregroundStyle(iconColor)
+                    .font(.system(size: 18, weight: .semibold))
+            }
+
+            // Title and subtitle
+            VStack(alignment: .leading, spacing: 3) {
+                Text(title)
+                    .font(.callout)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.white)
+
+                Text(subtitle)
+                    .font(.caption)
+                    .foregroundColor(.white.opacity(0.6))
+            }
 
             Spacer()
 
             Image(systemName: "chevron.right")
-                .font(.subheadline)
-                .foregroundColor(.secondary)
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundColor(.white.opacity(0.4))
         }
-        .padding(.vertical, 14)
+        .padding(14)
+        .background(
+            RoundedRectangle(cornerRadius: 14)
+                .fill(.white.opacity(0.08))
+        )
     }
 }
 
@@ -749,119 +876,204 @@ struct AppearanceSettingsView: View {
         ScrollView {
             VStack(spacing: 24) {
                 // Theme Colors
-                VStack(alignment: .leading, spacing: 16) {
-                    Text("Theme")
-                        .font(.headline)
-                        .foregroundStyle(.secondary)
+                VStack(alignment: .leading, spacing: 20) {
+                    HStack {
+                        Image(systemName: "paintpalette.fill")
+                            .foregroundStyle(.purple)
+                            .font(.title3)
+                        Text("Theme Color")
+                            .font(.headline)
+                    }
 
+                    // Theme grid with labels
                     LazyVGrid(columns: [
                         GridItem(.flexible()),
                         GridItem(.flexible()),
-                        GridItem(.flexible()),
-                        GridItem(.flexible()),
                         GridItem(.flexible())
-                    ], spacing: 16) {
+                    ], alignment: .center, spacing: 20) {
                         ForEach(AppTheme.allCases, id: \.self) { theme in
                             Button {
-                                selectedThemeRaw = theme.rawValue
-                            } label: {
-                                ZStack {
-                                    Circle()
-                                        .fill(theme.primaryColor)
-                                        .frame(width: 50, height: 50)
-
-                                    if selectedThemeRaw == theme.rawValue {
-                                        Circle()
-                                            .stroke(Color.white, lineWidth: 3)
-                                            .frame(width: 50, height: 50)
-
-                                        Image(systemName: "checkmark")
-                                            .foregroundColor(.white)
-                                            .fontWeight(.bold)
-                                    }
+                                withAnimation(.spring(response: 0.3)) {
+                                    selectedThemeRaw = theme.rawValue
                                 }
+                            } label: {
+                                VStack(spacing: 8) {
+                                    ZStack {
+                                        Circle()
+                                            .fill(
+                                                LinearGradient(
+                                                    colors: [theme.primaryColor, theme.primaryColor.opacity(0.6)],
+                                                    startPoint: .topLeading,
+                                                    endPoint: .bottomTrailing
+                                                )
+                                            )
+                                            .frame(width: 52, height: 52)
+                                            .shadow(color: theme.primaryColor.opacity(0.4), radius: selectedThemeRaw == theme.rawValue ? 8 : 0)
+
+                                        if selectedThemeRaw == theme.rawValue {
+                                            Circle()
+                                                .stroke(Color.white, lineWidth: 3)
+                                                .frame(width: 52, height: 52)
+
+                                            Image(systemName: "checkmark")
+                                                .foregroundColor(.white)
+                                                .font(.system(size: 16, weight: .bold))
+                                        }
+                                    }
+
+                                    Text(theme.rawValue)
+                                        .font(.caption2)
+                                        .foregroundStyle(selectedThemeRaw == theme.rawValue ? .primary : .secondary)
+                                        .frame(height: 14)
+                                }
+                                .frame(maxWidth: .infinity)
                             }
                             .buttonStyle(.plain)
+                            .scaleEffect(selectedThemeRaw == theme.rawValue ? 1.05 : 1.0)
                         }
                     }
                 }
-                .padding()
+                .padding(20)
                 .background(
-                    RoundedRectangle(cornerRadius: 16)
-                        .fill(.ultraThinMaterial)
+                    RoundedRectangle(cornerRadius: 20)
+                        .fill(selectedTheme.cardBackground)
                 )
 
                 // Light/Dark Mode
-                VStack(alignment: .leading, spacing: 16) {
-                    Text("Mode")
-                        .font(.headline)
-                        .foregroundStyle(.secondary)
+                VStack(alignment: .leading, spacing: 20) {
+                    HStack {
+                        Image(systemName: "circle.lefthalf.filled")
+                            .foregroundStyle(.orange)
+                            .font(.title3)
+                        Text("Appearance")
+                            .font(.headline)
+                    }
 
-                    HStack(spacing: 16) {
+                    HStack(spacing: 12) {
                         // Light Mode
-                        Button {
-                            appearance = .light
-                        } label: {
-                            VStack(spacing: 8) {
-                                ZStack {
-                                    RoundedRectangle(cornerRadius: 12)
-                                        .fill(Color.white)
-                                        .frame(width: 70, height: 50)
-                                        .overlay(
-                                            RoundedRectangle(cornerRadius: 12)
-                                                .stroke(appearance == .light ? Color.blue : Color.gray.opacity(0.3), lineWidth: appearance == .light ? 3 : 1)
-                                        )
-
-                                    Image(systemName: "sun.max.fill")
-                                        .foregroundColor(.orange)
-                                }
-
-                                Text("Light")
-                                    .font(.subheadline)
-                                    .foregroundColor(appearance == .light ? .primary : .secondary)
+                        AppearanceModeButton(
+                            title: "Light",
+                            icon: "sun.max.fill",
+                            iconColor: .orange,
+                            backgroundColor: .white,
+                            isSelected: appearance == .light
+                        ) {
+                            withAnimation(.spring(response: 0.3)) {
+                                appearance = .light
                             }
                         }
-                        .buttonStyle(.plain)
 
                         // Dark Mode
-                        Button {
-                            appearance = .dark
-                        } label: {
-                            VStack(spacing: 8) {
-                                ZStack {
-                                    RoundedRectangle(cornerRadius: 12)
-                                        .fill(Color.black)
-                                        .frame(width: 70, height: 50)
-                                        .overlay(
-                                            RoundedRectangle(cornerRadius: 12)
-                                                .stroke(appearance == .dark ? Color.blue : Color.gray.opacity(0.3), lineWidth: appearance == .dark ? 3 : 1)
-                                        )
-
-                                    Image(systemName: "moon.fill")
-                                        .foregroundColor(.yellow)
-                                }
-
-                                Text("Dark")
-                                    .font(.subheadline)
-                                    .foregroundColor(appearance == .dark ? .primary : .secondary)
+                        AppearanceModeButton(
+                            title: "Dark",
+                            icon: "moon.fill",
+                            iconColor: .yellow,
+                            backgroundColor: Color(white: 0.15),
+                            isSelected: appearance == .dark
+                        ) {
+                            withAnimation(.spring(response: 0.3)) {
+                                appearance = .dark
                             }
                         }
-                        .buttonStyle(.plain)
-
-                        Spacer()
                     }
                 }
-                .padding()
+                .padding(20)
                 .background(
-                    RoundedRectangle(cornerRadius: 16)
-                        .fill(.ultraThinMaterial)
+                    RoundedRectangle(cornerRadius: 20)
+                        .fill(selectedTheme.cardBackground)
+                )
+
+                // Preview Card
+                VStack(alignment: .leading, spacing: 16) {
+                    HStack {
+                        Image(systemName: "eye.fill")
+                            .foregroundStyle(.cyan)
+                            .font(.title3)
+                        Text("Preview")
+                            .font(.headline)
+                    }
+
+                    // Mini preview of current theme
+                    HStack(spacing: 12) {
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(selectedTheme.gradient)
+                            .frame(height: 80)
+                            .overlay(
+                                VStack {
+                                    Circle()
+                                        .fill(.white.opacity(0.2))
+                                        .frame(width: 30, height: 30)
+                                    RoundedRectangle(cornerRadius: 4)
+                                        .fill(.white.opacity(0.3))
+                                        .frame(width: 50, height: 8)
+                                }
+                            )
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .stroke(.white.opacity(0.2), lineWidth: 1)
+                            )
+                    }
+
+                    Text("This is how your app will look")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                .padding(20)
+                .background(
+                    RoundedRectangle(cornerRadius: 20)
+                        .fill(selectedTheme.cardBackground)
                 )
             }
             .padding()
         }
         .scrollContentBackground(.hidden)
         .navigationTitle("Appearance")
-        .navigationBarTitleDisplayModeInline()
+        .navigationBarTitleDisplayMode(.inline)
+    }
+}
+
+struct AppearanceModeButton: View {
+    let title: String
+    let icon: String
+    let iconColor: Color
+    let backgroundColor: Color
+    let isSelected: Bool
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            VStack(spacing: 12) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 16)
+                        .fill(backgroundColor)
+                        .frame(height: 70)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 16)
+                                .stroke(isSelected ? Color.blue : Color.clear, lineWidth: 3)
+                        )
+                        .shadow(color: isSelected ? .blue.opacity(0.3) : .clear, radius: 8)
+
+                    Image(systemName: icon)
+                        .font(.system(size: 28))
+                        .foregroundColor(iconColor)
+                }
+
+                HStack(spacing: 6) {
+                    if isSelected {
+                        Image(systemName: "checkmark.circle.fill")
+                            .foregroundStyle(.blue)
+                            .font(.caption)
+                    }
+                    Text(title)
+                        .font(.subheadline)
+                        .fontWeight(isSelected ? .semibold : .regular)
+                        .foregroundStyle(isSelected ? .primary : .secondary)
+                }
+            }
+            .frame(maxWidth: .infinity)
+        }
+        .buttonStyle(.plain)
+        .scaleEffect(isSelected ? 1.02 : 1.0)
     }
 }
 
@@ -870,30 +1082,109 @@ struct AppearanceSettingsView: View {
 struct NotificationSettingsView: View {
     @ObservedObject var viewModel: SettingsViewModel
 
+    @AppStorage("selectedTheme") private var selectedThemeRaw: String = AppTheme.purple.rawValue
+    private var theme: AppTheme {
+        AppTheme(rawValue: selectedThemeRaw) ?? .purple
+    }
+
     var body: some View {
-        Form {
-            Section {
-                Toggle(isOn: $viewModel.notificationsEnabled) {
+        ScrollView {
+            VStack(spacing: 24) {
+                // Daily Reminders
+                VStack(alignment: .leading, spacing: 20) {
                     HStack {
-                        Image(systemName: "bell.fill")
-                            .foregroundStyle(.blue)
+                        Image(systemName: "bell.badge.fill")
+                            .foregroundStyle(.red)
+                            .font(.title3)
                         Text("Daily Reminders")
+                            .font(.headline)
+                    }
+
+                    // Toggle card
+                    HStack {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Enable Reminders")
+                                .font(.body)
+                                .fontWeight(.medium)
+                            Text("Get notified to log your patterns")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+
+                        Spacer()
+
+                        Toggle("", isOn: $viewModel.notificationsEnabled)
+                            .labelsHidden()
+                            .tint(.blue)
+                    }
+                    .padding(16)
+                    .background(
+                        RoundedRectangle(cornerRadius: 14)
+                            .fill(.white.opacity(0.05))
+                    )
+
+                    if viewModel.notificationsEnabled {
+                        // Time picker
+                        VStack(alignment: .leading, spacing: 12) {
+                            HStack {
+                                Image(systemName: "clock.fill")
+                                    .foregroundStyle(.orange)
+                                Text("Reminder Time")
+                                    .font(.subheadline)
+                                    .fontWeight(.medium)
+                            }
+
+                            DatePicker(
+                                "",
+                                selection: $viewModel.notificationTime,
+                                displayedComponents: .hourAndMinute
+                            )
+                            .datePickerStyle(.wheel)
+                            .labelsHidden()
+                            .frame(maxWidth: .infinity)
+                        }
+                        .padding(16)
+                        .background(
+                            RoundedRectangle(cornerRadius: 14)
+                                .fill(.white.opacity(0.05))
+                        )
+                        .transition(.opacity.combined(with: .move(edge: .top)))
                     }
                 }
+                .padding(20)
+                .background(
+                    RoundedRectangle(cornerRadius: 20)
+                        .fill(theme.cardBackground)
+                )
+                .animation(.spring(response: 0.3), value: viewModel.notificationsEnabled)
 
-                if viewModel.notificationsEnabled {
-                    DatePicker(
-                        "Reminder Time",
-                        selection: $viewModel.notificationTime,
-                        displayedComponents: .hourAndMinute
-                    )
+                // Info card
+                VStack(alignment: .leading, spacing: 12) {
+                    HStack {
+                        Image(systemName: "info.circle.fill")
+                            .foregroundStyle(.blue)
+                        Text("About Notifications")
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                    }
+
+                    Text("Daily reminders help you build a consistent tracking habit. You can change the time or disable them anytime.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
-            } header: {
-                Text("Notifications")
+                .padding(16)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(
+                    RoundedRectangle(cornerRadius: 16)
+                        .fill(.blue.opacity(0.1))
+                )
             }
+            .padding()
         }
+        .scrollContentBackground(.hidden)
         .navigationTitle("Notifications")
-        .navigationBarTitleDisplayModeInline()
+        .navigationBarTitleDisplayMode(.inline)
     }
 }
 

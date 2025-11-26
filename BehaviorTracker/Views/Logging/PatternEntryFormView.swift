@@ -1,4 +1,6 @@
 import SwiftUI
+import Speech
+import AVFoundation
 
 struct PatternEntryFormView: View {
     @Environment(\.dismiss) private var dismiss
@@ -15,6 +17,15 @@ struct PatternEntryFormView: View {
     @State private var isFavorite: Bool = false
     @State private var selectedContributingFactors: Set<ContributingFactor> = []
     @State private var showingContributingFactors: Bool = false
+    @State private var selectedCalendarEvents: Set<String> = []
+    @State private var todayEvents: [CalendarEvent] = []
+
+    // Voice input
+    @StateObject private var speechRecognizer = SpeechRecognizer()
+    @State private var isRecordingDetails: Bool = false
+    @State private var isRecordingContext: Bool = false
+
+    private let calendarService = CalendarEventService.shared
 
     var body: some View {
         NavigationStack {
@@ -101,13 +112,58 @@ struct PatternEntryFormView: View {
 
                 Section {
                     DisclosureGroup(isExpanded: $showingContributingFactors) {
+                        // Today's Calendar Events
+                        if !todayEvents.isEmpty {
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("Today's Events")
+                                    .font(.caption)
+                                    .foregroundStyle(.cyan)
+                                    .padding(.top, 4)
+
+                                ForEach(todayEvents) { event in
+                                    Button {
+                                        if selectedCalendarEvents.contains(event.id) {
+                                            selectedCalendarEvents.remove(event.id)
+                                        } else {
+                                            selectedCalendarEvents.insert(event.id)
+                                        }
+                                    } label: {
+                                        HStack {
+                                            Image(systemName: "calendar")
+                                                .frame(width: 20)
+                                                .foregroundStyle(.cyan)
+
+                                            VStack(alignment: .leading, spacing: 2) {
+                                                Text(event.title)
+                                                    .foregroundStyle(.primary)
+                                                Text(event.timeString)
+                                                    .font(.caption)
+                                                    .foregroundStyle(.secondary)
+                                            }
+
+                                            Spacer()
+
+                                            if selectedCalendarEvents.contains(event.id) {
+                                                Image(systemName: "checkmark.circle.fill")
+                                                    .foregroundStyle(.cyan)
+                                            } else {
+                                                Image(systemName: "circle")
+                                                    .foregroundStyle(.secondary)
+                                            }
+                                        }
+                                    }
+                                    .buttonStyle(.plain)
+                                }
+                            }
+                        }
+
                         ForEach(ContributingFactor.groupedByCategory, id: \.category) { group in
                             VStack(alignment: .leading, spacing: 8) {
                                 Text(group.category)
                                     .font(.caption)
                                     .foregroundStyle(.secondary)
                                     .padding(.top, 4)
-                                
+
                                 ForEach(group.factors, id: \.self) { factor in
                                     Button {
                                         if selectedContributingFactors.contains(factor) {
@@ -120,12 +176,12 @@ struct PatternEntryFormView: View {
                                             Image(systemName: factor.icon)
                                                 .frame(width: 20)
                                                 .foregroundStyle(.secondary)
-                                            
+
                                             Text(factor.rawValue)
                                                 .foregroundStyle(.primary)
-                                            
+
                                             Spacer()
-                                            
+
                                             if selectedContributingFactors.contains(factor) {
                                                 Image(systemName: "checkmark.circle.fill")
                                                     .foregroundStyle(.blue)
@@ -143,38 +199,91 @@ struct PatternEntryFormView: View {
                         HStack {
                             Text("Contributing Factors")
                                 .font(.subheadline)
-                            
+
                             Spacer()
-                            
-                            if !selectedContributingFactors.isEmpty {
-                                Text("\(selectedContributingFactors.count) selected")
+
+                            if !selectedContributingFactors.isEmpty || !selectedCalendarEvents.isEmpty {
+                                Text("\(selectedContributingFactors.count + selectedCalendarEvents.count) selected")
                                     .font(.caption)
                                     .foregroundStyle(.secondary)
                             }
                         }
                     }
                 }
+                .onAppear {
+                    loadTodayEvents()
+                }
 
                 Section {
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("Specific Details (Optional)")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
+                        HStack {
+                            Text("Specific Details (Optional)")
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+
+                            Spacer()
+
+                            // Voice input button
+                            Button {
+                                toggleVoiceInput(for: .details)
+                            } label: {
+                                Image(systemName: isRecordingDetails ? "mic.fill" : "mic")
+                                    .foregroundStyle(isRecordingDetails ? .red : .blue)
+                                    .font(.body)
+                                    .symbolEffect(.pulse, isActive: isRecordingDetails)
+                            }
+                            .buttonStyle(.plain)
+                        }
 
                         TextField(patternType.detailsPlaceholder, text: $specificDetails, axis: .vertical)
                             .lineLimit(2...4)
+
+                        if isRecordingDetails {
+                            HStack {
+                                ProgressView()
+                                    .scaleEffect(0.8)
+                                Text("Listening...")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
                     }
                     .padding(.vertical, 4)
                 }
 
                 Section {
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("Context Notes (Optional)")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
+                        HStack {
+                            Text("Context Notes (Optional)")
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+
+                            Spacer()
+
+                            // Voice input button
+                            Button {
+                                toggleVoiceInput(for: .context)
+                            } label: {
+                                Image(systemName: isRecordingContext ? "mic.fill" : "mic")
+                                    .foregroundStyle(isRecordingContext ? .red : .blue)
+                                    .font(.body)
+                                    .symbolEffect(.pulse, isActive: isRecordingContext)
+                            }
+                            .buttonStyle(.plain)
+                        }
 
                         TextField("Additional observations or context", text: $contextNotes, axis: .vertical)
                             .lineLimit(2...6)
+
+                        if isRecordingContext {
+                            HStack {
+                                ProgressView()
+                                    .scaleEffect(0.8)
+                                Text("Listening...")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
                     }
                     .padding(.vertical, 4)
                 }
@@ -219,20 +328,190 @@ struct PatternEntryFormView: View {
         }
     }
 
+    private func loadTodayEvents() {
+        calendarService.checkAuthorizationStatus()
+        if calendarService.isAuthorized {
+            todayEvents = calendarService.fetchEvents(for: Date())
+        }
+    }
+
     private func saveEntry() {
+        // Stop any recording before saving
+        speechRecognizer.stopTranscribing()
+        isRecordingDetails = false
+        isRecordingContext = false
+
         let totalMinutes = (hours * 60) + minutes
+
+        // Build context notes including selected calendar events
+        var finalContextNotes = contextNotes
+
+        if !selectedCalendarEvents.isEmpty {
+            let selectedEventTitles = todayEvents
+                .filter { selectedCalendarEvents.contains($0.id) }
+                .map { "📅 \($0.title)" }
+
+            if !selectedEventTitles.isEmpty {
+                let eventsText = "Related events: " + selectedEventTitles.joined(separator: ", ")
+                if finalContextNotes.isEmpty {
+                    finalContextNotes = eventsText
+                } else {
+                    finalContextNotes += "\n\n" + eventsText
+                }
+            }
+        }
 
         _ = viewModel.logPattern(
             patternType: patternType,
             intensity: Int16(intensity),
             duration: Int32(totalMinutes),
-            contextNotes: contextNotes.isEmpty ? nil : contextNotes,
+            contextNotes: finalContextNotes.isEmpty ? nil : finalContextNotes,
             specificDetails: specificDetails.isEmpty ? nil : specificDetails,
             isFavorite: isFavorite,
             contributingFactors: Array(selectedContributingFactors)
         )
 
         onSave()
+    }
+
+    // MARK: - Voice Input
+
+    enum VoiceInputField {
+        case details
+        case context
+    }
+
+    private func toggleVoiceInput(for field: VoiceInputField) {
+        switch field {
+        case .details:
+            if isRecordingDetails {
+                speechRecognizer.stopTranscribing()
+                isRecordingDetails = false
+            } else {
+                // Stop other recording if active
+                if isRecordingContext {
+                    speechRecognizer.stopTranscribing()
+                    isRecordingContext = false
+                }
+                isRecordingDetails = true
+                speechRecognizer.startTranscribing { result in
+                    if !specificDetails.isEmpty && !specificDetails.hasSuffix(" ") {
+                        specificDetails += " "
+                    }
+                    specificDetails += result
+                }
+            }
+        case .context:
+            if isRecordingContext {
+                speechRecognizer.stopTranscribing()
+                isRecordingContext = false
+            } else {
+                // Stop other recording if active
+                if isRecordingDetails {
+                    speechRecognizer.stopTranscribing()
+                    isRecordingDetails = false
+                }
+                isRecordingContext = true
+                speechRecognizer.startTranscribing { result in
+                    if !contextNotes.isEmpty && !contextNotes.hasSuffix(" ") {
+                        contextNotes += " "
+                    }
+                    contextNotes += result
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Speech Recognizer
+
+class SpeechRecognizer: ObservableObject {
+    private var audioEngine: AVAudioEngine?
+    private var recognitionRequest: SFSpeechAudioBufferRecognitionRequest?
+    private var recognitionTask: SFSpeechRecognitionTask?
+    private let speechRecognizer = SFSpeechRecognizer(locale: Locale.current)
+
+    @Published var isAuthorized = false
+    @Published var isRecording = false
+
+    init() {
+        requestAuthorization()
+    }
+
+    func requestAuthorization() {
+        SFSpeechRecognizer.requestAuthorization { [weak self] status in
+            DispatchQueue.main.async {
+                self?.isAuthorized = status == .authorized
+            }
+        }
+    }
+
+    func startTranscribing(onResult: @escaping (String) -> Void) {
+        guard isAuthorized else {
+            requestAuthorization()
+            return
+        }
+
+        // Stop any existing transcription
+        stopTranscribing()
+
+        audioEngine = AVAudioEngine()
+        guard let audioEngine = audioEngine else { return }
+
+        recognitionRequest = SFSpeechAudioBufferRecognitionRequest()
+        guard let recognitionRequest = recognitionRequest else { return }
+
+        recognitionRequest.shouldReportPartialResults = false
+
+        let inputNode = audioEngine.inputNode
+        let recordingFormat = inputNode.outputFormat(forBus: 0)
+
+        inputNode.installTap(onBus: 0, bufferSize: 1024, format: recordingFormat) { buffer, _ in
+            self.recognitionRequest?.append(buffer)
+        }
+
+        recognitionTask = speechRecognizer?.recognitionTask(with: recognitionRequest) { result, error in
+            if let result = result, result.isFinal {
+                let transcription = result.bestTranscription.formattedString
+                DispatchQueue.main.async {
+                    onResult(transcription)
+                }
+            }
+
+            if error != nil || (result?.isFinal ?? false) {
+                self.stopTranscribing()
+            }
+        }
+
+        do {
+            #if os(iOS)
+            try AVAudioSession.sharedInstance().setCategory(.record, mode: .measurement, options: .duckOthers)
+            try AVAudioSession.sharedInstance().setActive(true, options: .notifyOthersOnDeactivation)
+            #endif
+
+            audioEngine.prepare()
+            try audioEngine.start()
+            isRecording = true
+        } catch {
+            print("Audio engine failed to start: \(error)")
+            stopTranscribing()
+        }
+    }
+
+    func stopTranscribing() {
+        audioEngine?.stop()
+        audioEngine?.inputNode.removeTap(onBus: 0)
+        recognitionRequest?.endAudio()
+        recognitionTask?.cancel()
+
+        audioEngine = nil
+        recognitionRequest = nil
+        recognitionTask = nil
+        isRecording = false
+
+        #if os(iOS)
+        try? AVAudioSession.sharedInstance().setActive(false)
+        #endif
     }
 }
 

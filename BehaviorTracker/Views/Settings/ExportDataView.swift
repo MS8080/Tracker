@@ -7,6 +7,11 @@ struct ExportDataView: View {
     @State private var showingShareSheet = false
     @State private var exportedFileURL: URL?
 
+    @AppStorage("selectedTheme") private var selectedThemeRaw: String = AppTheme.purple.rawValue
+    private var theme: AppTheme {
+        AppTheme(rawValue: selectedThemeRaw) ?? .purple
+    }
+
     var body: some View {
         VStack(spacing: 24) {
             Image(systemName: "square.and.arrow.up.circle.fill")
@@ -49,7 +54,7 @@ struct ExportDataView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(
                 RoundedRectangle(cornerRadius: 12)
-                    .fill(.ultraThinMaterial)
+                    .fill(theme.cardBackground)
             )
             .padding(.horizontal, 32)
 

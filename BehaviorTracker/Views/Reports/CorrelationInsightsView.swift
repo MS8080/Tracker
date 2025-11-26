@@ -85,7 +85,7 @@ struct CorrelationInsightsView: View {
                             .padding(.horizontal, 16)
                             .padding(.vertical, 8)
                             .background(
-                                RoundedRectangle(cornerRadius: 20)
+                                RoundedRectangle(cornerRadius: 24)
                                     .fill(selectedDays == days ? theme.primaryColor : .white.opacity(0.1))
                             )
                     }
@@ -94,8 +94,8 @@ struct CorrelationInsightsView: View {
         }
         .padding()
         .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(.ultraThinMaterial)
+            RoundedRectangle(cornerRadius: 24)
+                .fill(theme.cardBackground)
         )
     }
 
@@ -194,8 +194,8 @@ struct CorrelationInsightsView: View {
         }
         .padding(40)
         .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(.ultraThinMaterial)
+            RoundedRectangle(cornerRadius: 24)
+                .fill(theme.cardBackground)
         )
     }
 
@@ -238,7 +238,7 @@ struct FilterChip: View {
             .padding(.horizontal, 12)
             .padding(.vertical, 8)
             .background(
-                RoundedRectangle(cornerRadius: 16)
+                RoundedRectangle(cornerRadius: 24)
                     .fill(isSelected ? Color.blue : .white.opacity(0.15))
             )
         }
@@ -352,8 +352,8 @@ struct InsightCard: View {
         }
         .padding(16)
         .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(.ultraThinMaterial)
+            RoundedRectangle(cornerRadius: 24)
+                .fill(theme.cardBackground)
         )
     }
 

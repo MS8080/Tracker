@@ -4,7 +4,6 @@ import Charts
 struct ReportsView: View {
     @StateObject private var viewModel = ReportsViewModel()
     @State private var selectedTimeframe: ReportTimeframe = .weekly
-    @State private var showingAIInsights = false
     @State private var showingCorrelations = false
     @Binding var showingProfile: Bool
 
@@ -25,15 +24,10 @@ struct ReportsView: View {
                     .ignoresSafeArea()
 
                 ScrollView {
-                    VStack(spacing: 24) {
+                    VStack(spacing: 10) {
                         // Correlation Insights Card
                         correlationInsightsCard
-
-                        // AI Insights Card
-                        aiInsightsCard
-
                         timeframePicker
-
                         if selectedTimeframe == .weekly {
                             weeklyReportView
                         } else {
@@ -52,9 +46,6 @@ struct ReportsView: View {
             }
             .onAppear {
                 viewModel.generateReports()
-            }
-            .sheet(isPresented: $showingAIInsights) {
-                AIInsightsView()
             }
             .sheet(isPresented: $showingCorrelations) {
                 CorrelationInsightsView()
@@ -94,55 +85,12 @@ struct ReportsView: View {
             }
             .padding(16)
             .background(
-                RoundedRectangle(cornerRadius: 16)
-                    .fill(.ultraThinMaterial)
+                RoundedRectangle(cornerRadius: 24)
+                    .fill(theme.cardBackground)
             )
             .overlay(
-                RoundedRectangle(cornerRadius: 16)
+                RoundedRectangle(cornerRadius: 24)
                     .stroke(.blue.opacity(0.3), lineWidth: 1)
-            )
-        }
-        .buttonStyle(.plain)
-    }
-
-    private var aiInsightsCard: some View {
-        Button {
-            showingAIInsights = true
-        } label: {
-            HStack(spacing: 16) {
-                ZStack {
-                    Circle()
-                        .fill(.purple.gradient)
-                        .frame(width: 50, height: 50)
-
-                    Image(systemName: "sparkles")
-                        .font(.title2)
-                        .foregroundColor(.white)
-                }
-
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("AI Insights")
-                        .font(.headline)
-                        .foregroundColor(.primary)
-
-                    Text("Get personalized analysis of your patterns")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
-
-                Spacer()
-
-                Image(systemName: "chevron.right")
-                    .foregroundColor(.secondary)
-            }
-            .padding(16)
-            .background(
-                RoundedRectangle(cornerRadius: 16)
-                    .fill(.ultraThinMaterial)
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: 16)
-                    .stroke(.purple.opacity(0.3), lineWidth: 1)
             )
         }
         .buttonStyle(.plain)
@@ -158,7 +106,7 @@ struct ReportsView: View {
     }
 
     private var weeklyReportView: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: 10) {
             reportCard(
                 title: "Weekly Summary",
                 subtitle: "Last 7 days"
@@ -298,13 +246,13 @@ struct ReportsView: View {
         .padding(20)
         .frame(minHeight: 280)
         .background(
-            RoundedRectangle(cornerRadius: 20)
-                .fill(.ultraThinMaterial)
+            RoundedRectangle(cornerRadius: 24)
+                .fill(theme.cardBackground)
         )
     }
 
     private var monthlyReportView: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: 10) {
             reportCard(
                 title: "Monthly Summary",
                 subtitle: "Last 30 days"
@@ -321,9 +269,19 @@ struct ReportsView: View {
                 subtitle: "Most frequently logged"
             ) {
                 if viewModel.monthlyReport.topPatterns.isEmpty {
-                    Text("No data available")
-                        .foregroundStyle(.secondary)
-                        .padding()
+                    HStack {
+                        Spacer()
+                        VStack(spacing: 12) {
+                            Image(systemName: "chart.bar.xaxis")
+                                .font(.system(size: 40))
+                                .foregroundStyle(.secondary.opacity(0.5))
+                            Text("No data available")
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                        }
+                        .padding(.vertical, 20)
+                        Spacer()
+                    }
                 } else {
                     VStack(spacing: 12) {
                         ForEach(Array(viewModel.monthlyReport.topPatterns.prefix(10).enumerated()), id: \.element.key) { index, item in
@@ -427,8 +385,8 @@ struct ReportsView: View {
         }
         .padding(20)
         .background(
-            RoundedRectangle(cornerRadius: 20)
-                .fill(.ultraThinMaterial)
+            RoundedRectangle(cornerRadius: 24)
+                .fill(theme.cardBackground)
         )
     }
 }

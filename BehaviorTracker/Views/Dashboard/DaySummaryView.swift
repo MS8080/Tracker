@@ -163,26 +163,31 @@ struct CategoryBreakdownSlide: View {
 
 struct CategoryBreakdownRow: View {
     let breakdown: CategoryBreakdown
-    
+
+    @AppStorage("selectedTheme") private var selectedThemeRaw: String = AppTheme.purple.rawValue
+    private var theme: AppTheme {
+        AppTheme(rawValue: selectedThemeRaw) ?? .purple
+    }
+
     var body: some View {
         HStack(spacing: 12) {
             Image(systemName: breakdown.category.icon)
                 .font(.title2)
                 .foregroundStyle(breakdown.category.color)
                 .frame(width: 40)
-            
+
             VStack(alignment: .leading, spacing: 4) {
                 Text(breakdown.category.rawValue)
                     .font(.subheadline)
                     .fontWeight(.medium)
-                
+
                 Text("\(breakdown.count) entries")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
-            
+
             Spacer()
-            
+
             Text("\(Int(breakdown.percentage))%")
                 .font(.title3)
                 .fontWeight(.semibold)
@@ -190,8 +195,8 @@ struct CategoryBreakdownRow: View {
         }
         .padding()
         .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(.regularMaterial)
+            RoundedRectangle(cornerRadius: 16)
+                .fill(theme.cardBackground)
         )
     }
 }
@@ -199,30 +204,35 @@ struct CategoryBreakdownRow: View {
 // MARK: - Intensity Slide
 struct IntensitySlide: View {
     @ObservedObject var viewModel: DaySummaryViewModel
-    
+
+    @AppStorage("selectedTheme") private var selectedThemeRaw: String = AppTheme.purple.rawValue
+    private var theme: AppTheme {
+        AppTheme(rawValue: selectedThemeRaw) ?? .purple
+    }
+
     var body: some View {
         VStack(spacing: 24) {
             VStack(spacing: 8) {
                 Image(systemName: "gauge.high")
                     .font(.system(size: 50))
                     .foregroundStyle(.orange)
-                
+
                 Text("Intensity Overview")
                     .font(.title2)
                     .fontWeight(.bold)
             }
             .padding(.top, 40)
-            
+
             // Average intensity display
             VStack(spacing: 12) {
                 Text("Average Intensity")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
-                
+
                 Text(String(format: "%.1f", viewModel.averageIntensity))
                     .font(.system(size: 72, weight: .bold))
                     .foregroundStyle(intensityColor(viewModel.averageIntensity))
-                
+
                 HStack(spacing: 8) {
                     ForEach(1...5, id: \.self) { level in
                         Circle()
@@ -233,8 +243,8 @@ struct IntensitySlide: View {
             }
             .padding()
             .background(
-                RoundedRectangle(cornerRadius: 16)
-                    .fill(.regularMaterial)
+                RoundedRectangle(cornerRadius: 20)
+                    .fill(theme.cardBackground)
             )
             .padding(.horizontal)
             
@@ -323,7 +333,12 @@ struct TimelineSlide: View {
 
 struct TimelineEntryRow: View {
     let entry: PatternEntry
-    
+
+    @AppStorage("selectedTheme") private var selectedThemeRaw: String = AppTheme.purple.rawValue
+    private var theme: AppTheme {
+        AppTheme(rawValue: selectedThemeRaw) ?? .purple
+    }
+
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
             VStack {
@@ -373,11 +388,11 @@ struct TimelineEntryRow: View {
         }
         .padding()
         .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(.regularMaterial)
+            RoundedRectangle(cornerRadius: 16)
+                .fill(theme.cardBackground)
         )
     }
-    
+
     private func intensityColor(_ intensity: Int) -> Color {
         switch intensity {
         case 1: return .green
@@ -445,17 +460,22 @@ struct StatCard: View {
     let value: String
     let label: String
     let color: Color
-    
+
+    @AppStorage("selectedTheme") private var selectedThemeRaw: String = AppTheme.purple.rawValue
+    private var theme: AppTheme {
+        AppTheme(rawValue: selectedThemeRaw) ?? .purple
+    }
+
     var body: some View {
         VStack(spacing: 12) {
             Image(systemName: icon)
                 .font(.title)
                 .foregroundStyle(color)
-            
+
             Text(value)
                 .font(.title)
                 .fontWeight(.bold)
-            
+
             Text(label)
                 .font(.caption)
                 .foregroundStyle(.secondary)
@@ -463,8 +483,8 @@ struct StatCard: View {
         .frame(maxWidth: .infinity)
         .frame(height: 120)
         .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(.regularMaterial)
+            RoundedRectangle(cornerRadius: 20)
+                .fill(theme.cardBackground)
         )
     }
 }

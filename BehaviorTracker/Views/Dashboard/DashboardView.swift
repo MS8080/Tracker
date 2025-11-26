@@ -24,15 +24,11 @@ struct DashboardView: View {
                     .ignoresSafeArea()
 
                 ScrollView {
-                    VStack(spacing: 24) {
+                    VStack(spacing: 10) {
                         streakCard
-
                         medicationSummaryCard
-
                         todaySummaryCard
-
                         recentEntriesSection
-
                         quickInsightsSection
                     }
                     .padding()
@@ -65,7 +61,7 @@ struct DashboardView: View {
                         .font(.title2)
                         .fontWeight(.bold)
                     Text("Keep it going!")
-                        .font(.subheadline)
+                        .font(.body)
                         .foregroundStyle(.secondary)
                 }
 
@@ -77,14 +73,14 @@ struct DashboardView: View {
             }
 
             Text("Entries today")
-                .font(.subheadline)
+                .font(.body)
                 .foregroundStyle(.secondary)
                 .frame(maxWidth: .infinity, alignment: .trailing)
         }
         .padding(20)
         .background(
-            RoundedRectangle(cornerRadius: 20)
-                .fill(.ultraThinMaterial)
+            RoundedRectangle(cornerRadius: 24)
+                .fill(theme.cardBackground)
         )
     }
 
@@ -96,7 +92,7 @@ struct DashboardView: View {
 
             if viewModel.todayCategoryBreakdown.isEmpty {
                 Text("No entries logged today")
-                    .font(.body)
+                    .font(.callout)
                     .foregroundStyle(.secondary)
                     .frame(maxWidth: .infinity, alignment: .center)
                     .padding(.vertical, 20)
@@ -109,12 +105,12 @@ struct DashboardView: View {
                                 .foregroundStyle(category.color)
 
                             Text(category.rawValue)
-                                .font(.body)
+                                .font(.callout)
 
                             Spacer()
 
                             Text("\(count)")
-                                .font(.body)
+                                .font(.callout)
                                 .fontWeight(.semibold)
                                 .foregroundStyle(.secondary)
                         }
@@ -124,8 +120,8 @@ struct DashboardView: View {
         }
         .padding(20)
         .background(
-            RoundedRectangle(cornerRadius: 20)
-                .fill(.ultraThinMaterial)
+            RoundedRectangle(cornerRadius: 24)
+                .fill(theme.cardBackground)
         )
     }
 
@@ -142,14 +138,14 @@ struct DashboardView: View {
                     HistoryView()
                 } label: {
                     Text("View All")
-                        .font(.body)
+                        .font(.callout)
                         .foregroundStyle(.blue)
                 }
             }
 
             if viewModel.recentEntries.isEmpty {
                 Text("No recent entries")
-                    .font(.body)
+                    .font(.callout)
                     .foregroundStyle(.secondary)
                     .frame(maxWidth: .infinity, alignment: .center)
                     .padding(.vertical, 20)
@@ -163,8 +159,8 @@ struct DashboardView: View {
         }
         .padding(20)
         .background(
-            RoundedRectangle(cornerRadius: 20)
-                .fill(.ultraThinMaterial)
+            RoundedRectangle(cornerRadius: 24)
+                .fill(theme.cardBackground)
         )
     }
 
@@ -175,11 +171,11 @@ struct DashboardView: View {
         }
         .padding(20)
         .background(
-            RoundedRectangle(cornerRadius: 20)
-                .fill(.ultraThinMaterial)
+            RoundedRectangle(cornerRadius: 24)
+                .fill(theme.cardBackground)
         )
     }
-    
+
     private var medicationHeaderRow: some View {
         HStack {
             Text("Today's Medications")
@@ -192,12 +188,12 @@ struct DashboardView: View {
                 MedicationView()
             } label: {
                 Text("View All")
-                    .font(.body)
+                    .font(.callout)
                     .foregroundStyle(.blue)
             }
         }
     }
-    
+
     @ViewBuilder
     private var medicationContentView: some View {
         if medicationViewModel.medications.isEmpty {
@@ -206,17 +202,17 @@ struct DashboardView: View {
             medicationListView
         }
     }
-    
+
     private var emptyMedicationsView: some View {
         HStack {
             Image(systemName: "pills.fill")
                 .foregroundStyle(.blue)
             Text("No medications added")
-                .font(.subheadline)
+                .font(.callout)
                 .foregroundStyle(.secondary)
         }
     }
-    
+
     private var medicationListView: some View {
         VStack(spacing: 8) {
             ForEach(Array(medicationViewModel.medications.prefix(3))) { medication in
@@ -228,7 +224,7 @@ struct DashboardView: View {
 
             if medicationViewModel.medications.count > 3 {
                 Text("+ \(medicationViewModel.medications.count - 3) more")
-                    .font(.caption)
+                    .font(.subheadline)
                     .foregroundStyle(.secondary)
                     .frame(maxWidth: .infinity, alignment: .center)
             }
@@ -266,8 +262,8 @@ struct DashboardView: View {
         }
         .padding(20)
         .background(
-            RoundedRectangle(cornerRadius: 20)
-                .fill(.ultraThinMaterial)
+            RoundedRectangle(cornerRadius: 24)
+                .fill(theme.cardBackground)
         )
     }
 }
@@ -284,12 +280,12 @@ struct DashboardMedicationRowView: View {
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(medication.name)
-                    .font(.subheadline)
+                    .font(.callout)
                     .fontWeight(.medium)
 
                 if let dosage = medication.dosage {
                     Text(dosage)
-                        .font(.caption)
+                        .font(.subheadline)
                         .foregroundStyle(.secondary)
                 }
             }
@@ -309,6 +305,11 @@ struct DashboardMedicationRowView: View {
 struct EntryRowView: View {
     let entry: PatternEntry
 
+    @AppStorage("selectedTheme") private var selectedThemeRaw: String = AppTheme.purple.rawValue
+    private var theme: AppTheme {
+        AppTheme(rawValue: selectedThemeRaw) ?? .purple
+    }
+
     var body: some View {
         HStack(spacing: 12) {
             if let category = entry.patternCategoryEnum {
@@ -320,11 +321,11 @@ struct EntryRowView: View {
 
             VStack(alignment: .leading, spacing: 4) {
                 Text(entry.patternType)
-                    .font(.body)
+                    .font(.callout)
                     .fontWeight(.medium)
 
                 Text(entry.timestamp, style: .time)
-                    .font(.subheadline)
+                    .font(.body)
                     .foregroundStyle(.secondary)
             }
 
@@ -336,8 +337,8 @@ struct EntryRowView: View {
         }
         .padding(14)
         .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(.thinMaterial)
+            RoundedRectangle(cornerRadius: 16)
+                .fill(theme.cardBackground)
         )
     }
 }
@@ -347,10 +348,10 @@ struct IntensityBadge: View {
 
     var body: some View {
         Text("\(intensity)")
-            .font(.caption)
+            .font(.subheadline)
             .fontWeight(.semibold)
             .foregroundStyle(.white)
-            .frame(width: 24, height: 24)
+            .frame(width: 26, height: 26)
             .background(
                 Circle()
                     .fill(intensityColor)
@@ -383,12 +384,12 @@ struct InsightRow: View {
                 .frame(width: 28)
 
             Text(title)
-                .font(.body)
+                .font(.callout)
 
             Spacer()
 
             Text(value)
-                .font(.body)
+                .font(.callout)
                 .fontWeight(.semibold)
                 .foregroundStyle(.secondary)
         }

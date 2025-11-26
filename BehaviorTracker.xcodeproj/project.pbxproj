@@ -32,6 +32,8 @@
 		4E00913D2EC1372900D8A0D1 /* ReportsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E0091202EC1372900D8A0D1 /* ReportsView.swift */; };
 		4E00913E2EC1372900D8A0D1 /* HapticFeedback.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E0091112EC1372900D8A0D1 /* HapticFeedback.swift */; };
 		4E00913F2EC1372900D8A0D1 /* UserPreferences+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E0091092EC1372900D8A0D1 /* UserPreferences+CoreDataClass.swift */; };
+		4E1132452ED6574D001C5D0A /* CalendarEventService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E1132442ED6574D001C5D0A /* CalendarEventService.swift */; };
+		4E1132462ED6574D001C5D0A /* CalendarEventService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E1132442ED6574D001C5D0A /* CalendarEventService.swift */; };
 		4E16DE672ECE7DF200FEFBD8 /* ContributingFactor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E16DE662ECE7DF200FEFBD8 /* ContributingFactor.swift */; };
 		4E16DE692ECE7F6F00FEFBD8 /* PatternCategory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E16DE682ECE7F6F00FEFBD8 /* PatternCategory.swift */; };
 		4E16DE6B2ECE7F8900FEFBD8 /* PatternType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E16DE6A2ECE7F8900FEFBD8 /* PatternType.swift */; };
@@ -66,6 +68,7 @@
 		4EAI00012EE0000000000001 /* GeminiService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EAI00012EE0000000000002 /* GeminiService.swift */; };
 		4EAI00012EE0000000000003 /* AIAnalysisService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EAI00012EE0000000000004 /* AIAnalysisService.swift */; };
 		4EAI00012EE0000000000005 /* AIInsightsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EAI00012EE0000000000006 /* AIInsightsView.swift */; };
+		4EAI00012EE0000000000009 /* AIInsightsTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EAI00012EE0000000000008 /* AIInsightsTabView.swift */; };
 		4EAUD00012EE0000000000001 /* AudioRecordingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EAUD00012EE0000000000002 /* AudioRecordingService.swift */; };
 		4ECAA0222ED4F22B002970C9 /* Validator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ECAA0212ED4F22B002970C9 /* Validator.swift */; };
 		4ECAA0232ED4F22B002970C9 /* Validator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ECAA0212ED4F22B002970C9 /* Validator.swift */; };
@@ -195,6 +198,7 @@
 		4E0091222EC1372900D8A0D1 /* ExportDataView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportDataView.swift; sourceTree = "<group>"; };
 		4E0091232EC1372900D8A0D1 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		4E0091262EC1372900D8A0D1 /* BehaviorTracker.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = BehaviorTracker.xcdatamodel; sourceTree = "<group>"; };
+		4E1132442ED6574D001C5D0A /* CalendarEventService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarEventService.swift; sourceTree = "<group>"; };
 		4E16DE662ECE7DF200FEFBD8 /* ContributingFactor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContributingFactor.swift; sourceTree = "<group>"; };
 		4E16DE682ECE7F6F00FEFBD8 /* PatternCategory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatternCategory.swift; sourceTree = "<group>"; };
 		4E16DE6A2ECE7F8900FEFBD8 /* PatternType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatternType.swift; sourceTree = "<group>"; };
@@ -221,6 +225,7 @@
 		4EAI00012EE0000000000002 /* GeminiService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeminiService.swift; sourceTree = "<group>"; };
 		4EAI00012EE0000000000004 /* AIAnalysisService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIAnalysisService.swift; sourceTree = "<group>"; };
 		4EAI00012EE0000000000006 /* AIInsightsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIInsightsView.swift; sourceTree = "<group>"; };
+		4EAI00012EE0000000000008 /* AIInsightsTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIInsightsTabView.swift; sourceTree = "<group>"; };
 		4EAUD00012EE0000000000002 /* AudioRecordingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioRecordingService.swift; sourceTree = "<group>"; };
 		4ECAA0212ED4F22B002970C9 /* Validator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Validator.swift; sourceTree = "<group>"; };
 		4EF642032ECBA4D00055E3FB /* JournalListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JournalListView.swift; sourceTree = "<group>"; };
@@ -310,6 +315,7 @@
 		4E00910D2EC1372900D8A0D1 /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				4E1132442ED6574D001C5D0A /* CalendarEventService.swift */,
 				4E3591BA2ED62F58000A5E74 /* CorrelationAnalysisService.swift */,
 				4E00910B2EC1372900D8A0D1 /* DataController.swift */,
 				4E00910C2EC1372900D8A0D1 /* ReportGenerator.swift */,
@@ -380,6 +386,7 @@
 				4E3591BD2ED62FA7000A5E74 /* CorrelationInsightsView.swift */,
 				4E0091202EC1372900D8A0D1 /* ReportsView.swift */,
 				4EAI00012EE0000000000006 /* AIInsightsView.swift */,
+				4EAI00012EE0000000000008 /* AIInsightsTabView.swift */,
 			);
 			path = Reports;
 			sourceTree = "<group>";
@@ -678,6 +685,7 @@
 				4E0091272EC1372900D8A0D1 /* LoggingViewModel.swift in Sources */,
 				4EJVM00012EE0000000000002 /* JournalViewModel.swift in Sources */,
 				4E2910DE2ECBACD100E73735 /* DaySummaryViewModel.swift in Sources */,
+				4E1132462ED6574D001C5D0A /* CalendarEventService.swift in Sources */,
 				4E00912A2EC1372900D8A0D1 /* CategoryLoggingView.swift in Sources */,
 				4E00912B2EC1372900D8A0D1 /* DashboardViewModel.swift in Sources */,
 				4E00912C2EC1372900D8A0D1 /* ExportDataView.swift in Sources */,
@@ -718,6 +726,7 @@
 				4EAUD00012EE0000000000001 /* AudioRecordingService.swift in Sources */,
 				4EAI00012EE0000000000003 /* AIAnalysisService.swift in Sources */,
 				4EAI00012EE0000000000005 /* AIInsightsView.swift in Sources */,
+				4EAI00012EE0000000000009 /* AIInsightsTabView.swift in Sources */,
 				4EPROF0012EE0000000000001 /* ProfileContainerView.swift in Sources */,
 				4EMED00012EE0000000000001 /* AddMedicationView.swift in Sources */,
 				4EMED00012EE0000000000003 /* LogMedicationView.swift in Sources */,
@@ -753,6 +762,7 @@
 				MAC0001000000011 /* UserPreferences+CoreDataClass.swift in Sources */,
 				MAC0001000000012 /* UserProfile+CoreDataClass.swift in Sources */,
 				MAC0001000000013 /* JournalEntry+CoreDataClass.swift in Sources */,
+				4E1132452ED6574D001C5D0A /* CalendarEventService.swift in Sources */,
 				MAC0001000000014 /* BehaviorTrackerModel.xcdatamodeld in Sources */,
 				MAC0001000000015 /* ContributingFactor.swift in Sources */,
 				MAC0001000000016 /* PatternCategory.swift in Sources */,
