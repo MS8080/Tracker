@@ -8,6 +8,7 @@ import AppKit
 struct AIInsightsTabView: View {
     @StateObject private var viewModel = AIInsightsTabViewModel()
     @Binding var showingProfile: Bool
+    @State private var showingFullReport = false
 
     @AppStorage("selectedTheme") private var selectedThemeRaw: String = AppTheme.purple.rawValue
 
@@ -37,23 +38,8 @@ struct AIInsightsTabView: View {
                             analysisOptionsCard
                             analyzeButton
 
-                            if viewModel.isAnalyzing {
-                                analyzingCard
-                            }
-
                             if let error = viewModel.errorMessage {
                                 errorCard(error)
-                            }
-
-                            // Results
-                            if let insights = viewModel.insights {
-                                // Full report first
-                                fullReportCard(insights)
-
-                                // Summary tiles at bottom
-                                if let summary = viewModel.summaryInsights {
-                                    summarySection(summary)
-                                }
                             }
                         }
 
@@ -74,6 +60,16 @@ struct AIInsightsTabView: View {
             }
             .sheet(isPresented: $viewModel.showingSettings) {
                 AIInsightsSettingsView(viewModel: viewModel)
+            }
+            .fullScreenCover(isPresented: $showingFullReport) {
+                FullReportView(viewModel: viewModel, theme: theme)
+            }
+            .onChange(of: viewModel.insights) { _, newValue in
+                if newValue != nil {
+                    withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
+                        showingFullReport = true
+                    }
+                }
             }
         }
     }
@@ -285,29 +281,6 @@ struct AIInsightsTabView: View {
         .disabled(viewModel.isAnalyzing)
     }
 
-    // MARK: - Analyzing Card
-
-    private var analyzingCard: some View {
-        VStack(spacing: 16) {
-            ProgressView()
-                .scaleEffect(1.5)
-
-            Text("Analyzing your data...")
-                .font(.callout)
-                .foregroundStyle(.secondary)
-
-            Text("This may take a moment")
-                .font(.caption)
-                .foregroundStyle(.secondary.opacity(0.7))
-        }
-        .frame(maxWidth: .infinity)
-        .padding(30)
-        .background(
-            RoundedRectangle(cornerRadius: 24)
-                .fill(theme.cardBackground)
-        )
-    }
-
     // MARK: - Error Card
 
     private func errorCard(_ error: String) -> some View {
@@ -365,18 +338,18 @@ struct AIInsightsTabView: View {
     }
 
     private func summaryTile(title: String, icon: String, color: Color, content: String) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 14) {
             HStack {
                 Image(systemName: icon)
                     .font(.title2)
                     .foregroundStyle(color)
                 Text(title)
-                    .font(.headline)
+                    .font(.title3)
                     .fontWeight(.semibold)
             }
 
             Text(content)
-                .font(.callout)
+                .font(.body)
                 .foregroundStyle(.primary.opacity(0.85))
                 .fixedSize(horizontal: false, vertical: true)
                 .multilineTextAlignment(.leading)
@@ -459,35 +432,36 @@ struct AIInsightsTabView: View {
     private func formattedInsightsContent(_ content: String) -> some View {
         let sections = parseMarkdownSections(content)
 
-        VStack(alignment: .leading, spacing: 20) {
+        VStack(alignment: .leading, spacing: 24) {
             ForEach(sections, id: \.title) { section in
-                VStack(alignment: .leading, spacing: 8) {
+                VStack(alignment: .leading, spacing: 12) {
                     if !section.title.isEmpty {
-                        HStack(spacing: 8) {
+                        HStack(spacing: 10) {
                             Image(systemName: section.icon)
+                                .font(.title3)
                                 .foregroundStyle(section.color)
                             Text(section.title)
-                                .font(.headline)
+                                .font(.title3)
                                 .fontWeight(.semibold)
                         }
                     }
 
                     ForEach(section.bullets, id: \.self) { bullet in
-                        HStack(alignment: .top, spacing: 10) {
+                        HStack(alignment: .top, spacing: 12) {
                             Circle()
                                 .fill(section.color.opacity(0.6))
-                                .frame(width: 6, height: 6)
-                                .padding(.top, 6)
+                                .frame(width: 8, height: 8)
+                                .padding(.top, 8)
 
                             Text(bullet)
-                                .font(.callout)
+                                .font(.body)
                                 .foregroundStyle(.primary.opacity(0.9))
                         }
                     }
 
                     if !section.paragraph.isEmpty {
                         Text(section.paragraph)
-                            .font(.callout)
+                            .font(.body)
                             .foregroundStyle(.secondary)
                     }
                 }
@@ -820,6 +794,610 @@ struct AIInsightsSettingsView: View {
                     }
                 }
             }
+        }
+    }
+}
+
+// MARK: - Full Report View (Full Screen)
+
+struct FullReportView: View {
+    @ObservedObject var viewModel: AIInsightsTabViewModel
+    let theme: AppTheme
+    @Environment(\.dismiss) private var dismiss
+    @Environment(\.managedObjectContext) private var viewContext
+    @State private var appearAnimation = false
+    @State private var bookmarkedSections: Set<String> = []
+    @State private var flyingTile: FlyingTileInfo?
+    @State private var showJournalSuccess = false
+
+    var body: some View {
+        ZStack {
+            theme.gradient
+                .ignoresSafeArea()
+
+            VStack(spacing: 0) {
+                // Header
+                HStack {
+                    Button {
+                        dismiss()
+                    } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.title)
+                            .foregroundStyle(.secondary)
+                    }
+
+                    Spacer()
+
+                    Text("AI Analysis")
+                        .font(.headline)
+                        .fontWeight(.semibold)
+
+                    Spacer()
+
+                    // Copy button
+                    if let insights = viewModel.insights {
+                        Button {
+                            copyToClipboard(insights.content)
+                        } label: {
+                            Image(systemName: viewModel.showCopiedFeedback ? "checkmark.circle.fill" : "doc.on.doc")
+                                .font(.title2)
+                                .foregroundStyle(viewModel.showCopiedFeedback ? .green : .secondary)
+                        }
+                    }
+                }
+                .padding(.horizontal, 20)
+                .padding(.vertical, 16)
+
+                Divider()
+                    .opacity(0.3)
+
+                // Content
+                ScrollView {
+                    VStack(spacing: 16) {
+                        if let insights = viewModel.insights {
+                            // Date
+                            HStack {
+                                Image(systemName: "calendar")
+                                    .foregroundStyle(.secondary)
+                                Text(insights.formattedDate)
+                                    .font(.subheadline)
+                                    .foregroundStyle(.secondary)
+                                Spacer()
+                            }
+                            .padding(.horizontal, 4)
+
+                            // Full report content
+                            fullReportContent(insights)
+                                .opacity(appearAnimation ? 1 : 0)
+                                .offset(y: appearAnimation ? 0 : 20)
+
+                            // Summary tiles
+                            if let summary = viewModel.summaryInsights {
+                                summarySection(summary)
+                                    .opacity(appearAnimation ? 1 : 0)
+                                    .offset(y: appearAnimation ? 0 : 30)
+                            }
+
+                            // Regenerate button
+                            Button {
+                                Task {
+                                    dismiss()
+                                    try? await Task.sleep(nanoseconds: 300_000_000)
+                                    await viewModel.analyze()
+                                }
+                            } label: {
+                                HStack {
+                                    Image(systemName: "arrow.clockwise")
+                                    Text("Generate New Analysis")
+                                }
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                                .padding()
+                            }
+                            .padding(.top, 10)
+                        }
+                    }
+                    .padding(20)
+                }
+            }
+
+            // Flying tile animation overlay
+            if let flying = flyingTile {
+                FlyingTileView(info: flying, theme: theme) {
+                    withAnimation(.spring(response: 0.3)) {
+                        flyingTile = nil
+                    }
+                    showJournalSuccess = true
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                        showJournalSuccess = false
+                    }
+                }
+            }
+
+            // Success toast
+            if showJournalSuccess {
+                VStack {
+                    Spacer()
+                    HStack(spacing: 10) {
+                        Image(systemName: "checkmark.circle.fill")
+                            .foregroundStyle(.green)
+                        Text("Added to Journal")
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 12)
+                    .background(
+                        Capsule()
+                            .fill(.ultraThinMaterial)
+                    )
+                    .padding(.bottom, 40)
+                }
+                .transition(.move(edge: .bottom).combined(with: .opacity))
+            }
+        }
+        .onAppear {
+            loadBookmarks()
+            withAnimation(.easeOut(duration: 0.5).delay(0.1)) {
+                appearAnimation = true
+            }
+        }
+    }
+
+    private func fullReportContent(_ insights: AIInsights) -> some View {
+        let sections = parseMarkdownSections(insights.content)
+
+        return VStack(alignment: .leading, spacing: 24) {
+            ForEach(Array(sections.enumerated()), id: \.element.title) { index, section in
+                InsightTileView(
+                    section: section,
+                    theme: theme,
+                    isBookmarked: bookmarkedSections.contains(section.title),
+                    onBookmark: { toggleBookmark(section.title) },
+                    onAddToJournal: { frame in
+                        addToJournal(section: section, fromFrame: frame)
+                    }
+                )
+            }
+        }
+    }
+
+    private func summarySection(_ summary: SummaryInsights) -> some View {
+        VStack(spacing: 12) {
+            HStack {
+                Image(systemName: "sparkle")
+                    .foregroundStyle(.yellow)
+                Text("Quick Summary")
+                    .font(.title3)
+                    .fontWeight(.bold)
+                Spacer()
+            }
+            .padding(.horizontal, 4)
+            .padding(.top, 10)
+
+            VStack(spacing: 10) {
+                SummaryTileView(
+                    title: "Key Patterns",
+                    icon: "chart.line.uptrend.xyaxis",
+                    color: .blue,
+                    content: summary.keyPatterns,
+                    theme: theme,
+                    isBookmarked: bookmarkedSections.contains("Key Patterns"),
+                    onBookmark: { toggleBookmark("Key Patterns") },
+                    onAddToJournal: { frame in
+                        addSummaryToJournal(title: "Key Patterns", content: summary.keyPatterns, fromFrame: frame)
+                    }
+                )
+
+                SummaryTileView(
+                    title: "Top Advice",
+                    icon: "lightbulb.fill",
+                    color: .yellow,
+                    content: summary.topRecommendation,
+                    theme: theme,
+                    isBookmarked: bookmarkedSections.contains("Top Advice"),
+                    onBookmark: { toggleBookmark("Top Advice") },
+                    onAddToJournal: { frame in
+                        addSummaryToJournal(title: "Top Advice", content: summary.topRecommendation, fromFrame: frame)
+                    }
+                )
+            }
+        }
+    }
+
+    // MARK: - Bookmark Management
+
+    private func loadBookmarks() {
+        if let saved = UserDefaults.standard.stringArray(forKey: "ai_bookmarked_sections") {
+            bookmarkedSections = Set(saved)
+        }
+    }
+
+    private func toggleBookmark(_ sectionTitle: String) {
+        if bookmarkedSections.contains(sectionTitle) {
+            bookmarkedSections.remove(sectionTitle)
+        } else {
+            bookmarkedSections.insert(sectionTitle)
+        }
+        UserDefaults.standard.set(Array(bookmarkedSections), forKey: "ai_bookmarked_sections")
+        HapticFeedback.light.trigger()
+    }
+
+    // MARK: - Add to Journal
+
+    private func addToJournal(section: InsightSection, fromFrame: CGRect) {
+        let content = formatSectionForJournal(section)
+        flyingTile = FlyingTileInfo(
+            title: section.title,
+            content: content,
+            icon: section.icon,
+            color: section.color,
+            startFrame: fromFrame
+        )
+        saveToJournal(title: "AI Insight: \(section.title)", content: content)
+    }
+
+    private func addSummaryToJournal(title: String, content: String, fromFrame: CGRect) {
+        let icon = title == "Key Patterns" ? "chart.line.uptrend.xyaxis" : "lightbulb.fill"
+        let color: Color = title == "Key Patterns" ? .blue : .yellow
+        flyingTile = FlyingTileInfo(
+            title: title,
+            content: content,
+            icon: icon,
+            color: color,
+            startFrame: fromFrame
+        )
+        saveToJournal(title: "AI Insight: \(title)", content: content)
+    }
+
+    private func formatSectionForJournal(_ section: InsightSection) -> String {
+        var text = ""
+        if !section.bullets.isEmpty {
+            text += section.bullets.map { "• \($0)" }.joined(separator: "\n")
+        }
+        if !section.paragraph.isEmpty {
+            if !text.isEmpty { text += "\n\n" }
+            text += section.paragraph
+        }
+        return text
+    }
+
+    private func saveToJournal(title: String, content: String) {
+        let entry = JournalEntry(context: viewContext)
+        entry.id = UUID()
+        entry.title = title
+        entry.content = content
+        entry.timestamp = Date()
+        entry.mood = 0
+        entry.isFavorite = false
+
+        do {
+            try viewContext.save()
+        } catch {
+            print("Failed to save journal entry: \(error)")
+        }
+    }
+
+    private func parseMarkdownSections(_ content: String) -> [InsightSection] {
+        var sections: [InsightSection] = []
+        let lines = content.components(separatedBy: "\n")
+
+        var currentTitle = ""
+        var currentBullets: [String] = []
+        var currentParagraph = ""
+
+        for line in lines {
+            let trimmed = line.trimmingCharacters(in: .whitespaces)
+
+            if trimmed.hasPrefix("##") || trimmed.hasPrefix("**") && trimmed.hasSuffix("**") {
+                if !currentTitle.isEmpty || !currentBullets.isEmpty || !currentParagraph.isEmpty {
+                    sections.append(InsightSection(
+                        title: currentTitle,
+                        bullets: currentBullets,
+                        paragraph: currentParagraph
+                    ))
+                }
+
+                currentTitle = trimmed
+                    .replacingOccurrences(of: "##", with: "")
+                    .replacingOccurrences(of: "**", with: "")
+                    .trimmingCharacters(in: .whitespaces)
+                currentBullets = []
+                currentParagraph = ""
+
+            } else if trimmed.hasPrefix("- ") || trimmed.hasPrefix("* ") || trimmed.hasPrefix("• ") {
+                var bullet = String(trimmed.dropFirst(2)).trimmingCharacters(in: .whitespaces)
+                bullet = bullet.replacingOccurrences(of: "**", with: "")
+                if !bullet.isEmpty {
+                    currentBullets.append(bullet)
+                }
+            } else if !trimmed.isEmpty {
+                let cleanedLine = trimmed.replacingOccurrences(of: "**", with: "")
+                if currentParagraph.isEmpty {
+                    currentParagraph = cleanedLine
+                } else {
+                    currentParagraph += " " + cleanedLine
+                }
+            }
+        }
+
+        if !currentTitle.isEmpty || !currentBullets.isEmpty || !currentParagraph.isEmpty {
+            sections.append(InsightSection(
+                title: currentTitle,
+                bullets: currentBullets,
+                paragraph: currentParagraph.replacingOccurrences(of: "**", with: "")
+            ))
+        }
+
+        return sections
+    }
+
+    private func copyToClipboard(_ text: String) {
+        #if os(iOS)
+        UIPasteboard.general.string = text
+        #elseif os(macOS)
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(text, forType: .string)
+        #endif
+        viewModel.showCopiedFeedback = true
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+            viewModel.showCopiedFeedback = false
+        }
+    }
+}
+
+// MARK: - Insight Tile View with Context Menu
+
+struct InsightTileView: View {
+    let section: InsightSection
+    let theme: AppTheme
+    let isBookmarked: Bool
+    let onBookmark: () -> Void
+    let onAddToJournal: (CGRect) -> Void
+
+    @State private var tileFrame: CGRect = .zero
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(spacing: 10) {
+                Image(systemName: section.icon)
+                    .font(.title3)
+                    .foregroundStyle(section.color)
+                Text(section.title)
+                    .font(.title3)
+                    .fontWeight(.semibold)
+
+                Spacer()
+
+                if isBookmarked {
+                    Image(systemName: "bookmark.fill")
+                        .font(.caption)
+                        .foregroundStyle(.yellow)
+                }
+            }
+
+            ForEach(section.bullets, id: \.self) { bullet in
+                HStack(alignment: .top, spacing: 12) {
+                    Circle()
+                        .fill(section.color.opacity(0.6))
+                        .frame(width: 8, height: 8)
+                        .padding(.top, 8)
+
+                    Text(bullet)
+                        .font(.body)
+                        .foregroundStyle(.primary.opacity(0.9))
+                }
+            }
+
+            if !section.paragraph.isEmpty {
+                Text(section.paragraph)
+                    .font(.body)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .padding(20)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(
+            GeometryReader { geo in
+                RoundedRectangle(cornerRadius: 20)
+                    .fill(theme.cardBackground)
+                    .onAppear {
+                        tileFrame = geo.frame(in: .global)
+                    }
+                    .onChange(of: geo.frame(in: .global)) { _, newFrame in
+                        tileFrame = newFrame
+                    }
+            }
+        )
+        .contextMenu {
+            Button {
+                onBookmark()
+            } label: {
+                Label(isBookmarked ? "Remove Bookmark" : "Bookmark", systemImage: isBookmarked ? "bookmark.slash" : "bookmark")
+            }
+
+            Button {
+                onAddToJournal(tileFrame)
+            } label: {
+                Label("Add to Journal", systemImage: "book.fill")
+            }
+        }
+    }
+}
+
+// MARK: - Summary Tile View with Context Menu
+
+struct SummaryTileView: View {
+    let title: String
+    let icon: String
+    let color: Color
+    let content: String
+    let theme: AppTheme
+    let isBookmarked: Bool
+    let onBookmark: () -> Void
+    let onAddToJournal: (CGRect) -> Void
+
+    @State private var tileFrame: CGRect = .zero
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            HStack {
+                Image(systemName: icon)
+                    .font(.title2)
+                    .foregroundStyle(color)
+                Text(title)
+                    .font(.title3)
+                    .fontWeight(.semibold)
+
+                Spacer()
+
+                if isBookmarked {
+                    Image(systemName: "bookmark.fill")
+                        .font(.caption)
+                        .foregroundStyle(.yellow)
+                }
+            }
+
+            Text(content)
+                .font(.body)
+                .foregroundStyle(.primary.opacity(0.85))
+                .fixedSize(horizontal: false, vertical: true)
+                .multilineTextAlignment(.leading)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(20)
+        .background(
+            GeometryReader { geo in
+                RoundedRectangle(cornerRadius: 20)
+                    .fill(theme.cardBackground)
+                    .onAppear {
+                        tileFrame = geo.frame(in: .global)
+                    }
+                    .onChange(of: geo.frame(in: .global)) { _, newFrame in
+                        tileFrame = newFrame
+                    }
+            }
+        )
+        .contextMenu {
+            Button {
+                onBookmark()
+            } label: {
+                Label(isBookmarked ? "Remove Bookmark" : "Bookmark", systemImage: isBookmarked ? "bookmark.slash" : "bookmark")
+            }
+
+            Button {
+                onAddToJournal(tileFrame)
+            } label: {
+                Label("Add to Journal", systemImage: "book.fill")
+            }
+        }
+    }
+}
+
+// MARK: - Flying Tile Animation (Apple Mail style)
+
+struct FlyingTileInfo: Equatable {
+    let title: String
+    let content: String
+    let icon: String
+    let color: Color
+    let startFrame: CGRect
+
+    static func == (lhs: FlyingTileInfo, rhs: FlyingTileInfo) -> Bool {
+        lhs.title == rhs.title && lhs.startFrame == rhs.startFrame
+    }
+}
+
+struct FlyingTileView: View {
+    let info: FlyingTileInfo
+    let theme: AppTheme
+    let onComplete: () -> Void
+
+    @State private var animationPhase: Int = 0
+    @State private var position: CGPoint
+    @State private var scale: CGFloat = 1.0
+    @State private var rotation: Double = 0
+    @State private var opacity: Double = 1.0
+
+    init(info: FlyingTileInfo, theme: AppTheme, onComplete: @escaping () -> Void) {
+        self.info = info
+        self.theme = theme
+        self.onComplete = onComplete
+        // Start at tile center
+        _position = State(initialValue: CGPoint(
+            x: info.startFrame.midX,
+            y: info.startFrame.midY
+        ))
+    }
+
+    var body: some View {
+        // Mini preview of the tile
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 6) {
+                Image(systemName: info.icon)
+                    .font(.caption)
+                    .foregroundStyle(info.color)
+                Text(info.title)
+                    .font(.caption)
+                    .fontWeight(.semibold)
+                    .lineLimit(1)
+            }
+            Text(info.content)
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+                .lineLimit(2)
+        }
+        .padding(12)
+        .frame(width: 160)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(theme.cardBackground)
+                .shadow(color: .black.opacity(0.3), radius: 10, y: 5)
+        )
+        .scaleEffect(scale)
+        .rotationEffect(.degrees(rotation))
+        .opacity(opacity)
+        .position(position)
+        .onAppear {
+            startAnimation()
+        }
+    }
+
+    private func startAnimation() {
+        // Get screen dimensions
+        let screenWidth = UIScreen.main.bounds.width
+        let screenHeight = UIScreen.main.bounds.height
+
+        // Target: Journal tab (3rd tab from left, roughly)
+        let targetX = screenWidth * 0.5  // Center-ish for Journal tab
+        let targetY = screenHeight - 40  // Tab bar area
+
+        // Phase 1: Lift up and shrink slightly
+        withAnimation(.easeOut(duration: 0.15)) {
+            scale = 0.9
+            position.y -= 20
+        }
+
+        // Phase 2: Arc towards journal with rotation
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+            withAnimation(.easeIn(duration: 0.4)) {
+                position = CGPoint(x: targetX, y: targetY)
+                scale = 0.3
+                rotation = -15
+            }
+        }
+
+        // Phase 3: Final shrink and fade
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            withAnimation(.easeOut(duration: 0.15)) {
+                scale = 0.1
+                opacity = 0
+            }
+        }
+
+        // Complete
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) {
+            onComplete()
         }
     }
 }

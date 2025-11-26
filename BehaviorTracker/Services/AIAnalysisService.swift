@@ -334,7 +334,7 @@ class AIAnalysisService {
 
 // MARK: - AI Insights Model
 
-struct AIInsights {
+struct AIInsights: Equatable {
     let generatedAt: Date
     let timeframeDays: Int
     let content: String
@@ -344,5 +344,9 @@ struct AIInsights {
         formatter.dateStyle = .medium
         formatter.timeStyle = .short
         return formatter.string(from: generatedAt)
+    }
+
+    static func == (lhs: AIInsights, rhs: AIInsights) -> Bool {
+        lhs.generatedAt == rhs.generatedAt && lhs.content == rhs.content
     }
 }

@@ -110,6 +110,10 @@ class MedicationViewModel: ObservableObject {
         todaysLogs.first { $0.medication?.id == medication.id }
     }
 
+    func getLogTime(for medication: Medication) -> Date? {
+        getTodaysLog(for: medication)?.timestamp
+    }
+
     func getMedicationLogs(for medication: Medication, days: Int = 30) -> [MedicationLog] {
         let startDate = Calendar.current.date(byAdding: .day, value: -days, to: Date())
         return dataController.fetchMedicationLogs(

@@ -117,7 +117,7 @@ struct MedicationQuickLogView: View {
             } else {
                 VStack(spacing: 10) {
                     ForEach(viewModel.medications) { medication in
-                        MedicationSlideToLogCard(
+                        MedicationTapToLogCard(
                             medication: medication,
                             viewModel: viewModel,
                             theme: theme
@@ -139,178 +139,88 @@ struct MedicationQuickLogView: View {
     }
 }
 
-// MARK: - Slide to Log Card (hold and slide in one motion)
-struct MedicationSlideToLogCard: View {
+// MARK: - Simple Tap to Log Card
+struct MedicationTapToLogCard: View {
     let medication: Medication
     @ObservedObject var viewModel: MedicationViewModel
     let theme: AppTheme
 
-    @State private var dragOffset: CGFloat = 0
-    @State private var isDragging = false
     @State private var hasLoggedToday = false
-    @GestureState private var isLongPressing = false
-
-    private let maxDragWidth: CGFloat = UIScreen.main.bounds.width - 80
-
-    private var doseLevel: Int {
-        let level = Int(ceil((dragOffset / maxDragWidth) * 10))
-        return max(1, min(10, level))
-    }
-
-    private var progress: CGFloat {
-        min(1, max(0, dragOffset / maxDragWidth))
-    }
+    @State private var logTime: Date?
 
     var body: some View {
-        GeometryReader { geometry in
-            let cardWidth = geometry.size.width
+        Button {
+            guard !hasLoggedToday else { return }
+            logMedication()
+        } label: {
+            HStack(spacing: 12) {
+                // Icon
+                ZStack {
+                    Circle()
+                        .fill(hasLoggedToday ? Color.green.opacity(0.2) : theme.primaryColor.opacity(0.2))
+                        .frame(width: 40, height: 40)
 
-            ZStack(alignment: .leading) {
-                // Background track
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .fill(Color.gray.opacity(0.15))
-
-                // Progress fill
-                if isDragging || isLongPressing {
-                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                        .fill(progressGradient)
-                        .frame(width: max(0, dragOffset))
-                        .animation(.interactiveSpring(), value: dragOffset)
+                    Image(systemName: hasLoggedToday ? "checkmark" : "pills.fill")
+                        .font(.body)
+                        .foregroundColor(hasLoggedToday ? .green : theme.primaryColor)
                 }
 
-                // Content
-                HStack(spacing: 12) {
-                    // Icon
-                    ZStack {
-                        Circle()
-                            .fill(hasLoggedToday ? Color.green.opacity(0.2) : theme.primaryColor.opacity(0.2))
-                            .frame(width: 40, height: 40)
+                // Medication info
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(medication.name)
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                        .foregroundStyle(.primary)
 
-                        Image(systemName: hasLoggedToday ? "checkmark" : "pills.fill")
-                            .font(.body)
-                            .foregroundColor(hasLoggedToday ? .green : theme.primaryColor)
-                    }
-
-                    // Medication info
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(medication.name)
-                            .font(.subheadline)
-                            .fontWeight(.medium)
-                            .foregroundStyle(isDragging ? .white : .primary)
-
-                        if let dosage = medication.dosage {
-                            Text(dosage)
-                                .font(.caption)
-                                .foregroundStyle(isDragging ? .white.opacity(0.8) : .secondary)
-                        }
-                    }
-
-                    Spacer()
-
-                    // Status / Dose indicator
-                    if hasLoggedToday {
-                        Text("Done")
+                    if let dosage = medication.dosage {
+                        Text(dosage)
                             .font(.caption)
-                            .fontWeight(.medium)
-                            .foregroundColor(.green)
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 4)
-                            .background(Color.green.opacity(0.15))
-                            .clipShape(Capsule())
-                    } else if isDragging || isLongPressing {
-                        Text("\(doseLevel * 10)%")
-                            .font(.title3)
-                            .fontWeight(.bold)
-                            .foregroundColor(.white)
-                            .animation(.none, value: doseLevel)
-                    } else {
-                        HStack(spacing: 4) {
-                            Image(systemName: "arrow.right")
-                                .font(.caption2)
-                            Text("Slide")
-                                .font(.caption)
-                        }
-                        .foregroundStyle(.secondary)
+                            .foregroundStyle(.secondary)
                     }
                 }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 12)
-            }
-            .frame(height: 64)
-            .gesture(
-                LongPressGesture(minimumDuration: 0.1)
-                    .updating($isLongPressing) { value, state, _ in
-                        state = value
+
+                Spacer()
+
+                // Status
+                if hasLoggedToday {
+                    VStack(alignment: .trailing, spacing: 2) {
+                        Image(systemName: "checkmark.circle.fill")
+                            .foregroundColor(.green)
+                        if let time = logTime {
+                            Text(time, style: .time)
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
+                        }
                     }
-                    .simultaneously(with:
-                        DragGesture(minimumDistance: 0)
-                            .onChanged { value in
-                                guard !hasLoggedToday else { return }
-
-                                if !isDragging && value.translation.width > 5 {
-                                    isDragging = true
-                                    HapticFeedback.medium.trigger()
-                                }
-
-                                if isDragging {
-                                    let newOffset = max(0, min(cardWidth, value.translation.width))
-                                    let oldLevel = Int(ceil((dragOffset / cardWidth) * 10))
-                                    dragOffset = newOffset
-                                    let newLevel = Int(ceil((newOffset / cardWidth) * 10))
-
-                                    if newLevel != oldLevel && newLevel >= 1 {
-                                        HapticFeedback.light.trigger()
-                                    }
-                                }
-                            }
-                            .onEnded { value in
-                                guard !hasLoggedToday else { return }
-
-                                if isDragging && dragOffset > cardWidth * 0.15 {
-                                    // Log with selected dose
-                                    logMedicationWithDose()
-                                }
-
-                                withAnimation(.spring(response: 0.3)) {
-                                    dragOffset = 0
-                                    isDragging = false
-                                }
-                            }
-                    )
+                } else {
+                    Text("Tap to log")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+            .background(
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .fill(hasLoggedToday ? Color.green.opacity(0.08) : Color.gray.opacity(0.15))
             )
-            .allowsHitTesting(!hasLoggedToday)
         }
-        .frame(height: 64)
+        .buttonStyle(.plain)
         .onAppear {
             hasLoggedToday = viewModel.hasTakenToday(medication: medication)
+            if hasLoggedToday {
+                logTime = viewModel.getLogTime(for: medication)
+            }
         }
         .onChange(of: viewModel.todaysLogs) { _, _ in
             hasLoggedToday = viewModel.hasTakenToday(medication: medication)
+            if hasLoggedToday {
+                logTime = viewModel.getLogTime(for: medication)
+            }
         }
     }
 
-    private var progressGradient: LinearGradient {
-        let color: Color = {
-            switch doseLevel {
-            case 1...3: return .orange
-            case 4...6: return .yellow
-            case 7...9: return .mint
-            case 10: return .green
-            default: return theme.primaryColor
-            }
-        }()
-
-        return LinearGradient(
-            colors: [theme.primaryColor, color],
-            startPoint: .leading,
-            endPoint: .trailing
-        )
-    }
-
-    private func logMedicationWithDose() {
-        let finalDose = doseLevel
-        let doseNote = "Dose: \(finalDose * 10)% (\(finalDose)/10)"
-
+    private func logMedication() {
         _ = viewModel.logMedication(
             medication: medication,
             taken: true,
@@ -319,11 +229,12 @@ struct MedicationSlideToLogCard: View {
             effectiveness: 0,
             mood: 0,
             energyLevel: 0,
-            notes: doseNote
+            notes: nil
         )
 
-        withAnimation(.spring(response: 0.4)) {
+        withAnimation(.spring(response: 0.3)) {
             hasLoggedToday = true
+            logTime = Date()
         }
 
         HapticFeedback.success.trigger()
