@@ -92,6 +92,7 @@ struct ReportsView: View {
                 RoundedRectangle(cornerRadius: 24)
                     .stroke(.blue.opacity(0.3), lineWidth: 1)
             )
+            .shadow(color: theme.cardShadowColor, radius: 8, y: 4)
         }
         .buttonStyle(.plain)
     }
@@ -249,6 +250,11 @@ struct ReportsView: View {
             RoundedRectangle(cornerRadius: 24)
                 .fill(theme.cardBackground)
         )
+        .overlay(
+            RoundedRectangle(cornerRadius: 24)
+                .stroke(theme.cardBorderColor, lineWidth: 0.5)
+        )
+        .shadow(color: theme.cardShadowColor, radius: 8, y: 4)
     }
 
     private var monthlyReportView: some View {
@@ -388,6 +394,11 @@ struct ReportsView: View {
             RoundedRectangle(cornerRadius: 24)
                 .fill(theme.cardBackground)
         )
+        .overlay(
+            RoundedRectangle(cornerRadius: 24)
+                .stroke(theme.cardBorderColor, lineWidth: 0.5)
+        )
+        .shadow(color: theme.cardShadowColor, radius: 8, y: 4)
     }
 }
 

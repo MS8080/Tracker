@@ -198,6 +198,11 @@ struct CategoryBreakdownRow: View {
             RoundedRectangle(cornerRadius: 16)
                 .fill(theme.cardBackground)
         )
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(theme.cardBorderColor, lineWidth: 0.5)
+        )
+        .shadow(color: theme.cardShadowColor, radius: 8, y: 4)
     }
 }
 
@@ -246,8 +251,13 @@ struct IntensitySlide: View {
                 RoundedRectangle(cornerRadius: 20)
                     .fill(theme.cardBackground)
             )
+            .overlay(
+                RoundedRectangle(cornerRadius: 20)
+                    .stroke(theme.cardBorderColor, lineWidth: 0.5)
+            )
+            .shadow(color: theme.cardShadowColor, radius: 8, y: 4)
             .padding(.horizontal)
-            
+
             // Intensity distribution
             VStack(alignment: .leading, spacing: 12) {
                 Text("Intensity Distribution")
@@ -391,6 +401,11 @@ struct TimelineEntryRow: View {
             RoundedRectangle(cornerRadius: 16)
                 .fill(theme.cardBackground)
         )
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(theme.cardBorderColor, lineWidth: 0.5)
+        )
+        .shadow(color: theme.cardShadowColor, radius: 8, y: 4)
     }
 
     private func intensityColor(_ intensity: Int) -> Color {
@@ -486,6 +501,11 @@ struct StatCard: View {
             RoundedRectangle(cornerRadius: 20)
                 .fill(theme.cardBackground)
         )
+        .overlay(
+            RoundedRectangle(cornerRadius: 20)
+                .stroke(theme.cardBorderColor, lineWidth: 0.5)
+        )
+        .shadow(color: theme.cardShadowColor, radius: 8, y: 4)
     }
 }
 

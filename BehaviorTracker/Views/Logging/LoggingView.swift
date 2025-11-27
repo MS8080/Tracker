@@ -135,6 +135,11 @@ struct CategoryButton: View {
                 RoundedRectangle(cornerRadius: 24)
                     .fill(theme.cardBackground)
             )
+            .overlay(
+                RoundedRectangle(cornerRadius: 24)
+                    .stroke(theme.cardBorderColor, lineWidth: 0.5)
+            )
+            .shadow(color: theme.cardShadowColor, radius: 8, y: 4)
         }
         .buttonStyle(.plain)
     }
@@ -175,6 +180,11 @@ struct QuickLogButton: View {
                 RoundedRectangle(cornerRadius: 16)
                     .fill(theme.cardBackground)
             )
+            .overlay(
+                RoundedRectangle(cornerRadius: 16)
+                    .stroke(theme.cardBorderColor, lineWidth: 0.5)
+            )
+            .shadow(color: theme.cardShadowColor, radius: 8, y: 4)
         }
         .buttonStyle(.plain)
     }

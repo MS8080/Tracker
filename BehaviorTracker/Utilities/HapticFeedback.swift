@@ -35,28 +35,3 @@ enum HapticFeedback {
         #endif
     }
 }
-
-struct HapticButton<Label: View>: View {
-    let feedback: HapticFeedback
-    let action: () -> Void
-    let label: () -> Label
-
-    init(
-        feedback: HapticFeedback = .light,
-        action: @escaping () -> Void,
-        @ViewBuilder label: @escaping () -> Label
-    ) {
-        self.feedback = feedback
-        self.action = action
-        self.label = label
-    }
-
-    var body: some View {
-        Button {
-            feedback.trigger()
-            action()
-        } label: {
-            label()
-        }
-    }
-}

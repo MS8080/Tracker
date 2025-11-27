@@ -71,19 +71,6 @@ struct JournalListView: View {
             }
             .navigationTitle(NSLocalizedString("journal.title", comment: ""))
             .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    Button {
-                        withAnimation(.easeInOut(duration: 0.2)) {
-                            isSearching.toggle()
-                            if !isSearching {
-                                searchText = ""
-                            }
-                        }
-                    } label: {
-                        Image(systemName: isSearching ? "xmark" : "magnifyingglass")
-                            .foregroundStyle(isSearching ? .secondary : .primary)
-                    }
-                }
                 ToolbarItem(placement: .primaryAction) {
                     ProfileButton(showingProfile: $showingProfile)
                 }
@@ -198,73 +185,6 @@ struct JournalListView: View {
     }
 }
 
-struct JournalEntryRow: View {
-    let entry: JournalEntry
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                if let title = entry.title, !title.isEmpty {
-                    Text(title)
-                        .font(.headline)
-                        .accessibilityLabel("Title: \(title)")
-                } else {
-                    Text("Untitled Entry")
-                        .font(.headline)
-                        .foregroundColor(.secondary)
-                        .accessibilityLabel("Untitled entry")
-                }
-
-                Spacer()
-
-                if entry.isFavorite {
-                    Image(systemName: "star.fill")
-                        .foregroundColor(.yellow)
-                        .accessibilityLabel("Favorite")
-                }
-            }
-
-            Text(entry.preview)
-                .font(.body)
-                .foregroundColor(.secondary)
-                .lineLimit(2)
-                .accessibilityLabel("Preview: \(entry.preview)")
-
-            HStack {
-                Text(entry.formattedDate)
-                    .font(.caption)
-                    .foregroundColor(.gray)
-                    .accessibilityLabel("Created on \(entry.formattedDate)")
-
-                if entry.mood > 0 {
-                    Spacer()
-                    HStack(spacing: 4) {
-                        Image(systemName: "face.smiling")
-                            .font(.caption)
-                        Text(moodText(for: entry.mood))
-                            .font(.caption)
-                    }
-                    .foregroundColor(.blue)
-                    .accessibilityLabel("Mood: \(moodText(for: entry.mood))")
-                }
-            }
-        }
-        .padding(.vertical, 4)
-        .accessibilityElement(children: .combine)
-    }
-
-    private func moodText(for mood: Int16) -> String {
-        switch mood {
-        case 1: return "Very Low"
-        case 2: return "Low"
-        case 3: return "Neutral"
-        case 4: return "Good"
-        case 5: return "Very Good"
-        default: return "Unknown"
-        }
-    }
-}
-
 struct RoundedSearchBar: View {
     @Binding var text: String
 
@@ -297,6 +217,10 @@ struct RoundedSearchBar: View {
         .background(
             RoundedRectangle(cornerRadius: 20)
                 .fill(theme.cardBackground)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 20)
+                .stroke(theme.cardBorderColor, lineWidth: 0.5)
         )
     }
 }
@@ -367,6 +291,11 @@ struct DayTimelineCard: View {
             RoundedRectangle(cornerRadius: 16)
                 .fill(theme.journalCardBackground)
         )
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(theme.cardBorderColor, lineWidth: 0.5)
+        )
+        .shadow(color: theme.cardShadowColor, radius: 8, y: 4)
     }
 }
 
@@ -593,6 +522,11 @@ struct JournalEntryAnalysisView: View {
                             RoundedRectangle(cornerRadius: 20)
                                 .fill(theme.cardBackground)
                         )
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 20)
+                                .stroke(theme.cardBorderColor, lineWidth: 0.5)
+                        )
+                        .shadow(color: theme.cardShadowColor, radius: 8, y: 4)
 
                         // Analysis results
                         if analysisViewModel.isAnalyzing {
@@ -609,6 +543,11 @@ struct JournalEntryAnalysisView: View {
                                 RoundedRectangle(cornerRadius: 20)
                                     .fill(theme.cardBackground)
                             )
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 20)
+                                    .stroke(theme.cardBorderColor, lineWidth: 0.5)
+                            )
+                            .shadow(color: theme.cardShadowColor, radius: 8, y: 4)
                         } else if let analysis = analysisViewModel.analysisResult {
                             // Show results
                             analysisResultView(analysis)
@@ -636,6 +575,11 @@ struct JournalEntryAnalysisView: View {
                                 RoundedRectangle(cornerRadius: 20)
                                     .fill(theme.cardBackground)
                             )
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 20)
+                                    .stroke(theme.cardBorderColor, lineWidth: 0.5)
+                            )
+                            .shadow(color: theme.cardShadowColor, radius: 8, y: 4)
                         }
                     }
                     .padding()
@@ -677,6 +621,11 @@ struct JournalEntryAnalysisView: View {
             RoundedRectangle(cornerRadius: 20)
                 .fill(theme.cardBackground)
         )
+        .overlay(
+            RoundedRectangle(cornerRadius: 20)
+                .stroke(theme.cardBorderColor, lineWidth: 0.5)
+        )
+        .shadow(color: theme.cardShadowColor, radius: 8, y: 4)
     }
 
     @ViewBuilder

@@ -128,6 +128,11 @@ struct CalendarView: View {
             RoundedRectangle(cornerRadius: 20)
                 .fill(theme.cardBackground)
         )
+        .overlay(
+            RoundedRectangle(cornerRadius: 20)
+                .stroke(theme.cardBorderColor, lineWidth: 0.5)
+        )
+        .shadow(color: theme.cardShadowColor, radius: 8, y: 4)
     }
 
     // MARK: - Month Navigation
@@ -217,6 +222,11 @@ struct CalendarView: View {
             RoundedRectangle(cornerRadius: 24)
                 .fill(theme.cardBackground)
         )
+        .overlay(
+            RoundedRectangle(cornerRadius: 24)
+                .stroke(theme.cardBorderColor, lineWidth: 0.5)
+        )
+        .shadow(color: theme.cardShadowColor, radius: 8, y: 4)
     }
 
     // MARK: - Selected Day Summary
@@ -339,6 +349,11 @@ struct CalendarView: View {
             RoundedRectangle(cornerRadius: 24)
                 .fill(theme.cardBackground)
         )
+        .overlay(
+            RoundedRectangle(cornerRadius: 24)
+                .stroke(theme.cardBorderColor, lineWidth: 0.5)
+        )
+        .shadow(color: theme.cardShadowColor, radius: 8, y: 4)
     }
 
     // MARK: - Legend
@@ -396,6 +411,11 @@ struct CalendarView: View {
             RoundedRectangle(cornerRadius: 24)
                 .fill(theme.cardBackground)
         )
+        .overlay(
+            RoundedRectangle(cornerRadius: 24)
+                .stroke(theme.cardBorderColor, lineWidth: 0.5)
+        )
+        .shadow(color: theme.cardShadowColor, radius: 8, y: 4)
     }
 }
 

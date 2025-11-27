@@ -60,7 +60,7 @@ struct MedicationQuickLogView: View {
                         .foregroundStyle(.green)
                 }
 
-                Image(systemName: "chevron.up")
+                Image(systemName: "chevron.right")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -71,6 +71,11 @@ struct MedicationQuickLogView: View {
                 RoundedRectangle(cornerRadius: 24, style: .continuous)
                     .fill(theme.cardBackground)
             )
+            .overlay(
+                RoundedRectangle(cornerRadius: 24, style: .continuous)
+                    .stroke(theme.cardBorderColor, lineWidth: 0.5)
+            )
+            .shadow(color: theme.cardShadowColor, radius: 8, y: 4)
         }
         .buttonStyle(.plain)
     }
@@ -95,8 +100,9 @@ struct MedicationQuickLogView: View {
                         isExpanded = false
                     }
                 } label: {
-                    Image(systemName: "xmark.circle.fill")
-                        .font(.title2)
+                    Image(systemName: "chevron.down")
+                        .font(.caption)
+                        .fontWeight(.semibold)
                         .foregroundStyle(.secondary)
                 }
             }
@@ -130,8 +136,12 @@ struct MedicationQuickLogView: View {
         .background(
             RoundedRectangle(cornerRadius: 28, style: .continuous)
                 .fill(theme.cardBackground)
-                .shadow(color: .black.opacity(0.15), radius: 20, y: 10)
         )
+        .overlay(
+            RoundedRectangle(cornerRadius: 28, style: .continuous)
+                .stroke(theme.cardBorderColor, lineWidth: 0.5)
+        )
+        .shadow(color: theme.cardShadowColor, radius: 12, y: 6)
         .transition(.asymmetric(
             insertion: .scale(scale: 0.9).combined(with: .opacity),
             removal: .scale(scale: 0.95).combined(with: .opacity)

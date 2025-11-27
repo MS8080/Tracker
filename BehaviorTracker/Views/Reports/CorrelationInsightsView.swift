@@ -97,6 +97,11 @@ struct CorrelationInsightsView: View {
             RoundedRectangle(cornerRadius: 24)
                 .fill(theme.cardBackground)
         )
+        .overlay(
+            RoundedRectangle(cornerRadius: 24)
+                .stroke(theme.cardBorderColor, lineWidth: 0.5)
+        )
+        .shadow(color: theme.cardShadowColor, radius: 8, y: 4)
     }
 
     // MARK: - Filter Chips
@@ -197,6 +202,11 @@ struct CorrelationInsightsView: View {
             RoundedRectangle(cornerRadius: 24)
                 .fill(theme.cardBackground)
         )
+        .overlay(
+            RoundedRectangle(cornerRadius: 24)
+                .stroke(theme.cardBorderColor, lineWidth: 0.5)
+        )
+        .shadow(color: theme.cardShadowColor, radius: 8, y: 4)
     }
 
     // MARK: - Load Insights
@@ -355,6 +365,11 @@ struct InsightCard: View {
             RoundedRectangle(cornerRadius: 24)
                 .fill(theme.cardBackground)
         )
+        .overlay(
+            RoundedRectangle(cornerRadius: 24)
+                .stroke(theme.cardBorderColor, lineWidth: 0.5)
+        )
+        .shadow(color: theme.cardShadowColor, radius: 8, y: 4)
     }
 
     private var confidenceColor: Color {

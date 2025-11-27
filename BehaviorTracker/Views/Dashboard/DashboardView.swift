@@ -82,6 +82,11 @@ struct DashboardView: View {
             RoundedRectangle(cornerRadius: 24)
                 .fill(theme.cardBackground)
         )
+        .overlay(
+            RoundedRectangle(cornerRadius: 24)
+                .stroke(theme.cardBorderColor, lineWidth: 0.5)
+        )
+        .shadow(color: theme.cardShadowColor, radius: 8, y: 4)
     }
 
     private var todaySummaryCard: some View {
@@ -123,6 +128,11 @@ struct DashboardView: View {
             RoundedRectangle(cornerRadius: 24)
                 .fill(theme.cardBackground)
         )
+        .overlay(
+            RoundedRectangle(cornerRadius: 24)
+                .stroke(theme.cardBorderColor, lineWidth: 0.5)
+        )
+        .shadow(color: theme.cardShadowColor, radius: 8, y: 4)
     }
 
     private var recentEntriesSection: some View {
@@ -162,6 +172,11 @@ struct DashboardView: View {
             RoundedRectangle(cornerRadius: 24)
                 .fill(theme.cardBackground)
         )
+        .overlay(
+            RoundedRectangle(cornerRadius: 24)
+                .stroke(theme.cardBorderColor, lineWidth: 0.5)
+        )
+        .shadow(color: theme.cardShadowColor, radius: 8, y: 4)
     }
 
     private var medicationSummaryCard: some View {
@@ -174,6 +189,11 @@ struct DashboardView: View {
             RoundedRectangle(cornerRadius: 24)
                 .fill(theme.cardBackground)
         )
+        .overlay(
+            RoundedRectangle(cornerRadius: 24)
+                .stroke(theme.cardBorderColor, lineWidth: 0.5)
+        )
+        .shadow(color: theme.cardShadowColor, radius: 8, y: 4)
     }
 
     private var medicationHeaderRow: some View {
@@ -265,6 +285,11 @@ struct DashboardView: View {
             RoundedRectangle(cornerRadius: 24)
                 .fill(theme.cardBackground)
         )
+        .overlay(
+            RoundedRectangle(cornerRadius: 24)
+                .stroke(theme.cardBorderColor, lineWidth: 0.5)
+        )
+        .shadow(color: theme.cardShadowColor, radius: 8, y: 4)
     }
 }
 
@@ -339,6 +364,10 @@ struct EntryRowView: View {
         .background(
             RoundedRectangle(cornerRadius: 16)
                 .fill(theme.cardBackground)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(theme.cardBorderColor, lineWidth: 0.5)
         )
     }
 }
