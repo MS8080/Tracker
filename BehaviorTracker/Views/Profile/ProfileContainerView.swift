@@ -339,7 +339,12 @@ struct ProfileContainerView: View {
         .padding()
         .background(
             RoundedRectangle(cornerRadius: 24)
-                .fill(theme.cardBackground)
+                .fill(.ultraThinMaterial)
+                .shadow(color: .black.opacity(0.2), radius: 10, y: 5)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 24)
+                .stroke(.white.opacity(0.2), lineWidth: 1)
         )
     }
 
@@ -436,7 +441,12 @@ struct ProfileContainerView: View {
         .padding()
         .background(
             RoundedRectangle(cornerRadius: 24)
-                .fill(theme.cardBackground)
+                .fill(.ultraThinMaterial)
+                .shadow(color: .black.opacity(0.2), radius: 10, y: 5)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 24)
+                .stroke(.white.opacity(0.2), lineWidth: 1)
         )
         .clipShape(RoundedRectangle(cornerRadius: 24))
         .contentShape(Rectangle())
@@ -530,7 +540,12 @@ struct ProfileContainerView: View {
         .padding()
         .background(
             RoundedRectangle(cornerRadius: 24)
-                .fill(theme.cardBackground)
+                .fill(.ultraThinMaterial)
+                .shadow(color: .black.opacity(0.2), radius: 10, y: 5)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 24)
+                .stroke(.white.opacity(0.2), lineWidth: 1)
         )
         .clipShape(RoundedRectangle(cornerRadius: 24))
         .contentShape(Rectangle())
@@ -594,7 +609,12 @@ struct HealthStatCard: View {
         .padding(14)
         .background(
             RoundedRectangle(cornerRadius: 16)
-                .fill(theme.cardBackground)
+                .fill(.regularMaterial)
+                .shadow(color: .black.opacity(0.15), radius: 6, y: 3)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(.white.opacity(0.15), lineWidth: 0.5)
         )
     }
 }
@@ -933,7 +953,12 @@ struct AppearanceSettingsView: View {
                 .padding(20)
                 .background(
                     RoundedRectangle(cornerRadius: 20)
-                        .fill(selectedTheme.cardBackground)
+                        .fill(.ultraThinMaterial)
+                        .shadow(color: .black.opacity(0.2), radius: 8, y: 4)
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 20)
+                        .stroke(.white.opacity(0.2), lineWidth: 1)
                 )
 
                 // Light/Dark Mode
@@ -977,7 +1002,12 @@ struct AppearanceSettingsView: View {
                 .padding(20)
                 .background(
                     RoundedRectangle(cornerRadius: 20)
-                        .fill(selectedTheme.cardBackground)
+                        .fill(.ultraThinMaterial)
+                        .shadow(color: .black.opacity(0.2), radius: 8, y: 4)
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 20)
+                        .stroke(.white.opacity(0.2), lineWidth: 1)
                 )
 
                 // Preview Card
@@ -1018,7 +1048,12 @@ struct AppearanceSettingsView: View {
                 .padding(20)
                 .background(
                     RoundedRectangle(cornerRadius: 20)
-                        .fill(selectedTheme.cardBackground)
+                        .fill(.ultraThinMaterial)
+                        .shadow(color: .black.opacity(0.2), radius: 8, y: 4)
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 20)
+                        .stroke(.white.opacity(0.2), lineWidth: 1)
                 )
             }
             .padding()
@@ -1151,7 +1186,12 @@ struct NotificationSettingsView: View {
                 .padding(20)
                 .background(
                     RoundedRectangle(cornerRadius: 20)
-                        .fill(theme.cardBackground)
+                        .fill(.ultraThinMaterial)
+                        .shadow(color: .black.opacity(0.2), radius: 8, y: 4)
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 20)
+                        .stroke(.white.opacity(0.2), lineWidth: 1)
                 )
                 .animation(.spring(response: 0.3), value: viewModel.notificationsEnabled)
 

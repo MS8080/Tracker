@@ -18,6 +18,7 @@
 "tab.log" = "Erfassen";
 "tab.journal" = "Tagebuch";
 "tab.reports" = "Berichte";
+"tab.analyze" = "Analysieren";
 
 // MARK: - Journal
 "journal.title" = "Tagebuch";

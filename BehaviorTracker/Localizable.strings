@@ -19,6 +19,7 @@
 "tab.log" = "Log";
 "tab.journal" = "Journal";
 "tab.reports" = "Reports";
+"tab.analyze" = "Analyze";
 
 // MARK: - Calendar
 "calendar.title" = "Calendar";
