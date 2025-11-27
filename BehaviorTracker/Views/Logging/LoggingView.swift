@@ -83,22 +83,7 @@ struct LoggingView: View {
                     }
                 }
                 ToolbarItem(placement: .primaryAction) {
-                    HStack(spacing: 12) {
-                        // Search toggle button
-                        Button {
-                            withAnimation(.easeOut(duration: 0.2)) {
-                                isSearching.toggle()
-                                if !isSearching {
-                                    searchText = ""
-                                }
-                            }
-                        } label: {
-                            Image(systemName: isSearching ? "xmark.circle.fill" : "magnifyingglass")
-                                .foregroundStyle(isSearching ? .secondary : .primary)
-                        }
-
-                        ProfileButton(showingProfile: $showingProfile)
-                    }
+                    ProfileButton(showingProfile: $showingProfile)
                 }
             }
             .onAppear {
@@ -150,6 +135,18 @@ struct LoggingView: View {
                     Image(systemName: "xmark.circle.fill")
                         .foregroundStyle(.secondary)
                 }
+            }
+
+            // Cancel button to hide search
+            Button {
+                withAnimation(.easeOut(duration: 0.2)) {
+                    searchText = ""
+                    isSearching = false
+                }
+            } label: {
+                Text("Cancel")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
             }
         }
         .padding(12)
