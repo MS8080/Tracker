@@ -41,7 +41,12 @@ struct LoggingView: View {
 
                 ScrollView {
                     VStack(spacing: 10) {
-                        // Pull-down search bar
+                        // Pull hint when not searching
+                        if !isSearching {
+                            pullToSearchHint
+                        }
+
+                        // Search bar
                         if isSearching {
                             searchBarView
                                 .transition(.move(edge: .top).combined(with: .opacity))
@@ -60,21 +65,6 @@ struct LoggingView: View {
                         }
                     }
                     .padding()
-                    .background(
-                        GeometryReader { geo in
-                            Color.clear
-                                .preference(key: ScrollOffsetKey.self, value: geo.frame(in: .global).minY)
-                        }
-                    )
-                }
-                .onPreferenceChange(ScrollOffsetKey.self) { offset in
-                    // Show search when pulled down past threshold (small pull ~20pt beyond normal)
-                    if offset > 120 && !isSearching {
-                        withAnimation(.easeOut(duration: 0.2)) {
-                            isSearching = true
-                        }
-                        HapticFeedback.light.trigger()
-                    }
                 }
                 .scrollContentBackground(.hidden)
             }
@@ -122,6 +112,31 @@ struct LoggingView: View {
                 }
             )
         }
+    }
+
+    // MARK: - Pull to Search Hint
+    private var pullToSearchHint: some View {
+        Button {
+            withAnimation(.easeOut(duration: 0.2)) {
+                isSearching = true
+            }
+            HapticFeedback.light.trigger()
+        } label: {
+            HStack(spacing: 8) {
+                Image(systemName: "magnifyingglass")
+                    .font(.subheadline)
+                Text("Search patterns")
+                    .font(.subheadline)
+            }
+            .foregroundStyle(.secondary)
+            .padding(.horizontal, 20)
+            .padding(.vertical, 8)
+            .background(
+                Capsule()
+                    .fill(Color(white: 0.2).opacity(0.5))
+            )
+        }
+        .buttonStyle(.plain)
     }
 
     // MARK: - Search Bar
@@ -574,15 +589,6 @@ struct CrisisButton: View {
         .buttonStyle(.plain)
         .scaleEffect(isSelected ? 1.05 : 1.0)
         .animation(.spring(response: 0.3), value: isSelected)
-    }
-}
-
-// MARK: - Scroll Offset Preference Key
-
-private struct ScrollOffsetKey: PreferenceKey {
-    static var defaultValue: CGFloat = 0
-    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
-        value = nextValue()
     }
 }
 
