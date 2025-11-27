@@ -394,6 +394,29 @@ struct JournalTimelineEntryRow: View {
                                     .fontWeight(.medium)
                                     .lineLimit(1)
                             }
+                        } else if title.hasPrefix("Log:") {
+                            // Pattern log entry with special tag
+                            HStack(spacing: 8) {
+                                HStack(spacing: 4) {
+                                    Image(systemName: "plus.circle.fill")
+                                        .font(.caption)
+                                    Text("Log")
+                                        .font(.caption)
+                                        .fontWeight(.medium)
+                                }
+                                .foregroundStyle(.blue)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 4)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 6)
+                                        .fill(.blue.opacity(0.15))
+                                )
+
+                                Text(String(title.dropFirst(5)).trimmingCharacters(in: .whitespaces))
+                                    .font(.body)
+                                    .fontWeight(.medium)
+                                    .lineLimit(1)
+                            }
                         } else {
                             Text(title)
                                 .font(.body)

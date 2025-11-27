@@ -4,6 +4,7 @@ import AVFoundation
 
 struct PatternEntryFormView: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.managedObjectContext) private var viewContext
     let patternType: PatternType
     @ObservedObject var viewModel: LoggingViewModel
     let onSave: () -> Void
@@ -15,6 +16,7 @@ struct PatternEntryFormView: View {
     @State private var contextNotes: String = ""
     @State private var specificDetails: String = ""
     @State private var isFavorite: Bool = false
+    @State private var saveToJournal: Bool = false
     @State private var selectedContributingFactors: Set<ContributingFactor> = []
     @State private var showingContributingFactors: Bool = false
     @State private var selectedCalendarEvents: Set<String> = []
@@ -296,6 +298,14 @@ struct PatternEntryFormView: View {
                             Text("Add to Favorites")
                         }
                     }
+
+                    Toggle(isOn: $saveToJournal) {
+                        HStack {
+                            Image(systemName: saveToJournal ? "book.fill" : "book")
+                                .foregroundStyle(.green)
+                            Text("Save to Journal")
+                        }
+                    }
                 }
             }
             .navigationTitle("New Entry")
@@ -371,7 +381,76 @@ struct PatternEntryFormView: View {
             contributingFactors: Array(selectedContributingFactors)
         )
 
+        // Save to journal if enabled
+        if saveToJournal {
+            saveToJournalEntry(finalContextNotes: finalContextNotes, totalMinutes: totalMinutes)
+        }
+
         onSave()
+    }
+
+    private func saveToJournalEntry(finalContextNotes: String, totalMinutes: Int) {
+        let journalEntry = JournalEntry(context: viewContext)
+
+        // Format title with pattern type and date
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "MMM d, h:mm a"
+        let dateString = dateFormatter.string(from: Date())
+        journalEntry.title = "Log: \(patternType.rawValue)"
+
+        // Build journal content
+        var content = "**\(patternType.rawValue)** - \(patternType.category.rawValue)\n\n"
+
+        if patternType.hasIntensityScale {
+            let intensityLabel: String
+            switch Int(intensity) {
+            case 1: intensityLabel = "Low"
+            case 2: intensityLabel = "Mild"
+            case 3: intensityLabel = "Moderate"
+            case 4: intensityLabel = "High"
+            case 5: intensityLabel = "Severe"
+            default: intensityLabel = "Unknown"
+            }
+            content += "**Intensity:** \(Int(intensity))/5 (\(intensityLabel))\n"
+        }
+
+        if patternType.hasDuration && totalMinutes > 0 {
+            let hours = totalMinutes / 60
+            let mins = totalMinutes % 60
+            if hours > 0 {
+                content += "**Duration:** \(hours)h \(mins)m\n"
+            } else {
+                content += "**Duration:** \(mins) minutes\n"
+            }
+        }
+
+        if !selectedContributingFactors.isEmpty {
+            let factorNames = selectedContributingFactors.map { $0.rawValue }.joined(separator: ", ")
+            content += "**Contributing Factors:** \(factorNames)\n"
+        }
+
+        if !specificDetails.isEmpty {
+            content += "\n**Details:**\n\(specificDetails)\n"
+        }
+
+        if !finalContextNotes.isEmpty {
+            content += "\n**Context:**\n\(finalContextNotes)\n"
+        }
+
+        content += "\n---\n*Logged at \(dateString)*"
+
+        journalEntry.content = content
+        journalEntry.timestamp = Date()
+        journalEntry.id = UUID()
+        journalEntry.mood = 0
+        journalEntry.isFavorite = false
+        journalEntry.tags = [patternType.category.rawValue, patternType.rawValue]
+
+        do {
+            try viewContext.save()
+        } catch {
+            print("Failed to save journal entry: \(error)")
+        }
     }
 
     // MARK: - Voice Input
