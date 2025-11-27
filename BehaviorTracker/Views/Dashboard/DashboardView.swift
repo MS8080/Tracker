@@ -26,7 +26,7 @@ struct DashboardView: View {
                 ScrollView {
                     VStack(spacing: 10) {
                         streakCard
-                        medicationSummaryCard
+                        MedicationQuickLogView()
                         todaySummaryCard
                         recentEntriesSection
                         quickInsightsSection

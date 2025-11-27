@@ -51,9 +51,6 @@ struct LoggingView: View {
                         if !searchText.isEmpty {
                             searchResultsView
                         } else {
-                            // Medication section at top
-                            MedicationQuickLogView()
-
                             // Favorites
                             if !viewModel.favoritePatterns.isEmpty {
                                 favoritesSection
