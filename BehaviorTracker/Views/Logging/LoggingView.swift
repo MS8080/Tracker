@@ -7,6 +7,7 @@ struct LoggingView: View {
     @State private var selectedCategory: PatternCategory?
     @State private var showingQuickLog = false
     @State private var showingCrisisMode = false
+    @State private var showingFeelingFinder = false
     @Binding var showingProfile: Bool
 
     @AppStorage("selectedTheme") private var selectedThemeRaw: String = AppTheme.purple.rawValue
@@ -29,6 +30,7 @@ struct LoggingView: View {
                     VStack(spacing: 10) {
                         // Medication section at top
                         MedicationQuickLogView()
+
                         // Favorites
                         if !viewModel.favoritePatterns.isEmpty {
                             favoritesSection
@@ -68,6 +70,9 @@ struct LoggingView: View {
         .sheet(isPresented: $showingCrisisMode) {
             CrisisModeView(viewModel: viewModel)
         }
+        .sheet(isPresented: $showingFeelingFinder) {
+            FeelingFinderView()
+        }
     }
 
     private var favoritesSection: some View {
@@ -102,6 +107,11 @@ struct LoggingView: View {
                         selectedCategory = category
                     }
                 }
+
+                // Feeling Finder as 8th category
+                FeelingFinderCategoryButton {
+                    showingFeelingFinder = true
+                }
             }
         }
     }
@@ -128,6 +138,45 @@ struct CategoryButton: View {
                     .fontWeight(.medium)
                     .foregroundStyle(.primary)
                     .multilineTextAlignment(.center)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 20)
+            .background(
+                RoundedRectangle(cornerRadius: 24)
+                    .fill(theme.cardBackground)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 24)
+                    .stroke(theme.cardBorderColor, lineWidth: 0.5)
+            )
+            .shadow(color: theme.cardShadowColor, radius: 8, y: 4)
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+struct FeelingFinderCategoryButton: View {
+    let action: () -> Void
+
+    @AppStorage("selectedTheme") private var selectedThemeRaw: String = AppTheme.purple.rawValue
+    private var theme: AppTheme {
+        AppTheme(rawValue: selectedThemeRaw) ?? .purple
+    }
+
+    var body: some View {
+        Button {
+            HapticFeedback.medium.trigger()
+            action()
+        } label: {
+            VStack(spacing: 12) {
+                Image(systemName: "hand.point.up.left.and.text.fill")
+                    .font(.system(size: 32))
+                    .foregroundStyle(.green)
+
+                Text("Guided")
+                    .font(.subheadline)
+                    .fontWeight(.medium)
+                    .foregroundStyle(.primary)
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 20)

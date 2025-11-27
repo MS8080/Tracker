@@ -120,62 +120,62 @@ enum AppTheme: String, CaseIterable, Identifiable {
         case .purple:
             return LinearGradient(
                 colors: [
-                    Color(red: 0.55, green: 0.32, blue: 0.70),
-                    Color(red: 0.35, green: 0.22, blue: 0.48),
-                    Color(red: 0.18, green: 0.14, blue: 0.24)
+                    Color(red: 0.50, green: 0.30, blue: 0.65),
+                    Color(red: 0.32, green: 0.22, blue: 0.45),
+                    Color(red: 0.22, green: 0.18, blue: 0.30)
                 ],
                 startPoint: .top,
-                endPoint: UnitPoint(x: 0.5, y: 0.32)
+                endPoint: UnitPoint(x: 0.5, y: 0.35)
             )
         case .blue:
             return LinearGradient(
                 colors: [
-                    Color(red: 0.28, green: 0.45, blue: 0.65),
+                    Color(red: 0.25, green: 0.42, blue: 0.60),
                     Color(red: 0.18, green: 0.28, blue: 0.42),
-                    Color(red: 0.12, green: 0.14, blue: 0.22)
+                    Color(red: 0.15, green: 0.18, blue: 0.28)
                 ],
                 startPoint: .top,
-                endPoint: UnitPoint(x: 0.5, y: 0.32)
+                endPoint: UnitPoint(x: 0.5, y: 0.35)
             )
         case .green:
             return LinearGradient(
                 colors: [
-                    Color(red: 0.22, green: 0.50, blue: 0.38),
-                    Color(red: 0.16, green: 0.32, blue: 0.26),
-                    Color(red: 0.12, green: 0.18, blue: 0.16)
+                    Color(red: 0.20, green: 0.45, blue: 0.35),
+                    Color(red: 0.16, green: 0.30, blue: 0.25),
+                    Color(red: 0.14, green: 0.22, blue: 0.20)
                 ],
                 startPoint: .top,
-                endPoint: UnitPoint(x: 0.5, y: 0.32)
+                endPoint: UnitPoint(x: 0.5, y: 0.35)
             )
         case .orange:
             return LinearGradient(
                 colors: [
-                    Color(red: 0.70, green: 0.45, blue: 0.22),
-                    Color(red: 0.42, green: 0.28, blue: 0.16),
-                    Color(red: 0.20, green: 0.16, blue: 0.14)
+                    Color(red: 0.65, green: 0.42, blue: 0.22),
+                    Color(red: 0.40, green: 0.28, blue: 0.18),
+                    Color(red: 0.25, green: 0.20, blue: 0.18)
                 ],
                 startPoint: .top,
-                endPoint: UnitPoint(x: 0.5, y: 0.32)
+                endPoint: UnitPoint(x: 0.5, y: 0.35)
             )
         case .burgundy:
             return LinearGradient(
                 colors: [
-                    Color(red: 0.60, green: 0.18, blue: 0.32),
-                    Color(red: 0.40, green: 0.14, blue: 0.24),
-                    Color(red: 0.22, green: 0.12, blue: 0.16)
+                    Color(red: 0.55, green: 0.18, blue: 0.30),
+                    Color(red: 0.38, green: 0.16, blue: 0.24),
+                    Color(red: 0.26, green: 0.16, blue: 0.20)
                 ],
                 startPoint: .top,
-                endPoint: UnitPoint(x: 0.5, y: 0.32)
+                endPoint: UnitPoint(x: 0.5, y: 0.35)
             )
         case .grey:
             return LinearGradient(
                 colors: [
-                    Color(red: 0.42, green: 0.42, blue: 0.46),
+                    Color(red: 0.38, green: 0.38, blue: 0.42),
                     Color(red: 0.28, green: 0.28, blue: 0.32),
-                    Color(red: 0.16, green: 0.16, blue: 0.18)
+                    Color(red: 0.20, green: 0.20, blue: 0.24)
                 ],
                 startPoint: .top,
-                endPoint: UnitPoint(x: 0.5, y: 0.32)
+                endPoint: UnitPoint(x: 0.5, y: 0.35)
             )
         }
     }
@@ -192,9 +192,9 @@ enum AppTheme: String, CaseIterable, Identifiable {
         }
     }
 
-    /// Card/tile background - dark but transparent
+    /// Card/tile background - dark with grayish tint
     var cardBackground: Color {
-        return Color.black.opacity(0.22)
+        return Color(white: 0.25).opacity(0.35)
     }
 
     /// Alias for consistency (same as cardBackground)

@@ -371,6 +371,29 @@ struct JournalTimelineEntryRow: View {
                                     .fontWeight(.medium)
                                     .lineLimit(1)
                             }
+                        } else if title.hasPrefix("Guided Entry:") {
+                            // Guided entry with special tag
+                            HStack(spacing: 8) {
+                                HStack(spacing: 4) {
+                                    Image(systemName: "hand.point.up.left.and.text")
+                                        .font(.caption)
+                                    Text("Guided")
+                                        .font(.caption)
+                                        .fontWeight(.medium)
+                                }
+                                .foregroundStyle(.green)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 4)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 6)
+                                        .fill(.green.opacity(0.15))
+                                )
+
+                                Text(String(title.dropFirst(14)).trimmingCharacters(in: .whitespaces))
+                                    .font(.body)
+                                    .fontWeight(.medium)
+                                    .lineLimit(1)
+                            }
                         } else {
                             Text(title)
                                 .font(.body)
@@ -382,15 +405,6 @@ struct JournalTimelineEntryRow: View {
                         .font(.body)
                         .foregroundStyle(.secondary)
                         .lineLimit(2)
-
-                    if entry.mood > 0 {
-                        HStack(spacing: 4) {
-                            Text(moodEmoji(for: entry.mood))
-                            Text(moodText(for: entry.mood))
-                                .font(.subheadline)
-                                .foregroundStyle(.secondary)
-                        }
-                    }
                 }
                 .padding(.bottom, isLast ? 0 : 16)
             }
@@ -438,27 +452,6 @@ struct JournalTimelineEntryRow: View {
         }
     }
 
-    private func moodEmoji(for mood: Int16) -> String {
-        switch mood {
-        case 1: return "😔"
-        case 2: return "😐"
-        case 3: return "🙂"
-        case 4: return "😊"
-        case 5: return "😄"
-        default: return ""
-        }
-    }
-
-    private func moodText(for mood: Int16) -> String {
-        switch mood {
-        case 1: return "Very Low"
-        case 2: return "Low"
-        case 3: return "Neutral"
-        case 4: return "Good"
-        case 5: return "Very Good"
-        default: return ""
-        }
-    }
 }
 
 // MARK: - Scroll Offset Tracking
