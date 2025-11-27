@@ -169,7 +169,7 @@ struct FeelingFinderCategoryButton: View {
             action()
         } label: {
             VStack(spacing: 12) {
-                Image(systemName: "hand.point.up.left.and.text.fill")
+                Image(systemName: "questionmark.circle.fill")
                     .font(.system(size: 32))
                     .foregroundStyle(.green)
 

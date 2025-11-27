@@ -375,7 +375,7 @@ struct JournalTimelineEntryRow: View {
                             // Guided entry with special tag
                             HStack(spacing: 8) {
                                 HStack(spacing: 4) {
-                                    Image(systemName: "hand.point.up.left.and.text")
+                                    Image(systemName: "questionmark.circle.fill")
                                         .font(.caption)
                                     Text("Guided")
                                         .font(.caption)
