@@ -8,12 +8,25 @@ struct LoggingView: View {
     @State private var showingQuickLog = false
     @State private var showingCrisisMode = false
     @State private var showingFeelingFinder = false
+    @State private var searchText = ""
+    @State private var isSearching = false
+    @State private var selectedPatternType: PatternType?
     @Binding var showingProfile: Bool
 
     @AppStorage("selectedTheme") private var selectedThemeRaw: String = AppTheme.purple.rawValue
 
     private var theme: AppTheme {
         AppTheme(rawValue: selectedThemeRaw) ?? .purple
+    }
+
+    // Filter patterns based on search text
+    private var filteredPatterns: [PatternType] {
+        guard !searchText.isEmpty else { return [] }
+        let query = searchText.lowercased()
+        return PatternType.allCases.filter { pattern in
+            pattern.rawValue.lowercased().contains(query) ||
+            pattern.category.rawValue.lowercased().contains(query)
+        }
     }
 
     init(showingProfile: Binding<Bool> = .constant(false)) {
@@ -28,19 +41,36 @@ struct LoggingView: View {
 
                 ScrollView {
                     VStack(spacing: 10) {
-                        // Medication section at top
-                        MedicationQuickLogView()
-
-                        // Favorites
-                        if !viewModel.favoritePatterns.isEmpty {
-                            favoritesSection
+                        // Pull-down search bar
+                        if isSearching {
+                            searchBarView
+                                .transition(.move(edge: .top).combined(with: .opacity))
                         }
-                        // All categories
-                        allCategoriesView
+
+                        // Search results or normal content
+                        if !searchText.isEmpty {
+                            searchResultsView
+                        } else {
+                            // Medication section at top
+                            MedicationQuickLogView()
+
+                            // Favorites
+                            if !viewModel.favoritePatterns.isEmpty {
+                                favoritesSection
+                            }
+                            // All categories
+                            allCategoriesView
+                        }
                     }
                     .padding()
                 }
                 .scrollContentBackground(.hidden)
+                .refreshable {
+                    // Pull down triggers search mode
+                    withAnimation(.easeOut(duration: 0.2)) {
+                        isSearching = true
+                    }
+                }
             }
             .navigationTitle("Log")
             .toolbar {
@@ -53,7 +83,22 @@ struct LoggingView: View {
                     }
                 }
                 ToolbarItem(placement: .primaryAction) {
-                    ProfileButton(showingProfile: $showingProfile)
+                    HStack(spacing: 12) {
+                        // Search toggle button
+                        Button {
+                            withAnimation(.easeOut(duration: 0.2)) {
+                                isSearching.toggle()
+                                if !isSearching {
+                                    searchText = ""
+                                }
+                            }
+                        } label: {
+                            Image(systemName: isSearching ? "xmark.circle.fill" : "magnifyingglass")
+                                .foregroundStyle(isSearching ? .secondary : .primary)
+                        }
+
+                        ProfileButton(showingProfile: $showingProfile)
+                    }
                 }
             }
             .onAppear {
@@ -72,6 +117,83 @@ struct LoggingView: View {
         }
         .sheet(isPresented: $showingFeelingFinder) {
             FeelingFinderView()
+        }
+        .sheet(item: $selectedPatternType) { patternType in
+            PatternEntryFormView(
+                patternType: patternType,
+                viewModel: viewModel,
+                onSave: {
+                    selectedPatternType = nil
+                    withAnimation {
+                        searchText = ""
+                        isSearching = false
+                    }
+                }
+            )
+        }
+    }
+
+    // MARK: - Search Bar
+    private var searchBarView: some View {
+        HStack(spacing: 12) {
+            Image(systemName: "magnifyingglass")
+                .foregroundStyle(.secondary)
+
+            TextField("Search patterns...", text: $searchText)
+                .textFieldStyle(.plain)
+                .autocorrectionDisabled()
+
+            if !searchText.isEmpty {
+                Button {
+                    searchText = ""
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .foregroundStyle(.secondary)
+                }
+            }
+        }
+        .padding(12)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(Color(white: 0.18).opacity(0.85))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(Color.white.opacity(0.2), lineWidth: 1)
+        )
+    }
+
+    // MARK: - Search Results
+    private var searchResultsView: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            if filteredPatterns.isEmpty {
+                VStack(spacing: 16) {
+                    Image(systemName: "magnifyingglass")
+                        .font(.system(size: 40))
+                        .foregroundStyle(.secondary)
+                    Text("No patterns found")
+                        .font(.headline)
+                        .foregroundStyle(.secondary)
+                    Text("Try a different search term")
+                        .font(.subheadline)
+                        .foregroundStyle(.tertiary)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 60)
+            } else {
+                Text("\(filteredPatterns.count) results")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .padding(.horizontal, 4)
+
+                LazyVStack(spacing: 8) {
+                    ForEach(filteredPatterns) { pattern in
+                        SearchResultRow(pattern: pattern) {
+                            selectedPatternType = pattern
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -224,6 +346,54 @@ struct QuickLogButton: View {
                     .stroke(patternType.category.color.opacity(0.3), lineWidth: 1)
             )
             .shadow(color: patternType.category.color.opacity(0.15), radius: 6, y: 3)
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+// MARK: - Search Result Row
+
+struct SearchResultRow: View {
+    let pattern: PatternType
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 12) {
+                // Category icon
+                Image(systemName: pattern.category.icon)
+                    .font(.system(size: 22, weight: .medium))
+                    .foregroundStyle(pattern.category.color)
+                    .frame(width: 36)
+
+                // Pattern info
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(pattern.rawValue)
+                        .font(.body)
+                        .fontWeight(.medium)
+                        .foregroundStyle(.primary)
+
+                    Text(pattern.category.rawValue)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+
+                Spacer()
+
+                Image(systemName: "chevron.right")
+                    .font(.caption)
+                    .foregroundStyle(.tertiary)
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 14)
+            .background(
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(Color(white: 0.18).opacity(0.85))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 16)
+                    .stroke(pattern.category.color.opacity(0.25), lineWidth: 1)
+            )
         }
         .buttonStyle(.plain)
     }
