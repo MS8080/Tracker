@@ -290,7 +290,6 @@ struct CategoryButton: View {
                 RoundedRectangle(cornerRadius: 24)
                     .stroke(category.color.opacity(0.4), lineWidth: 1.5)
             )
-            .shadow(color: category.color.opacity(0.2), radius: 8, y: 4)
         }
         .buttonStyle(.plain)
     }
@@ -324,7 +323,6 @@ struct FeelingFinderCategoryButton: View {
                 RoundedRectangle(cornerRadius: 24)
                     .stroke(Color.green.opacity(0.4), lineWidth: 1.5)
             )
-            .shadow(color: Color.green.opacity(0.2), radius: 8, y: 4)
         }
         .buttonStyle(.plain)
     }
@@ -364,7 +362,6 @@ struct QuickLogButton: View {
                 RoundedRectangle(cornerRadius: 16)
                     .stroke(patternType.category.color.opacity(0.3), lineWidth: 1)
             )
-            .shadow(color: patternType.category.color.opacity(0.15), radius: 6, y: 3)
         }
         .buttonStyle(.plain)
     }
