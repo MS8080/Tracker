@@ -283,10 +283,6 @@ struct CategoryButton: View {
                 RoundedRectangle(cornerRadius: 24)
                     .fill(Color(white: 0.18).opacity(0.85))
             )
-            .overlay(
-                RoundedRectangle(cornerRadius: 24)
-                    .stroke(category.color.opacity(0.4), lineWidth: 1.5)
-            )
         }
         .buttonStyle(.plain)
     }
@@ -315,10 +311,6 @@ struct FeelingFinderCategoryButton: View {
             .background(
                 RoundedRectangle(cornerRadius: 24)
                     .fill(Color(white: 0.18).opacity(0.85))
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: 24)
-                    .stroke(Color.green.opacity(0.4), lineWidth: 1.5)
             )
         }
         .buttonStyle(.plain)
@@ -354,10 +346,6 @@ struct QuickLogButton: View {
             .background(
                 RoundedRectangle(cornerRadius: 16)
                     .fill(Color(white: 0.18).opacity(0.85))
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: 16)
-                    .stroke(patternType.category.color.opacity(0.3), lineWidth: 1)
             )
         }
         .buttonStyle(.plain)
@@ -402,10 +390,6 @@ struct SearchResultRow: View {
             .background(
                 RoundedRectangle(cornerRadius: 16)
                     .fill(Color(white: 0.18).opacity(0.85))
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: 16)
-                    .stroke(pattern.category.color.opacity(0.25), lineWidth: 1)
             )
         }
         .buttonStyle(.plain)
