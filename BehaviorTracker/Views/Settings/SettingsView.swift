@@ -236,15 +236,12 @@ struct AboutView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 24) {
-                Image(systemName: "brain.head.profile")
-                    .font(.system(size: 80, weight: .medium))
-                    .foregroundStyle(
-                        LinearGradient(
-                            colors: [.purple, .blue, .cyan],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
+                // Infinity Logo
+                Image("InfinityLogo")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 150, height: 75)
+                    .shadow(color: .black.opacity(0.2), radius: 8, y: 4)
                     .padding(.top, 40)
 
                 Text("Cortex")

@@ -71,6 +71,7 @@ struct ContentView: View {
                     .allowsHitTesting(false)
             }
         }
+        .tint(theme.primaryColor)
         .preferredColorScheme(appearance.colorScheme)
         .dynamicTypeSize(dynamicTypeSize)
         .sheet(isPresented: $showingProfile) {
@@ -204,9 +205,26 @@ enum AppTheme: String, CaseIterable, Identifiable {
         textColor.opacity(0.7)
     }
 
-    /// Card/tile background - clear transparent
+    /// Brighter accent color for timeline elements
+    var timelineColor: Color {
+        switch self {
+        case .purple: return Color(red: 0.60, green: 0.45, blue: 0.75)
+        case .blue: return Color(red: 0.45, green: 0.60, blue: 0.80)
+        case .green: return Color(red: 0.45, green: 0.70, blue: 0.55)
+        case .orange: return Color(red: 0.80, green: 0.60, blue: 0.40)
+        case .burgundy: return Color(red: 0.80, green: 0.50, blue: 0.55)
+        case .grey: return Color(red: 0.60, green: 0.60, blue: 0.65)
+        }
+    }
+
+    /// Card/tile background - darker for better text visibility
     var cardBackground: Color {
-        return Color.white.opacity(0.08)
+        return Color.black.opacity(0.25)
+    }
+
+    /// Alias for consistency (same as cardBackground)
+    var journalCardBackground: Color {
+        return cardBackground
     }
 }
 

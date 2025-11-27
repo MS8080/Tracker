@@ -35,28 +35,32 @@ struct BehaviorTrackerApp: App {
 }
 
 struct SplashView: View {
+    @AppStorage("selectedTheme") private var selectedThemeRaw: String = AppTheme.purple.rawValue
+
+    private var theme: AppTheme {
+        AppTheme(rawValue: selectedThemeRaw) ?? .purple
+    }
+
     var body: some View {
         ZStack {
-            Color(.systemBackground)
+            theme.gradient
                 .ignoresSafeArea()
 
             VStack(spacing: 20) {
-                Image(systemName: "infinity")
-                    .font(.system(size: 80, weight: .medium))
-                    .foregroundStyle(
-                        LinearGradient(
-                            colors: [.red, .orange, .yellow, .green, .blue, .purple],
-                            startPoint: .leading,
-                            endPoint: .trailing
-                        )
-                    )
+                // Infinity Logo
+                Image("InfinityLogo")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 150, height: 75)
+                    .shadow(color: .black.opacity(0.3), radius: 10, y: 5)
 
-                Text("Behavior Tracker")
-                    .font(.title)
+                Text("Cortex")
+                    .font(.largeTitle)
                     .fontWeight(.bold)
+                    .foregroundStyle(.white)
 
                 ProgressView()
-                    .tint(.blue)
+                    .tint(.white)
             }
         }
     }

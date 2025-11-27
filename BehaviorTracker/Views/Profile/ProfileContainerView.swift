@@ -89,7 +89,7 @@ struct ProfileContainerView: View {
                                 .stroke(.white.opacity(0.2), lineWidth: 0.5)
                         )
 
-                        // Blue light filter - liquid crystal circle
+                        // Blue light filter - separate circle button
                         Button {
                             withAnimation(.easeInOut(duration: 0.3)) {
                                 blueLightFilterEnabled.toggle()
@@ -98,16 +98,13 @@ struct ProfileContainerView: View {
                         } label: {
                             ZStack {
                                 Circle()
-                                    .fill(.white.opacity(0.15))
+                                    .fill(blueLightFilterEnabled ? Color.orange.opacity(0.8) : .white.opacity(0.15))
                                     .shadow(color: .black.opacity(0.1), radius: 4, y: 2)
-
-                                Circle()
-                                    .fill(blueLightFilterEnabled ? Color.orange.opacity(0.8) : Color.clear)
 
                                 Circle()
                                     .stroke(.white.opacity(0.2), lineWidth: 0.5)
 
-                                Image(systemName: blueLightFilterEnabled ? "moon.fill" : "moon")
+                                Image(systemName: blueLightFilterEnabled ? "sun.max.fill" : "moon.fill")
                                     .font(.system(size: 13, weight: .medium))
                                     .foregroundStyle(blueLightFilterEnabled ? .white : .primary)
                             }

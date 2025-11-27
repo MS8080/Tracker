@@ -30,6 +30,11 @@ class AIAnalysisService {
         )
     }
 
+    /// Analyze with a custom prompt (for journal entry analysis)
+    func analyzeWithPrompt(_ prompt: String) async throws -> String {
+        return try await geminiService.generateContent(prompt: prompt)
+    }
+
     // MARK: - Build Prompt
 
     private func buildPrompt(preferences: AnalysisPreferences) -> String {

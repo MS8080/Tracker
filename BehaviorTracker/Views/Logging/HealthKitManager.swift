@@ -588,18 +588,29 @@ class HealthKitManager: ObservableObject, @unchecked Sendable {
     }
 
     /// Get total sleep duration for last night
+    /// Looks for sleep that started after 6 PM yesterday and ended before noon today
     func fetchLastNightSleep() async -> TimeInterval? {
         let calendar = Calendar.current
         let now = Date()
 
+        // Define the sleep window: 6 PM yesterday to 12 PM today
         let startOfToday = calendar.startOfDay(for: now)
-        let startOfYesterday = calendar.date(byAdding: .day, value: -1, to: startOfToday)!
+        var components = DateComponents()
+        components.hour = 18 // 6 PM
+        let sleepWindowStart = calendar.date(byAdding: components, to: calendar.date(byAdding: .day, value: -1, to: startOfToday)!)!
 
-        let sleepData = await fetchSleepData(startDate: startOfYesterday, endDate: startOfToday)
+        components.hour = 12 // 12 PM (noon)
+        let sleepWindowEnd = calendar.date(byAdding: components, to: startOfToday)!
 
+        let sleepData = await fetchSleepData(startDate: sleepWindowStart, endDate: sleepWindowEnd)
+
+        // Only count actual sleep stages (not "In Bed" or "Awake")
         let totalSleep = sleepData.reduce(0.0) { total, sleep in
-            if sleep.quality.contains("Sleep") && sleep.quality != "In Bed" {
-                return total + sleep.duration
+            let qualityLower = sleep.quality.lowercased()
+            if qualityLower.contains("sleep") || qualityLower.contains("asleep") {
+                if !qualityLower.contains("in bed") && !qualityLower.contains("awake") {
+                    return total + sleep.duration
+                }
             }
             return total
         }
