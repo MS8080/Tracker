@@ -1,10 +1,7 @@
 import SwiftUI
-import CoreData
 
 struct DashboardView: View {
-    @Environment(\.managedObjectContext) private var viewContext
     @StateObject private var viewModel = DashboardViewModel()
-    @StateObject private var medicationViewModel = MedicationViewModel()
     @Binding var showingProfile: Bool
 
     init(showingProfile: Binding<Bool> = .constant(false)) {
@@ -43,8 +40,6 @@ struct DashboardView: View {
             }
             .onAppear {
                 viewModel.loadData()
-                medicationViewModel.loadMedications()
-                medicationViewModel.loadTodaysLogs()
             }
         }
     }
@@ -179,78 +174,6 @@ struct DashboardView: View {
         .shadow(color: theme.cardShadowColor, radius: 8, y: 4)
     }
 
-    private var medicationSummaryCard: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            medicationHeaderRow
-            medicationContentView
-        }
-        .padding(20)
-        .background(
-            RoundedRectangle(cornerRadius: 24)
-                .fill(theme.cardBackground)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 24)
-                .stroke(theme.cardBorderColor, lineWidth: 0.5)
-        )
-        .shadow(color: theme.cardShadowColor, radius: 8, y: 4)
-    }
-
-    private var medicationHeaderRow: some View {
-        HStack {
-            Text("Today's Medications")
-                .font(.title2)
-                .fontWeight(.bold)
-
-            Spacer()
-
-            NavigationLink {
-                MedicationView()
-            } label: {
-                Text("View All")
-                    .font(.callout)
-                    .foregroundStyle(.blue)
-            }
-        }
-    }
-
-    @ViewBuilder
-    private var medicationContentView: some View {
-        if medicationViewModel.medications.isEmpty {
-            emptyMedicationsView
-        } else {
-            medicationListView
-        }
-    }
-
-    private var emptyMedicationsView: some View {
-        HStack {
-            Image(systemName: "pills.fill")
-                .foregroundStyle(.blue)
-            Text("No medications added")
-                .font(.callout)
-                .foregroundStyle(.secondary)
-        }
-    }
-
-    private var medicationListView: some View {
-        VStack(spacing: 8) {
-            ForEach(Array(medicationViewModel.medications.prefix(3))) { medication in
-                DashboardMedicationRowView(
-                    medication: medication,
-                    hasTakenToday: medicationViewModel.hasTakenToday(medication: medication)
-                )
-            }
-
-            if medicationViewModel.medications.count > 3 {
-                Text("+ \(medicationViewModel.medications.count - 3) more")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                    .frame(maxWidth: .infinity, alignment: .center)
-            }
-        }
-    }
-
     private var quickInsightsSection: some View {
         VStack(alignment: .leading, spacing: 16) {
             Text("Quick Insights")
@@ -290,40 +213,6 @@ struct DashboardView: View {
                 .stroke(theme.cardBorderColor, lineWidth: 0.5)
         )
         .shadow(color: theme.cardShadowColor, radius: 8, y: 4)
-    }
-}
-
-struct DashboardMedicationRowView: View {
-    let medication: Medication
-    let hasTakenToday: Bool
-    
-    var body: some View {
-        HStack {
-            Image(systemName: "pills.fill")
-                .foregroundStyle(.blue)
-                .frame(width: 24)
-
-            VStack(alignment: .leading, spacing: 2) {
-                Text(medication.name)
-                    .font(.callout)
-                    .fontWeight(.medium)
-
-                if let dosage = medication.dosage {
-                    Text(dosage)
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                }
-            }
-
-            Spacer()
-
-            if hasTakenToday {
-                Image(systemName: "checkmark.circle.fill")
-                    .foregroundStyle(.green)
-                    .font(.title3)
-            }
-        }
-        .padding(.vertical, 4)
     }
 }
 

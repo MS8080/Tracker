@@ -1,11 +1,8 @@
 import SwiftUI
-import Speech
 
 struct LoggingView: View {
-    @Environment(\.managedObjectContext) private var viewContext
     @StateObject private var viewModel = LoggingViewModel()
     @State private var selectedCategory: PatternCategory?
-    @State private var showingQuickLog = false
     @State private var showingCrisisMode = false
     @State private var showingFeelingFinder = false
     @State private var searchText = ""
