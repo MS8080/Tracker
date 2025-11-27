@@ -41,13 +41,6 @@ struct LoggingView: View {
 
                 ScrollView {
                     VStack(spacing: 10) {
-                        // Invisible pull detector at top
-                        GeometryReader { geo in
-                            Color.clear
-                                .preference(key: ScrollOffsetKey.self, value: geo.frame(in: .named("scroll")).minY)
-                        }
-                        .frame(height: 0)
-
                         // Pull-down search bar
                         if isSearching {
                             searchBarView
@@ -67,11 +60,16 @@ struct LoggingView: View {
                         }
                     }
                     .padding()
+                    .background(
+                        GeometryReader { geo in
+                            Color.clear
+                                .preference(key: ScrollOffsetKey.self, value: geo.frame(in: .global).minY)
+                        }
+                    )
                 }
-                .coordinateSpace(name: "scroll")
                 .onPreferenceChange(ScrollOffsetKey.self) { offset in
-                    // Show search when pulled down past threshold
-                    if offset > 60 && !isSearching {
+                    // Show search when pulled down past threshold (small pull ~20pt beyond normal)
+                    if offset > 120 && !isSearching {
                         withAnimation(.easeOut(duration: 0.2)) {
                             isSearching = true
                         }
@@ -128,11 +126,11 @@ struct LoggingView: View {
 
     // MARK: - Search Bar
     private var searchBarView: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: 10) {
             Image(systemName: "magnifyingglass")
                 .foregroundStyle(.secondary)
 
-            TextField("Search patterns...", text: $searchText)
+            TextField("Search...", text: $searchText)
                 .textFieldStyle(.plain)
                 .autocorrectionDisabled()
 
@@ -157,13 +155,14 @@ struct LoggingView: View {
                     .foregroundStyle(.secondary)
             }
         }
-        .padding(12)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 10)
         .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(Color(white: 0.18).opacity(0.85))
+            Capsule()
+                .fill(Color(white: 0.18).opacity(0.9))
         )
         .overlay(
-            RoundedRectangle(cornerRadius: 16)
+            Capsule()
                 .stroke(Color.white.opacity(0.2), lineWidth: 1)
         )
     }
