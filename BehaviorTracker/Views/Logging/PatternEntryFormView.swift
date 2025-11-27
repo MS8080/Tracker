@@ -397,13 +397,10 @@ struct PatternEntryFormView: View {
         let journalEntry = JournalEntry(context: viewContext)
 
         // Format title with pattern type and date
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "MMM d, h:mm a"
-        let dateString = dateFormatter.string(from: Date())
         journalEntry.title = "Log: \(patternType.rawValue)"
 
-        // Build journal content
-        var content = "**\(patternType.rawValue)** - \(patternType.category.rawValue)\n\n"
+        // Build journal content (plain text format)
+        var content = "\(patternType.category.rawValue)\n"
 
         if patternType.hasIntensityScale {
             let intensityLabel: String
@@ -415,33 +412,31 @@ struct PatternEntryFormView: View {
             case 5: intensityLabel = "Severe"
             default: intensityLabel = "Unknown"
             }
-            content += "**Intensity:** \(Int(intensity))/5 (\(intensityLabel))\n"
+            content += "Intensity: \(Int(intensity))/5 (\(intensityLabel))\n"
         }
 
         if patternType.hasDuration && totalMinutes > 0 {
             let hours = totalMinutes / 60
             let mins = totalMinutes % 60
             if hours > 0 {
-                content += "**Duration:** \(hours)h \(mins)m\n"
+                content += "Duration: \(hours)h \(mins)m\n"
             } else {
-                content += "**Duration:** \(mins) minutes\n"
+                content += "Duration: \(mins) minutes\n"
             }
         }
 
         if !selectedContributingFactors.isEmpty {
             let factorNames = selectedContributingFactors.map { $0.rawValue }.joined(separator: ", ")
-            content += "**Contributing Factors:** \(factorNames)\n"
+            content += "Contributing Factors: \(factorNames)\n"
         }
 
         if !specificDetails.isEmpty {
-            content += "\n**Details:**\n\(specificDetails)\n"
+            content += "\nDetails: \(specificDetails)\n"
         }
 
         if !finalContextNotes.isEmpty {
-            content += "\n**Context:**\n\(finalContextNotes)\n"
+            content += "\nContext: \(finalContextNotes)\n"
         }
-
-        content += "\n---\n*Logged at \(dateString)*"
 
         journalEntry.content = content
         journalEntry.timestamp = Date()

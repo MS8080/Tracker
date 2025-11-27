@@ -53,11 +53,20 @@ public class JournalEntry: NSManagedObject, Identifiable {
     }
 
     var preview: String {
+        // Strip markdown formatting for clean preview
+        let cleanContent = content
+            .replacingOccurrences(of: "**", with: "")
+            .replacingOccurrences(of: "*", with: "")
+            .replacingOccurrences(of: "---", with: "")
+            .replacingOccurrences(of: "\n\n", with: " ")
+            .replacingOccurrences(of: "\n", with: " ")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+
         let maxLength = 100
-        if content.count > maxLength {
-            return String(content.prefix(maxLength)) + "..."
+        if cleanContent.count > maxLength {
+            return String(cleanContent.prefix(maxLength)) + "..."
         }
-        return content
+        return cleanContent
     }
 }
 
