@@ -444,7 +444,6 @@ struct PatternEntryFormView: View {
         journalEntry.id = UUID()
         journalEntry.mood = 0
         journalEntry.isFavorite = false
-        journalEntry.tags = [patternType.category.rawValue, patternType.rawValue]
 
         do {
             try viewContext.save()
