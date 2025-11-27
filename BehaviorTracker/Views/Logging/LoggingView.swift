@@ -41,6 +41,13 @@ struct LoggingView: View {
 
                 ScrollView {
                     VStack(spacing: 10) {
+                        // Invisible pull detector at top
+                        GeometryReader { geo in
+                            Color.clear
+                                .preference(key: ScrollOffsetKey.self, value: geo.frame(in: .named("scroll")).minY)
+                        }
+                        .frame(height: 0)
+
                         // Pull-down search bar
                         if isSearching {
                             searchBarView
@@ -61,13 +68,17 @@ struct LoggingView: View {
                     }
                     .padding()
                 }
-                .scrollContentBackground(.hidden)
-                .refreshable {
-                    // Pull down triggers search mode
-                    withAnimation(.easeOut(duration: 0.2)) {
-                        isSearching = true
+                .coordinateSpace(name: "scroll")
+                .onPreferenceChange(ScrollOffsetKey.self) { offset in
+                    // Show search when pulled down past threshold
+                    if offset > 60 && !isSearching {
+                        withAnimation(.easeOut(duration: 0.2)) {
+                            isSearching = true
+                        }
+                        HapticFeedback.light.trigger()
                     }
                 }
+                .scrollContentBackground(.hidden)
             }
             .navigationTitle("Log")
             .toolbar {
@@ -564,6 +575,15 @@ struct CrisisButton: View {
         .buttonStyle(.plain)
         .scaleEffect(isSelected ? 1.05 : 1.0)
         .animation(.spring(response: 0.3), value: isSelected)
+    }
+}
+
+// MARK: - Scroll Offset Preference Key
+
+private struct ScrollOffsetKey: PreferenceKey {
+    static var defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = nextValue()
     }
 }
 
