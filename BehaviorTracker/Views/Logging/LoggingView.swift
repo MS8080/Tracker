@@ -5,25 +5,12 @@ struct LoggingView: View {
     @State private var selectedCategory: PatternCategory?
     @State private var showingCrisisMode = false
     @State private var showingFeelingFinder = false
-    @State private var searchText = ""
-    @State private var isSearching = false
-    @State private var selectedPatternType: PatternType?
     @Binding var showingProfile: Bool
 
     @AppStorage("selectedTheme") private var selectedThemeRaw: String = AppTheme.purple.rawValue
 
     private var theme: AppTheme {
         AppTheme(rawValue: selectedThemeRaw) ?? .purple
-    }
-
-    // Filter patterns based on search text
-    private var filteredPatterns: [PatternType] {
-        guard !searchText.isEmpty else { return [] }
-        let query = searchText.lowercased()
-        return PatternType.allCases.filter { pattern in
-            pattern.rawValue.lowercased().contains(query) ||
-            pattern.category.rawValue.lowercased().contains(query)
-        }
     }
 
     init(showingProfile: Binding<Bool> = .constant(false)) {
@@ -38,28 +25,12 @@ struct LoggingView: View {
 
                 ScrollView {
                     VStack(spacing: 10) {
-                        // Pull hint when not searching
-                        if !isSearching {
-                            pullToSearchHint
+                        // Favorites
+                        if !viewModel.favoritePatterns.isEmpty {
+                            favoritesSection
                         }
-
-                        // Search bar
-                        if isSearching {
-                            searchBarView
-                                .transition(.move(edge: .top).combined(with: .opacity))
-                        }
-
-                        // Search results or normal content
-                        if !searchText.isEmpty {
-                            searchResultsView
-                        } else {
-                            // Favorites
-                            if !viewModel.favoritePatterns.isEmpty {
-                                favoritesSection
-                            }
-                            // All categories
-                            allCategoriesView
-                        }
+                        // All categories
+                        allCategoriesView
                     }
                     .padding()
                 }
@@ -95,121 +66,6 @@ struct LoggingView: View {
         }
         .sheet(isPresented: $showingFeelingFinder) {
             FeelingFinderView()
-        }
-        .sheet(item: $selectedPatternType) { patternType in
-            PatternEntryFormView(
-                patternType: patternType,
-                viewModel: viewModel,
-                onSave: {
-                    selectedPatternType = nil
-                    withAnimation {
-                        searchText = ""
-                        isSearching = false
-                    }
-                }
-            )
-        }
-    }
-
-    // MARK: - Pull to Search Hint
-    private var pullToSearchHint: some View {
-        Button {
-            withAnimation(.easeOut(duration: 0.2)) {
-                isSearching = true
-            }
-            HapticFeedback.light.trigger()
-        } label: {
-            HStack(spacing: 8) {
-                Image(systemName: "magnifyingglass")
-                    .font(.subheadline)
-                Text("Search patterns")
-                    .font(.subheadline)
-            }
-            .foregroundStyle(.secondary)
-            .padding(.horizontal, 20)
-            .padding(.vertical, 8)
-            .background(
-                Capsule()
-                    .fill(Color(white: 0.2).opacity(0.5))
-            )
-        }
-        .buttonStyle(.plain)
-    }
-
-    // MARK: - Search Bar
-    private var searchBarView: some View {
-        HStack(spacing: 10) {
-            Image(systemName: "magnifyingglass")
-                .foregroundStyle(.secondary)
-
-            TextField("Search...", text: $searchText)
-                .textFieldStyle(.plain)
-                .autocorrectionDisabled()
-
-            if !searchText.isEmpty {
-                Button {
-                    searchText = ""
-                } label: {
-                    Image(systemName: "xmark.circle.fill")
-                        .foregroundStyle(.secondary)
-                }
-            }
-
-            // Cancel button to hide search
-            Button {
-                withAnimation(.easeOut(duration: 0.2)) {
-                    searchText = ""
-                    isSearching = false
-                }
-            } label: {
-                Text("Cancel")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-            }
-        }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 10)
-        .background(
-            Capsule()
-                .fill(Color(white: 0.18).opacity(0.9))
-        )
-        .overlay(
-            Capsule()
-                .stroke(Color.white.opacity(0.2), lineWidth: 1)
-        )
-    }
-
-    // MARK: - Search Results
-    private var searchResultsView: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            if filteredPatterns.isEmpty {
-                VStack(spacing: 16) {
-                    Image(systemName: "magnifyingglass")
-                        .font(.system(size: 40))
-                        .foregroundStyle(.secondary)
-                    Text("No patterns found")
-                        .font(.headline)
-                        .foregroundStyle(.secondary)
-                    Text("Try a different search term")
-                        .font(.subheadline)
-                        .foregroundStyle(.tertiary)
-                }
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 60)
-            } else {
-                Text("\(filteredPatterns.count) results")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                    .padding(.horizontal, 4)
-
-                LazyVStack(spacing: 8) {
-                    ForEach(filteredPatterns) { pattern in
-                        SearchResultRow(pattern: pattern) {
-                            selectedPatternType = pattern
-                        }
-                    }
-                }
-            }
         }
     }
 
@@ -281,8 +137,13 @@ struct CategoryButton: View {
             .padding(.vertical, 20)
             .background(
                 RoundedRectangle(cornerRadius: 24)
-                    .fill(Color(white: 0.18).opacity(0.85))
+                    .fill(theme.cardBackground)
             )
+            .overlay(
+                RoundedRectangle(cornerRadius: 24)
+                    .stroke(theme.cardBorderColor, lineWidth: 0.5)
+            )
+            .shadow(color: theme.cardShadowColor, radius: 8, y: 4)
         }
         .buttonStyle(.plain)
     }
@@ -290,6 +151,11 @@ struct CategoryButton: View {
 
 struct FeelingFinderCategoryButton: View {
     let action: () -> Void
+
+    @AppStorage("selectedTheme") private var selectedThemeRaw: String = AppTheme.purple.rawValue
+    private var theme: AppTheme {
+        AppTheme(rawValue: selectedThemeRaw) ?? .purple
+    }
 
     var body: some View {
         Button {
@@ -310,8 +176,13 @@ struct FeelingFinderCategoryButton: View {
             .padding(.vertical, 20)
             .background(
                 RoundedRectangle(cornerRadius: 24)
-                    .fill(Color(white: 0.18).opacity(0.85))
+                    .fill(theme.cardBackground)
             )
+            .overlay(
+                RoundedRectangle(cornerRadius: 24)
+                    .stroke(theme.cardBorderColor, lineWidth: 0.5)
+            )
+            .shadow(color: theme.cardShadowColor, radius: 8, y: 4)
         }
         .buttonStyle(.plain)
     }
@@ -320,6 +191,11 @@ struct FeelingFinderCategoryButton: View {
 struct QuickLogButton: View {
     let patternType: PatternType
     let action: () -> Void
+
+    @AppStorage("selectedTheme") private var selectedThemeRaw: String = AppTheme.purple.rawValue
+    private var theme: AppTheme {
+        AppTheme(rawValue: selectedThemeRaw) ?? .purple
+    }
 
     var body: some View {
         Button(action: action) {
@@ -345,52 +221,13 @@ struct QuickLogButton: View {
             .padding(.vertical, 12)
             .background(
                 RoundedRectangle(cornerRadius: 16)
-                    .fill(Color(white: 0.18).opacity(0.85))
+                    .fill(theme.cardBackground)
             )
-        }
-        .buttonStyle(.plain)
-    }
-}
-
-// MARK: - Search Result Row
-
-struct SearchResultRow: View {
-    let pattern: PatternType
-    let action: () -> Void
-
-    var body: some View {
-        Button(action: action) {
-            HStack(spacing: 12) {
-                // Category icon
-                Image(systemName: pattern.category.icon)
-                    .font(.system(size: 22, weight: .medium))
-                    .foregroundStyle(pattern.category.color)
-                    .frame(width: 36)
-
-                // Pattern info
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(pattern.rawValue)
-                        .font(.body)
-                        .fontWeight(.medium)
-                        .foregroundStyle(.primary)
-
-                    Text(pattern.category.rawValue)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-
-                Spacer()
-
-                Image(systemName: "chevron.right")
-                    .font(.caption)
-                    .foregroundStyle(.tertiary)
-            }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 14)
-            .background(
+            .overlay(
                 RoundedRectangle(cornerRadius: 16)
-                    .fill(Color(white: 0.18).opacity(0.85))
+                    .stroke(theme.cardBorderColor, lineWidth: 0.5)
             )
+            .shadow(color: theme.cardShadowColor, radius: 8, y: 4)
         }
         .buttonStyle(.plain)
     }
