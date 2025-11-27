@@ -130,12 +130,12 @@ struct CategoryButton: View {
         Button(action: action) {
             VStack(spacing: 12) {
                 Image(systemName: category.icon)
-                    .font(.system(size: 32))
+                    .font(.system(size: 32, weight: .medium))
                     .foregroundStyle(category.color)
 
                 Text(category.rawValue)
                     .font(.subheadline)
-                    .fontWeight(.medium)
+                    .fontWeight(.semibold)
                     .foregroundStyle(.primary)
                     .multilineTextAlignment(.center)
             }
@@ -143,13 +143,13 @@ struct CategoryButton: View {
             .padding(.vertical, 20)
             .background(
                 RoundedRectangle(cornerRadius: 24)
-                    .fill(theme.cardBackground)
+                    .fill(Color(white: 0.18).opacity(0.85))
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 24)
-                    .stroke(theme.cardBorderColor, lineWidth: 0.5)
+                    .stroke(category.color.opacity(0.4), lineWidth: 1.5)
             )
-            .shadow(color: theme.cardShadowColor, radius: 8, y: 4)
+            .shadow(color: category.color.opacity(0.2), radius: 8, y: 4)
         }
         .buttonStyle(.plain)
     }
@@ -158,11 +158,6 @@ struct CategoryButton: View {
 struct FeelingFinderCategoryButton: View {
     let action: () -> Void
 
-    @AppStorage("selectedTheme") private var selectedThemeRaw: String = AppTheme.purple.rawValue
-    private var theme: AppTheme {
-        AppTheme(rawValue: selectedThemeRaw) ?? .purple
-    }
-
     var body: some View {
         Button {
             HapticFeedback.medium.trigger()
@@ -170,25 +165,25 @@ struct FeelingFinderCategoryButton: View {
         } label: {
             VStack(spacing: 12) {
                 Image(systemName: "questionmark.circle.fill")
-                    .font(.system(size: 32))
+                    .font(.system(size: 32, weight: .medium))
                     .foregroundStyle(.green)
 
                 Text("Guided")
                     .font(.subheadline)
-                    .fontWeight(.medium)
+                    .fontWeight(.semibold)
                     .foregroundStyle(.primary)
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 20)
             .background(
                 RoundedRectangle(cornerRadius: 24)
-                    .fill(theme.cardBackground)
+                    .fill(Color(white: 0.18).opacity(0.85))
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 24)
-                    .stroke(theme.cardBorderColor, lineWidth: 0.5)
+                    .stroke(Color.green.opacity(0.4), lineWidth: 1.5)
             )
-            .shadow(color: theme.cardShadowColor, radius: 8, y: 4)
+            .shadow(color: Color.green.opacity(0.2), radius: 8, y: 4)
         }
         .buttonStyle(.plain)
     }
@@ -198,21 +193,16 @@ struct QuickLogButton: View {
     let patternType: PatternType
     let action: () -> Void
 
-    @AppStorage("selectedTheme") private var selectedThemeRaw: String = AppTheme.purple.rawValue
-    private var theme: AppTheme {
-        AppTheme(rawValue: selectedThemeRaw) ?? .purple
-    }
-
     var body: some View {
         Button(action: action) {
             HStack(spacing: 8) {
                 Image(systemName: patternType.category.icon)
-                    .font(.system(size: 20))
+                    .font(.system(size: 20, weight: .medium))
                     .foregroundStyle(patternType.category.color)
 
                 Text(patternType.rawValue)
                     .font(.subheadline)
-                    .fontWeight(.medium)
+                    .fontWeight(.semibold)
                     .foregroundStyle(.primary)
                     .lineLimit(2)
                     .minimumScaleFactor(0.8)
@@ -227,13 +217,13 @@ struct QuickLogButton: View {
             .padding(.vertical, 12)
             .background(
                 RoundedRectangle(cornerRadius: 16)
-                    .fill(theme.cardBackground)
+                    .fill(Color(white: 0.18).opacity(0.85))
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 16)
-                    .stroke(theme.cardBorderColor, lineWidth: 0.5)
+                    .stroke(patternType.category.color.opacity(0.3), lineWidth: 1)
             )
-            .shadow(color: theme.cardShadowColor, radius: 8, y: 4)
+            .shadow(color: patternType.category.color.opacity(0.15), radius: 6, y: 3)
         }
         .buttonStyle(.plain)
     }

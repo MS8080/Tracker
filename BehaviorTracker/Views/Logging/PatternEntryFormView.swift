@@ -1,13 +1,17 @@
 import SwiftUI
 import Speech
 import AVFoundation
+import CoreData
 
 struct PatternEntryFormView: View {
     @Environment(\.dismiss) private var dismiss
-    @Environment(\.managedObjectContext) private var viewContext
     let patternType: PatternType
     @ObservedObject var viewModel: LoggingViewModel
     let onSave: () -> Void
+
+    private var viewContext: NSManagedObjectContext {
+        DataController.shared.container.viewContext
+    }
 
     @State private var intensity: Double = 3
     @State private var duration: Int = 0
