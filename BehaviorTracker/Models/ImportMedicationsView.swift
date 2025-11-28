@@ -293,7 +293,7 @@ struct ImportMedicationsView: View {
     
     private func medicationRow(_ medication: MedicationImportData) -> some View {
         Button {
-            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+            withAnimation(.spring(response: 0.15, dampingFraction: 0.7)) {
                 if selectedMedications.contains(medication.name) {
                     selectedMedications.remove(medication.name)
                 } else {
@@ -316,7 +316,7 @@ struct ImportMedicationsView: View {
                             .transition(.scale.combined(with: .opacity))
                     }
                 }
-                .animation(.spring(response: 0.3, dampingFraction: 0.7), value: selectedMedications.contains(medication.name))
+                .animation(.spring(response: 0.15, dampingFraction: 0.7), value: selectedMedications.contains(medication.name))
                 
                 // Medication icon
                 ZStack {
@@ -378,7 +378,7 @@ struct ImportMedicationsView: View {
                     )
             )
             .scaleEffect(selectedMedications.contains(medication.name) ? 0.98 : 1.0)
-            .animation(.spring(response: 0.3, dampingFraction: 0.7), value: selectedMedications.contains(medication.name))
+            .animation(.spring(response: 0.15, dampingFraction: 0.7), value: selectedMedications.contains(medication.name))
         }
         .buttonStyle(.plain)
     }

@@ -12,127 +12,87 @@ enum AppTheme: String, CaseIterable, Identifiable {
 
     var id: String { rawValue }
 
+    /// Vibrant primary color - more saturated for better visibility
     var primaryColor: Color {
         switch self {
-        case .purple: return Color(red: 0.55, green: 0.35, blue: 0.75)
-        case .blue: return Color(red: 0.3, green: 0.5, blue: 0.8)
-        case .green: return Color(red: 0.3, green: 0.6, blue: 0.45)
-        case .orange: return Color(red: 0.8, green: 0.5, blue: 0.3)
-        case .burgundy: return Color(red: 0.6, green: 0.25, blue: 0.35)
-        case .grey: return Color(red: 0.45, green: 0.45, blue: 0.50)
+        case .purple: return Color(red: 0.65, green: 0.40, blue: 0.90)
+        case .blue: return Color(red: 0.35, green: 0.55, blue: 0.95)
+        case .green: return Color(red: 0.30, green: 0.75, blue: 0.55)
+        case .orange: return Color(red: 0.95, green: 0.55, blue: 0.25)
+        case .burgundy: return Color(red: 0.75, green: 0.30, blue: 0.40)
+        case .grey: return Color(red: 0.55, green: 0.55, blue: 0.60)
         }
     }
 
-    /// Gradient: color accent at top ~40% like Apple Health app
-    /// Now with diagonal direction for more visual interest and brighter middle colors
-    var gradient: LinearGradient {
+    /// Secondary color for accents - complementary to primary
+    var secondaryColor: Color {
         switch self {
-        case .purple:
-            return LinearGradient(
-                colors: [
-                    Color(red: 0.55, green: 0.35, blue: 0.70),  // Brighter top
-                    Color(red: 0.38, green: 0.25, blue: 0.50),  // Brighter middle
-                    Color(red: 0.22, green: 0.18, blue: 0.30)
-                ],
-                startPoint: .topLeading,
-                endPoint: UnitPoint(x: 0.6, y: 0.40)  // Extends to 40%, diagonal
-            )
-        case .blue:
-            return LinearGradient(
-                colors: [
-                    Color(red: 0.30, green: 0.48, blue: 0.68),  // Brighter top
-                    Color(red: 0.22, green: 0.34, blue: 0.48),  // Brighter middle
-                    Color(red: 0.15, green: 0.18, blue: 0.28)
-                ],
-                startPoint: .topLeading,
-                endPoint: UnitPoint(x: 0.6, y: 0.40)
-            )
-        case .green:
-            return LinearGradient(
-                colors: [
-                    Color(red: 0.25, green: 0.52, blue: 0.40),  // Brighter top
-                    Color(red: 0.20, green: 0.36, blue: 0.30),  // Brighter middle
-                    Color(red: 0.14, green: 0.22, blue: 0.20)
-                ],
-                startPoint: .topLeading,
-                endPoint: UnitPoint(x: 0.6, y: 0.40)
-            )
-        case .orange:
-            return LinearGradient(
-                colors: [
-                    Color(red: 0.72, green: 0.48, blue: 0.26),  // Brighter top
-                    Color(red: 0.48, green: 0.34, blue: 0.22),  // Brighter middle
-                    Color(red: 0.25, green: 0.20, blue: 0.18)
-                ],
-                startPoint: .topLeading,
-                endPoint: UnitPoint(x: 0.6, y: 0.40)
-            )
-        case .burgundy:
-            return LinearGradient(
-                colors: [
-                    Color(red: 0.62, green: 0.22, blue: 0.35),  // Brighter top
-                    Color(red: 0.45, green: 0.20, blue: 0.28),  // Brighter middle
-                    Color(red: 0.26, green: 0.16, blue: 0.20)
-                ],
-                startPoint: .topLeading,
-                endPoint: UnitPoint(x: 0.6, y: 0.40)
-            )
-        case .grey:
-            return LinearGradient(
-                colors: [
-                    Color(red: 0.45, green: 0.45, blue: 0.48),  // Brighter top
-                    Color(red: 0.34, green: 0.34, blue: 0.38),  // Brighter middle
-                    Color(red: 0.20, green: 0.20, blue: 0.24)
-                ],
-                startPoint: .topLeading,
-                endPoint: UnitPoint(x: 0.6, y: 0.40)
-            )
+        case .purple: return Color(red: 0.45, green: 0.30, blue: 0.70)
+        case .blue: return Color(red: 0.25, green: 0.40, blue: 0.75)
+        case .green: return Color(red: 0.20, green: 0.55, blue: 0.40)
+        case .orange: return Color(red: 0.75, green: 0.40, blue: 0.20)
+        case .burgundy: return Color(red: 0.55, green: 0.20, blue: 0.30)
+        case .grey: return Color(red: 0.40, green: 0.40, blue: 0.45)
         }
+    }
+
+    /// Rich gradient background with theme personality
+    var gradient: LinearGradient {
+        let darkBase = Color(red: 0.12, green: 0.12, blue: 0.14)
+
+        return LinearGradient(
+            colors: [
+                primaryColor.opacity(0.45),
+                secondaryColor.opacity(0.25),
+                darkBase
+            ],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
     }
 
     /// Brighter accent color for timeline elements
     var timelineColor: Color {
         switch self {
-        case .purple: return Color(red: 0.60, green: 0.45, blue: 0.75)
-        case .blue: return Color(red: 0.45, green: 0.60, blue: 0.80)
-        case .green: return Color(red: 0.45, green: 0.70, blue: 0.55)
-        case .orange: return Color(red: 0.80, green: 0.60, blue: 0.40)
-        case .burgundy: return Color(red: 0.80, green: 0.50, blue: 0.55)
-        case .grey: return Color(red: 0.60, green: 0.60, blue: 0.65)
+        case .purple: return Color(red: 0.75, green: 0.55, blue: 0.95)
+        case .blue: return Color(red: 0.50, green: 0.70, blue: 1.0)
+        case .green: return Color(red: 0.45, green: 0.85, blue: 0.65)
+        case .orange: return Color(red: 1.0, green: 0.65, blue: 0.35)
+        case .burgundy: return Color(red: 0.90, green: 0.50, blue: 0.55)
+        case .grey: return Color(red: 0.70, green: 0.70, blue: 0.75)
         }
     }
 
-    /// Card/tile background - dark with subtle theme tint for cohesion
+    /// Card background - tinted with theme color for personalization
     var cardBackground: Color {
         switch self {
-        case .purple:
-            return Color(red: 0.20, green: 0.18, blue: 0.25).opacity(0.65)
-        case .blue:
-            return Color(red: 0.16, green: 0.20, blue: 0.28).opacity(0.65)
-        case .green:
-            return Color(red: 0.16, green: 0.22, blue: 0.20).opacity(0.65)
-        case .orange:
-            return Color(red: 0.25, green: 0.20, blue: 0.18).opacity(0.65)
-        case .burgundy:
-            return Color(red: 0.24, green: 0.18, blue: 0.20).opacity(0.65)
-        case .grey:
-            return Color(red: 0.20, green: 0.20, blue: 0.22).opacity(0.65)
+        case .purple: return Color(red: 0.18, green: 0.15, blue: 0.22)
+        case .blue: return Color(red: 0.14, green: 0.17, blue: 0.22)
+        case .green: return Color(red: 0.14, green: 0.19, blue: 0.17)
+        case .orange: return Color(red: 0.20, green: 0.16, blue: 0.14)
+        case .burgundy: return Color(red: 0.20, green: 0.14, blue: 0.16)
+        case .grey: return Color(red: 0.17, green: 0.17, blue: 0.18)
         }
     }
 
-    /// Alias for consistency (same as cardBackground)
-    var journalCardBackground: Color {
-        return cardBackground
-    }
-
-    /// Subtle border color for card edges - slightly brighter for better definition
+    /// Subtle border color - theme tinted
     var cardBorderColor: Color {
-        return Color.white.opacity(0.15)
+        primaryColor.opacity(0.20)
     }
 
     /// Card shadow color
     var cardShadowColor: Color {
-        return Color.black.opacity(0.25)
+        Color.black.opacity(0.35)
+    }
+
+    /// Light accent color for backgrounds
+    var accentLight: Color {
+        primaryColor.opacity(0.20)
+    }
+
+    /// Medium accent color for borders and overlays
+    var accentMedium: Color {
+        primaryColor.opacity(0.45)
     }
 }
 
@@ -194,7 +154,7 @@ extension View {
             )
             .overlay(
                 RoundedRectangle(cornerRadius: cornerRadius)
-                    .stroke(theme.cardBorderColor, lineWidth: 0.5)
+                    .stroke(theme.cardBorderColor, lineWidth: 1)
             )
             .shadow(color: theme.cardShadowColor, radius: 6, y: 3)
     }
@@ -208,7 +168,7 @@ extension View {
             )
             .overlay(
                 RoundedRectangle(cornerRadius: CornerRadius.md)
-                    .stroke(theme.cardBorderColor, lineWidth: 0.5)
+                    .stroke(theme.cardBorderColor, lineWidth: 1)
             )
             .shadow(color: theme.cardShadowColor, radius: 4, y: 2)
     }

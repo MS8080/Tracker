@@ -52,7 +52,7 @@ struct JournalEntryFormView: View {
                                         Text(moodEmoji(for: moodValue))
                                             .font(.system(size: 40))
                                             .scaleEffect(mood == moodValue ? 1.2 : 1.0)
-                                            .animation(.spring(response: 0.3), value: mood)
+                                            .animation(.spring(response: 0.15, dampingFraction: 0.7), value: mood)
                                         
                                         if mood == moodValue {
                                             Circle()

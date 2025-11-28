@@ -891,7 +891,7 @@ struct AppearanceSettingsView: View {
                     ], alignment: .center, spacing: 20) {
                         ForEach(AppTheme.allCases, id: \.self) { themeOption in
                             Button {
-                                withAnimation(.spring(response: 0.3)) {
+                                withAnimation(.spring(response: 0.15, dampingFraction: 0.8)) {
                                     selectedThemeRaw = themeOption.rawValue
                                 }
                             } label: {
@@ -953,7 +953,7 @@ struct AppearanceSettingsView: View {
                             backgroundColor: .white,
                             isSelected: appearance == .light
                         ) {
-                            withAnimation(.spring(response: 0.3)) {
+                            withAnimation(.spring(response: 0.15, dampingFraction: 0.8)) {
                                 appearance = .light
                             }
                         }
@@ -966,7 +966,7 @@ struct AppearanceSettingsView: View {
                             backgroundColor: Color(white: 0.15),
                             isSelected: appearance == .dark
                         ) {
-                            withAnimation(.spring(response: 0.3)) {
+                            withAnimation(.spring(response: 0.15, dampingFraction: 0.8)) {
                                 appearance = .dark
                             }
                         }
@@ -1139,7 +1139,7 @@ struct NotificationSettingsView: View {
                 }
                 .padding(Spacing.xl)
                 .cardStyle(theme: theme)
-                .animation(.spring(response: 0.3, dampingFraction: 0.7), value: viewModel.notificationsEnabled)
+                .animation(.spring(response: 0.15, dampingFraction: 0.7), value: viewModel.notificationsEnabled)
 
                 // Info card
                 VStack(alignment: .leading, spacing: 12) {

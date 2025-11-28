@@ -66,7 +66,7 @@ struct AIInsightsTabView: View {
             }
             .onChange(of: viewModel.insights) { _, newValue in
                 if newValue != nil {
-                    withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
+                    withAnimation(.spring(response: 0.2, dampingFraction: 0.8)) {
                         showingFullReport = true
                     }
                 }
@@ -942,7 +942,7 @@ struct FullReportView: View {
             // Flying tile animation overlay
             if let flying = flyingTile {
                 FlyingTileView(info: flying, theme: theme) {
-                    withAnimation(.spring(response: 0.3)) {
+                    withAnimation(.spring(response: 0.15, dampingFraction: 0.7)) {
                         flyingTile = nil
                     }
                     showJournalSuccess = true
@@ -976,7 +976,7 @@ struct FullReportView: View {
         }
         .onAppear {
             loadBookmarks()
-            withAnimation(.easeOut(duration: 0.5).delay(0.1)) {
+            withAnimation(.easeOut(duration: 0.2).delay(0.05)) {
                 appearAnimation = true
             }
         }
@@ -1418,7 +1418,7 @@ struct FlyingTileView: View {
 
         // Phase 2: Arc towards journal with rotation
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
-            withAnimation(.easeIn(duration: 0.4)) {
+            withAnimation(.easeIn(duration: 0.25)) {
                 position = CGPoint(x: targetX, y: targetY)
                 scale = 0.3
                 rotation = -15
@@ -1426,15 +1426,15 @@ struct FlyingTileView: View {
         }
 
         // Phase 3: Final shrink and fade
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            withAnimation(.easeOut(duration: 0.15)) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+            withAnimation(.easeOut(duration: 0.1)) {
                 scale = 0.1
                 opacity = 0
             }
         }
 
         // Complete
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
             onComplete()
         }
     }

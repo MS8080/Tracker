@@ -25,10 +25,10 @@ struct ContentView: View {
 
     var body: some View {
         TabView(selection: $selectedTab) {
-            DashboardView(showingProfile: $showingProfile)
+            HomeView(showingProfile: $showingProfile)
                 .themedBackground()
                 .tabItem {
-                    Label(NSLocalizedString("tab.dashboard", comment: ""), systemImage: "house.fill")
+                    Label("Home", systemImage: "house.fill")
                 }
                 .tag(0)
 

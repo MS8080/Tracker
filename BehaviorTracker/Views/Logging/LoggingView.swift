@@ -3,8 +3,8 @@ import SwiftUI
 struct LoggingView: View {
     @StateObject private var viewModel = LoggingViewModel()
     @State private var selectedCategory: PatternCategory?
-    @State private var showingCrisisMode = false
     @State private var showingFeelingFinder = false
+    @State private var searchText = ""
     @Binding var showingProfile: Bool
 
     @AppStorage("selectedTheme") private var selectedThemeRaw: String = AppTheme.purple.rawValue
@@ -17,6 +17,20 @@ struct LoggingView: View {
         self._showingProfile = showingProfile
     }
 
+    private var filteredCategories: [PatternCategory] {
+        if searchText.isEmpty {
+            return PatternCategory.allCases
+        }
+        return PatternCategory.allCases.filter { $0.rawValue.localizedCaseInsensitiveContains(searchText) }
+    }
+
+    private var filteredFavorites: [String] {
+        if searchText.isEmpty {
+            return viewModel.favoritePatterns
+        }
+        return viewModel.favoritePatterns.filter { $0.localizedCaseInsensitiveContains(searchText) }
+    }
+
     var body: some View {
         NavigationStack {
             ZStack {
@@ -26,7 +40,7 @@ struct LoggingView: View {
                 ScrollView {
                     VStack(spacing: Spacing.lg) {
                         // Favorites
-                        if !viewModel.favoritePatterns.isEmpty {
+                        if !filteredFavorites.isEmpty {
                             favoritesSection
                         }
                         // All categories
@@ -37,15 +51,8 @@ struct LoggingView: View {
                 .scrollContentBackground(.hidden)
             }
             .navigationTitle("Log")
+            .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .automatic), prompt: "Search categories")
             .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    Button {
-                        showingCrisisMode = true
-                    } label: {
-                        Image(systemName: "exclamationmark.triangle.fill")
-                            .foregroundStyle(.orange)
-                    }
-                }
                 ToolbarItem(placement: .primaryAction) {
                     ProfileButton(showingProfile: $showingProfile)
                 }
@@ -61,9 +68,6 @@ struct LoggingView: View {
         .sheet(item: $selectedCategory) { category in
             CategoryLoggingView(category: category, viewModel: viewModel)
         }
-        .sheet(isPresented: $showingCrisisMode) {
-            CrisisModeView(viewModel: viewModel)
-        }
         .sheet(isPresented: $showingFeelingFinder) {
             FeelingFinderView()
         }
@@ -77,7 +81,7 @@ struct LoggingView: View {
                 .padding(.horizontal, Spacing.xs)
 
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 160))], spacing: Spacing.md) {
-                ForEach(viewModel.favoritePatterns, id: \.self) { patternTypeString in
+                ForEach(filteredFavorites, id: \.self) { patternTypeString in
                     if let patternType = PatternType(rawValue: patternTypeString) {
                         QuickLogButton(patternType: patternType) {
                             _ = viewModel.quickLog(patternType: patternType)
@@ -96,15 +100,17 @@ struct LoggingView: View {
                 .padding(.horizontal, Spacing.xs)
 
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 160))], spacing: Spacing.md) {
-                ForEach(PatternCategory.allCases, id: \.self) { category in
+                ForEach(filteredCategories, id: \.self) { category in
                     CategoryButton(category: category) {
                         selectedCategory = category
                     }
                 }
 
-                // Feeling Finder as 8th category
-                FeelingFinderCategoryButton {
-                    showingFeelingFinder = true
+                // Feeling Finder - only show when not searching
+                if searchText.isEmpty {
+                    FeelingFinderCategoryButton {
+                        showingFeelingFinder = true
+                    }
                 }
             }
         }
@@ -276,180 +282,6 @@ struct QuickLogButton: View {
         }
         .buttonStyle(.plain)
         .scaleEffect(isPressed ? 0.97 : 1.0)
-    }
-}
-
-// MARK: - Crisis Mode View
-
-struct CrisisModeView: View {
-    @Environment(\.dismiss) private var dismiss
-    @ObservedObject var viewModel: LoggingViewModel
-    @State private var selectedAction: CrisisAction?
-
-    enum CrisisAction: String, CaseIterable {
-        case meltdown = "Meltdown"
-        case shutdown = "Shutdown"
-        case overwhelm = "Overwhelmed"
-        case needBreak = "Need a Break"
-
-        var icon: String {
-            switch self {
-            case .meltdown: return "flame.fill"
-            case .shutdown: return "poweroff"
-            case .overwhelm: return "exclamationmark.triangle.fill"
-            case .needBreak: return "pause.circle.fill"
-            }
-        }
-
-        var color: Color {
-            switch self {
-            case .meltdown: return .red
-            case .shutdown: return .purple
-            case .overwhelm: return .orange
-            case .needBreak: return .blue
-            }
-        }
-
-        var patternType: PatternType {
-            switch self {
-            case .meltdown: return .meltdown
-            case .shutdown: return .shutdown
-            case .overwhelm: return .emotionalOverwhelm
-            case .needBreak: return .sensoryRecovery
-            }
-        }
-
-        var helpText: String {
-            switch self {
-            case .meltdown: return "It's okay. This will pass. Try to find a quiet space."
-            case .shutdown: return "Give yourself permission to rest. You don't have to respond."
-            case .overwhelm: return "One thing at a time. What's the smallest next step?"
-            case .needBreak: return "Taking breaks is essential, not optional."
-            }
-        }
-    }
-
-    // Warm red gradient for warning feel
-    private var warningGradient: LinearGradient {
-        LinearGradient(
-            colors: [
-                Color(red: 0.6, green: 0.15, blue: 0.1),
-                Color(red: 0.4, green: 0.1, blue: 0.08),
-                Color(red: 0.25, green: 0.08, blue: 0.05)
-            ],
-            startPoint: .topLeading,
-            endPoint: .bottomTrailing
-        )
-    }
-
-    var body: some View {
-        ZStack {
-            warningGradient
-                .ignoresSafeArea()
-
-            VStack(spacing: Spacing.xxl) {
-                // Header
-                VStack(spacing: Spacing.sm) {
-                    Image(systemName: "exclamationmark.triangle.fill")
-                        .font(.system(size: 50))
-                        .foregroundStyle(.orange)
-                        .padding(.bottom, Spacing.sm)
-
-                    Text("What's happening?")
-                        .font(.title)
-                        .fontWeight(.bold)
-                        .foregroundStyle(.white)
-
-                    Text("Tap to log. Take your time.")
-                        .font(.subheadline)
-                        .foregroundStyle(.white.opacity(0.7))
-                }
-                .padding(.top, 40)
-
-                // Crisis buttons - large, easy to tap
-                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: Spacing.xl) {
-                    ForEach(CrisisAction.allCases, id: \.self) { action in
-                        CrisisButton(action: action, isSelected: selectedAction == action) {
-                            selectedAction = action
-                            _ = viewModel.quickLog(patternType: action.patternType, intensity: 4)
-
-                            // Show help text briefly then dismiss
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                                dismiss()
-                            }
-                        }
-                    }
-                }
-                .padding(.horizontal)
-
-                // Help text
-                if let action = selectedAction {
-                    Text(action.helpText)
-                        .font(.body)
-                        .foregroundStyle(.white.opacity(0.9))
-                        .multilineTextAlignment(.center)
-                        .padding()
-                        .background(
-                            RoundedRectangle(cornerRadius: CornerRadius.md)
-                                .fill(Color(white: 0.2).opacity(0.6))
-                        )
-                        .padding(.horizontal)
-                        .transition(.opacity.combined(with: .scale))
-                }
-
-                Spacer()
-
-                // Quick exit
-                Button {
-                    dismiss()
-                } label: {
-                    Text("I'm okay")
-                        .font(.headline)
-                        .foregroundStyle(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(
-                            RoundedRectangle(cornerRadius: CornerRadius.lg)
-                                .fill(Color(white: 0.2).opacity(0.6))
-                        )
-                }
-                .padding(.horizontal)
-                .padding(.bottom, 30)
-            }
-        }
-    }
-}
-
-struct CrisisButton: View {
-    let action: CrisisModeView.CrisisAction
-    let isSelected: Bool
-    let onTap: () -> Void
-
-    var body: some View {
-        Button(action: onTap) {
-            VStack(spacing: Spacing.lg) {
-                Image(systemName: action.icon)
-                    .font(.system(size: 44))
-                    .foregroundStyle(action.color)
-
-                Text(action.rawValue)
-                    .font(.headline)
-                    .foregroundStyle(.white)
-            }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, Spacing.xxl)
-            .background(
-                RoundedRectangle(cornerRadius: CornerRadius.lg)
-                    .fill(isSelected ? action.color.opacity(0.3) : .white.opacity(0.15))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: CornerRadius.lg)
-                            .stroke(isSelected ? action.color : .clear, lineWidth: 3)
-                    )
-            )
-        }
-        .buttonStyle(.plain)
-        .scaleEffect(isSelected ? 1.05 : 1.0)
-        .animation(.spring(response: 0.2), value: isSelected)
     }
 }
 

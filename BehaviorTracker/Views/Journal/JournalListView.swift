@@ -285,7 +285,7 @@ struct DayTimelineCard: View {
         .padding(Spacing.lg)
         .background(
             RoundedRectangle(cornerRadius: CornerRadius.md)
-                .fill(theme.journalCardBackground)
+                .fill(theme.cardBackground)
         )
         .overlay(
             RoundedRectangle(cornerRadius: CornerRadius.md)

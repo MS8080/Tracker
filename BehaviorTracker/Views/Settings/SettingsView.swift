@@ -5,7 +5,7 @@ struct SettingsView: View {
     @State private var showingExportSheet = false
     @AppStorage("appearance") private var appearance: AppAppearance = .dark
     @AppStorage("selectedTheme") private var selectedThemeRaw: String = AppTheme.purple.rawValue
-    
+
     private var theme: AppTheme {
         AppTheme(rawValue: selectedThemeRaw) ?? .purple
     }
@@ -15,21 +15,21 @@ struct SettingsView: View {
             ZStack {
                 theme.gradient
                     .ignoresSafeArea()
-                
+
                 ScrollView {
                     VStack(spacing: 16) {
                         // Theme Section
                         themeSection
-                        
+
                         // Notifications Section
                         notificationsSection
-                        
+
                         // Quick Logging Section
                         quickLoggingSection
-                        
+
                         // Data Section
                         dataSection
-                        
+
                         // About Section
                         aboutSection
                     }
@@ -42,7 +42,7 @@ struct SettingsView: View {
             }
         }
     }
-    
+
     private var themeSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             SectionHeaderView(title: "Theme", icon: "paintbrush.fill")
@@ -333,73 +333,6 @@ struct FavoritePatternsView: View {
 
     private func toggleFavorite(_ patternType: PatternType) {
         viewModel.toggleFavorite(patternType: patternType)
-    }
-}
-
-struct DataPrivacyView: View {
-    @AppStorage("selectedTheme") private var selectedThemeRaw: String = AppTheme.purple.rawValue
-    private var theme: AppTheme {
-        AppTheme(rawValue: selectedThemeRaw) ?? .purple
-    }
-
-    var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
-                privacySection(
-                    icon: "lock.fill",
-                    color: .blue,
-                    title: "Local Storage Only",
-                    description: "All your data is stored exclusively on your device. Nothing is sent to external servers."
-                )
-
-                privacySection(
-                    icon: "eye.slash.fill",
-                    color: .purple,
-                    title: "No Tracking",
-                    description: "This app does not collect any analytics, usage data, or personal information."
-                )
-
-                privacySection(
-                    icon: "cloud.fill",
-                    color: .cyan,
-                    title: "Optional iCloud Sync",
-                    description: "iCloud sync is disabled by default. You can enable it in iOS Settings to sync across your devices."
-                )
-
-                privacySection(
-                    icon: "shield.fill",
-                    color: .green,
-                    title: "Your Data, Your Control",
-                    description: "You can export or delete your data at any time. The app works completely offline."
-                )
-            }
-            .padding()
-        }
-        .navigationTitle("Privacy & Security")
-        .navigationBarTitleDisplayModeInline()
-    }
-
-    private func privacySection(icon: String, color: Color, title: String, description: String) -> some View {
-        HStack(alignment: .top, spacing: 16) {
-            Image(systemName: icon)
-                .font(.title2)
-                .foregroundStyle(color)
-                .frame(width: 40)
-
-            VStack(alignment: .leading, spacing: 8) {
-                Text(title)
-                    .font(.headline)
-
-                Text(description)
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-            }
-        }
-        .padding(16)
-        .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(theme.cardBackground)
-        )
     }
 }
 
