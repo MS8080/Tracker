@@ -8,11 +8,7 @@ struct CalendarDayDetailView: View {
     let journalEntries: [JournalEntry]
     var calendarEvents: [CalendarEvent] = []
 
-    @AppStorage("selectedTheme") private var selectedThemeRaw: String = AppTheme.purple.rawValue
-
-    private var theme: AppTheme {
-        AppTheme(rawValue: selectedThemeRaw) ?? .purple
-    }
+    @ThemeWrapper var theme
 
     private var sortedEntries: [PatternEntry] {
         entries.sorted { $0.timestamp < $1.timestamp }
@@ -154,10 +150,7 @@ struct CalendarDayDetailView: View {
             }
         }
         .padding(20)
-        .background(
-            RoundedRectangle(cornerRadius: 24)
-                .fill(theme.cardBackground)
-        )
+        .cardStyle(theme: theme)
     }
 
     private var weekdayName: String {
@@ -199,10 +192,7 @@ struct CalendarDayDetailView: View {
             }
         }
         .padding(20)
-        .background(
-            RoundedRectangle(cornerRadius: 24)
-                .fill(theme.cardBackground)
-        )
+        .cardStyle(theme: theme)
     }
 
     // MARK: - Pattern Entries Section
@@ -219,10 +209,7 @@ struct CalendarDayDetailView: View {
             }
         }
         .padding(20)
-        .background(
-            RoundedRectangle(cornerRadius: 24)
-                .fill(theme.cardBackground)
-        )
+        .cardStyle(theme: theme)
     }
 
     // MARK: - Medication Logs Section
@@ -239,10 +226,7 @@ struct CalendarDayDetailView: View {
             }
         }
         .padding(20)
-        .background(
-            RoundedRectangle(cornerRadius: 24)
-                .fill(theme.cardBackground)
-        )
+        .cardStyle(theme: theme)
     }
 
     // MARK: - Journal Entries Section
@@ -259,10 +243,7 @@ struct CalendarDayDetailView: View {
             }
         }
         .padding(20)
-        .background(
-            RoundedRectangle(cornerRadius: 24)
-                .fill(theme.cardBackground)
-        )
+        .cardStyle(theme: theme)
     }
 
     // MARK: - Empty State
@@ -283,10 +264,7 @@ struct CalendarDayDetailView: View {
         }
         .frame(maxWidth: .infinity)
         .padding(40)
-        .background(
-            RoundedRectangle(cornerRadius: 24)
-                .fill(theme.cardBackground)
-        )
+        .cardStyle(theme: theme)
     }
 }
 
@@ -348,10 +326,7 @@ struct IntensityIndicator: View {
 struct PatternEntryRow: View {
     let entry: PatternEntry
 
-    @AppStorage("selectedTheme") private var selectedThemeRaw: String = AppTheme.purple.rawValue
-    private var theme: AppTheme {
-        AppTheme(rawValue: selectedThemeRaw) ?? .purple
-    }
+    @ThemeWrapper var theme
 
     var body: some View {
         HStack(spacing: 12) {
@@ -402,10 +377,7 @@ struct PatternEntryRow: View {
             }
         }
         .padding(12)
-        .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(theme.cardBackground)
-        )
+        .cardStyle(theme: theme, cornerRadius: 12)
     }
 
     private func intensityColor(for intensity: Int16) -> Color {
@@ -423,10 +395,7 @@ struct PatternEntryRow: View {
 struct CalendarMedicationLogRow: View {
     let log: MedicationLog
 
-    @AppStorage("selectedTheme") private var selectedThemeRaw: String = AppTheme.purple.rawValue
-    private var theme: AppTheme {
-        AppTheme(rawValue: selectedThemeRaw) ?? .purple
-    }
+    @ThemeWrapper var theme
 
     var body: some View {
         HStack(spacing: 12) {
@@ -480,20 +449,14 @@ struct CalendarMedicationLogRow: View {
             }
         }
         .padding(12)
-        .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(theme.cardBackground)
-        )
+        .cardStyle(theme: theme, cornerRadius: 12)
     }
 }
 
 struct CalendarJournalEntryRow: View {
     let entry: JournalEntry
 
-    @AppStorage("selectedTheme") private var selectedThemeRaw: String = AppTheme.purple.rawValue
-    private var theme: AppTheme {
-        AppTheme(rawValue: selectedThemeRaw) ?? .purple
-    }
+    @ThemeWrapper var theme
 
     var body: some View {
         HStack(spacing: 12) {
@@ -530,10 +493,7 @@ struct CalendarJournalEntryRow: View {
             Spacer()
         }
         .padding(12)
-        .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(theme.cardBackground)
-        )
+        .cardStyle(theme: theme, cornerRadius: 12)
     }
 
     private func moodEmoji(for mood: Int16) -> String {
@@ -553,10 +513,7 @@ struct CalendarJournalEntryRow: View {
 struct CalendarEventRow: View {
     let event: CalendarEvent
 
-    @AppStorage("selectedTheme") private var selectedThemeRaw: String = AppTheme.purple.rawValue
-    private var theme: AppTheme {
-        AppTheme(rawValue: selectedThemeRaw) ?? .purple
-    }
+    @ThemeWrapper var theme
 
     var body: some View {
         HStack(spacing: 12) {
@@ -620,10 +577,7 @@ struct CalendarEventRow: View {
             Spacer()
         }
         .padding(12)
-        .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(theme.cardBackground)
-        )
+        .cardStyle(theme: theme, cornerRadius: 12)
     }
 
     private var calendarColor: Color {

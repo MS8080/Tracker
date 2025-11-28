@@ -24,7 +24,7 @@ struct LoggingView: View {
                     .ignoresSafeArea()
 
                 ScrollView {
-                    VStack(spacing: 10) {
+                    VStack(spacing: Spacing.lg) {
                         // Favorites
                         if !viewModel.favoritePatterns.isEmpty {
                             favoritesSection
@@ -70,13 +70,13 @@ struct LoggingView: View {
     }
 
     private var favoritesSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: Spacing.md) {
             Text("Favorites")
                 .font(.headline)
                 .foregroundStyle(.secondary)
-                .padding(.horizontal, 4)
+                .padding(.horizontal, Spacing.xs)
 
-            LazyVGrid(columns: [GridItem(.adaptive(minimum: 160))], spacing: 12) {
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: 160))], spacing: Spacing.md) {
                 ForEach(viewModel.favoritePatterns, id: \.self) { patternTypeString in
                     if let patternType = PatternType(rawValue: patternTypeString) {
                         QuickLogButton(patternType: patternType) {
@@ -89,13 +89,13 @@ struct LoggingView: View {
     }
 
     private var allCategoriesView: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: Spacing.md) {
             Text("All Categories")
                 .font(.headline)
                 .foregroundStyle(.secondary)
-                .padding(.horizontal, 4)
+                .padding(.horizontal, Spacing.xs)
 
-            LazyVGrid(columns: [GridItem(.adaptive(minimum: 160))], spacing: 12) {
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: 160))], spacing: Spacing.md) {
                 ForEach(PatternCategory.allCases, id: \.self) { category in
                     CategoryButton(category: category) {
                         selectedCategory = category
@@ -119,13 +119,29 @@ struct CategoryButton: View {
     private var theme: AppTheme {
         AppTheme(rawValue: selectedThemeRaw) ?? .purple
     }
+    
+    @State private var isPressed = false
 
     var body: some View {
-        Button(action: action) {
-            VStack(spacing: 12) {
+        Button(action: {
+            withAnimation(.spring(response: 0.2, dampingFraction: 0.7)) {
+                isPressed = true
+            }
+            
+            HapticFeedback.light.trigger()
+            
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                withAnimation(.spring(response: 0.2, dampingFraction: 0.7)) {
+                    isPressed = false
+                }
+                action()
+            }
+        }) {
+            VStack(spacing: Spacing.md) {
                 Image(systemName: category.icon)
                     .font(.system(size: 32, weight: .medium))
                     .foregroundStyle(category.color)
+                    .symbolEffect(.bounce, value: isPressed)
 
                 Text(category.rawValue)
                     .font(.subheadline)
@@ -134,18 +150,19 @@ struct CategoryButton: View {
                     .multilineTextAlignment(.center)
             }
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 20)
+            .padding(.vertical, Spacing.xl)
             .background(
-                RoundedRectangle(cornerRadius: 24)
+                RoundedRectangle(cornerRadius: CornerRadius.lg)
                     .fill(theme.cardBackground)
             )
             .overlay(
-                RoundedRectangle(cornerRadius: 24)
+                RoundedRectangle(cornerRadius: CornerRadius.lg)
                     .stroke(theme.cardBorderColor, lineWidth: 0.5)
             )
-            .shadow(color: theme.cardShadowColor, radius: 8, y: 4)
+            .shadow(color: theme.cardShadowColor, radius: 6, y: 3)
         }
         .buttonStyle(.plain)
+        .scaleEffect(isPressed ? 0.95 : 1.0)
     }
 }
 
@@ -156,16 +173,28 @@ struct FeelingFinderCategoryButton: View {
     private var theme: AppTheme {
         AppTheme(rawValue: selectedThemeRaw) ?? .purple
     }
+    
+    @State private var isPressed = false
 
     var body: some View {
         Button {
+            withAnimation(.spring(response: 0.2, dampingFraction: 0.7)) {
+                isPressed = true
+            }
+            
             HapticFeedback.medium.trigger()
-            action()
+            
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                withAnimation(.spring(response: 0.2, dampingFraction: 0.7)) {
+                    isPressed = false
+                }
+                action()
+            }
         } label: {
-            VStack(spacing: 12) {
+            VStack(spacing: Spacing.md) {
                 Image(systemName: "questionmark.circle.fill")
                     .font(.system(size: 32, weight: .medium))
-                    .foregroundStyle(.green)
+                    .foregroundStyle(.mint)
 
                 Text("Guided")
                     .font(.subheadline)
@@ -173,18 +202,19 @@ struct FeelingFinderCategoryButton: View {
                     .foregroundStyle(.primary)
             }
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 20)
+            .padding(.vertical, Spacing.xl)
             .background(
-                RoundedRectangle(cornerRadius: 24)
+                RoundedRectangle(cornerRadius: CornerRadius.lg)
                     .fill(theme.cardBackground)
             )
             .overlay(
-                RoundedRectangle(cornerRadius: 24)
+                RoundedRectangle(cornerRadius: CornerRadius.lg)
                     .stroke(theme.cardBorderColor, lineWidth: 0.5)
             )
-            .shadow(color: theme.cardShadowColor, radius: 8, y: 4)
+            .shadow(color: theme.cardShadowColor, radius: 6, y: 3)
         }
         .buttonStyle(.plain)
+        .scaleEffect(isPressed ? 0.95 : 1.0)
     }
 }
 
@@ -196,10 +226,25 @@ struct QuickLogButton: View {
     private var theme: AppTheme {
         AppTheme(rawValue: selectedThemeRaw) ?? .purple
     }
+    
+    @State private var isPressed = false
 
     var body: some View {
-        Button(action: action) {
-            HStack(spacing: 8) {
+        Button(action: {
+            withAnimation(.spring(response: 0.2, dampingFraction: 0.7)) {
+                isPressed = true
+            }
+            
+            HapticFeedback.light.trigger()
+            
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                withAnimation(.spring(response: 0.2, dampingFraction: 0.7)) {
+                    isPressed = false
+                }
+                action()
+            }
+        }) {
+            HStack(spacing: Spacing.sm) {
                 Image(systemName: patternType.category.icon)
                     .font(.system(size: 20, weight: .medium))
                     .foregroundStyle(patternType.category.color)
@@ -215,21 +260,22 @@ struct QuickLogButton: View {
 
                 Image(systemName: "plus.circle.fill")
                     .font(.system(size: 20))
-                    .foregroundStyle(.green)
+                    .foregroundStyle(theme.primaryColor)
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 12)
+            .padding(.horizontal, Spacing.md)
+            .padding(.vertical, Spacing.md)
             .background(
-                RoundedRectangle(cornerRadius: 16)
+                RoundedRectangle(cornerRadius: CornerRadius.md)
                     .fill(theme.cardBackground)
             )
             .overlay(
-                RoundedRectangle(cornerRadius: 16)
+                RoundedRectangle(cornerRadius: CornerRadius.md)
                     .stroke(theme.cardBorderColor, lineWidth: 0.5)
             )
-            .shadow(color: theme.cardShadowColor, radius: 8, y: 4)
+            .shadow(color: theme.cardShadowColor, radius: 6, y: 3)
         }
         .buttonStyle(.plain)
+        .scaleEffect(isPressed ? 0.97 : 1.0)
     }
 }
 
@@ -301,13 +347,13 @@ struct CrisisModeView: View {
             warningGradient
                 .ignoresSafeArea()
 
-            VStack(spacing: 30) {
+            VStack(spacing: Spacing.xxl) {
                 // Header
-                VStack(spacing: 8) {
+                VStack(spacing: Spacing.sm) {
                     Image(systemName: "exclamationmark.triangle.fill")
                         .font(.system(size: 50))
                         .foregroundStyle(.orange)
-                        .padding(.bottom, 8)
+                        .padding(.bottom, Spacing.sm)
 
                     Text("What's happening?")
                         .font(.title)
@@ -321,7 +367,7 @@ struct CrisisModeView: View {
                 .padding(.top, 40)
 
                 // Crisis buttons - large, easy to tap
-                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 20) {
+                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: Spacing.xl) {
                     ForEach(CrisisAction.allCases, id: \.self) { action in
                         CrisisButton(action: action, isSelected: selectedAction == action) {
                             selectedAction = action
@@ -344,7 +390,7 @@ struct CrisisModeView: View {
                         .multilineTextAlignment(.center)
                         .padding()
                         .background(
-                            RoundedRectangle(cornerRadius: 16)
+                            RoundedRectangle(cornerRadius: CornerRadius.md)
                                 .fill(Color(white: 0.2).opacity(0.6))
                         )
                         .padding(.horizontal)
@@ -363,7 +409,7 @@ struct CrisisModeView: View {
                         .frame(maxWidth: .infinity)
                         .padding()
                         .background(
-                            RoundedRectangle(cornerRadius: 24)
+                            RoundedRectangle(cornerRadius: CornerRadius.lg)
                                 .fill(Color(white: 0.2).opacity(0.6))
                         )
                 }
@@ -381,7 +427,7 @@ struct CrisisButton: View {
 
     var body: some View {
         Button(action: onTap) {
-            VStack(spacing: 16) {
+            VStack(spacing: Spacing.lg) {
                 Image(systemName: action.icon)
                     .font(.system(size: 44))
                     .foregroundStyle(action.color)
@@ -391,19 +437,19 @@ struct CrisisButton: View {
                     .foregroundStyle(.white)
             }
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 30)
+            .padding(.vertical, Spacing.xxl)
             .background(
-                RoundedRectangle(cornerRadius: 24)
+                RoundedRectangle(cornerRadius: CornerRadius.lg)
                     .fill(isSelected ? action.color.opacity(0.3) : .white.opacity(0.15))
                     .overlay(
-                        RoundedRectangle(cornerRadius: 24)
+                        RoundedRectangle(cornerRadius: CornerRadius.lg)
                             .stroke(isSelected ? action.color : .clear, lineWidth: 3)
                     )
             )
         }
         .buttonStyle(.plain)
         .scaleEffect(isSelected ? 1.05 : 1.0)
-        .animation(.spring(response: 0.3), value: isSelected)
+        .animation(.spring(response: 0.2), value: isSelected)
     }
 }
 

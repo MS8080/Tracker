@@ -28,7 +28,7 @@ struct MedicationQuickLogView: View {
     // MARK: - Collapsed Button (at bottom, wide bar)
     private var collapsedButton: some View {
         Button {
-            withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+            withAnimation(.spring(response: 0.2, dampingFraction: 0.8)) {
                 isExpanded = true
             }
             HapticFeedback.medium.trigger()
@@ -68,11 +68,11 @@ struct MedicationQuickLogView: View {
             .padding(.vertical, 16)
             .frame(maxWidth: .infinity)
             .background(
-                RoundedRectangle(cornerRadius: 24, style: .continuous)
+                RoundedRectangle(cornerRadius: CornerRadius.lg, style: .continuous)
                     .fill(theme.cardBackground)
             )
             .overlay(
-                RoundedRectangle(cornerRadius: 24, style: .continuous)
+                RoundedRectangle(cornerRadius: CornerRadius.lg, style: .continuous)
                     .stroke(theme.cardBorderColor, lineWidth: 0.5)
             )
             .shadow(color: theme.cardShadowColor, radius: 8, y: 4)
@@ -96,7 +96,7 @@ struct MedicationQuickLogView: View {
                 Spacer()
 
                 Button {
-                    withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                    withAnimation(.spring(response: 0.2, dampingFraction: 0.8)) {
                         isExpanded = false
                     }
                 } label: {
@@ -211,7 +211,7 @@ struct MedicationTapToLogCard: View {
             .padding(.horizontal, 16)
             .padding(.vertical, 12)
             .background(
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                RoundedRectangle(cornerRadius: CornerRadius.md, style: .continuous)
                     .fill(hasLoggedToday ? Color.green.opacity(0.08) : Color.gray.opacity(0.15))
             )
         }
@@ -242,7 +242,7 @@ struct MedicationTapToLogCard: View {
             notes: nil
         )
 
-        withAnimation(.spring(response: 0.3)) {
+        withAnimation(.spring(response: 0.2)) {
             hasLoggedToday = true
             logTime = Date()
         }

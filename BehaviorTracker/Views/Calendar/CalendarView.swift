@@ -16,7 +16,7 @@ struct CalendarView: View {
         self._showingProfile = showingProfile
     }
 
-    private let columns = Array(repeating: GridItem(.flexible(), spacing: 4), count: 7)
+    private let columns = Array(repeating: GridItem(.flexible(), spacing: Spacing.xs), count: 7)
 
     var body: some View {
         NavigationStack {
@@ -25,7 +25,7 @@ struct CalendarView: View {
                     .ignoresSafeArea()
 
                 ScrollView {
-                    VStack(spacing: 20) {
+                    VStack(spacing: Spacing.lg) {
                         // Calendar permission banner (only show if not authorized and not dismissed)
                         if !viewModel.isCalendarAuthorized && !calendarBannerDismissed && !CalendarEventService.shared.currentAuthorizationStatus {
                             calendarPermissionBanner
@@ -80,12 +80,12 @@ struct CalendarView: View {
     // MARK: - Calendar Permission Banner
 
     private var calendarPermissionBanner: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: Spacing.md) {
             Image(systemName: "calendar.badge.plus")
                 .font(.title2)
-                .foregroundStyle(.cyan)
+                .foregroundStyle(SemanticColor.calendar)
 
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: Spacing.xs) {
                 Text("Import Calendar Events")
                     .font(.subheadline)
                     .fontWeight(.medium)
@@ -109,7 +109,7 @@ struct CalendarView: View {
                     .padding(.vertical, 6)
                     .background(
                         Capsule()
-                            .fill(.cyan)
+                            .fill(SemanticColor.calendar)
                     )
             }
 
@@ -177,7 +177,7 @@ struct CalendarView: View {
     // MARK: - Weekday Header
 
     private var weekdayHeader: some View {
-        LazyVGrid(columns: columns, spacing: 4) {
+        LazyVGrid(columns: columns, spacing: Spacing.xs) {
             ForEach(viewModel.weekdaySymbols, id: \.self) { symbol in
                 Text(symbol)
                     .font(.caption)
@@ -191,7 +191,7 @@ struct CalendarView: View {
     // MARK: - Calendar Grid
 
     private var calendarGrid: some View {
-        LazyVGrid(columns: columns, spacing: 4) {
+        LazyVGrid(columns: columns, spacing: Spacing.xs) {
             ForEach(viewModel.daysInMonth, id: \.self) { date in
                 CalendarDayCell(
                     date: date,
@@ -217,13 +217,13 @@ struct CalendarView: View {
                 }
             }
         }
-        .padding(12)
+        .padding(Spacing.md)
         .background(
-            RoundedRectangle(cornerRadius: 24)
+            RoundedRectangle(cornerRadius: CornerRadius.lg)
                 .fill(theme.cardBackground)
         )
         .overlay(
-            RoundedRectangle(cornerRadius: 24)
+            RoundedRectangle(cornerRadius: CornerRadius.lg)
                 .stroke(theme.cardBorderColor, lineWidth: 0.5)
         )
         .shadow(color: theme.cardShadowColor, radius: 8, y: 4)
@@ -238,7 +238,7 @@ struct CalendarView: View {
         let journalEntries = viewModel.journalEntriesForDate(date)
         let calendarEvents = viewModel.calendarEventsForDate(date)
 
-        return VStack(alignment: .leading, spacing: 16) {
+        return VStack(alignment: .leading, spacing: Spacing.lg) {
             HStack {
                 Text(date, style: .date)
                     .font(.headline)
@@ -251,7 +251,7 @@ struct CalendarView: View {
                     } label: {
                         Text("View Details")
                             .font(.subheadline)
-                            .foregroundStyle(.blue)
+                            .foregroundStyle(SemanticColor.primary)
                     }
                 }
             }
@@ -263,21 +263,21 @@ struct CalendarView: View {
                     .frame(maxWidth: .infinity, alignment: .center)
                     .padding(.vertical, 20)
             } else {
-                VStack(spacing: 12) {
+                VStack(spacing: Spacing.md) {
                     // Calendar events summary
                     if !calendarEvents.isEmpty {
                         HStack {
                             Image(systemName: "calendar")
-                                .foregroundStyle(.cyan)
+                                .foregroundStyle(SemanticColor.calendar)
                             Text("\(calendarEvents.count) event\(calendarEvents.count == 1 ? "" : "s")")
                                 .font(.subheadline)
                             Spacer()
                         }
 
                         // Show first few events
-                        VStack(spacing: 6) {
+                        VStack(spacing: Spacing.sm) {
                             ForEach(calendarEvents.prefix(3)) { event in
-                                HStack(spacing: 8) {
+                                HStack(spacing: Spacing.sm) {
                                     Text(event.timeString)
                                         .font(.caption)
                                         .foregroundStyle(.secondary)
@@ -300,8 +300,8 @@ struct CalendarView: View {
                     // Pattern entries summary
                     if !entries.isEmpty {
                         HStack {
-                            Image(systemName: "chart.line.uptrend.xyaxis")
-                                .foregroundStyle(.blue)
+                            Image(systemName: "chart.line.uptrend.xyaxis.circle.fill")
+                                .foregroundStyle(SemanticColor.primary)
                             Text("\(entries.count) pattern\(entries.count == 1 ? "" : "s") logged")
                                 .font(.subheadline)
                             Spacer()
@@ -310,7 +310,7 @@ struct CalendarView: View {
                         // Category breakdown
                         if !categories.isEmpty {
                             ScrollView(.horizontal, showsIndicators: false) {
-                                HStack(spacing: 8) {
+                                HStack(spacing: Spacing.sm) {
                                     ForEach(categories, id: \.self) { category in
                                         let count = entries.filter { $0.patternCategoryEnum == category }.count
                                         CategoryPill(category: category, count: count)
@@ -324,7 +324,7 @@ struct CalendarView: View {
                     if !medicationLogs.isEmpty {
                         HStack {
                             Image(systemName: "pills.fill")
-                                .foregroundStyle(.green)
+                                .foregroundStyle(SemanticColor.success)
                             Text("\(medicationLogs.count) medication\(medicationLogs.count == 1 ? "" : "s") logged")
                                 .font(.subheadline)
                             Spacer()
@@ -335,7 +335,7 @@ struct CalendarView: View {
                     if !journalEntries.isEmpty {
                         HStack {
                             Image(systemName: "book.fill")
-                                .foregroundStyle(.orange)
+                                .foregroundStyle(SemanticColor.warning)
                             Text("\(journalEntries.count) journal entr\(journalEntries.count == 1 ? "y" : "ies")")
                                 .font(.subheadline)
                             Spacer()
@@ -344,13 +344,13 @@ struct CalendarView: View {
                 }
             }
         }
-        .padding(20)
+        .padding(Spacing.xl)
         .background(
-            RoundedRectangle(cornerRadius: 24)
+            RoundedRectangle(cornerRadius: CornerRadius.lg)
                 .fill(theme.cardBackground)
         )
         .overlay(
-            RoundedRectangle(cornerRadius: 24)
+            RoundedRectangle(cornerRadius: CornerRadius.lg)
                 .stroke(theme.cardBorderColor, lineWidth: 0.5)
         )
         .shadow(color: theme.cardShadowColor, radius: 8, y: 4)
@@ -359,13 +359,13 @@ struct CalendarView: View {
     // MARK: - Legend
 
     private var legendSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: Spacing.md) {
             Text("Legend")
                 .font(.headline)
 
-            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 8) {
+            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: Spacing.sm) {
                 ForEach(PatternCategory.allCases, id: \.self) { category in
-                    HStack(spacing: 8) {
+                    HStack(spacing: Spacing.sm) {
                         Circle()
                             .fill(category.color)
                             .frame(width: 12, height: 12)
@@ -380,39 +380,39 @@ struct CalendarView: View {
             Divider()
                 .padding(.vertical, 4)
 
-            HStack(spacing: 16) {
-                HStack(spacing: 6) {
+            HStack(spacing: Spacing.lg) {
+                HStack(spacing: Spacing.sm) {
                     Circle()
-                        .fill(.cyan)
+                        .fill(SemanticColor.calendar)
                         .frame(width: 8, height: 8)
                     Text("Calendar")
                         .font(.caption)
                 }
 
-                HStack(spacing: 6) {
+                HStack(spacing: Spacing.sm) {
                     Image(systemName: "pills.fill")
                         .font(.caption)
-                        .foregroundStyle(.green)
+                        .foregroundStyle(SemanticColor.success)
                     Text("Medication")
                         .font(.caption)
                 }
 
-                HStack(spacing: 6) {
+                HStack(spacing: Spacing.sm) {
                     Image(systemName: "book.fill")
                         .font(.caption)
-                        .foregroundStyle(.orange)
+                        .foregroundStyle(SemanticColor.warning)
                     Text("Journal")
                         .font(.caption)
                 }
             }
         }
-        .padding(20)
+        .padding(Spacing.xl)
         .background(
-            RoundedRectangle(cornerRadius: 24)
+            RoundedRectangle(cornerRadius: CornerRadius.lg)
                 .fill(theme.cardBackground)
         )
         .overlay(
-            RoundedRectangle(cornerRadius: 24)
+            RoundedRectangle(cornerRadius: CornerRadius.lg)
                 .stroke(theme.cardBorderColor, lineWidth: 0.5)
         )
         .shadow(color: theme.cardShadowColor, radius: 8, y: 4)

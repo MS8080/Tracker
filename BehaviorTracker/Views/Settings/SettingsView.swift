@@ -4,118 +4,289 @@ struct SettingsView: View {
     @StateObject private var viewModel = SettingsViewModel()
     @State private var showingExportSheet = false
     @AppStorage("appearance") private var appearance: AppAppearance = .dark
+    @AppStorage("selectedTheme") private var selectedThemeRaw: String = AppTheme.purple.rawValue
+    
+    private var theme: AppTheme {
+        AppTheme(rawValue: selectedThemeRaw) ?? .purple
+    }
 
     var body: some View {
         NavigationStack {
-            Form {
-                Section {
-                    Picker(selection: $appearance) {
-                        ForEach(AppAppearance.allCases, id: \.self) { option in
-                            HStack {
-                                Image(systemName: option.icon)
-                                Text(option.displayName)
-                            }
-                            .tag(option)
-                        }
-                    } label: {
-                        HStack {
-                            Image(systemName: "paintbrush.fill")
-                                .foregroundStyle(.purple)
-                            Text("Appearance")
-                        }
+            ZStack {
+                theme.gradient
+                    .ignoresSafeArea()
+                
+                ScrollView {
+                    VStack(spacing: 16) {
+                        // Theme Section
+                        themeSection
+                        
+                        // Notifications Section
+                        notificationsSection
+                        
+                        // Quick Logging Section
+                        quickLoggingSection
+                        
+                        // Data Section
+                        dataSection
+                        
+                        // About Section
+                        aboutSection
                     }
-                    .pickerStyle(.menu)
-                } header: {
-                    Text("Theme")
-                }
-
-                Section {
-                    Toggle(isOn: $viewModel.notificationsEnabled) {
-                        HStack {
-                            Image(systemName: "bell.fill")
-                                .foregroundStyle(.blue)
-                            Text("Daily Reminders")
-                        }
-                    }
-
-                    if viewModel.notificationsEnabled {
-                        DatePicker(
-                            "Reminder Time",
-                            selection: $viewModel.notificationTime,
-                            displayedComponents: .hourAndMinute
-                        )
-                    }
-                } header: {
-                    Text("Notifications")
-                }
-
-                Section {
-                    NavigationLink {
-                        FavoritePatternsView(viewModel: viewModel)
-                    } label: {
-                        HStack {
-                            Image(systemName: "star.fill")
-                                .foregroundStyle(.yellow)
-                            Text("Manage Favorites")
-                            Spacer()
-                            Text("\(viewModel.favoritePatterns.count)")
-                                .foregroundStyle(.secondary)
-                        }
-                    }
-                } header: {
-                    Text("Quick Logging")
-                }
-
-                Section {
-                    Button {
-                        showingExportSheet = true
-                    } label: {
-                        HStack {
-                            Image(systemName: "square.and.arrow.up")
-                                .foregroundStyle(.green)
-                            Text("Export Data")
-                        }
-                    }
-
-                    NavigationLink {
-                        DataPrivacyView()
-                    } label: {
-                        HStack {
-                            Image(systemName: "lock.shield")
-                                .foregroundStyle(.blue)
-                            Text("Privacy & Security")
-                        }
-                    }
-                } header: {
-                    Text("Data")
-                }
-
-                Section {
-                    HStack {
-                        Image(systemName: "info.circle")
-                            .foregroundStyle(.blue)
-                        Text("Version")
-                        Spacer()
-                        Text("1.0.0")
-                            .foregroundStyle(.secondary)
-                    }
-
-                    NavigationLink {
-                        AboutView()
-                    } label: {
-                        HStack {
-                            Image(systemName: "doc.text")
-                                .foregroundStyle(.purple)
-                            Text("About")
-                        }
-                    }
-                } header: {
-                    Text("About")
+                    .padding()
                 }
             }
             .navigationTitle("Settings")
             .sheet(isPresented: $showingExportSheet) {
                 ExportDataView(viewModel: viewModel)
+            }
+        }
+    }
+    
+    private var themeSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            SectionHeaderView(title: "Theme", icon: "paintbrush.fill")
+            
+            Picker(selection: $appearance) {
+                ForEach(AppAppearance.allCases, id: \.self) { option in
+                    HStack {
+                        Image(systemName: option.icon)
+                        Text(option.displayName)
+                    }
+                    .tag(option)
+                }
+            } label: {
+                HStack(spacing: 14) {
+                    ThemedIcon(
+                        systemName: "paintbrush.fill",
+                        color: .purple,
+                        size: 40,
+                        backgroundStyle: .roundedSquare
+                    )
+                    
+                    Text("Appearance")
+                        .font(.callout)
+                        .fontWeight(.medium)
+                        .foregroundStyle(.primary)
+                    
+                    Spacer()
+                }
+                .padding(.vertical, 12)
+                .padding(.horizontal, 16)
+            }
+            .pickerStyle(.menu)
+            .background(
+                RoundedRectangle(cornerRadius: 14)
+                    .fill(theme.cardBackground)
+                    .shadow(color: .black.opacity(0.05), radius: 4, y: 2)
+            )
+        }
+    }
+    
+    private var notificationsSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            SectionHeaderView(title: "Notifications", icon: "bell.fill")
+            
+            VStack(spacing: 0) {
+                Toggle(isOn: $viewModel.notificationsEnabled) {
+                    HStack(spacing: 14) {
+                        ThemedIcon(
+                            systemName: "bell.fill",
+                            color: .blue,
+                            size: 40,
+                            backgroundStyle: .roundedSquare
+                        )
+                        
+                        Text("Daily Reminders")
+                            .font(.callout)
+                            .fontWeight(.medium)
+                            .foregroundStyle(.primary)
+                    }
+                }
+                .padding(.vertical, 12)
+                .padding(.horizontal, 16)
+                .tint(theme.primaryColor)
+                
+                if viewModel.notificationsEnabled {
+                    Divider()
+                        .padding(.horizontal, 16)
+                    
+                    DatePicker(
+                        "Reminder Time",
+                        selection: $viewModel.notificationTime,
+                        displayedComponents: .hourAndMinute
+                    )
+                    .padding(.vertical, 12)
+                    .padding(.horizontal, 16)
+                    .tint(theme.primaryColor)
+                }
+            }
+            .background(
+                RoundedRectangle(cornerRadius: 14)
+                    .fill(theme.cardBackground)
+                    .shadow(color: .black.opacity(0.05), radius: 4, y: 2)
+            )
+        }
+    }
+    
+    private var quickLoggingSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            SectionHeaderView(title: "Quick Logging", icon: "bolt.fill")
+            
+            NavigationLink {
+                FavoritePatternsView(viewModel: viewModel)
+            } label: {
+                HStack(spacing: 14) {
+                    ThemedIcon(
+                        systemName: "star.fill",
+                        color: .yellow,
+                        size: 40,
+                        backgroundStyle: .roundedSquare
+                    )
+                    
+                    Text("Manage Favorites")
+                        .font(.callout)
+                        .fontWeight(.medium)
+                        .foregroundStyle(.primary)
+                    
+                    Spacer()
+                    
+                    BadgeView(
+                        text: "\(viewModel.favoritePatterns.count)",
+                        color: theme.primaryColor
+                    )
+                    
+                    Image(systemName: "chevron.right")
+                        .font(.caption)
+                        .fontWeight(.semibold)
+                        .foregroundStyle(.tertiary)
+                }
+                .padding(.vertical, 12)
+                .padding(.horizontal, 16)
+            }
+            .background(
+                RoundedRectangle(cornerRadius: 14)
+                    .fill(theme.cardBackground)
+                    .shadow(color: .black.opacity(0.05), radius: 4, y: 2)
+            )
+        }
+    }
+    
+    private var dataSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            SectionHeaderView(title: "Data", icon: "externaldrive.fill")
+            
+            VStack(spacing: 8) {
+                Button {
+                    showingExportSheet = true
+                } label: {
+                    SettingsRow(
+                        icon: "square.and.arrow.up",
+                        title: "Export Data",
+                        color: .green,
+                        theme: theme,
+                        action: { showingExportSheet = true }
+                    )
+                }
+                
+                NavigationLink {
+                    EnhancedDataPrivacyView(theme: theme)
+                } label: {
+                    HStack(spacing: 14) {
+                        ThemedIcon(
+                            systemName: "lock.shield.fill",
+                            color: .blue,
+                            size: 40,
+                            backgroundStyle: .roundedSquare
+                        )
+                        
+                        Text("Privacy & Security")
+                            .font(.callout)
+                            .fontWeight(.medium)
+                            .foregroundStyle(.primary)
+                        
+                        Spacer()
+                        
+                        Image(systemName: "chevron.right")
+                            .font(.caption)
+                            .fontWeight(.semibold)
+                            .foregroundStyle(.tertiary)
+                    }
+                    .padding(.vertical, 12)
+                    .padding(.horizontal, 16)
+                    .background(
+                        RoundedRectangle(cornerRadius: 14)
+                            .fill(theme.cardBackground)
+                            .shadow(color: .black.opacity(0.05), radius: 4, y: 2)
+                    )
+                }
+            }
+        }
+    }
+    
+    private var aboutSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            SectionHeaderView(title: "About", icon: "info.circle.fill")
+            
+            VStack(spacing: 8) {
+                HStack(spacing: 14) {
+                    ThemedIcon(
+                        systemName: "info.circle.fill",
+                        color: .blue,
+                        size: 40,
+                        backgroundStyle: .roundedSquare
+                    )
+                    
+                    Text("Version")
+                        .font(.callout)
+                        .fontWeight(.medium)
+                        .foregroundStyle(.primary)
+                    
+                    Spacer()
+                    
+                    Text("1.0.0")
+                        .font(.callout)
+                        .foregroundStyle(.secondary)
+                }
+                .padding(.vertical, 12)
+                .padding(.horizontal, 16)
+                .background(
+                    RoundedRectangle(cornerRadius: 14)
+                        .fill(theme.cardBackground)
+                        .shadow(color: .black.opacity(0.05), radius: 4, y: 2)
+                )
+                
+                NavigationLink {
+                    AboutView()
+                } label: {
+                    HStack(spacing: 14) {
+                        ThemedIcon(
+                            systemName: "doc.text.fill",
+                            color: .purple,
+                            size: 40,
+                            backgroundStyle: .roundedSquare
+                        )
+                        
+                        Text("About")
+                            .font(.callout)
+                            .fontWeight(.medium)
+                            .foregroundStyle(.primary)
+                        
+                        Spacer()
+                        
+                        Image(systemName: "chevron.right")
+                            .font(.caption)
+                            .fontWeight(.semibold)
+                            .foregroundStyle(.tertiary)
+                    }
+                    .padding(.vertical, 12)
+                    .padding(.horizontal, 16)
+                    .background(
+                        RoundedRectangle(cornerRadius: 14)
+                            .fill(theme.cardBackground)
+                            .shadow(color: .black.opacity(0.05), radius: 4, y: 2)
+                    )
+                }
             }
         }
     }
@@ -229,6 +400,52 @@ struct DataPrivacyView: View {
             RoundedRectangle(cornerRadius: 12)
                 .fill(theme.cardBackground)
         )
+    }
+}
+
+struct EnhancedDataPrivacyView: View {
+    let theme: AppTheme
+
+    var body: some View {
+        ZStack {
+            theme.gradient
+                .ignoresSafeArea()
+            
+            ScrollView {
+                VStack(spacing: 16) {
+                    InfoBox(
+                        icon: "lock.shield.fill",
+                        title: "Local Storage Only",
+                        message: "All your data is stored exclusively on your device. Nothing is sent to external servers.",
+                        color: .blue
+                    )
+
+                    InfoBox(
+                        icon: "eye.slash.fill",
+                        title: "No Tracking",
+                        message: "This app does not collect any analytics, usage data, or personal information.",
+                        color: .purple
+                    )
+
+                    InfoBox(
+                        icon: "cloud.fill",
+                        title: "Optional iCloud Sync",
+                        message: "iCloud sync is disabled by default. You can enable it in iOS Settings to sync across your devices.",
+                        color: .cyan
+                    )
+
+                    InfoBox(
+                        icon: "shield.checkmark.fill",
+                        title: "Your Data, Your Control",
+                        message: "You can export or delete your data at any time. The app works completely offline.",
+                        color: .green
+                    )
+                }
+                .padding()
+            }
+        }
+        .navigationTitle("Privacy & Security")
+        .navigationBarTitleDisplayMode(.inline)
     }
 }
 

@@ -195,11 +195,11 @@ struct CategoryBreakdownRow: View {
         }
         .padding()
         .background(
-            RoundedRectangle(cornerRadius: 16)
+            RoundedRectangle(cornerRadius: CornerRadius.md)
                 .fill(theme.cardBackground)
         )
         .overlay(
-            RoundedRectangle(cornerRadius: 16)
+            RoundedRectangle(cornerRadius: CornerRadius.md)
                 .stroke(theme.cardBorderColor, lineWidth: 0.5)
         )
         .shadow(color: theme.cardShadowColor, radius: 8, y: 4)
@@ -398,11 +398,11 @@ struct TimelineEntryRow: View {
         }
         .padding()
         .background(
-            RoundedRectangle(cornerRadius: 16)
+            RoundedRectangle(cornerRadius: CornerRadius.md)
                 .fill(theme.cardBackground)
         )
         .overlay(
-            RoundedRectangle(cornerRadius: 16)
+            RoundedRectangle(cornerRadius: CornerRadius.md)
                 .stroke(theme.cardBorderColor, lineWidth: 0.5)
         )
         .shadow(color: theme.cardShadowColor, radius: 8, y: 4)

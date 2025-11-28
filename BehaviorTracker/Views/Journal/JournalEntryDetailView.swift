@@ -90,12 +90,6 @@ struct JournalEntryDetailView: View {
                         .font(.title2)
                         .fontWeight(.bold)
                         .accessibilityLabel("Title: \(title)")
-                } else {
-                    Text("Untitled Entry")
-                        .font(.title2)
-                        .fontWeight(.bold)
-                        .foregroundColor(.secondary)
-                        .accessibilityLabel("Untitled entry")
                 }
 
                 Spacer()

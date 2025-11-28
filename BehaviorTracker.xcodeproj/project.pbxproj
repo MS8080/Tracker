@@ -72,8 +72,20 @@
 		4EAUD00012EE0000000000001 /* AudioRecordingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EAUD00012EE0000000000002 /* AudioRecordingService.swift */; };
 		4EC1D7182ED8FBE4003F9272 /* EmptyStateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EC1D7172ED8FBE4003F9272 /* EmptyStateView.swift */; };
 		4EC1D7192ED8FBE4003F9272 /* EmptyStateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EC1D7172ED8FBE4003F9272 /* EmptyStateView.swift */; };
-		4EC1D71B2ED8FC24003F9272 /* LoadingSkeletonView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EC1D71A2ED8FC24003F9272 /* LoadingSkeletonView.swift */; };
-		4EC1D71C2ED8FC24003F9272 /* LoadingSkeletonView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EC1D71A2ED8FC24003F9272 /* LoadingSkeletonView.swift */; };
+		4EC1D71E2ED8FF99003F9272 /* ThemeWrapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EC1D71D2ED8FF99003F9272 /* ThemeWrapper.swift */; };
+		4EC1D71F2ED8FF99003F9272 /* ThemeWrapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EC1D71D2ED8FF99003F9272 /* ThemeWrapper.swift */; };
+		4EC1D7212ED8FFA3003F9272 /* ThemedCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EC1D7202ED8FFA3003F9272 /* ThemedCard.swift */; };
+		4EC1D7222ED8FFA3003F9272 /* ThemedCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EC1D7202ED8FFA3003F9272 /* ThemedCard.swift */; };
+		4EC1D7242ED9003A003F9272 /* REFACTORING_SUMMARY.md in Resources */ = {isa = PBXBuildFile; fileRef = 4EC1D7232ED9003A003F9272 /* REFACTORING_SUMMARY.md */; };
+		4EC1D7252ED9003A003F9272 /* REFACTORING_SUMMARY.md in Resources */ = {isa = PBXBuildFile; fileRef = 4EC1D7232ED9003A003F9272 /* REFACTORING_SUMMARY.md */; };
+		4EC1D7272ED904BC003F9272 /* ImportMedicationsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EC1D7262ED904BC003F9272 /* ImportMedicationsView.swift */; };
+		4EC1D7282ED904BC003F9272 /* ImportMedicationsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EC1D7262ED904BC003F9272 /* ImportMedicationsView.swift */; };
+		4EC1D72A2ED90B9B003F9272 /* DesignSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EC1D7292ED90B9B003F9272 /* DesignSystem.swift */; };
+		4EC1D72B2ED90B9B003F9272 /* DesignSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EC1D7292ED90B9B003F9272 /* DesignSystem.swift */; };
+		4EC1D72D2ED90C46003F9272 /* DESIGN_SYSTEM_DEPLOYED.md in Resources */ = {isa = PBXBuildFile; fileRef = 4EC1D72C2ED90C46003F9272 /* DESIGN_SYSTEM_DEPLOYED.md */; };
+		4EC1D72E2ED90C46003F9272 /* DESIGN_SYSTEM_DEPLOYED.md in Resources */ = {isa = PBXBuildFile; fileRef = 4EC1D72C2ED90C46003F9272 /* DESIGN_SYSTEM_DEPLOYED.md */; };
+		4EC1D7302ED90C6D003F9272 /* DesignSystemExamples.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EC1D72F2ED90C6D003F9272 /* DesignSystemExamples.swift */; };
+		4EC1D7312ED90C6D003F9272 /* DesignSystemExamples.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EC1D72F2ED90C6D003F9272 /* DesignSystemExamples.swift */; };
 		4ECAA0222ED4F22B002970C9 /* Validator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ECAA0212ED4F22B002970C9 /* Validator.swift */; };
 		4ECAA0232ED4F22B002970C9 /* Validator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ECAA0212ED4F22B002970C9 /* Validator.swift */; };
 		4EF642062ECBA50F0055E3FB /* MedicationViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EF642052ECBA50F0055E3FB /* MedicationViewModel.swift */; };
@@ -233,7 +245,13 @@
 		4EAPPEAR012EE0000000001 /* AppAppearance.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppAppearance.swift; sourceTree = "<group>"; };
 		4EAUD00012EE0000000000002 /* AudioRecordingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioRecordingService.swift; sourceTree = "<group>"; };
 		4EC1D7172ED8FBE4003F9272 /* EmptyStateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmptyStateView.swift; sourceTree = "<group>"; };
-		4EC1D71A2ED8FC24003F9272 /* LoadingSkeletonView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadingSkeletonView.swift; sourceTree = "<group>"; };
+		4EC1D71D2ED8FF99003F9272 /* ThemeWrapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThemeWrapper.swift; sourceTree = "<group>"; };
+		4EC1D7202ED8FFA3003F9272 /* ThemedCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThemedCard.swift; sourceTree = "<group>"; };
+		4EC1D7232ED9003A003F9272 /* REFACTORING_SUMMARY.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = REFACTORING_SUMMARY.md; sourceTree = "<group>"; };
+		4EC1D7262ED904BC003F9272 /* ImportMedicationsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImportMedicationsView.swift; sourceTree = "<group>"; };
+		4EC1D7292ED90B9B003F9272 /* DesignSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem.swift; sourceTree = "<group>"; };
+		4EC1D72C2ED90C46003F9272 /* DESIGN_SYSTEM_DEPLOYED.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = DESIGN_SYSTEM_DEPLOYED.md; sourceTree = "<group>"; };
+		4EC1D72F2ED90C6D003F9272 /* DesignSystemExamples.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystemExamples.swift; sourceTree = "<group>"; };
 		4ECAA0212ED4F22B002970C9 /* Validator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Validator.swift; sourceTree = "<group>"; };
 		4EF642032ECBA4D00055E3FB /* JournalListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JournalListView.swift; sourceTree = "<group>"; };
 		4EF642052ECBA50F0055E3FB /* MedicationViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MedicationViewModel.swift; sourceTree = "<group>"; };
@@ -317,6 +335,9 @@
 				4EMEDFREQ012EE00000000002 /* MedicationFrequency.swift */,
 				4EAPPEAR012EE0000000001 /* AppAppearance.swift */,
 				4ETHEME0012EE0000000001 /* AppTheme.swift */,
+				4EC1D7232ED9003A003F9272 /* REFACTORING_SUMMARY.md */,
+				4EC1D7262ED904BC003F9272 /* ImportMedicationsView.swift */,
+				4EC1D7292ED90B9B003F9272 /* DesignSystem.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -386,6 +407,8 @@
 				4EMEDLOG0012EE00000002 /* MedicationQuickLogView.swift */,
 				4E00911E2EC1372900D8A0D1 /* PatternEntryFormView.swift */,
 				4E86BDC32ECD0C9F00AD04F7 /* HealthKitManager.swift */,
+				4EC1D72C2ED90C46003F9272 /* DESIGN_SYSTEM_DEPLOYED.md */,
+				4EC1D72F2ED90C6D003F9272 /* DesignSystemExamples.swift */,
 			);
 			path = Logging;
 			sourceTree = "<group>";
@@ -397,7 +420,6 @@
 				4E0091202EC1372900D8A0D1 /* ReportsView.swift */,
 				4EAI00012EE0000000000006 /* AIInsightsView.swift */,
 				4EAI00012EE0000000000008 /* AIInsightsTabView.swift */,
-				4EC1D71A2ED8FC24003F9272 /* LoadingSkeletonView.swift */,
 			);
 			path = Reports;
 			sourceTree = "<group>";
@@ -408,6 +430,8 @@
 				4E0091222EC1372900D8A0D1 /* ExportDataView.swift */,
 				4E0091232EC1372900D8A0D1 /* SettingsView.swift */,
 				4EC1D7172ED8FBE4003F9272 /* EmptyStateView.swift */,
+				4EC1D71D2ED8FF99003F9272 /* ThemeWrapper.swift */,
+				4EC1D7202ED8FFA3003F9272 /* ThemedCard.swift */,
 			);
 			path = Settings;
 			sourceTree = "<group>";
@@ -658,6 +682,8 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4EC1D72E2ED90C46003F9272 /* DESIGN_SYSTEM_DEPLOYED.md in Resources */,
+				4EC1D7252ED9003A003F9272 /* REFACTORING_SUMMARY.md in Resources */,
 				4E3591B82ED62BE3000A5E74 /* Localizable.strings in Resources */,
 				A3B6464C00000007 /* Preview Assets.xcassets in Resources */,
 				4E3591B62ED62BD1000A5E74 /* Localizable.strings in Resources */,
@@ -670,6 +696,8 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4EC1D72D2ED90C46003F9272 /* DESIGN_SYSTEM_DEPLOYED.md in Resources */,
+				4EC1D7242ED9003A003F9272 /* REFACTORING_SUMMARY.md in Resources */,
 				4E3591B92ED62BE3000A5E74 /* Localizable.strings in Resources */,
 				MAC0001000000004 /* Preview Assets.xcassets in Resources */,
 				4E3591B52ED62BD1000A5E74 /* Localizable.strings in Resources */,
@@ -695,13 +723,13 @@
 				4EF642062ECBA50F0055E3FB /* MedicationViewModel.swift in Sources */,
 				4E0091272EC1372900D8A0D1 /* LoggingViewModel.swift in Sources */,
 				4EJVM00012EE0000000000002 /* JournalViewModel.swift in Sources */,
-				4EC1D71B2ED8FC24003F9272 /* LoadingSkeletonView.swift in Sources */,
 				4E2910DE2ECBACD100E73735 /* DaySummaryViewModel.swift in Sources */,
 				4E1132462ED6574D001C5D0A /* CalendarEventService.swift in Sources */,
 				4E00912A2EC1372900D8A0D1 /* CategoryLoggingView.swift in Sources */,
 				4E00912B2EC1372900D8A0D1 /* DashboardViewModel.swift in Sources */,
 				4E00912C2EC1372900D8A0D1 /* ExportDataView.swift in Sources */,
 				4E00912D2EC1372900D8A0D1 /* ReportsViewModel.swift in Sources */,
+				4EC1D7282ED904BC003F9272 /* ImportMedicationsView.swift in Sources */,
 				4E00912E2EC1372900D8A0D1 /* HistoryViewModel.swift in Sources */,
 				4E00912F2EC1372900D8A0D1 /* AccessibilityLabels.swift in Sources */,
 				4E2910DC2ECBACBF00E73735 /* DaySummaryView.swift in Sources */,
@@ -721,6 +749,8 @@
 				4E0091362EC1372900D8A0D1 /* SettingsView.swift in Sources */,
 				4E0091372EC1372900D8A0D1 /* HistoryView.swift in Sources */,
 				4E16DE692ECE7F6F00FEFBD8 /* PatternCategory.swift in Sources */,
+				4EC1D71E2ED8FF99003F9272 /* ThemeWrapper.swift in Sources */,
+				4EC1D72B2ED90B9B003F9272 /* DesignSystem.swift in Sources */,
 				4EAPPEAR012EE0000000002 /* AppAppearance.swift in Sources */,
 				4ETHEME0012EE0000000002 /* AppTheme.swift in Sources */,
 				4ECAA0232ED4F22B002970C9 /* Validator.swift in Sources */,
@@ -730,6 +760,7 @@
 				4E0091382EC1372900D8A0D1 /* BehaviorTrackerModel.xcdatamodeld in Sources */,
 				4EJRNL0012EE0000000000001 /* JournalListView.swift in Sources */,
 				4E0091392EC1372900D8A0D1 /* PatternEntryFormView.swift in Sources */,
+				4EC1D7212ED8FFA3003F9272 /* ThemedCard.swift in Sources */,
 				4E00913A2EC1372900D8A0D1 /* DataController.swift in Sources */,
 				4EAI00012EE0000000000001 /* GeminiService.swift in Sources */,
 				4E3591BB2ED62F58000A5E74 /* CorrelationAnalysisService.swift in Sources */,
@@ -755,6 +786,7 @@
 				4E00913E2EC1372900D8A0D1 /* HapticFeedback.swift in Sources */,
 				4E00913F2EC1372900D8A0D1 /* UserPreferences+CoreDataClass.swift in Sources */,
 				A3B6464C00000003 /* ContentView.swift in Sources */,
+				4EC1D7312ED90C6D003F9272 /* DesignSystemExamples.swift in Sources */,
 				4E3591BF2ED62FA7000A5E74 /* CorrelationInsightsView.swift in Sources */,
 				4E3591D02ED63823000A5E74 /* Color+Extensions.swift in Sources */,
 				4E3591C22ED633C6000A5E74 /* CalendarViewModel.swift in Sources */,
@@ -773,6 +805,7 @@
 				MAC0001000000008 /* Medication+CoreDataClass.swift in Sources */,
 				MAC0001000000009 /* MedicationLog+CoreDataClass.swift in Sources */,
 				MAC0001000000010 /* Tag+CoreDataClass.swift in Sources */,
+				4EC1D71F2ED8FF99003F9272 /* ThemeWrapper.swift in Sources */,
 				MAC0001000000011 /* UserPreferences+CoreDataClass.swift in Sources */,
 				MAC0001000000012 /* UserProfile+CoreDataClass.swift in Sources */,
 				MAC0001000000013 /* JournalEntry+CoreDataClass.swift in Sources */,
@@ -783,17 +816,19 @@
 				MAC001APPEAR000001 /* AppAppearance.swift in Sources */,
 				MAC001THEME0000001 /* AppTheme.swift in Sources */,
 				MAC0001000000017 /* PatternType.swift in Sources */,
+				4EC1D7272ED904BC003F9272 /* ImportMedicationsView.swift in Sources */,
 				MAC0001000000018 /* MedicationFrequency.swift in Sources */,
-				4EC1D71C2ED8FC24003F9272 /* LoadingSkeletonView.swift in Sources */,
 				MAC0001000000019 /* DashboardViewModel.swift in Sources */,
 				4E3591CC2ED634B1000A5E74 /* CalendarDayCell.swift in Sources */,
 				4E3591CD2ED634B1000A5E74 /* CalendarView.swift in Sources */,
+				4EC1D72A2ED90B9B003F9272 /* DesignSystem.swift in Sources */,
 				4E3591CE2ED634B1000A5E74 /* CalendarDayDetailView.swift in Sources */,
 				MAC0001000000020 /* HistoryViewModel.swift in Sources */,
 				MAC0001000000021 /* LoggingViewModel.swift in Sources */,
 				MAC0001000000022 /* ReportsViewModel.swift in Sources */,
 				MAC0001000000023 /* SettingsViewModel.swift in Sources */,
 				MAC0001000000024 /* MedicationViewModel.swift in Sources */,
+				4EC1D7302ED90C6D003F9272 /* DesignSystemExamples.swift in Sources */,
 				4EC1D7182ED8FBE4003F9272 /* EmptyStateView.swift in Sources */,
 				MAC0001000000025 /* JournalViewModel.swift in Sources */,
 				MAC0001000000026 /* DaySummaryViewModel.swift in Sources */,
@@ -825,6 +860,7 @@
 				MAC0001000000050 /* TextToSpeechService.swift in Sources */,
 				MAC0001000000051 /* AudioRecordingService.swift in Sources */,
 				4E3591C12ED633C6000A5E74 /* CalendarViewModel.swift in Sources */,
+				4EC1D7222ED8FFA3003F9272 /* ThemedCard.swift in Sources */,
 				MAC0001000000052 /* Accessibility+Extensions.swift in Sources */,
 				MAC0001000000053 /* AccessibilityLabels.swift in Sources */,
 				MAC0001000000054 /* Date+Extensions.swift in Sources */,

@@ -52,13 +52,6 @@ struct ContentView: View {
                     Label(NSLocalizedString("tab.reports", comment: ""), systemImage: "chart.bar.doc.horizontal")
                 }
                 .tag(3)
-
-            AIInsightsTabView(showingProfile: $showingProfile)
-                .themedBackground()
-                .tabItem {
-                    Label(NSLocalizedString("tab.analyze", comment: ""), systemImage: "sparkles")
-                }
-                .tag(4)
         }
         .blueLightFilter()
         .tint(theme.primaryColor)  // Match the selected theme!

@@ -173,9 +173,85 @@ class HealthKitManager: ObservableObject, @unchecked Sendable {
         }
 
         // Note: Clinical Health Records (like .medicationRecord) require special entitlements
-        // that need Apple approval. Omitted to prevent crashes.
+        // that need Apple approval. However, we can still track medication adherence indirectly.
+        
+        // Medication adherence can be inferred from mindfulness sessions with specific metadata
+        // This is a workaround until clinical record entitlements are obtained
 
         return types
+    }
+    
+    // MARK: - Medication Import Support
+    
+    /// Check if medication records are available (requires special entitlement)
+    func hasMedicationRecordAccess() -> Bool {
+        if #available(iOS 16.0, *) {
+            // This will only work if app has clinical health records entitlement
+            if let medicationType = HKObjectType.clinicalType(forIdentifier: .medicationRecord) {
+                let status = healthStore.authorizationStatus(for: medicationType)
+                return status == .sharingAuthorized
+            }
+        }
+        return false
+    }
+    
+    /// Import medications from Apple Health (requires clinical records entitlement)
+    @available(iOS 16.0, *)
+    func importMedications() async throws -> [MedicationImportData] {
+        guard let medicationType = HKObjectType.clinicalType(forIdentifier: .medicationRecord) else {
+            throw HealthKitError.unsupportedDataType
+        }
+        
+        // Request authorization if needed
+        try await healthStore.requestAuthorization(toShare: [], read: [medicationType])
+        
+        return await withCheckedContinuation { continuation in
+            let query = HKSampleQuery(
+                sampleType: medicationType,
+                predicate: nil,
+                limit: HKObjectQueryNoLimit,
+                sortDescriptors: [NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: false)]
+            ) { _, samples, error in
+                if error != nil {
+                    continuation.resume(returning: [])
+                    return
+                }
+                
+                guard let clinicalRecords = samples as? [HKClinicalRecord] else {
+                    continuation.resume(returning: [])
+                    return
+                }
+                
+                let medications = clinicalRecords.compactMap { record -> MedicationImportData? in
+                    // Extract FHIR data
+                    guard let fhirResource = record.fhirResource else {
+                        return nil
+                    }
+                    
+                    let resourceData = fhirResource.data
+                    
+                    guard let json = try? JSONSerialization.jsonObject(with: resourceData) as? [String: Any],
+                          let medicationInfo = json["medicationCodeableConcept"] as? [String: Any],
+                          let coding = (medicationInfo["coding"] as? [[String: Any]])?.first,
+                          let display = coding["display"] as? String else {
+                        return nil
+                    }
+                    
+                    // Extract dosage if available
+                    let dosageText = (json["dosageInstruction"] as? [[String: Any]])?.first?["text"] as? String
+                    
+                    return MedicationImportData(
+                        name: display,
+                        dosage: dosageText,
+                        startDate: record.startDate
+                    )
+                }
+                
+                continuation.resume(returning: medications)
+            }
+            
+            healthStore.execute(query)
+        }
     }
     
     // MARK: - Authorization
@@ -924,6 +1000,33 @@ class HealthKitManager: ObservableObject, @unchecked Sendable {
             waterIntake: water,
             caffeineIntake: caffeine
         )
+    }
+}
+
+// MARK: - Medication Import Data Model
+
+struct MedicationImportData {
+    let name: String
+    let dosage: String?
+    let startDate: Date
+}
+
+// MARK: - HealthKit Error
+
+enum HealthKitError: LocalizedError {
+    case unsupportedDataType
+    case noAuthorization
+    case queryFailed(String)
+    
+    var errorDescription: String? {
+        switch self {
+        case .unsupportedDataType:
+            return "This data type is not supported on your device"
+        case .noAuthorization:
+            return "HealthKit authorization is required"
+        case .queryFailed(let message):
+            return "Failed to fetch data: \(message)"
+        }
     }
 }
 

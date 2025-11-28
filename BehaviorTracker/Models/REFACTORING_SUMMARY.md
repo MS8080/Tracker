@@ -1,88 +1,61 @@
 # Code Refactoring Summary
 
 ## Overview
-This refactoring eliminates ~300+ lines of repetitive code throughout the app by introducing reusable components and property wrappers.
+Eliminates ~300 lines of repetitive code by introducing reusable components and property wrappers for theme access and card styling.
 
-## New Files Created
+## New Files
 
-### 1. ThemeWrapper.swift
-- **Purpose**: Property wrapper for easy theme access
-- **Eliminates**: Repetitive @AppStorage and theme conversion logic
-- **Usage**: `@ThemeWrapper var theme`
-- **Replaced**: ~15+ instances of theme setup boilerplate
+### ThemeWrapper.swift
+Property wrapper that replaces repetitive @AppStorage and theme conversion logic.
+```swift
+@ThemeWrapper var theme
+```
 
-### 2. ThemedCard.swift
-- **Purpose**: Reusable card container with consistent styling
-- **Supports**: Both standard theme backgrounds and material backgrounds
-- **Usage**: `ThemedCard { ... }` or `ThemedCard(useMaterial: true) { ... }`
-- **Features**: Customizable corner radius, padding, and material effects
+### ThemedCard.swift
+Reusable card container supporting both theme-based and material backgrounds.
+```swift
+ThemedCard { content }
+ThemedCard(useMaterial: true) { content }
+```
 
 ## Enhanced Files
 
 ### AppTheme.swift
-Added three new view modifiers:
-
-1. **`.materialCardStyle(cornerRadius:)`**
-   - Ultra-thin material with frosted glass effect
-   - Consistent shadow and stroke styling
-   - Perfect for large cards
-
-2. **`.regularMaterialCardStyle(cornerRadius:)`**
-   - Regular material for smaller components
-   - Lighter shadows for subtle depth
-   - Great for nested cards
-
-3. **Existing `.cardStyle(theme:cornerRadius:)`**
-   - Enhanced documentation
-   - Still available for theme-based cards
+Added view modifiers:
+- `.materialCardStyle(cornerRadius:)` - Ultra-thin material with frosted glass effect
+- `.regularMaterialCardStyle(cornerRadius:)` - Regular material for smaller components  
+- `.cardStyle(theme:cornerRadius:)` - Existing theme-based card styling
 
 ## Refactored Files
 
 ### EmptyStateView.swift
-- ✅ Replaced theme boilerplate with `@ThemeWrapper`
-- **Lines saved**: ~3
+- Replaced theme boilerplate with @ThemeWrapper
 
 ### JournalListView.swift
-- ✅ Replaced theme boilerplate in 3 components:
-  - JournalListView
-  - RoundedSearchBar
-  - JournalEntryAnalysisView
-- **Lines saved**: ~12
+- Updated JournalListView, RoundedSearchBar, JournalEntryAnalysisView
+- Replaced theme boilerplate in 3 components
 
 ### ProfileContainerView.swift
-- ✅ Replaced theme boilerplate in 5 components:
-  - ProfileContainerView
-  - HealthStatCard
-  - AppearanceSettingsView
-  - NotificationSettingsView
-- ✅ Replaced material card styling patterns (8 instances)
-- **Lines saved**: ~80+
+- Updated ProfileContainerView, HealthStatCard, AppearanceSettingsView, NotificationSettingsView
+- Replaced theme boilerplate in 5 components
+- Replaced material card styling patterns with .materialCardStyle() and .regularMaterialCardStyle()
+- 8 instances of repetitive material styling reduced to single modifier calls
 
-## Benefits
+### DashboardView.swift
+- Updated DashboardView, EntryRowView, ProfileButton
+- Replaced theme boilerplate in 3 components
+- Replaced card styling patterns with .cardStyle(theme:cornerRadius:)
+- 5 large cards and 1 nested card refactored
 
-### Code Reduction
-- **Before**: ~400 lines of repetitive styling code
-- **After**: ~100 lines in reusable components
-- **Net savings**: ~300 lines
+### CalendarDayDetailView.swift
+- Updated CalendarDayDetailView and 4 nested components
+- Replaced theme boilerplate in 5 components
+- Replaced card styling in 6 large cards and 4 nested cards
 
-### Maintainability
-- Single source of truth for card styling
-- Easy to update styles globally
-- Consistent appearance across all views
+## Migration Patterns
 
-### Developer Experience
-- Simpler, cleaner view code
-- Self-documenting through modifiers
-- Less chance of typos or inconsistencies
-
-### Type Safety
-- Compile-time checking
-- No magic strings or hardcoded values
-- Better IDE autocomplete
-
-## Migration Guide
-
-### Old Pattern
+### Theme Access
+Before:
 ```swift
 @AppStorage("selectedTheme") private var selectedThemeRaw: String = AppTheme.purple.rawValue
 private var theme: AppTheme {
@@ -90,98 +63,45 @@ private var theme: AppTheme {
 }
 ```
 
-### New Pattern
+After:
 ```swift
 @ThemeWrapper var theme
 ```
 
----
-
-### Old Pattern
+### Card Styling
+Before:
 ```swift
-VStack {
-    // content
-}
-.padding()
-.background(
-    RoundedRectangle(cornerRadius: 24)
-        .fill(.ultraThinMaterial)
-        .shadow(color: .black.opacity(0.2), radius: 10, y: 5)
-)
-.overlay(
-    RoundedRectangle(cornerRadius: 24)
-        .stroke(.white.opacity(0.2), lineWidth: 1)
-)
+.padding(20)
+.background(RoundedRectangle(cornerRadius: 24).fill(theme.cardBackground))
+.overlay(RoundedRectangle(cornerRadius: 24).stroke(theme.cardBorderColor, lineWidth: 0.5))
+.shadow(color: theme.cardShadowColor.opacity(0.3), radius: 2, y: 1)
+.shadow(color: theme.cardShadowColor.opacity(0.2), radius: 8, y: 4)
 ```
 
-### New Pattern
+After:
 ```swift
-VStack {
-    // content
-}
+.padding(20)
+.cardStyle(theme: theme, cornerRadius: 24)
+```
+
+### Material Card Styling
+Before:
+```swift
+.padding()
+.background(RoundedRectangle(cornerRadius: 24).fill(.ultraThinMaterial).shadow(...))
+.overlay(RoundedRectangle(cornerRadius: 24).stroke(.white.opacity(0.2), lineWidth: 1))
+```
+
+After:
+```swift
 .padding()
 .materialCardStyle()
 ```
 
----
+## Impact
 
-### Old Pattern (Component)
-```swift
-VStack {
-    Text("Content")
-}
-.padding(16)
-.background(
-    RoundedRectangle(cornerRadius: 16)
-        .fill(theme.cardBackground)
-)
-.overlay(
-    RoundedRectangle(cornerRadius: 16)
-        .stroke(theme.cardBorderColor, lineWidth: 0.5)
-)
-.shadow(color: theme.cardShadowColor, radius: 8, y: 4)
-```
+- Code reduction: ~300 lines eliminated
+- Maintainability: Single source of truth for styling
+- Consistency: All cards use same styling patterns
+- Type safety: Compile-time checking, no magic values
 
-### New Pattern (Component)
-```swift
-ThemedCard {
-    Text("Content")
-}
-```
-
-## Next Steps
-
-To continue the refactoring across the entire codebase:
-
-1. Search for remaining `@AppStorage("selectedTheme")` instances
-2. Replace with `@ThemeWrapper var theme`
-3. Look for card styling patterns and replace with:
-   - `.materialCardStyle()` for material backgrounds
-   - `.regularMaterialCardStyle()` for smaller material cards
-   - `.cardStyle(theme: theme)` for theme-based cards
-   - `ThemedCard { }` for full card components
-
-## Files Still To Refactor
-
-Run these searches to find remaining instances:
-- `@AppStorage("selectedTheme")`
-- `.fill(theme.cardBackground)`
-- `.fill(.ultraThinMaterial)`
-- `RoundedRectangle(cornerRadius:).fill(theme`
-
-Likely candidates:
-- DashboardView.swift
-- CalendarDayDetailView.swift
-- DaySummaryView.swift
-- ReportsView.swift
-- AIInsightsTabView.swift
-- FeelingFinderView.swift
-- LoggingView.swift
-
-## Testing
-
-All refactored code maintains identical visual appearance and functionality:
-- ✅ Theme switching still works
-- ✅ Material backgrounds render correctly
-- ✅ Shadows and strokes maintain proper styling
-- ✅ No breaking changes to public APIs

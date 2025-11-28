@@ -12,16 +12,14 @@ struct ProfileContainerView: View {
     @State private var isLoadingHealth = false
     @State private var showingEditProfile = false
     @State private var showingAddMedication = false
+    @State private var showingImportMedications = false
     @State private var isMedicationsExpanded = false
     @State private var isSettingsExpanded = false
 
     @AppStorage("fontSizeScale") private var fontSizeScale: Double = 1.0
     @AppStorage("blueLightFilterEnabled") private var blueLightFilterEnabled: Bool = false
-    @AppStorage("selectedTheme") private var selectedThemeRaw: String = AppTheme.purple.rawValue
-
-    private var theme: AppTheme {
-        AppTheme(rawValue: selectedThemeRaw) ?? .purple
-    }
+    
+    @ThemeWrapper var theme
 
     var body: some View {
         NavigationStack {
@@ -138,6 +136,9 @@ struct ProfileContainerView: View {
             }
             .sheet(isPresented: $showingAddMedication) {
                 AddMedicationView(viewModel: medicationViewModel)
+            }
+            .sheet(isPresented: $showingImportMedications) {
+                ImportMedicationsView(medicationViewModel: medicationViewModel)
             }
         }
     }
@@ -337,15 +338,7 @@ struct ProfileContainerView: View {
             }
         }
         .padding()
-        .background(
-            RoundedRectangle(cornerRadius: 24)
-                .fill(.ultraThinMaterial)
-                .shadow(color: .black.opacity(0.2), radius: 10, y: 5)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 24)
-                .stroke(.white.opacity(0.2), lineWidth: 1)
-        )
+        .cardStyle(theme: theme)
     }
 
     // MARK: - Medications Section
@@ -390,21 +383,39 @@ struct ProfileContainerView: View {
                                 .font(.subheadline)
                                 .foregroundColor(.white.opacity(0.6))
 
-                            Button {
-                                showingAddMedication = true
-                            } label: {
-                                HStack {
-                                    Image(systemName: "plus.circle.fill")
-                                    Text("Add Medication")
+                            HStack(spacing: 8) {
+                                Button {
+                                    showingImportMedications = true
+                                } label: {
+                                    HStack {
+                                        Image(systemName: "square.and.arrow.down")
+                                        Text("Import from Health")
+                                    }
+                                    .font(.subheadline)
+                                    .fontWeight(.medium)
+                                    .foregroundStyle(.white)
+                                    .padding(.horizontal, 16)
+                                    .padding(.vertical, 8)
+                                    .background(Capsule().fill(.green.opacity(0.8)))
                                 }
-                                .font(.subheadline)
-                                .fontWeight(.medium)
-                                .foregroundStyle(.white)
-                                .padding(.horizontal, 16)
-                                .padding(.vertical, 8)
-                                .background(Capsule().fill(.cyan.opacity(0.8)))
+                                .buttonStyle(.plain)
+                                
+                                Button {
+                                    showingAddMedication = true
+                                } label: {
+                                    HStack {
+                                        Image(systemName: "plus.circle.fill")
+                                        Text("Add Manually")
+                                    }
+                                    .font(.subheadline)
+                                    .fontWeight(.medium)
+                                    .foregroundStyle(.white)
+                                    .padding(.horizontal, 16)
+                                    .padding(.vertical, 8)
+                                    .background(Capsule().fill(.cyan.opacity(0.8)))
+                                }
+                                .buttonStyle(.plain)
                             }
-                            .buttonStyle(.plain)
                         }
                         .frame(maxWidth: .infinity)
                         .padding()
@@ -439,16 +450,8 @@ struct ProfileContainerView: View {
             }
         }
         .padding()
-        .background(
-            RoundedRectangle(cornerRadius: 24)
-                .fill(.ultraThinMaterial)
-                .shadow(color: .black.opacity(0.2), radius: 10, y: 5)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 24)
-                .stroke(.white.opacity(0.2), lineWidth: 1)
-        )
-        .clipShape(RoundedRectangle(cornerRadius: 24))
+        .cardStyle(theme: theme)
+        .clipShape(RoundedRectangle(cornerRadius: CornerRadius.lg))
         .contentShape(Rectangle())
         .onTapGesture {
             withAnimation(.easeInOut(duration: 0.25)) {
@@ -538,16 +541,8 @@ struct ProfileContainerView: View {
             }
         }
         .padding()
-        .background(
-            RoundedRectangle(cornerRadius: 24)
-                .fill(.ultraThinMaterial)
-                .shadow(color: .black.opacity(0.2), radius: 10, y: 5)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 24)
-                .stroke(.white.opacity(0.2), lineWidth: 1)
-        )
-        .clipShape(RoundedRectangle(cornerRadius: 24))
+        .cardStyle(theme: theme)
+        .clipShape(RoundedRectangle(cornerRadius: CornerRadius.lg))
         .contentShape(Rectangle())
         .onTapGesture {
             withAnimation(.easeInOut(duration: 0.25)) {
@@ -584,10 +579,7 @@ struct HealthStatCard: View {
     let value: String
     let color: Color
 
-    @AppStorage("selectedTheme") private var selectedThemeRaw: String = AppTheme.purple.rawValue
-    private var theme: AppTheme {
-        AppTheme(rawValue: selectedThemeRaw) ?? .purple
-    }
+    @ThemeWrapper var theme
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -607,15 +599,7 @@ struct HealthStatCard: View {
                 .foregroundColor(.secondary)
         }
         .padding(14)
-        .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(.regularMaterial)
-                .shadow(color: .black.opacity(0.15), radius: 6, y: 3)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 16)
-                .stroke(.white.opacity(0.15), lineWidth: 0.5)
-        )
+        .compactCardStyle(theme: theme)
     }
 }
 
@@ -884,10 +868,7 @@ struct AppearanceSettingsView: View {
     @AppStorage("appearance") private var appearance: AppAppearance = .dark
     @AppStorage("selectedTheme") private var selectedThemeRaw: String = AppTheme.purple.rawValue
 
-    private var selectedTheme: AppTheme {
-        get { AppTheme(rawValue: selectedThemeRaw) ?? .purple }
-        nonmutating set { selectedThemeRaw = newValue.rawValue }
-    }
+    @ThemeWrapper var theme
 
     var body: some View {
         ScrollView {
@@ -908,10 +889,10 @@ struct AppearanceSettingsView: View {
                         GridItem(.flexible()),
                         GridItem(.flexible())
                     ], alignment: .center, spacing: 20) {
-                        ForEach(AppTheme.allCases, id: \.self) { theme in
+                        ForEach(AppTheme.allCases, id: \.self) { themeOption in
                             Button {
                                 withAnimation(.spring(response: 0.3)) {
-                                    selectedThemeRaw = theme.rawValue
+                                    selectedThemeRaw = themeOption.rawValue
                                 }
                             } label: {
                                 VStack(spacing: 8) {
@@ -919,15 +900,15 @@ struct AppearanceSettingsView: View {
                                         Circle()
                                             .fill(
                                                 LinearGradient(
-                                                    colors: [theme.primaryColor, theme.primaryColor.opacity(0.6)],
+                                                    colors: [themeOption.primaryColor, themeOption.primaryColor.opacity(0.6)],
                                                     startPoint: .topLeading,
                                                     endPoint: .bottomTrailing
                                                 )
                                             )
                                             .frame(width: 52, height: 52)
-                                            .shadow(color: theme.primaryColor.opacity(0.4), radius: selectedThemeRaw == theme.rawValue ? 8 : 0)
+                                            .shadow(color: themeOption.primaryColor.opacity(0.4), radius: selectedThemeRaw == themeOption.rawValue ? 8 : 0)
 
-                                        if selectedThemeRaw == theme.rawValue {
+                                        if selectedThemeRaw == themeOption.rawValue {
                                             Circle()
                                                 .stroke(Color.white, lineWidth: 3)
                                                 .frame(width: 52, height: 52)
@@ -938,28 +919,20 @@ struct AppearanceSettingsView: View {
                                         }
                                     }
 
-                                    Text(theme.rawValue)
+                                    Text(themeOption.rawValue)
                                         .font(.caption2)
-                                        .foregroundStyle(selectedThemeRaw == theme.rawValue ? .primary : .secondary)
+                                        .foregroundStyle(selectedThemeRaw == themeOption.rawValue ? .primary : .secondary)
                                         .frame(height: 14)
                                 }
                                 .frame(maxWidth: .infinity)
                             }
                             .buttonStyle(.plain)
-                            .scaleEffect(selectedThemeRaw == theme.rawValue ? 1.05 : 1.0)
+                            .scaleEffect(selectedThemeRaw == themeOption.rawValue ? 1.05 : 1.0)
                         }
                     }
                 }
                 .padding(20)
-                .background(
-                    RoundedRectangle(cornerRadius: 20)
-                        .fill(.ultraThinMaterial)
-                        .shadow(color: .black.opacity(0.2), radius: 8, y: 4)
-                )
-                .overlay(
-                    RoundedRectangle(cornerRadius: 20)
-                        .stroke(.white.opacity(0.2), lineWidth: 1)
-                )
+                .cardStyle(theme: theme)
 
                 // Light/Dark Mode
                 VStack(alignment: .leading, spacing: 20) {
@@ -1000,15 +973,7 @@ struct AppearanceSettingsView: View {
                     }
                 }
                 .padding(20)
-                .background(
-                    RoundedRectangle(cornerRadius: 20)
-                        .fill(.ultraThinMaterial)
-                        .shadow(color: .black.opacity(0.2), radius: 8, y: 4)
-                )
-                .overlay(
-                    RoundedRectangle(cornerRadius: 20)
-                        .stroke(.white.opacity(0.2), lineWidth: 1)
-                )
+                .cardStyle(theme: theme)
 
                 // Preview Card
                 VStack(alignment: .leading, spacing: 16) {
@@ -1023,7 +988,7 @@ struct AppearanceSettingsView: View {
                     // Mini preview of current theme
                     HStack(spacing: 12) {
                         RoundedRectangle(cornerRadius: 12)
-                            .fill(selectedTheme.gradient)
+                            .fill(theme.gradient)
                             .frame(height: 80)
                             .overlay(
                                 VStack {
@@ -1046,15 +1011,7 @@ struct AppearanceSettingsView: View {
                         .foregroundStyle(.secondary)
                 }
                 .padding(20)
-                .background(
-                    RoundedRectangle(cornerRadius: 20)
-                        .fill(.ultraThinMaterial)
-                        .shadow(color: .black.opacity(0.2), radius: 8, y: 4)
-                )
-                .overlay(
-                    RoundedRectangle(cornerRadius: 20)
-                        .stroke(.white.opacity(0.2), lineWidth: 1)
-                )
+                .cardStyle(theme: theme)
             }
             .padding()
         }
@@ -1076,11 +1033,11 @@ struct AppearanceModeButton: View {
         Button(action: action) {
             VStack(spacing: 12) {
                 ZStack {
-                    RoundedRectangle(cornerRadius: 16)
+                    RoundedRectangle(cornerRadius: CornerRadius.md)
                         .fill(backgroundColor)
                         .frame(height: 70)
                         .overlay(
-                            RoundedRectangle(cornerRadius: 16)
+                            RoundedRectangle(cornerRadius: CornerRadius.md)
                                 .stroke(isSelected ? Color.blue : Color.clear, lineWidth: 3)
                         )
                         .shadow(color: isSelected ? .blue.opacity(0.3) : .clear, radius: 8)
@@ -1114,10 +1071,7 @@ struct AppearanceModeButton: View {
 struct NotificationSettingsView: View {
     @ObservedObject var viewModel: SettingsViewModel
 
-    @AppStorage("selectedTheme") private var selectedThemeRaw: String = AppTheme.purple.rawValue
-    private var theme: AppTheme {
-        AppTheme(rawValue: selectedThemeRaw) ?? .purple
-    }
+    @ThemeWrapper var theme
 
     var body: some View {
         ScrollView {
@@ -1183,17 +1137,9 @@ struct NotificationSettingsView: View {
                         .transition(.opacity.combined(with: .move(edge: .top)))
                     }
                 }
-                .padding(20)
-                .background(
-                    RoundedRectangle(cornerRadius: 20)
-                        .fill(.ultraThinMaterial)
-                        .shadow(color: .black.opacity(0.2), radius: 8, y: 4)
-                )
-                .overlay(
-                    RoundedRectangle(cornerRadius: 20)
-                        .stroke(.white.opacity(0.2), lineWidth: 1)
-                )
-                .animation(.spring(response: 0.3), value: viewModel.notificationsEnabled)
+                .padding(Spacing.xl)
+                .cardStyle(theme: theme)
+                .animation(.spring(response: 0.3, dampingFraction: 0.7), value: viewModel.notificationsEnabled)
 
                 // Info card
                 VStack(alignment: .leading, spacing: 12) {
@@ -1213,7 +1159,7 @@ struct NotificationSettingsView: View {
                 .padding(16)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .background(
-                    RoundedRectangle(cornerRadius: 16)
+                    RoundedRectangle(cornerRadius: CornerRadius.md)
                         .fill(.blue.opacity(0.1))
                 )
             }

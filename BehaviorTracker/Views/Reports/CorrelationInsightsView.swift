@@ -85,7 +85,7 @@ struct CorrelationInsightsView: View {
                             .padding(.horizontal, 16)
                             .padding(.vertical, 8)
                             .background(
-                                RoundedRectangle(cornerRadius: 24)
+                                RoundedRectangle(cornerRadius: CornerRadius.lg)
                                     .fill(selectedDays == days ? theme.primaryColor : .white.opacity(0.1))
                             )
                     }
@@ -94,11 +94,11 @@ struct CorrelationInsightsView: View {
         }
         .padding()
         .background(
-            RoundedRectangle(cornerRadius: 24)
+            RoundedRectangle(cornerRadius: CornerRadius.lg)
                 .fill(theme.cardBackground)
         )
         .overlay(
-            RoundedRectangle(cornerRadius: 24)
+            RoundedRectangle(cornerRadius: CornerRadius.lg)
                 .stroke(theme.cardBorderColor, lineWidth: 0.5)
         )
         .shadow(color: theme.cardShadowColor, radius: 8, y: 4)
@@ -199,11 +199,11 @@ struct CorrelationInsightsView: View {
         }
         .padding(40)
         .background(
-            RoundedRectangle(cornerRadius: 24)
+            RoundedRectangle(cornerRadius: CornerRadius.lg)
                 .fill(theme.cardBackground)
         )
         .overlay(
-            RoundedRectangle(cornerRadius: 24)
+            RoundedRectangle(cornerRadius: CornerRadius.lg)
                 .stroke(theme.cardBorderColor, lineWidth: 0.5)
         )
         .shadow(color: theme.cardShadowColor, radius: 8, y: 4)
@@ -248,7 +248,7 @@ struct FilterChip: View {
             .padding(.horizontal, 12)
             .padding(.vertical, 8)
             .background(
-                RoundedRectangle(cornerRadius: 24)
+                RoundedRectangle(cornerRadius: CornerRadius.lg)
                     .fill(isSelected ? Color.blue : .white.opacity(0.15))
             )
         }
@@ -360,13 +360,13 @@ struct InsightCard: View {
             }
             .foregroundStyle(.secondary)
         }
-        .padding(16)
+        .padding(Spacing.lg)
         .background(
-            RoundedRectangle(cornerRadius: 24)
+            RoundedRectangle(cornerRadius: CornerRadius.lg)
                 .fill(theme.cardBackground)
         )
         .overlay(
-            RoundedRectangle(cornerRadius: 24)
+            RoundedRectangle(cornerRadius: CornerRadius.lg)
                 .stroke(theme.cardBorderColor, lineWidth: 0.5)
         )
         .shadow(color: theme.cardShadowColor, radius: 8, y: 4)

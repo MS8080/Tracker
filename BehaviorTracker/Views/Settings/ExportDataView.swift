@@ -2,10 +2,12 @@ import SwiftUI
 
 struct ExportDataView: View {
     @Environment(\.dismiss) private var dismiss
-    @ObservedObject var viewModel: SettingsViewModel
+    @ObservedObject var viewModel: SettingsViewModel 
     @State private var selectedFormat: ExportFormat = .json
     @State private var showingShareSheet = false
     @State private var exportedFileURL: URL?
+    @State private var isExporting = false
+    @State private var buttonPressed = false
 
     @AppStorage("selectedTheme") private var selectedThemeRaw: String = AppTheme.purple.rawValue
     private var theme: AppTheme {
@@ -14,9 +16,10 @@ struct ExportDataView: View {
 
     var body: some View {
         VStack(spacing: 24) {
+            // Hero icon
             Image(systemName: "square.and.arrow.up.circle.fill")
                 .font(.system(size: 64))
-                .foregroundStyle(.blue.gradient)
+                .foregroundStyle(theme.primaryColor)
                 .padding(.top, 32)
 
             Text("Export Your Data")
@@ -29,17 +32,21 @@ struct ExportDataView: View {
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 32)
 
+            // Format picker - now themed
             Picker("Format", selection: $selectedFormat) {
                 Text("JSON").tag(ExportFormat.json)
                 Text("CSV").tag(ExportFormat.csv)
             }
             .pickerStyle(.segmented)
             .padding(.horizontal, 32)
+            .tint(theme.primaryColor)
 
+            // Format info card - improved depth and layering
             VStack(alignment: .leading, spacing: 12) {
                 HStack {
                     Image(systemName: selectedFormat == .json ? "doc.text" : "tablecells")
-                        .foregroundStyle(.blue)
+                        .foregroundStyle(theme.primaryColor)
+                        .imageScale(.large)
                     Text(selectedFormat == .json ? "JSON Format" : "CSV Format")
                         .font(.headline)
                 }
@@ -49,6 +56,7 @@ struct ExportDataView: View {
                     "Spreadsheet-compatible format, can be opened in Excel, Numbers, or Google Sheets.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
             }
             .padding(16)
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -56,29 +64,50 @@ struct ExportDataView: View {
                 RoundedRectangle(cornerRadius: 12)
                     .fill(theme.cardBackground)
             )
+            .shadow(color: theme.cardShadowColor, radius: 6, y: 3)
             .padding(.horizontal, 32)
+            .transition(.scale.combined(with: .opacity))
+            .animation(.spring(response: 0.2, dampingFraction: 0.7), value: selectedFormat)
 
             Spacer()
 
+            // Export button - themed with press animation
             Button {
-                exportData()
+                withAnimation(.spring(response: 0.2, dampingFraction: 0.7)) {
+                    buttonPressed = true
+                }
+                
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    withAnimation(.spring(response: 0.2, dampingFraction: 0.7)) {
+                        buttonPressed = false
+                    }
+                    exportData()
+                }
             } label: {
-                HStack {
-                    Image(systemName: "square.and.arrow.up")
-                    Text("Export Data")
+                HStack(spacing: 8) {
+                    if isExporting {
+                        ProgressView()
+                            .tint(.white)
+                    } else {
+                        Image(systemName: "square.and.arrow.up")
+                    }
+                    Text(isExporting ? "Exporting..." : "Export Data")
                         .fontWeight(.semibold)
                 }
                 .frame(maxWidth: .infinity)
                 .padding()
-                .background(Color.blue)
+                .background(theme.primaryColor)
                 .foregroundStyle(.white)
                 .clipShape(RoundedRectangle(cornerRadius: 12))
+                .shadow(color: theme.primaryColor.opacity(0.3), radius: 8, y: 4)
             }
+            .scaleEffect(buttonPressed ? 0.95 : 1.0)
+            .disabled(isExporting)
             .padding(.horizontal, 32)
             .padding(.bottom, 32)
         }
         .navigationTitle("Export")
-        .navigationBarTitleDisplayModeInline()
+        .navigationBarTitleDisplayMode(.inline)
         .sheet(isPresented: $showingShareSheet) {
             if let url = exportedFileURL {
                 ShareSheet(items: [url])
@@ -87,26 +116,42 @@ struct ExportDataView: View {
     }
 
     private func exportData() {
-        let data: String
-        let filename: String
+        isExporting = true
+        
+        // Simulate brief export process with animation
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            let data: String
+            let filename: String
 
-        switch selectedFormat {
-        case .json:
-            data = viewModel.exportDataAsJSON()
-            filename = "behavior_tracker_export_\(formattedDate()).json"
-        case .csv:
-            data = viewModel.exportDataAsCSV()
-            filename = "behavior_tracker_export_\(formattedDate()).csv"
-        }
+            switch selectedFormat {
+            case .json:
+                data = viewModel.exportDataAsJSON()
+                filename = "behavior_tracker_export_\(formattedDate()).json"
+            case .csv:
+                data = viewModel.exportDataAsCSV()
+                filename = "behavior_tracker_export_\(formattedDate()).csv"
+            }
 
-        let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(filename)
+            let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(filename)
 
-        do {
-            try data.write(to: tempURL, atomically: true, encoding: .utf8)
-            exportedFileURL = tempURL
-            showingShareSheet = true
-        } catch {
-            print("Error exporting data: \(error.localizedDescription)")
+            do {
+                try data.write(to: tempURL, atomically: true, encoding: .utf8)
+                exportedFileURL = tempURL
+                
+                withAnimation {
+                    isExporting = false
+                }
+                
+                // Small delay for smooth transition
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    showingShareSheet = true
+                }
+            } catch {
+                print("Error exporting data: \(error.localizedDescription)")
+                withAnimation {
+                    isExporting = false
+                }
+            }
         }
     }
 

@@ -5,6 +5,7 @@ struct ReportsView: View {
     @StateObject private var viewModel = ReportsViewModel()
     @State private var selectedTimeframe: ReportTimeframe = .weekly
     @State private var showingCorrelations = false
+    @State private var showingAIInsights = false
     @Binding var showingProfile: Bool
 
     @AppStorage("selectedTheme") private var selectedThemeRaw: String = AppTheme.purple.rawValue
@@ -24,9 +25,13 @@ struct ReportsView: View {
                     .ignoresSafeArea()
 
                 ScrollView {
-                    VStack(spacing: 10) {
-                        // Correlation Insights Card
-                        correlationInsightsCard
+                    VStack(spacing: Spacing.lg) {
+                        // Analysis Cards
+                        HStack(spacing: Spacing.md) {
+                            correlationInsightsCard
+                            aiInsightsCard
+                        }
+
                         timeframePicker
                         if selectedTimeframe == .weekly {
                             weeklyReportView
@@ -37,6 +42,10 @@ struct ReportsView: View {
                     .padding()
                 }
                 .scrollContentBackground(.hidden)
+                .refreshable {
+                    HapticFeedback.light.trigger()
+                    await refreshReports()
+                }
             }
             .navigationTitle("Reports")
             .toolbar {
@@ -50,49 +59,95 @@ struct ReportsView: View {
             .sheet(isPresented: $showingCorrelations) {
                 CorrelationInsightsView()
             }
+            .sheet(isPresented: $showingAIInsights) {
+                AIInsightsSheetView()
+            }
         }
+    }
+    
+    private func refreshReports() async {
+        try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
+        viewModel.generateReports()
     }
 
     private var correlationInsightsCard: some View {
         Button {
             showingCorrelations = true
         } label: {
-            HStack(spacing: 16) {
+            VStack(spacing: Spacing.md) {
                 ZStack {
                     Circle()
-                        .fill(.blue.gradient)
-                        .frame(width: 50, height: 50)
+                        .fill(theme.primaryColor)
+                        .frame(width: 44, height: 44)
 
                     Image(systemName: "chart.line.uptrend.xyaxis")
-                        .font(.title2)
+                        .font(.title3)
                         .foregroundColor(.white)
                 }
 
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Correlation Analysis")
-                        .font(.headline)
+                VStack(spacing: Spacing.xs) {
+                    Text("Correlations")
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
                         .foregroundColor(.primary)
 
-                    Text("Discover what triggers your patterns")
+                    Text("Find triggers")
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
-
-                Spacer()
-
-                Image(systemName: "chevron.right")
-                    .foregroundColor(.secondary)
             }
-            .padding(16)
+            .frame(maxWidth: .infinity)
+            .padding(Spacing.lg)
             .background(
-                RoundedRectangle(cornerRadius: 24)
+                RoundedRectangle(cornerRadius: CornerRadius.lg)
                     .fill(theme.cardBackground)
             )
             .overlay(
-                RoundedRectangle(cornerRadius: 24)
-                    .stroke(.blue.opacity(0.3), lineWidth: 1)
+                RoundedRectangle(cornerRadius: CornerRadius.lg)
+                    .stroke(theme.cardBorderColor, lineWidth: 0.5)
             )
-            .shadow(color: theme.cardShadowColor, radius: 8, y: 4)
+            .shadow(color: theme.cardShadowColor, radius: 6, y: 3)
+        }
+        .buttonStyle(.plain)
+    }
+
+    private var aiInsightsCard: some View {
+        Button {
+            showingAIInsights = true
+        } label: {
+            VStack(spacing: Spacing.md) {
+                ZStack {
+                    Circle()
+                        .fill(SemanticColor.ai)
+                        .frame(width: 44, height: 44)
+
+                    Image(systemName: "sparkles")
+                        .font(.title3)
+                        .foregroundColor(.white)
+                }
+
+                VStack(spacing: Spacing.xs) {
+                    Text("AI Insights")
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
+                        .foregroundColor(.primary)
+
+                    Text("Get analysis")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+            }
+            .frame(maxWidth: .infinity)
+            .padding(Spacing.lg)
+            .background(
+                RoundedRectangle(cornerRadius: CornerRadius.lg)
+                    .fill(theme.cardBackground)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: CornerRadius.lg)
+                    .stroke(theme.cardBorderColor, lineWidth: 0.5)
+            )
+            .shadow(color: theme.cardShadowColor, radius: 6, y: 3)
         }
         .buttonStyle(.plain)
     }
@@ -104,15 +159,16 @@ struct ReportsView: View {
         }
         .pickerStyle(.segmented)
         .padding(.horizontal, 20)
+        .tint(theme.primaryColor)
     }
 
     private var weeklyReportView: some View {
-        VStack(spacing: 10) {
+        VStack(spacing: Spacing.md) {
             reportCard(
                 title: "Weekly Summary",
                 subtitle: "Last 7 days"
             ) {
-                VStack(spacing: 16) {
+                VStack(spacing: Spacing.lg) {
                     StatRow(label: "Total Entries", value: "\(viewModel.weeklyReport.totalEntries)")
                     StatRow(label: "Most Active Day", value: viewModel.weeklyReport.mostActiveDay)
                     StatRow(label: "Average Per Day", value: String(format: "%.1f", viewModel.weeklyReport.averagePerDay))
@@ -127,7 +183,7 @@ struct ReportsView: View {
                 if viewModel.weeklyReport.categoryBreakdown.isEmpty {
                     emptyStateView(message: "No data available")
                 } else {
-                    VStack(spacing: 12) {
+                    VStack(spacing: Spacing.md) {
                         Chart {
                             ForEach(Array(viewModel.weeklyReport.categoryBreakdown), id: \.key) { category, count in
                                 SectorMark(
@@ -141,9 +197,9 @@ struct ReportsView: View {
                         }
                         .frame(height: 150)
 
-                        VStack(alignment: .leading, spacing: 8) {
+                        VStack(alignment: .leading, spacing: Spacing.sm) {
                             ForEach(Array(viewModel.weeklyReport.categoryBreakdown.sorted(by: { $0.value > $1.value })), id: \.key) { category, count in
-                                HStack(spacing: 8) {
+                                HStack(spacing: Spacing.sm) {
                                     Circle()
                                         .fill(category.color)
                                         .frame(width: 10, height: 10)
@@ -206,7 +262,7 @@ struct ReportsView: View {
                                 x: .value("Count", count),
                                 y: .value("Pattern", pattern)
                             )
-                            .foregroundStyle(.blue.gradient)
+                            .foregroundStyle(theme.primaryColor)
                         }
                     }
                 }
@@ -215,14 +271,11 @@ struct ReportsView: View {
     }
 
     private func emptyStateView(message: String) -> some View {
-        VStack(spacing: 12) {
-            Image(systemName: "chart.bar.xaxis")
-                .font(.system(size: 40))
-                .foregroundStyle(.secondary.opacity(0.5))
-            Text(message)
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-        }
+        EmptyStateView(
+            icon: "chart.bar.xaxis",
+            title: "No Data Yet",
+            message: message
+        )
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
@@ -231,8 +284,8 @@ struct ReportsView: View {
         subtitle: String,
         @ViewBuilder content: () -> Content
     ) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: Spacing.md) {
+            VStack(alignment: .leading, spacing: Spacing.xs) {
                 Text(title)
                     .font(.headline)
                     .fontWeight(.semibold)
@@ -244,26 +297,26 @@ struct ReportsView: View {
             content()
                 .frame(maxWidth: .infinity, minHeight: 200)
         }
-        .padding(20)
+        .padding(Spacing.xl)
         .frame(minHeight: 280)
         .background(
-            RoundedRectangle(cornerRadius: 24)
+            RoundedRectangle(cornerRadius: CornerRadius.lg)
                 .fill(theme.cardBackground)
         )
         .overlay(
-            RoundedRectangle(cornerRadius: 24)
+            RoundedRectangle(cornerRadius: CornerRadius.lg)
                 .stroke(theme.cardBorderColor, lineWidth: 0.5)
         )
-        .shadow(color: theme.cardShadowColor, radius: 8, y: 4)
+        .shadow(color: theme.cardShadowColor, radius: 6, y: 3)
     }
 
     private var monthlyReportView: some View {
-        VStack(spacing: 10) {
+        VStack(spacing: Spacing.md) {
             reportCard(
                 title: "Monthly Summary",
                 subtitle: "Last 30 days"
             ) {
-                VStack(spacing: 16) {
+                VStack(spacing: Spacing.lg) {
                     StatRow(label: "Total Entries", value: "\(viewModel.monthlyReport.totalEntries)")
                     StatRow(label: "Most Active Week", value: viewModel.monthlyReport.mostActiveWeek)
                     StatRow(label: "Average Per Day", value: String(format: "%.1f", viewModel.monthlyReport.averagePerDay))
@@ -275,21 +328,14 @@ struct ReportsView: View {
                 subtitle: "Most frequently logged"
             ) {
                 if viewModel.monthlyReport.topPatterns.isEmpty {
-                    HStack {
-                        Spacer()
-                        VStack(spacing: 12) {
-                            Image(systemName: "chart.bar.xaxis")
-                                .font(.system(size: 40))
-                                .foregroundStyle(.secondary.opacity(0.5))
-                            Text("No data available")
-                                .font(.subheadline)
-                                .foregroundStyle(.secondary)
-                        }
-                        .padding(.vertical, 20)
-                        Spacer()
-                    }
+                    EmptyStateView(
+                        icon: "chart.bar.xaxis",
+                        title: "No Patterns Yet",
+                        message: "Start logging to see your top patterns"
+                    )
+                    .frame(height: 150)
                 } else {
-                    VStack(spacing: 12) {
+                    VStack(spacing: Spacing.md) {
                         ForEach(Array(viewModel.monthlyReport.topPatterns.prefix(10).enumerated()), id: \.element.key) { index, item in
                             HStack {
                                 Text("\(index + 1)")
@@ -306,7 +352,7 @@ struct ReportsView: View {
                                 Text("\(item.value)")
                                     .font(.subheadline)
                                     .fontWeight(.medium)
-                                    .foregroundStyle(.blue)
+                                    .foregroundStyle(theme.primaryColor)
                             }
                         }
                     }
@@ -317,7 +363,7 @@ struct ReportsView: View {
                 title: "Correlation Insights",
                 subtitle: "Pattern relationships"
             ) {
-                VStack(alignment: .leading, spacing: 12) {
+                VStack(alignment: .leading, spacing: Spacing.md) {
                     ForEach(viewModel.monthlyReport.correlations, id: \.self) { correlation in
                         HStack(alignment: .top, spacing: 8) {
                             Image(systemName: "lightbulb.fill")
@@ -340,12 +386,12 @@ struct ReportsView: View {
                 title: "Best vs Challenging Days",
                 subtitle: "Performance analysis"
             ) {
-                VStack(alignment: .leading, spacing: 16) {
-                    VStack(alignment: .leading, spacing: 8) {
+                VStack(alignment: .leading, spacing: Spacing.lg) {
+                    VStack(alignment: .leading, spacing: Spacing.sm) {
                         Label("Best Performing Days", systemImage: "checkmark.circle.fill")
                             .font(.subheadline)
                             .fontWeight(.medium)
-                            .foregroundStyle(.green)
+                            .foregroundStyle(SemanticColor.success)
 
                         ForEach(viewModel.monthlyReport.bestDays.prefix(3), id: \.self) { day in
                             Text(day)
@@ -356,11 +402,11 @@ struct ReportsView: View {
 
                     Divider()
 
-                    VStack(alignment: .leading, spacing: 8) {
+                    VStack(alignment: .leading, spacing: Spacing.sm) {
                         Label("Challenging Days", systemImage: "exclamationmark.triangle.fill")
                             .font(.subheadline)
                             .fontWeight(.medium)
-                            .foregroundStyle(.orange)
+                            .foregroundStyle(SemanticColor.warning)
 
                         ForEach(viewModel.monthlyReport.challengingDays.prefix(3), id: \.self) { day in
                             Text(day)
@@ -378,8 +424,8 @@ struct ReportsView: View {
         subtitle: String,
         @ViewBuilder content: () -> Content
     ) -> some View {
-        VStack(alignment: .leading, spacing: 16) {
-            VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: Spacing.lg) {
+            VStack(alignment: .leading, spacing: Spacing.xs) {
                 Text(title)
                     .font(.headline)
                 Text(subtitle)
@@ -389,16 +435,16 @@ struct ReportsView: View {
 
             content()
         }
-        .padding(20)
+        .padding(Spacing.xl)
         .background(
-            RoundedRectangle(cornerRadius: 24)
+            RoundedRectangle(cornerRadius: CornerRadius.lg)
                 .fill(theme.cardBackground)
         )
         .overlay(
-            RoundedRectangle(cornerRadius: 24)
+            RoundedRectangle(cornerRadius: CornerRadius.lg)
                 .stroke(theme.cardBorderColor, lineWidth: 0.5)
         )
-        .shadow(color: theme.cardShadowColor, radius: 8, y: 4)
+        .shadow(color: theme.cardShadowColor, radius: 6, y: 3)
     }
 }
 
@@ -424,6 +470,322 @@ struct StatRow: View {
 enum ReportTimeframe {
     case weekly
     case monthly
+}
+
+// MARK: - AI Insights Sheet View
+
+struct AIInsightsSheetView: View {
+    @Environment(\.dismiss) private var dismiss
+    @StateObject private var viewModel = AIInsightsTabViewModel()
+    @State private var showingFullReport = false
+
+    @AppStorage("selectedTheme") private var selectedThemeRaw: String = AppTheme.purple.rawValue
+
+    private var theme: AppTheme {
+        AppTheme(rawValue: selectedThemeRaw) ?? .purple
+    }
+
+    var body: some View {
+        NavigationStack {
+            ZStack {
+                theme.gradient
+                    .ignoresSafeArea()
+
+                ScrollView {
+                    VStack(spacing: Spacing.lg) {
+                        if !viewModel.hasAcknowledgedPrivacy {
+                            privacyNoticeCard
+                        } else if !viewModel.isAPIKeyConfigured {
+                            apiKeyCard
+                        } else {
+                            analysisOptionsCard
+                            analyzeButton
+
+                            if let error = viewModel.errorMessage {
+                                errorCard(error)
+                            }
+
+                            if viewModel.isAPIKeyConfigured {
+                                settingsButton
+                            }
+                        }
+                    }
+                    .padding()
+                }
+                .scrollContentBackground(.hidden)
+            }
+            .navigationTitle("AI Insights")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Done") {
+                        dismiss()
+                    }
+                }
+            }
+            .sheet(isPresented: $viewModel.showingSettings) {
+                AIInsightsSettingsView(viewModel: viewModel)
+            }
+            .fullScreenCover(isPresented: $showingFullReport) {
+                FullReportView(viewModel: viewModel, theme: theme)
+            }
+            .onChange(of: viewModel.insights) { _, newValue in
+                if newValue != nil {
+                    showingFullReport = true
+                }
+            }
+        }
+    }
+
+    // MARK: - Privacy Notice Card
+
+    private var privacyNoticeCard: some View {
+        VStack(alignment: .leading, spacing: Spacing.lg) {
+            HStack {
+                Image(systemName: "hand.raised.fill")
+                    .font(.title2)
+                    .foregroundStyle(SemanticColor.warning)
+                Text("Privacy Notice")
+                    .font(.title3)
+                    .fontWeight(.bold)
+            }
+
+            Text("To provide AI insights, your data will be sent to Google's Gemini AI service. This includes:")
+                .font(.body)
+                .foregroundStyle(.secondary)
+
+            VStack(alignment: .leading, spacing: Spacing.sm) {
+                bulletPoint("Pattern entries and intensities")
+                bulletPoint("Journal content and mood ratings")
+                bulletPoint("Medication names and effectiveness")
+            }
+
+            Text("No personally identifying information is sent. You choose which data to include.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+
+            Button {
+                viewModel.acknowledgePrivacy()
+            } label: {
+                Text("I Understand, Continue")
+                    .font(.body)
+                    .fontWeight(.semibold)
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(theme.primaryColor)
+                    .foregroundColor(.white)
+                    .cornerRadius(12)
+            }
+        }
+        .padding(Spacing.xl)
+        .background(
+            RoundedRectangle(cornerRadius: CornerRadius.lg)
+                .fill(theme.cardBackground)
+        )
+        .shadow(color: theme.cardShadowColor, radius: 6, y: 3)
+    }
+
+    private func bulletPoint(_ text: String) -> some View {
+        HStack(alignment: .top, spacing: Spacing.sm) {
+            Circle()
+                .fill(.secondary)
+                .frame(width: 6, height: 6)
+                .padding(.top, 6)
+            Text(text)
+                .font(.body)
+        }
+    }
+
+    // MARK: - API Key Card
+
+    private var apiKeyCard: some View {
+        VStack(alignment: .leading, spacing: Spacing.lg) {
+            HStack {
+                Image(systemName: "key.fill")
+                    .font(.title2)
+                    .foregroundStyle(SemanticColor.primary)
+                Text("Setup Required")
+                    .font(.title3)
+                    .fontWeight(.bold)
+            }
+
+            Text("To use AI insights, you need a free Gemini API key from Google.")
+                .font(.body)
+                .foregroundStyle(.secondary)
+
+            Link(destination: URL(string: "https://aistudio.google.com/app/apikey")!) {
+                HStack {
+                    Text("Get your free API key")
+                    Image(systemName: "arrow.up.right.square")
+                }
+                .font(.body)
+                .foregroundStyle(SemanticColor.primary)
+            }
+
+            TextField("Paste your API key here", text: $viewModel.apiKeyInput)
+                .textFieldStyle(.roundedBorder)
+                #if os(iOS)
+                .autocapitalization(.none)
+                #endif
+                .autocorrectionDisabled()
+
+            Button {
+                viewModel.saveAPIKey()
+            } label: {
+                Text("Save API Key")
+                    .font(.body)
+                    .fontWeight(.semibold)
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(viewModel.apiKeyInput.isEmpty ? Color.gray : Color.blue)
+                    .foregroundColor(.white)
+                    .cornerRadius(12)
+            }
+            .disabled(viewModel.apiKeyInput.isEmpty)
+        }
+        .padding(Spacing.xl)
+        .background(
+            RoundedRectangle(cornerRadius: CornerRadius.lg)
+                .fill(theme.cardBackground)
+        )
+        .shadow(color: theme.cardShadowColor, radius: 6, y: 3)
+    }
+
+    // MARK: - Analysis Options Card
+
+    private var analysisOptionsCard: some View {
+        VStack(alignment: .leading, spacing: Spacing.lg) {
+            Text("Analysis Options")
+                .font(.title3)
+                .fontWeight(.bold)
+
+            VStack(spacing: Spacing.md) {
+                Toggle(isOn: $viewModel.includePatterns) {
+                    HStack {
+                        Image(systemName: "waveform.path.ecg")
+                            .foregroundStyle(SemanticColor.primary)
+                        Text("Pattern Entries")
+                            .font(.body)
+                    }
+                }
+
+                Toggle(isOn: $viewModel.includeJournals) {
+                    HStack {
+                        Image(systemName: "book.fill")
+                            .foregroundStyle(SemanticColor.success)
+                        Text("Journal Entries")
+                            .font(.body)
+                    }
+                }
+
+                Toggle(isOn: $viewModel.includeMedications) {
+                    HStack {
+                        Image(systemName: "pills.fill")
+                            .foregroundStyle(.purple)
+                        Text("Medications")
+                            .font(.body)
+                    }
+                }
+            }
+            .tint(theme.primaryColor)
+
+            Divider()
+
+            VStack(alignment: .leading, spacing: Spacing.sm) {
+                Text("Timeframe")
+                    .font(.body)
+                    .foregroundStyle(.secondary)
+
+                Picker("Timeframe", selection: $viewModel.timeframeDays) {
+                    Text("7 days").tag(7)
+                    Text("14 days").tag(14)
+                    Text("30 days").tag(30)
+                }
+                .pickerStyle(.segmented)
+            }
+        }
+        .padding(Spacing.xl)
+        .background(
+            RoundedRectangle(cornerRadius: CornerRadius.lg)
+                .fill(theme.cardBackground)
+        )
+        .shadow(color: theme.cardShadowColor, radius: 6, y: 3)
+    }
+
+    // MARK: - Analyze Button
+
+    private var analyzeButton: some View {
+        Button {
+            Task {
+                await viewModel.analyze()
+            }
+        } label: {
+            HStack(spacing: Spacing.md) {
+                if viewModel.isAnalyzing {
+                    ProgressView()
+                        .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                } else {
+                    Image(systemName: "sparkles")
+                        .font(.title3)
+                }
+                Text(viewModel.isAnalyzing ? "Analyzing..." : "Generate AI Insights")
+                    .font(.body)
+                    .fontWeight(.semibold)
+            }
+            .frame(maxWidth: .infinity)
+            .padding()
+            .background(SemanticColor.ai)
+            .foregroundColor(.white)
+            .cornerRadius(16)
+        }
+        .disabled(viewModel.isAnalyzing)
+    }
+
+    // MARK: - Error Card
+
+    private func errorCard(_ error: String) -> some View {
+        HStack(spacing: Spacing.md) {
+            Image(systemName: "exclamationmark.triangle.fill")
+                .font(.title2)
+                .foregroundStyle(SemanticColor.warning)
+
+            Text(error)
+                .font(.body)
+                .foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(Spacing.xl)
+        .background(
+            RoundedRectangle(cornerRadius: CornerRadius.lg)
+                .fill(theme.cardBackground)
+        )
+        .shadow(color: theme.cardShadowColor, radius: 6, y: 3)
+    }
+
+    // MARK: - Settings Button
+
+    private var settingsButton: some View {
+        Button {
+            viewModel.showingSettings = true
+        } label: {
+            HStack(spacing: Spacing.sm) {
+                Image(systemName: "gear")
+                    .font(.subheadline)
+                    .foregroundStyle(theme.primaryColor)
+
+                Text("AI Settings")
+                    .font(.body)
+                    .foregroundStyle(.primary.opacity(0.8))
+            }
+            .padding(.vertical, Spacing.md)
+            .padding(.horizontal, Spacing.lg)
+            .frame(maxWidth: .infinity)
+            .background(
+                RoundedRectangle(cornerRadius: CornerRadius.md)
+                    .fill(theme.cardBackground)
+            )
+        }
+    }
 }
 
 #Preview {

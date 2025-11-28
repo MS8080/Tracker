@@ -22,13 +22,6 @@ struct JournalEntryEditorView: View {
         NavigationView {
             Form {
                 Section {
-                    TextField("Title (optional)", text: $title)
-                        .font(.headline)
-                } header: {
-                    Text("Title")
-                }
-
-                Section {
                     ZStack(alignment: .topLeading) {
                         if content.isEmpty && !contentIsFocused {
                             Text("Write your thoughts here...")
@@ -42,11 +35,14 @@ struct JournalEntryEditorView: View {
                             .animation(.easeInOut(duration: 0.2), value: contentIsFocused)
                             .focused($contentIsFocused)
                     }
-                } header: {
-                    Text("Content")
                 } footer: {
                     Text("\(content.count) characters")
                         .foregroundColor(.secondary)
+                }
+
+                Section {
+                    TextField("Add a title (optional)", text: $title)
+                        .font(.subheadline)
                 }
             }
             .navigationTitle(entry == nil ? "New Entry" : "Edit Entry")

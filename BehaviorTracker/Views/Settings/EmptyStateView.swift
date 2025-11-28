@@ -30,29 +30,10 @@ struct EmptyStateView: View {
         VStack(spacing: 24) {
             Spacer()
             
-            // Animated icon
-            if #available(iOS 18.0, *) {
-                Image(systemName: icon)
-                    .font(.system(size: 72))
-                    .foregroundStyle(
-                        LinearGradient(
-                            colors: [theme.primaryColor.opacity(0.7), theme.primaryColor.opacity(0.4)],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-                    .symbolEffect(.bounce.up.byLayer, options: .repeating.speed(0.3))
-            } else {
-                Image(systemName: icon)
-                    .font(.system(size: 72))
-                    .foregroundStyle(
-                        LinearGradient(
-                            colors: [theme.primaryColor.opacity(0.7), theme.primaryColor.opacity(0.4)],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-            }
+            // Icon
+            Image(systemName: icon)
+                .font(.system(size: 72))
+                .foregroundStyle(theme.primaryColor.opacity(0.5))
             
             VStack(spacing: 12) {
                 Text(title)
@@ -77,16 +58,10 @@ struct EmptyStateView: View {
                     }
                     .padding(.horizontal, 24)
                     .padding(.vertical, 12)
-                    .background(
-                        LinearGradient(
-                            colors: [theme.primaryColor, theme.primaryColor.opacity(0.8)],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
+                    .background(theme.primaryColor)
                     .foregroundStyle(.white)
                     .clipShape(Capsule())
-                    .shadow(color: theme.primaryColor.opacity(0.4), radius: 8, y: 4)
+                    .shadow(color: theme.primaryColor.opacity(0.3), radius: 6, y: 3)
                 }
                 .padding(.top, 8)
             }
@@ -107,7 +82,7 @@ struct EmptyStateView: View {
             title: "No Entries Yet",
             message: "Start tracking your patterns by logging your first entry",
             actionTitle: "Log First Entry",
-            action: { print("Action tapped") }
+            action: { }
         )
     }
 }

@@ -185,8 +185,8 @@ extension View {
         modifier(BlueLightFilterModifier())
     }
 
-    /// Card style with layered shadows for depth
-    func cardStyle(theme: AppTheme, cornerRadius: CGFloat = 16) -> some View {
+    /// Standard card style - use for main content cards
+    func cardStyle(theme: AppTheme, cornerRadius: CGFloat = CornerRadius.lg) -> some View {
         self
             .background(
                 RoundedRectangle(cornerRadius: cornerRadius)
@@ -196,8 +196,21 @@ extension View {
                 RoundedRectangle(cornerRadius: cornerRadius)
                     .stroke(theme.cardBorderColor, lineWidth: 0.5)
             )
-            // Layered shadows for depth
-            .shadow(color: theme.cardShadowColor.opacity(0.3), radius: 2, y: 1)
-            .shadow(color: theme.cardShadowColor.opacity(0.2), radius: 8, y: 4)
+            .shadow(color: theme.cardShadowColor, radius: 6, y: 3)
+    }
+
+    /// Compact card style - use for list items, nested cards
+    func compactCardStyle(theme: AppTheme) -> some View {
+        self
+            .background(
+                RoundedRectangle(cornerRadius: CornerRadius.md)
+                    .fill(theme.cardBackground)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: CornerRadius.md)
+                    .stroke(theme.cardBorderColor, lineWidth: 0.5)
+            )
+            .shadow(color: theme.cardShadowColor, radius: 4, y: 2)
     }
 }
+

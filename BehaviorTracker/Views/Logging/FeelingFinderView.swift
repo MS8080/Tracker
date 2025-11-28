@@ -230,7 +230,7 @@ struct FeelingFinderView: View {
                             .tag(2 + factorsNeedingDetails.count + 1)
                     }
                     .tabViewStyle(.page(indexDisplayMode: .never))
-                    .animation(.easeInOut(duration: 0.3), value: currentStep)
+                    .animation(.easeInOut(duration: 0.15), value: currentStep)
 
                     // Navigation buttons
                     navigationButtons
@@ -259,7 +259,7 @@ struct FeelingFinderView: View {
                 RoundedRectangle(cornerRadius: 4)
                     .fill(theme.primaryColor)
                     .frame(width: geo.size.width * progressPercentage, height: 6)
-                    .animation(.spring(response: 0.3), value: currentStep)
+                    .animation(.spring(response: 0.2), value: currentStep)
             }
         }
         .frame(height: 6)
@@ -288,7 +288,7 @@ struct FeelingFinderView: View {
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 14)
                     .background(
-                        RoundedRectangle(cornerRadius: 16)
+                        RoundedRectangle(cornerRadius: CornerRadius.md)
                             .fill(Color.white.opacity(0.2))
                     )
                 }
@@ -316,7 +316,7 @@ struct FeelingFinderView: View {
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 14)
                     .background(
-                        RoundedRectangle(cornerRadius: 16)
+                        RoundedRectangle(cornerRadius: CornerRadius.md)
                             .fill(canProceed ? theme.primaryColor : theme.primaryColor.opacity(0.5))
                     )
                 }
@@ -826,7 +826,7 @@ struct ResultStep: View {
                         .frame(maxWidth: .infinity)
                         .padding(40)
                         .background(
-                            RoundedRectangle(cornerRadius: 16)
+                            RoundedRectangle(cornerRadius: CornerRadius.md)
                                 .fill(theme.cardBackground)
                         )
                         .padding(.horizontal)
@@ -850,7 +850,7 @@ struct ResultStep: View {
                         .padding(30)
                         .frame(maxWidth: .infinity)
                         .background(
-                            RoundedRectangle(cornerRadius: 16)
+                            RoundedRectangle(cornerRadius: CornerRadius.md)
                                 .fill(theme.cardBackground)
                         )
                         .padding(.horizontal)
@@ -863,11 +863,11 @@ struct ResultStep: View {
                             .padding(20)
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .background(
-                                RoundedRectangle(cornerRadius: 16)
+                                RoundedRectangle(cornerRadius: CornerRadius.md)
                                     .fill(theme.cardBackground)
                             )
                             .overlay(
-                                RoundedRectangle(cornerRadius: 16)
+                                RoundedRectangle(cornerRadius: CornerRadius.md)
                                     .stroke(theme.cardBorderColor, lineWidth: 0.5)
                             )
                             .padding(.horizontal)
@@ -941,7 +941,7 @@ struct ResultStep: View {
                             }
                             .padding(16)
                             .background(
-                                RoundedRectangle(cornerRadius: 16)
+                                RoundedRectangle(cornerRadius: CornerRadius.md)
                                     .fill(theme.cardBackground)
                             )
                             .padding(.horizontal)
@@ -1200,7 +1200,7 @@ struct FlyingTile: View {
         }
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
-            withAnimation(.easeIn(duration: 0.4)) {
+            withAnimation(.easeIn(duration: 0.2)) {
                 position = CGPoint(x: screen.width * 0.5, y: targetY)
                 scale = 0.25
             }

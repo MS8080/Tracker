@@ -17,7 +17,6 @@ class GeminiService {
                     UserDefaults.standard.set(key, forKey: "gemini_api_key")
                 } catch {
                     // Invalid key, don't store it
-                    print("API key validation failed: \(error.localizedDescription)")
                 }
             } else {
                 UserDefaults.standard.removeObject(forKey: "gemini_api_key")

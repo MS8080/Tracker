@@ -12,11 +12,7 @@ struct JournalListView: View {
     @State private var isSearching = false
     @Binding var showingProfile: Bool
 
-    @AppStorage("selectedTheme") private var selectedThemeRaw: String = AppTheme.purple.rawValue
-
-    private var theme: AppTheme {
-        AppTheme(rawValue: selectedThemeRaw) ?? .purple
-    }
+    @ThemeWrapper var theme
 
     init(showingProfile: Binding<Bool> = .constant(false)) {
         self._showingProfile = showingProfile
@@ -35,7 +31,7 @@ struct JournalListView: View {
                     journalEntriesListWithOffset
                 }
 
-                // Floating Action Button - bottom right
+                // Floating Action Button - bottom right with improved shadows and pulse hint
                 VStack {
                     Spacer()
                     HStack {
@@ -45,15 +41,23 @@ struct JournalListView: View {
                             HapticFeedback.medium.trigger()
                         }) {
                             ZStack {
+                                // Subtle pulse ring animation
                                 Circle()
-                                    .fill(theme.cardBackground)
-                                    .frame(width: 56, height: 56)
-                                    .shadow(color: .black.opacity(0.15), radius: 8, y: 4)
-
+                                    .stroke(theme.primaryColor.opacity(0.3), lineWidth: 2)
+                                    .frame(width: 64, height: 64)
+                                    .scaleEffect(viewModel.journalEntries.isEmpty ? 1.2 : 1.0)
+                                    .opacity(viewModel.journalEntries.isEmpty ? 0.3 : 0.0)
+                                    .animation(
+                                        viewModel.journalEntries.isEmpty ?
+                                            .easeInOut(duration: 1.5).repeatForever(autoreverses: true) : .default,
+                                        value: viewModel.journalEntries.isEmpty
+                                    )
+                                
+                                // Main button
                                 Circle()
-                                    .fill(theme.primaryColor.opacity(0.8))
+                                    .fill(theme.primaryColor)
                                     .frame(width: 56, height: 56)
-
+                                
                                 Circle()
                                     .stroke(.white.opacity(0.3), lineWidth: 0.5)
                                     .frame(width: 56, height: 56)
@@ -62,6 +66,7 @@ struct JournalListView: View {
                                     .font(.system(size: 22, weight: .medium))
                                     .foregroundStyle(.white)
                             }
+                            .shadow(color: theme.primaryColor.opacity(0.3), radius: 10, y: 5)
                         }
                         .accessibilityLabel(NSLocalizedString("accessibility.create_entry", comment: ""))
                         .padding(.trailing, 20)
@@ -125,7 +130,7 @@ struct JournalListView: View {
 
     private var journalEntriesListWithOffset: some View {
         ScrollView {
-            LazyVStack(spacing: 16) {
+            LazyVStack(spacing: Spacing.xl) {
                 // Search bar - only shown when isSearching is true
                 if isSearching {
                     RoundedSearchBar(text: $searchText)
@@ -160,38 +165,38 @@ struct JournalListView: View {
             }
             .padding()
         }
+        .refreshable {
+            HapticFeedback.light.trigger()
+            await refreshJournal()
+        }
         .sheet(item: $entryToAnalyze) { entry in
             JournalEntryAnalysisView(entry: entry)
         }
     }
+    
+    private func refreshJournal() async {
+        try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
+        viewModel.loadJournalEntries()
+    }
 
     private var emptyStateView: some View {
-        VStack(spacing: 20) {
-            Spacer()
-
-            Image(systemName: "book.closed")
-                .font(.system(size: 60))
-                .foregroundStyle(.secondary)
-                .accessibilityHidden(true)
-
-            Text(NSLocalizedString("journal.no_entries", comment: ""))
-                .font(.title2)
-                .fontWeight(.semibold)
-                .accessibilityLabel(NSLocalizedString("journal.no_entries", comment: ""))
-
-            Spacer()
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        EmptyStateView(
+            icon: "book.closed.fill",
+            title: "Start Your Journal",
+            message: "Capture your thoughts, feelings, and reflections. Tap the + button to create your first entry.",
+            actionTitle: "Create First Entry",
+            action: {
+                showingNewEntry = true
+                HapticFeedback.medium.trigger()
+            }
+        )
+        .padding()
     }
 }
 
 struct RoundedSearchBar: View {
     @Binding var text: String
-
-    @AppStorage("selectedTheme") private var selectedThemeRaw: String = AppTheme.purple.rawValue
-    private var theme: AppTheme {
-        AppTheme(rawValue: selectedThemeRaw) ?? .purple
-    }
+    @ThemeWrapper var theme
 
     var body: some View {
         HStack {
@@ -213,7 +218,7 @@ struct RoundedSearchBar: View {
                 }
             }
         }
-        .padding(12)
+        .padding(Spacing.md)
         .background(
             RoundedRectangle(cornerRadius: 20)
                 .fill(theme.cardBackground)
@@ -254,21 +259,12 @@ struct DayTimelineCard: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: Spacing.md) {
             // Date Header
-            HStack {
-                Text(dateHeader)
-                    .font(.title2)
-                    .fontWeight(.bold)
-
-                Spacer()
-
-                if !isToday {
-                    Text(date, style: .date)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-            }
+            Text(dateHeader)
+                .font(.title2)
+                .fontWeight(.bold)
+                .frame(maxWidth: .infinity, alignment: .leading)
 
             // Timeline
             VStack(alignment: .leading, spacing: 0) {
@@ -286,13 +282,13 @@ struct DayTimelineCard: View {
                 }
             }
         }
-        .padding(16)
+        .padding(Spacing.lg)
         .background(
-            RoundedRectangle(cornerRadius: 16)
+            RoundedRectangle(cornerRadius: CornerRadius.md)
                 .fill(theme.journalCardBackground)
         )
         .overlay(
-            RoundedRectangle(cornerRadius: 16)
+            RoundedRectangle(cornerRadius: CornerRadius.md)
                 .stroke(theme.cardBorderColor, lineWidth: 0.5)
         )
         .shadow(color: theme.cardShadowColor, radius: 8, y: 4)
@@ -318,7 +314,7 @@ struct JournalTimelineEntryRow: View {
     var body: some View {
         // Safety check: don't render if entry is deleted
         if !entry.isDeleted {
-            HStack(alignment: .top, spacing: 12) {
+            HStack(alignment: .top, spacing: Spacing.md) {
                 // Timeline with bullet point
                 VStack(spacing: 0) {
                     // Bullet point - aligned with time text center
@@ -338,7 +334,7 @@ struct JournalTimelineEntryRow: View {
             .frame(width: 10)
 
             // Content
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: Spacing.sm) {
                 // Time
                 Text(timeString)
                     .font(.subheadline)
@@ -346,19 +342,19 @@ struct JournalTimelineEntryRow: View {
                     .foregroundStyle(theme.timelineColor)
 
                 // Entry content
-                VStack(alignment: .leading, spacing: 6) {
+                VStack(alignment: .leading, spacing: Spacing.sm) {
                     if let title = entry.title, !title.isEmpty {
                         if title.hasPrefix("AI Insight:") {
                             // AI Insight entry with special tag
-                            HStack(spacing: 8) {
-                                HStack(spacing: 4) {
+                            HStack(spacing: Spacing.sm) {
+                                HStack(spacing: Spacing.xs) {
                                     Image(systemName: "sparkles")
                                         .font(.caption)
                                     Text("AI Insight")
                                         .font(.caption)
                                         .fontWeight(.medium)
                                 }
-                                .foregroundStyle(.yellow)
+                                .foregroundStyle(SemanticColor.warning)
                                 .padding(.horizontal, 8)
                                 .padding(.vertical, 4)
                                 .background(
@@ -373,8 +369,8 @@ struct JournalTimelineEntryRow: View {
                             }
                         } else if title.hasPrefix("Guided Entry:") {
                             // Guided entry with special tag
-                            HStack(spacing: 8) {
-                                HStack(spacing: 4) {
+                            HStack(spacing: Spacing.sm) {
+                                HStack(spacing: Spacing.xs) {
                                     Image(systemName: "questionmark.circle.fill")
                                         .font(.caption)
                                     Text("Guided")
@@ -396,8 +392,8 @@ struct JournalTimelineEntryRow: View {
                             }
                         } else if title.hasPrefix("Log:") {
                             // Pattern log entry with special tag
-                            HStack(spacing: 8) {
-                                HStack(spacing: 4) {
+                            HStack(spacing: Spacing.sm) {
+                                HStack(spacing: Spacing.xs) {
                                     Image(systemName: "plus.circle.fill")
                                         .font(.caption)
                                     Text("Log")
@@ -468,7 +464,7 @@ struct JournalTimelineEntryRow: View {
             // Favorite indicator
             if entry.isFavorite {
                 Image(systemName: "star.fill")
-                    .foregroundStyle(.yellow)
+                    .foregroundStyle(SemanticColor.warning)
                     .font(.caption)
             }
         }
@@ -494,10 +490,7 @@ struct JournalEntryAnalysisView: View {
     @Environment(\.managedObjectContext) private var viewContext
     @StateObject private var analysisViewModel = JournalAnalysisViewModel()
 
-    @AppStorage("selectedTheme") private var selectedThemeRaw: String = AppTheme.purple.rawValue
-    private var theme: AppTheme {
-        AppTheme(rawValue: selectedThemeRaw) ?? .purple
-    }
+    @ThemeWrapper var theme
 
     var body: some View {
         NavigationStack {
@@ -506,9 +499,9 @@ struct JournalEntryAnalysisView: View {
                     .ignoresSafeArea()
 
                 ScrollView {
-                    VStack(spacing: 16) {
+                    VStack(spacing: Spacing.lg) {
                         // Entry being analyzed
-                        VStack(alignment: .leading, spacing: 12) {
+                        VStack(alignment: .leading, spacing: Spacing.md) {
                             HStack {
                                 Image(systemName: "doc.text")
                                     .foregroundStyle(.blue)
@@ -532,7 +525,7 @@ struct JournalEntryAnalysisView: View {
                                 .font(.caption)
                                 .foregroundStyle(.tertiary)
                         }
-                        .padding(20)
+                        .padding(Spacing.xl)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .background(
                             RoundedRectangle(cornerRadius: 20)
@@ -546,7 +539,7 @@ struct JournalEntryAnalysisView: View {
 
                         // Analysis results
                         if analysisViewModel.isAnalyzing {
-                            VStack(spacing: 16) {
+                            VStack(spacing: Spacing.lg) {
                                 ProgressView()
                                     .scaleEffect(1.2)
                                 Text("Analyzing...")
@@ -569,7 +562,7 @@ struct JournalEntryAnalysisView: View {
                             analysisResultView(analysis)
                         } else if let error = analysisViewModel.errorMessage {
                             // Error state
-                            VStack(spacing: 12) {
+                            VStack(spacing: Spacing.md) {
                                 Image(systemName: "exclamationmark.triangle")
                                     .font(.largeTitle)
                                     .foregroundStyle(.orange)
@@ -622,7 +615,7 @@ struct JournalEntryAnalysisView: View {
         VStack(alignment: .leading, spacing: 16) {
             HStack {
                 Image(systemName: "sparkles")
-                    .foregroundStyle(.yellow)
+                    .foregroundStyle(SemanticColor.warning)
                 Text("Analysis")
                     .font(.headline)
                 Spacer()

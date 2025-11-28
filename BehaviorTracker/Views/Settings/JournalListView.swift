@@ -31,7 +31,7 @@ struct JournalListView: View {
                     }
                     .padding(12)
                     .background(
-                        RoundedRectangle(cornerRadius: 24)
+                        RoundedRectangle(cornerRadius: CornerRadius.lg)
                             .fill(theme.cardBackground)
                     )
                     .padding(.horizontal)

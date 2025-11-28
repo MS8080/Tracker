@@ -15,7 +15,7 @@ struct ThemePickerView: View {
                     ThemeRow(theme: theme, isSelected: selectedTheme == theme)
                         .contentShape(Rectangle())
                         .onTapGesture {
-                            withAnimation(.easeInOut(duration: 0.3)) {
+                            withAnimation(.easeInOut(duration: 0.15)) {
                                 selectedTheme = theme
                             }
                         }

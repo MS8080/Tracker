@@ -8,11 +8,7 @@ struct DashboardView: View {
         self._showingProfile = showingProfile
     }
 
-    @AppStorage("selectedTheme") private var selectedThemeRaw: String = AppTheme.purple.rawValue
-
-    private var theme: AppTheme {
-        AppTheme(rawValue: selectedThemeRaw) ?? .purple
-    }
+    @ThemeWrapper var theme
 
     var body: some View {
         NavigationStack {
@@ -21,7 +17,7 @@ struct DashboardView: View {
                     .ignoresSafeArea()
 
                 ScrollView {
-                    VStack(spacing: 10) {
+                    VStack(spacing: Spacing.lg) {
                         MedicationQuickLogView()
                         streakCard
                         todaySummaryCard
@@ -31,6 +27,10 @@ struct DashboardView: View {
                     .padding()
                 }
                 .scrollContentBackground(.hidden)
+                .refreshable {
+                    HapticFeedback.light.trigger()
+                    await refreshData()
+                }
             }
             .navigationTitle(NSLocalizedString("dashboard.title", comment: ""))
             .toolbar {
@@ -44,14 +44,20 @@ struct DashboardView: View {
         }
     }
 
+    private func refreshData() async {
+        // Simulate refresh with slight delay for smooth animation
+        try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
+        viewModel.loadData()
+    }
+
     private var streakCard: some View {
-        VStack(spacing: 4) {
+        VStack(spacing: Spacing.xs) {
             HStack {
                 Image(systemName: "flame.fill")
                     .font(.title)
-                    .foregroundStyle(.red)
+                    .foregroundStyle(SemanticColor.warning)
 
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: Spacing.xs) {
                     Text("\(viewModel.streakCount) Day Streak")
                         .font(.title2)
                         .fontWeight(.bold)
@@ -64,7 +70,8 @@ struct DashboardView: View {
 
                 Text("\(viewModel.todayEntryCount)")
                     .font(.system(size: 48, weight: .bold))
-                    .foregroundStyle(.blue)
+                    .foregroundStyle(theme.primaryColor)
+                    .contentTransition(.numericText())
             }
 
             Text("Entries today")
@@ -72,32 +79,27 @@ struct DashboardView: View {
                 .foregroundStyle(.secondary)
                 .frame(maxWidth: .infinity, alignment: .trailing)
         }
-        .padding(20)
-        .background(
-            RoundedRectangle(cornerRadius: 24)
-                .fill(theme.cardBackground)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 24)
-                .stroke(theme.cardBorderColor, lineWidth: 0.5)
-        )
-        .shadow(color: theme.cardShadowColor, radius: 8, y: 4)
+        .padding(Spacing.xl)
+        .cardStyle(theme: theme)
     }
 
     private var todaySummaryCard: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: Spacing.lg) {
             Text("Today's Summary")
                 .font(.title2)
                 .fontWeight(.bold)
 
             if viewModel.todayCategoryBreakdown.isEmpty {
-                Text("No entries logged today")
-                    .font(.callout)
-                    .foregroundStyle(.secondary)
-                    .frame(maxWidth: .infinity, alignment: .center)
-                    .padding(.vertical, 20)
+                HStack {
+                    Spacer()
+                    Text("No entries for today")
+                        .font(.body)
+                        .foregroundStyle(.secondary)
+                    Spacer()
+                }
+                .frame(height: 60)
             } else {
-                VStack(spacing: 14) {
+                VStack(spacing: Spacing.md) {
                     ForEach(viewModel.todayCategoryBreakdown.sorted(by: { $0.value > $1.value }), id: \.key) { category, count in
                         HStack {
                             Image(systemName: category.icon)
@@ -105,12 +107,12 @@ struct DashboardView: View {
                                 .foregroundStyle(category.color)
 
                             Text(category.rawValue)
-                                .font(.callout)
+                                .font(.body)
 
                             Spacer()
 
                             Text("\(count)")
-                                .font(.callout)
+                                .font(.body)
                                 .fontWeight(.semibold)
                                 .foregroundStyle(.secondary)
                         }
@@ -118,20 +120,12 @@ struct DashboardView: View {
                 }
             }
         }
-        .padding(20)
-        .background(
-            RoundedRectangle(cornerRadius: 24)
-                .fill(theme.cardBackground)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 24)
-                .stroke(theme.cardBorderColor, lineWidth: 0.5)
-        )
-        .shadow(color: theme.cardShadowColor, radius: 8, y: 4)
+        .padding(Spacing.xl)
+        .cardStyle(theme: theme)
     }
 
     private var recentEntriesSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: Spacing.lg) {
             HStack {
                 Text("Recent Entries")
                     .font(.title2)
@@ -144,46 +138,41 @@ struct DashboardView: View {
                 } label: {
                     Text("View All")
                         .font(.callout)
-                        .foregroundStyle(.blue)
+                        .foregroundStyle(theme.primaryColor)
                 }
             }
 
             if viewModel.recentEntries.isEmpty {
-                Text("No recent entries")
-                    .font(.callout)
-                    .foregroundStyle(.secondary)
-                    .frame(maxWidth: .infinity, alignment: .center)
-                    .padding(.vertical, 20)
+                HStack {
+                    Spacer()
+                    Text("No recent activity")
+                        .font(.body)
+                        .foregroundStyle(.secondary)
+                    Spacer()
+                }
+                .frame(height: 60)
             } else {
-                VStack(spacing: 12) {
+                VStack(spacing: Spacing.md) {
                     ForEach(Array(viewModel.recentEntries.prefix(5))) { entry in
                         EntryRowView(entry: entry)
                     }
                 }
             }
         }
-        .padding(20)
-        .background(
-            RoundedRectangle(cornerRadius: 24)
-                .fill(theme.cardBackground)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 24)
-                .stroke(theme.cardBorderColor, lineWidth: 0.5)
-        )
-        .shadow(color: theme.cardShadowColor, radius: 8, y: 4)
+        .padding(Spacing.xl)
+        .cardStyle(theme: theme)
     }
 
     private var quickInsightsSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: Spacing.lg) {
             Text("Quick Insights")
                 .font(.title2)
                 .fontWeight(.bold)
 
-            VStack(spacing: 14) {
+            VStack(spacing: Spacing.md) {
                 InsightRow(
-                    icon: "chart.line.uptrend.xyaxis",
-                    color: .blue,
+                    icon: "chart.line.uptrend.xyaxis.circle.fill",
+                    color: theme.primaryColor,
                     title: "Most Logged Pattern",
                     value: viewModel.mostLoggedPattern ?? "None yet"
                 )
@@ -197,35 +186,24 @@ struct DashboardView: View {
 
                 InsightRow(
                     icon: "chart.bar",
-                    color: .purple,
+                    color: theme.primaryColor.opacity(0.7),
                     title: "Monthly Entries",
                     value: "\(viewModel.monthlyEntryCount)"
                 )
             }
         }
-        .padding(20)
-        .background(
-            RoundedRectangle(cornerRadius: 24)
-                .fill(theme.cardBackground)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 24)
-                .stroke(theme.cardBorderColor, lineWidth: 0.5)
-        )
-        .shadow(color: theme.cardShadowColor, radius: 8, y: 4)
+        .padding(Spacing.xl)
+        .cardStyle(theme: theme)
     }
 }
 
 struct EntryRowView: View {
     let entry: PatternEntry
 
-    @AppStorage("selectedTheme") private var selectedThemeRaw: String = AppTheme.purple.rawValue
-    private var theme: AppTheme {
-        AppTheme(rawValue: selectedThemeRaw) ?? .purple
-    }
+    @ThemeWrapper var theme
 
     var body: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: Spacing.md) {
             if let category = entry.patternCategoryEnum {
                 Image(systemName: category.icon)
                     .font(.title2)
@@ -233,13 +211,13 @@ struct EntryRowView: View {
                     .frame(width: 36)
             }
 
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: Spacing.xs) {
                 Text(entry.patternType)
-                    .font(.callout)
+                    .font(.body)
                     .fontWeight(.medium)
 
                 Text(entry.timestamp, style: .time)
-                    .font(.body)
+                    .font(.callout)
                     .foregroundStyle(.secondary)
             }
 
@@ -249,15 +227,8 @@ struct EntryRowView: View {
                 IntensityBadge(intensity: entry.intensity)
             }
         }
-        .padding(14)
-        .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(theme.cardBackground)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 16)
-                .stroke(theme.cardBorderColor, lineWidth: 0.5)
-        )
+        .padding(Spacing.md)
+        .compactCardStyle(theme: theme)
     }
 }
 
@@ -302,12 +273,12 @@ struct InsightRow: View {
                 .frame(width: 28)
 
             Text(title)
-                .font(.callout)
+                .font(.body)
 
             Spacer()
 
             Text(value)
-                .font(.callout)
+                .font(.body)
                 .fontWeight(.semibold)
                 .foregroundStyle(.secondary)
         }
@@ -319,6 +290,8 @@ struct InsightRow: View {
 struct ProfileButton: View {
     @Binding var showingProfile: Bool
     @ObservedObject private var dataController = DataController.shared
+    
+    @ThemeWrapper var theme
 
     var body: some View {
         Button {
@@ -332,17 +305,25 @@ struct ProfileButton: View {
                     .scaledToFill()
                     .frame(width: 32, height: 32)
                     .clipShape(Circle())
+                    .overlay(
+                        Circle()
+                            .stroke(theme.primaryColor.opacity(0.5), lineWidth: 2)
+                    )
                 #elseif os(macOS)
                 Image(nsImage: profileImage)
                     .resizable()
                     .scaledToFill()
                     .frame(width: 32, height: 32)
                     .clipShape(Circle())
+                    .overlay(
+                        Circle()
+                            .stroke(theme.primaryColor.opacity(0.5), lineWidth: 2)
+                    )
                 #endif
             } else {
                 Image(systemName: "person.circle.fill")
                     .font(.title2)
-                    .foregroundColor(.blue)
+                    .foregroundStyle(theme.primaryColor)
             }
         }
     }

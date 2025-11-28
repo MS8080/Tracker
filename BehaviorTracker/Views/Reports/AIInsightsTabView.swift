@@ -111,12 +111,12 @@ struct AIInsightsTabView: View {
                     .padding()
                     .background(theme.primaryColor)
                     .foregroundColor(.white)
-                    .cornerRadius(12)
+                    .cornerRadius(CornerRadius.sm)
             }
         }
-        .padding(20)
+        .padding(Spacing.xl)
         .background(
-            RoundedRectangle(cornerRadius: 24)
+            RoundedRectangle(cornerRadius: CornerRadius.lg)
                 .fill(theme.cardBackground)
         )
     }
@@ -175,13 +175,13 @@ struct AIInsightsTabView: View {
                     .padding()
                     .background(viewModel.apiKeyInput.isEmpty ? Color.gray : Color.blue)
                     .foregroundColor(.white)
-                    .cornerRadius(12)
+                    .cornerRadius(CornerRadius.sm)
             }
             .disabled(viewModel.apiKeyInput.isEmpty)
         }
-        .padding(20)
+        .padding(Spacing.xl)
         .background(
-            RoundedRectangle(cornerRadius: 24)
+            RoundedRectangle(cornerRadius: CornerRadius.lg)
                 .fill(theme.cardBackground)
         )
     }
@@ -239,9 +239,9 @@ struct AIInsightsTabView: View {
                 .pickerStyle(.segmented)
             }
         }
-        .padding(20)
+        .padding(Spacing.xl)
         .background(
-            RoundedRectangle(cornerRadius: 24)
+            RoundedRectangle(cornerRadius: CornerRadius.lg)
                 .fill(theme.cardBackground)
         )
     }
@@ -294,9 +294,9 @@ struct AIInsightsTabView: View {
                 .foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(20)
+        .padding(Spacing.xl)
         .background(
-            RoundedRectangle(cornerRadius: 24)
+            RoundedRectangle(cornerRadius: CornerRadius.lg)
                 .fill(theme.cardBackground)
         )
     }
@@ -355,9 +355,9 @@ struct AIInsightsTabView: View {
                 .multilineTextAlignment(.leading)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(20)
+        .padding(Spacing.xl)
         .background(
-            RoundedRectangle(cornerRadius: 20)
+            RoundedRectangle(cornerRadius: CornerRadius.lg)
                 .fill(theme.cardBackground)
         )
     }
@@ -419,9 +419,9 @@ struct AIInsightsTabView: View {
                 }
             }
         }
-        .padding(20)
+        .padding(Spacing.xl)
         .background(
-            RoundedRectangle(cornerRadius: 24)
+            RoundedRectangle(cornerRadius: CornerRadius.lg)
                 .fill(theme.cardBackground)
         )
     }
@@ -534,12 +534,29 @@ struct AIInsightsTabView: View {
         Button {
             viewModel.showingSettings = true
         } label: {
-            HStack {
-                Image(systemName: "gear")
+            HStack(spacing: 10) {
+                ZStack {
+                    Circle()
+                        .fill(theme.primaryColor.opacity(0.15))
+                        .frame(width: 32, height: 32)
+                    
+                    Image(systemName: "gear")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundStyle(theme.primaryColor)
+                }
+                
                 Text("AI Settings")
+                    .font(.callout)
+                    .fontWeight(.medium)
+                    .foregroundStyle(.primary.opacity(0.8))
             }
-            .font(.subheadline)
-            .foregroundStyle(.secondary)
+            .padding(.vertical, 12)
+            .padding(.horizontal, 16)
+            .frame(maxWidth: .infinity)
+            .background(
+                RoundedRectangle(cornerRadius: CornerRadius.md)
+                    .fill(theme.cardBackground)
+            )
         }
         .padding(.top, 8)
     }
@@ -821,9 +838,15 @@ struct FullReportView: View {
                     Button {
                         dismiss()
                     } label: {
-                        Image(systemName: "xmark.circle.fill")
-                            .font(.title)
-                            .foregroundStyle(.secondary)
+                        ZStack {
+                            Circle()
+                                .fill(Color.white.opacity(0.15))
+                                .frame(width: 36, height: 36)
+                            
+                            Image(systemName: "xmark")
+                                .font(.system(size: 16, weight: .semibold))
+                                .foregroundStyle(.white.opacity(0.9))
+                        }
                     }
 
                     Spacer()
@@ -839,9 +862,15 @@ struct FullReportView: View {
                         Button {
                             copyToClipboard(insights.content)
                         } label: {
-                            Image(systemName: viewModel.showCopiedFeedback ? "checkmark.circle.fill" : "doc.on.doc")
-                                .font(.title2)
-                                .foregroundStyle(viewModel.showCopiedFeedback ? .green : .secondary)
+                            ZStack {
+                                Circle()
+                                    .fill(viewModel.showCopiedFeedback ? Color.green.opacity(0.2) : Color.white.opacity(0.15))
+                                    .frame(width: 36, height: 36)
+                                
+                                Image(systemName: viewModel.showCopiedFeedback ? "checkmark" : "doc.on.doc")
+                                    .font(.system(size: 16, weight: .semibold))
+                                    .foregroundStyle(viewModel.showCopiedFeedback ? .green : .white.opacity(0.9))
+                            }
                         }
                     }
                 }
@@ -856,12 +885,21 @@ struct FullReportView: View {
                     VStack(spacing: 16) {
                         if let insights = viewModel.insights {
                             // Date
-                            HStack {
-                                Image(systemName: "calendar")
-                                    .foregroundStyle(.secondary)
+                            HStack(spacing: 8) {
+                                ZStack {
+                                    Circle()
+                                        .fill(theme.primaryColor.opacity(0.2))
+                                        .frame(width: 28, height: 28)
+                                    
+                                    Image(systemName: "calendar")
+                                        .font(.system(size: 13, weight: .semibold))
+                                        .foregroundStyle(theme.primaryColor)
+                                }
+                                
                                 Text(insights.formattedDate)
                                     .font(.subheadline)
-                                    .foregroundStyle(.secondary)
+                                    .fontWeight(.medium)
+                                    .foregroundStyle(.primary.opacity(0.8))
                                 Spacer()
                             }
                             .padding(.horizontal, 4)
@@ -897,7 +935,7 @@ struct FullReportView: View {
                             .padding(.top, 10)
                         }
                     }
-                    .padding(20)
+                    .padding(Spacing.xl)
                 }
             }
 
@@ -1195,11 +1233,11 @@ struct InsightTileView: View {
                     .foregroundStyle(.secondary)
             }
         }
-        .padding(20)
+        .padding(Spacing.xl)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(
             GeometryReader { geo in
-                RoundedRectangle(cornerRadius: 20)
+                RoundedRectangle(cornerRadius: CornerRadius.lg)
                     .fill(theme.cardBackground)
                     .onAppear {
                         tileFrame = geo.frame(in: .global)
@@ -1265,10 +1303,10 @@ struct SummaryTileView: View {
                 .multilineTextAlignment(.leading)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(20)
+        .padding(Spacing.xl)
         .background(
             GeometryReader { geo in
-                RoundedRectangle(cornerRadius: 20)
+                RoundedRectangle(cornerRadius: CornerRadius.lg)
                     .fill(theme.cardBackground)
                     .onAppear {
                         tileFrame = geo.frame(in: .global)
@@ -1350,7 +1388,7 @@ struct FlyingTileView: View {
         .padding(12)
         .frame(width: 160)
         .background(
-            RoundedRectangle(cornerRadius: 12)
+            RoundedRectangle(cornerRadius: CornerRadius.sm)
                 .fill(theme.cardBackground)
                 .shadow(color: .black.opacity(0.3), radius: 10, y: 5)
         )
