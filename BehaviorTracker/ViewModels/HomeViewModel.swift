@@ -342,23 +342,32 @@ class HomeViewModel: ObservableObject {
         }
 
         let prompt = """
-        Create a factual day summary based on this data. Be neutral and objective - no hype, no excessive positivity, just clear observations.
+        You are analyzing behavioral tracking data for someone with autism/ADHD. Your job is to find CONNECTIONS and PATTERNS - NOT to list what was logged.
 
         \(dataSummary)
 
-        Rules:
-        - Create 2-4 slides summarizing what happened
-        - Be factual and neutral in tone
-        - State observations, not judgments
-        - Keep messages under 80 characters
-        - No motivational language or encouragement
+        CRITICAL RULES:
+        1. DO NOT say "You logged X" or "You noted X" - that's just repeating data
+        2. DO NOT list individual entries - find what they MEAN together
+        3. DO find cause-effect relationships (e.g., sensory issues → energy drop)
+        4. DO notice timing patterns (morning vs afternoon trends)
+        5. DO identify the overall story of the day
+        6. Be neutral and observational, not cheerful or judgmental
 
-        Return ONLY a JSON array, no other text:
-        [
-          {"icon": "SF Symbol name", "colorName": "gray/blue/purple/orange/green/cyan", "title": "Short Title", "message": "Neutral factual observation"}
-        ]
+        GOOD examples:
+        - "Sensory sensitivity peaked before the energy crash - possible connection"
+        - "Morning was calmer, afternoon brought more challenges"
+        - "Physical discomfort and focus issues appeared together today"
 
-        SF Symbols to use: circle.fill, square.fill, clock.fill, list.bullet, doc.text.fill, calendar, chart.bar.fill, pencil, folder.fill, tray.fill
+        BAD examples (NEVER do this):
+        - "You logged bright lights at 10am" ❌
+        - "Today you noted 3 sensory experiences" ❌
+        - "You experienced task initiation difficulty" ❌
+
+        Generate 2-3 analytical insights. Return ONLY valid JSON array:
+        [{"icon": "SF Symbol", "colorName": "gray/blue/purple/orange/green/cyan", "title": "2-3 word title", "message": "Insight under 60 chars"}]
+
+        Icons: brain.head.profile, arrow.triangle.branch, clock.fill, bolt.fill, eye.fill, ear.fill, figure.walk, moon.fill, sun.max.fill, leaf.fill, link, arrow.up.arrow.down
         """
 
         do {

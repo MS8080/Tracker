@@ -17,11 +17,16 @@ struct LoggingView: View {
         self._showingProfile = showingProfile
     }
 
-    private var filteredCategories: [PatternCategory] {
-        if searchText.isEmpty {
-            return PatternCategory.allCases
+    private var isSearching: Bool {
+        !searchText.isEmpty
+    }
+
+    private var filteredPatternTypes: [PatternType] {
+        guard isSearching else { return [] }
+        return PatternType.allCases.filter {
+            $0.rawValue.localizedCaseInsensitiveContains(searchText) ||
+            $0.category.rawValue.localizedCaseInsensitiveContains(searchText)
         }
-        return PatternCategory.allCases.filter { $0.rawValue.localizedCaseInsensitiveContains(searchText) }
     }
 
     private var filteredFavorites: [String] {
@@ -29,6 +34,16 @@ struct LoggingView: View {
             return viewModel.favoritePatterns
         }
         return viewModel.favoritePatterns.filter { $0.localizedCaseInsensitiveContains(searchText) }
+    }
+
+    private var filteredCategories: [PatternCategory] {
+        if searchText.isEmpty {
+            return PatternCategory.allCases
+        }
+        // When searching, only show categories that have matching pattern types
+        return PatternCategory.allCases.filter { category in
+            filteredPatternTypes.contains { $0.category == category }
+        }
     }
 
     var body: some View {
@@ -39,19 +54,24 @@ struct LoggingView: View {
 
                 ScrollView {
                     VStack(spacing: Spacing.lg) {
-                        // Favorites
-                        if !filteredFavorites.isEmpty {
-                            favoritesSection
+                        if isSearching {
+                            // Search Results - show individual pattern types
+                            searchResultsSection
+                        } else {
+                            // Favorites
+                            if !filteredFavorites.isEmpty {
+                                favoritesSection
+                            }
+                            // All categories
+                            allCategoriesView
                         }
-                        // All categories
-                        allCategoriesView
                     }
                     .padding()
                 }
                 .scrollContentBackground(.hidden)
             }
             .navigationTitle("Log")
-            .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .automatic), prompt: "Search categories")
+            .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .automatic), prompt: "Search patterns")
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
                     ProfileButton(showingProfile: $showingProfile)
@@ -85,6 +105,58 @@ struct LoggingView: View {
                     if let patternType = PatternType(rawValue: patternTypeString) {
                         QuickLogButton(patternType: patternType) {
                             _ = viewModel.quickLog(patternType: patternType)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private var searchResultsSection: some View {
+        VStack(alignment: .leading, spacing: Spacing.md) {
+            if filteredPatternTypes.isEmpty {
+                // No results
+                VStack(spacing: Spacing.md) {
+                    Image(systemName: "magnifyingglass")
+                        .font(.system(size: 40))
+                        .foregroundStyle(.secondary)
+                    Text("No patterns found")
+                        .font(.headline)
+                        .foregroundStyle(.secondary)
+                    Text("Try a different search term")
+                        .font(.subheadline)
+                        .foregroundStyle(.tertiary)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, Spacing.xxl)
+            } else {
+                Text("\(filteredPatternTypes.count) Results")
+                    .font(.headline)
+                    .foregroundStyle(.secondary)
+                    .padding(.horizontal, Spacing.xs)
+
+                // Group results by category
+                ForEach(PatternCategory.allCases, id: \.self) { category in
+                    let patternsInCategory = filteredPatternTypes.filter { $0.category == category }
+                    if !patternsInCategory.isEmpty {
+                        VStack(alignment: .leading, spacing: Spacing.sm) {
+                            HStack(spacing: Spacing.sm) {
+                                Image(systemName: category.icon)
+                                    .foregroundStyle(category.color)
+                                Text(category.rawValue)
+                                    .font(.subheadline)
+                                    .fontWeight(.medium)
+                                    .foregroundStyle(.secondary)
+                            }
+                            .padding(.horizontal, Spacing.xs)
+
+                            LazyVGrid(columns: [GridItem(.adaptive(minimum: 160))], spacing: Spacing.sm) {
+                                ForEach(patternsInCategory, id: \.self) { patternType in
+                                    QuickLogButton(patternType: patternType) {
+                                        _ = viewModel.quickLog(patternType: patternType)
+                                    }
+                                }
+                            }
                         }
                     }
                 }
