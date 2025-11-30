@@ -20,29 +20,31 @@ struct HomeView: View {
                     .ignoresSafeArea()
 
                 ScrollView {
-                    VStack(spacing: Spacing.xl) {
-                        // Warm greeting with name
+                    VStack(spacing: Spacing.md) {
                         greetingSection
-
-                        // What's special today? - quick note
                         specialTodaySection
 
-                        // Day Summary button (only if there are entries today)
+                        // Streak card if user has been active
+                        if viewModel.currentStreak > 0 {
+                            streakCard
+                        }
+
+                        CurrentSetupCard()
+
                         if viewModel.hasTodayEntries {
                             daySummaryButton
                         }
 
-                        // What's been happening (contextual, not stats)
                         if let recentContext = viewModel.recentContext {
                             recentContextCard(recentContext)
                         }
 
-                        // Memories - familiar moments
                         if !viewModel.memories.isEmpty {
                             memoriesSection
                         }
                     }
-                    .padding()
+                    .padding(.horizontal, Spacing.lg)
+                    .padding(.vertical, Spacing.lg)
                 }
                 .scrollContentBackground(.hidden)
                 .refreshable {
@@ -65,6 +67,39 @@ struct HomeView: View {
         }
     }
 
+    // MARK: - Streak Card
+
+    private var streakCard: some View {
+        HStack(spacing: Spacing.xl) {
+            StreakCounter(
+                currentStreak: viewModel.currentStreak,
+                targetStreak: 7,
+                theme: theme
+            )
+
+            VStack(alignment: .leading, spacing: Spacing.sm) {
+                Text("Tracking Streak")
+                    .font(.headline)
+                    .foregroundStyle(CardText.title)
+
+                Text("Keep it up! You've been tracking for \(viewModel.currentStreak) days in a row.")
+                    .font(.subheadline)
+                    .foregroundStyle(CardText.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                if viewModel.currentStreak >= 7 {
+                    Text("You've reached your weekly goal!")
+                        .font(.caption)
+                        .foregroundStyle(.green)
+                }
+            }
+
+            Spacer()
+        }
+        .padding(Spacing.xl)
+        .cardStyle(theme: theme)
+    }
+
     // MARK: - Day Summary Button
 
     private var daySummaryButton: some View {
@@ -75,25 +110,27 @@ struct HomeView: View {
             HStack(spacing: Spacing.md) {
                 Image(systemName: "play.circle.fill")
                     .font(.title2)
-                    .foregroundStyle(theme.primaryColor)
+                    .foregroundStyle(.cyan)
+                    .frame(width: TouchTarget.recommended, height: TouchTarget.recommended)
 
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Your Day So Far")
                         .font(.headline)
-                        .foregroundStyle(.primary)
+                        .foregroundStyle(CardText.body)
 
                     Text("Tap to see a summary")
                         .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(CardText.caption)
                 }
 
                 Spacer()
 
                 Image(systemName: "chevron.right")
                     .font(.caption)
-                    .foregroundStyle(.tertiary)
+                    .foregroundStyle(CardText.muted)
             }
             .padding(Spacing.lg)
+            .frame(minHeight: TouchTarget.recommended)
             .cardStyle(theme: theme)
         }
         .buttonStyle(.plain)
@@ -107,10 +144,12 @@ struct HomeView: View {
                 Text("\(viewModel.greeting), \(firstName)!")
                     .font(.largeTitle)
                     .fontWeight(.bold)
+                    .foregroundStyle(.white)
             } else {
                 Text("\(viewModel.greeting)!")
                     .font(.largeTitle)
                     .fontWeight(.bold)
+                    .foregroundStyle(.white)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -124,7 +163,7 @@ struct HomeView: View {
             Text("What's special today?")
                 .font(.title3)
                 .fontWeight(.medium)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.white.opacity(0.7))
 
             HStack {
                 TextField("A thought, a moment, anything...", text: $specialNote)
@@ -148,12 +187,13 @@ struct HomeView: View {
             .padding(Spacing.md)
             .background(
                 RoundedRectangle(cornerRadius: CornerRadius.md)
-                    .fill(theme.cardBackground)
+                    .fill(Color.black.opacity(0.25))
             )
             .overlay(
                 RoundedRectangle(cornerRadius: CornerRadius.md)
-                    .stroke(theme.cardBorderColor, lineWidth: 1)
+                    .strokeBorder(theme.primaryColor.opacity(0.35), lineWidth: 1.5)
             )
+            .shadow(color: .black.opacity(0.3), radius: 8, x: 0, y: 4)
         }
     }
 
@@ -173,21 +213,21 @@ struct HomeView: View {
             HStack(spacing: Spacing.sm) {
                 Image(systemName: context.icon)
                     .font(.title3)
-                    .foregroundStyle(context.color)
+                    .foregroundStyle(.yellow)
                 Text("Recently")
                     .font(.title3)
-                    .fontWeight(.medium)
-                    .foregroundStyle(context.color)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(CardText.title)
             }
 
             Text(context.message)
                 .font(.body)
-                .foregroundStyle(.primary)
+                .foregroundStyle(CardText.body)
 
             if let timeAgo = context.timeAgo {
                 Text(timeAgo)
                     .font(.caption)
-                    .foregroundStyle(.tertiary)
+                    .foregroundStyle(CardText.caption)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -198,23 +238,26 @@ struct HomeView: View {
     // MARK: - Memories Section
 
     private var memoriesSection: some View {
-        VStack(alignment: .leading, spacing: Spacing.md) {
-            ForEach(viewModel.memories, id: \.id) { memory in
-                memoryCard(memory)
-            }
+        ForEach(viewModel.memories, id: \.id) { memory in
+            memoryCard(memory)
         }
     }
 
     private func memoryCard(_ memory: Memory) -> some View {
         VStack(alignment: .leading, spacing: Spacing.sm) {
-            Text(memory.timeframe)
-                .font(.title3)
-                .fontWeight(.semibold)
-                .foregroundStyle(theme.primaryColor)
+            HStack(spacing: Spacing.sm) {
+                Image(systemName: "clock.arrow.circlepath")
+                    .font(.title3)
+                    .foregroundStyle(.mint)
+                Text(memory.timeframe)
+                    .font(.title3)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(CardText.title)
+            }
 
             Text(memory.description)
                 .font(.body)
-                .foregroundStyle(.primary)
+                .foregroundStyle(CardText.body)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(Spacing.lg)
@@ -240,27 +283,39 @@ struct ProfileButton: View {
                 Image(uiImage: profileImage)
                     .resizable()
                     .scaledToFill()
-                    .frame(width: 32, height: 32)
+                    .frame(width: 36, height: 36)
                     .clipShape(Circle())
                     .overlay(
                         Circle()
-                            .stroke(theme.primaryColor.opacity(0.5), lineWidth: 2)
+                            .stroke(Color.white.opacity(0.4), lineWidth: 2.5)
                     )
+                    .shadow(color: .black.opacity(0.3), radius: 4, x: 0, y: 2)
                 #elseif os(macOS)
                 Image(nsImage: profileImage)
                     .resizable()
                     .scaledToFill()
-                    .frame(width: 32, height: 32)
+                    .frame(width: 36, height: 36)
                     .clipShape(Circle())
                     .overlay(
                         Circle()
-                            .stroke(theme.primaryColor.opacity(0.5), lineWidth: 2)
+                            .stroke(Color.white.opacity(0.4), lineWidth: 2.5)
                     )
+                    .shadow(color: .black.opacity(0.3), radius: 4, x: 0, y: 2)
                 #endif
             } else {
-                Image(systemName: "person.circle.fill")
-                    .font(.title2)
-                    .foregroundStyle(theme.primaryColor)
+                Circle()
+                    .fill(theme.primaryColor)
+                    .frame(width: 36, height: 36)
+                    .overlay(
+                        Image(systemName: "person.fill")
+                            .font(.system(size: 18, weight: .medium))
+                            .foregroundStyle(.white)
+                    )
+                    .overlay(
+                        Circle()
+                            .stroke(Color.white.opacity(0.4), lineWidth: 2.5)
+                    )
+                    .shadow(color: .black.opacity(0.3), radius: 4, x: 0, y: 2)
             }
         }
     }
@@ -280,7 +335,6 @@ struct DaySlideshowView: View {
                 .ignoresSafeArea()
 
             VStack(spacing: 0) {
-                // Header
                 HStack {
                     Text("Day Summary")
                         .font(.headline)
@@ -300,7 +354,6 @@ struct DaySlideshowView: View {
 
                 if viewModel.isGeneratingSlides {
                     Spacer()
-                    // Loading state
                     VStack(spacing: Spacing.lg) {
                         ProgressView()
                             .scaleEffect(1.2)
@@ -313,7 +366,6 @@ struct DaySlideshowView: View {
                     Spacer()
                 } else if let error = viewModel.slidesError {
                     Spacer()
-                    // Error state
                     VStack(spacing: Spacing.md) {
                         Image(systemName: "exclamationmark.circle")
                             .font(.system(size: 40))
@@ -343,7 +395,6 @@ struct DaySlideshowView: View {
                     .padding(.horizontal, 40)
                     Spacer()
                 } else if !viewModel.todaySlides.isEmpty {
-                    // Cards scroll view
                     ScrollView {
                         VStack(spacing: Spacing.md) {
                             ForEach(Array(viewModel.todaySlides.enumerated()), id: \.element.id) { index, slide in
@@ -369,7 +420,6 @@ struct DaySlideshowView: View {
 
     private func slideCard(_ slide: DaySummarySlide, index: Int) -> some View {
         HStack(spacing: Spacing.md) {
-            // Icon
             Image(systemName: slide.icon)
                 .font(.title2)
                 .foregroundStyle(slide.color)
@@ -379,30 +429,22 @@ struct DaySlideshowView: View {
                         .fill(slide.color.opacity(0.15))
                 )
 
-            // Content
             VStack(alignment: .leading, spacing: 4) {
                 Text(slide.title)
                     .font(.subheadline)
                     .fontWeight(.semibold)
-                    .foregroundStyle(.primary)
+                    .foregroundStyle(CardText.body)
 
                 Text(slide.detail)
                     .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(CardText.secondary)
                     .lineLimit(3)
             }
 
             Spacer()
         }
         .padding(Spacing.md)
-        .background(
-            RoundedRectangle(cornerRadius: CornerRadius.md)
-                .fill(theme.cardBackground)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: CornerRadius.md)
-                .stroke(theme.cardBorderColor, lineWidth: 0.5)
-        )
+        .cardStyle(theme: theme, cornerRadius: CornerRadius.md)
     }
 }
 
