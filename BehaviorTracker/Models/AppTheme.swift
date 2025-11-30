@@ -232,19 +232,19 @@ enum AppTheme: String, CaseIterable, Identifiable {
         primaryColor.opacity(0.40)
     }
 
-    /// Card/tile background - frosted glass effect
+    /// Card/tile background - transparent with subtle white tint
     var cardBackground: Color {
-        return Color.white.opacity(0.15)
+        return Color.white.opacity(0.12)
     }
 
-    /// Border color for card edges
+    /// Subtle border color for card edges
     var cardBorderColor: Color {
-        return Color.white.opacity(0.25)
+        return Color.white.opacity(0.15)
     }
 
     /// Shadow color for cards
     var cardShadowColor: Color {
-        return Color.black.opacity(0.25)
+        return Color.black.opacity(0.3)
     }
 
     /// Generate 9 mesh colors for gradient background - rich liquid depth
@@ -657,8 +657,21 @@ struct LiquidGlassCardModifier: ViewModifier {
                     .fill(theme.cardBackground)
             )
             .overlay(
+                // Inner highlight - top/left lighter edge
                 RoundedRectangle(cornerRadius: cornerRadius)
-                    .stroke(theme.cardBorderColor, lineWidth: 0.5)
+                    .stroke(
+                        LinearGradient(
+                            colors: [
+                                Color.white.opacity(0.3),
+                                Color.white.opacity(0.1),
+                                Color.black.opacity(0.1),
+                                Color.black.opacity(0.2)
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ),
+                        lineWidth: 1
+                    )
             )
             .shadow(color: theme.cardShadowColor, radius: 8, y: 4)
     }
@@ -676,10 +689,23 @@ struct CompactLiquidGlassCardModifier: ViewModifier {
                     .fill(theme.cardBackground)
             )
             .overlay(
+                // Inner highlight - top/left lighter edge
                 RoundedRectangle(cornerRadius: CornerRadius.md)
-                    .stroke(theme.cardBorderColor, lineWidth: 0.5)
+                    .stroke(
+                        LinearGradient(
+                            colors: [
+                                Color.white.opacity(0.3),
+                                Color.white.opacity(0.1),
+                                Color.black.opacity(0.1),
+                                Color.black.opacity(0.2)
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ),
+                        lineWidth: 1
+                    )
             )
-            .shadow(color: theme.cardShadowColor, radius: 8, y: 4)
+            .shadow(color: theme.cardShadowColor, radius: 6, y: 3)
     }
 }
 
