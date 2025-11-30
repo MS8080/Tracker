@@ -1,5 +1,13 @@
 import Foundation
 
+// MARK: - Notification Names
+
+extension Notification.Name {
+    static let profileUpdated = Notification.Name("profileUpdated")
+}
+
+// MARK: - Date Extensions
+
 extension Date {
     var startOfDay: Date {
         Calendar.current.startOfDay(for: self)

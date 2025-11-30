@@ -89,9 +89,10 @@ struct CalendarView: View {
                 Text("Import Calendar Events")
                     .font(.subheadline)
                     .fontWeight(.medium)
+                    .foregroundStyle(CardText.body)
                 Text("See your appointments alongside your patterns")
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(CardText.caption)
             }
 
             Spacer()
@@ -120,19 +121,11 @@ struct CalendarView: View {
             } label: {
                 Image(systemName: "xmark")
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(CardText.muted)
             }
         }
         .padding()
-        .background(
-            RoundedRectangle(cornerRadius: 20)
-                .fill(theme.cardBackground)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 20)
-                .stroke(theme.cardBorderColor, lineWidth: 0.5)
-        )
-        .shadow(color: theme.cardShadowColor, radius: 8, y: 4)
+        .cardStyle(theme: theme, cornerRadius: 20)
     }
 
     // MARK: - Month Navigation
@@ -218,15 +211,7 @@ struct CalendarView: View {
             }
         }
         .padding(Spacing.md)
-        .background(
-            RoundedRectangle(cornerRadius: CornerRadius.lg)
-                .fill(theme.cardBackground)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: CornerRadius.lg)
-                .stroke(theme.cardBorderColor, lineWidth: 0.5)
-        )
-        .shadow(color: theme.cardShadowColor, radius: 8, y: 4)
+        .cardStyle(theme: theme)
     }
 
     // MARK: - Selected Day Summary
@@ -242,6 +227,7 @@ struct CalendarView: View {
             HStack {
                 Text(date, style: .date)
                     .font(.headline)
+                    .foregroundStyle(CardText.title)
 
                 Spacer()
 
@@ -259,7 +245,7 @@ struct CalendarView: View {
             if entries.isEmpty && medicationLogs.isEmpty && journalEntries.isEmpty && calendarEvents.isEmpty {
                 Text("No entries for this day")
                     .font(.body)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(CardText.secondary)
                     .frame(maxWidth: .infinity, alignment: .center)
                     .padding(.vertical, 20)
             } else {
@@ -271,6 +257,7 @@ struct CalendarView: View {
                                 .foregroundStyle(SemanticColor.calendar)
                             Text("\(calendarEvents.count) event\(calendarEvents.count == 1 ? "" : "s")")
                                 .font(.subheadline)
+                                .foregroundStyle(CardText.body)
                             Spacer()
                         }
 
@@ -280,10 +267,11 @@ struct CalendarView: View {
                                 HStack(spacing: Spacing.sm) {
                                     Text(event.timeString)
                                         .font(.caption)
-                                        .foregroundStyle(.secondary)
+                                        .foregroundStyle(CardText.caption)
                                         .frame(width: 60, alignment: .leading)
                                     Text(event.title)
                                         .font(.caption)
+                                        .foregroundStyle(CardText.secondary)
                                         .lineLimit(1)
                                     Spacer()
                                 }
@@ -291,7 +279,7 @@ struct CalendarView: View {
                             if calendarEvents.count > 3 {
                                 Text("+\(calendarEvents.count - 3) more")
                                     .font(.caption)
-                                    .foregroundStyle(.secondary)
+                                    .foregroundStyle(CardText.caption)
                             }
                         }
                         .padding(.leading, 24)
@@ -304,6 +292,7 @@ struct CalendarView: View {
                                 .foregroundStyle(SemanticColor.primary)
                             Text("\(entries.count) pattern\(entries.count == 1 ? "" : "s") logged")
                                 .font(.subheadline)
+                                .foregroundStyle(CardText.body)
                             Spacer()
                         }
 
@@ -327,6 +316,7 @@ struct CalendarView: View {
                                 .foregroundStyle(SemanticColor.success)
                             Text("\(medicationLogs.count) medication\(medicationLogs.count == 1 ? "" : "s") logged")
                                 .font(.subheadline)
+                                .foregroundStyle(CardText.body)
                             Spacer()
                         }
                     }
@@ -338,6 +328,7 @@ struct CalendarView: View {
                                 .foregroundStyle(SemanticColor.warning)
                             Text("\(journalEntries.count) journal entr\(journalEntries.count == 1 ? "y" : "ies")")
                                 .font(.subheadline)
+                                .foregroundStyle(CardText.body)
                             Spacer()
                         }
                     }
@@ -345,15 +336,7 @@ struct CalendarView: View {
             }
         }
         .padding(Spacing.xl)
-        .background(
-            RoundedRectangle(cornerRadius: CornerRadius.lg)
-                .fill(theme.cardBackground)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: CornerRadius.lg)
-                .stroke(theme.cardBorderColor, lineWidth: 0.5)
-        )
-        .shadow(color: theme.cardShadowColor, radius: 8, y: 4)
+        .cardStyle(theme: theme)
     }
 
     // MARK: - Legend
@@ -362,6 +345,7 @@ struct CalendarView: View {
         VStack(alignment: .leading, spacing: Spacing.md) {
             Text("Legend")
                 .font(.headline)
+                .foregroundStyle(CardText.title)
 
             LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: Spacing.sm) {
                 ForEach(PatternCategory.allCases, id: \.self) { category in
@@ -371,6 +355,7 @@ struct CalendarView: View {
                             .frame(width: 12, height: 12)
                         Text(category.rawValue)
                             .font(.caption)
+                            .foregroundStyle(CardText.secondary)
                             .lineLimit(1)
                         Spacer()
                     }
@@ -387,6 +372,7 @@ struct CalendarView: View {
                         .frame(width: 8, height: 8)
                     Text("Calendar")
                         .font(.caption)
+                        .foregroundStyle(CardText.secondary)
                 }
 
                 HStack(spacing: Spacing.sm) {
@@ -395,6 +381,7 @@ struct CalendarView: View {
                         .foregroundStyle(SemanticColor.success)
                     Text("Medication")
                         .font(.caption)
+                        .foregroundStyle(CardText.secondary)
                 }
 
                 HStack(spacing: Spacing.sm) {
@@ -403,19 +390,12 @@ struct CalendarView: View {
                         .foregroundStyle(SemanticColor.warning)
                     Text("Journal")
                         .font(.caption)
+                        .foregroundStyle(CardText.secondary)
                 }
             }
         }
         .padding(Spacing.xl)
-        .background(
-            RoundedRectangle(cornerRadius: CornerRadius.lg)
-                .fill(theme.cardBackground)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: CornerRadius.lg)
-                .stroke(theme.cardBorderColor, lineWidth: 0.5)
-        )
-        .shadow(color: theme.cardShadowColor, radius: 8, y: 4)
+        .cardStyle(theme: theme)
     }
 }
 

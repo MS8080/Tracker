@@ -87,6 +87,39 @@ class DataController: ObservableObject {
         }
     }
 
+    // MARK: - Error Types
+
+    enum DataError: LocalizedError {
+        case saveFailed(Error)
+        case fetchFailed(Error)
+        case entityNotFound(String)
+
+        var errorDescription: String? {
+            switch self {
+            case .saveFailed(let error):
+                return "Failed to save data: \(error.localizedDescription)"
+            case .fetchFailed(let error):
+                return "Failed to load data: \(error.localizedDescription)"
+            case .entityNotFound(let name):
+                return "Could not find \(name)"
+            }
+        }
+    }
+
+    /// Save with error propagation - use when caller needs to know about failures
+    func saveOrThrow() throws {
+        let context = container.viewContext
+
+        if context.hasChanges {
+            do {
+                try context.save()
+            } catch {
+                throw DataError.saveFailed(error)
+            }
+        }
+    }
+
+    /// Save silently - logs error but doesn't throw (for non-critical updates)
     func save() {
         let context = container.viewContext
 
@@ -94,7 +127,11 @@ class DataController: ObservableObject {
             do {
                 try context.save()
             } catch {
-                // Silently fail - error handling should be added if needed
+                // Log error for debugging but don't crash
+                print("DataController save error: \(error.localizedDescription)")
+                DispatchQueue.main.async { [weak self] in
+                    self?.errorMessage = "Failed to save: \(error.localizedDescription)"
+                }
             }
         }
     }
@@ -160,6 +197,20 @@ class DataController: ObservableObject {
         category: PatternCategory? = nil,
         limit: Int? = nil
     ) -> [PatternEntry] {
+        do {
+            return try fetchPatternEntriesOrThrow(startDate: startDate, endDate: endDate, category: category, limit: limit)
+        } catch {
+            print("Failed to fetch pattern entries: \(error.localizedDescription)")
+            return []
+        }
+    }
+
+    func fetchPatternEntriesOrThrow(
+        startDate: Date? = nil,
+        endDate: Date? = nil,
+        category: PatternCategory? = nil,
+        limit: Int? = nil
+    ) throws -> [PatternEntry] {
         let request = NSFetchRequest<PatternEntry>(entityName: "PatternEntry")
         var predicates: [NSPredicate] = []
 
@@ -188,8 +239,7 @@ class DataController: ObservableObject {
         do {
             return try container.viewContext.fetch(request)
         } catch {
-            print("Failed to fetch pattern entries: \(error.localizedDescription)")
-            return []
+            throw DataError.fetchFailed(error)
         }
     }
 
@@ -287,6 +337,15 @@ class DataController: ObservableObject {
     }
 
     func fetchMedications(activeOnly: Bool = true) -> [Medication] {
+        do {
+            return try fetchMedicationsOrThrow(activeOnly: activeOnly)
+        } catch {
+            print("Failed to fetch medications: \(error.localizedDescription)")
+            return []
+        }
+    }
+
+    func fetchMedicationsOrThrow(activeOnly: Bool = true) throws -> [Medication] {
         let request = NSFetchRequest<Medication>(entityName: "Medication")
 
         if activeOnly {
@@ -298,8 +357,7 @@ class DataController: ObservableObject {
         do {
             return try container.viewContext.fetch(request)
         } catch {
-            print("Failed to fetch medications: \(error.localizedDescription)")
-            return []
+            throw DataError.fetchFailed(error)
         }
     }
 
@@ -366,6 +424,19 @@ class DataController: ObservableObject {
         endDate: Date? = nil,
         medication: Medication? = nil
     ) -> [MedicationLog] {
+        do {
+            return try fetchMedicationLogsOrThrow(startDate: startDate, endDate: endDate, medication: medication)
+        } catch {
+            print("Failed to fetch medication logs: \(error.localizedDescription)")
+            return []
+        }
+    }
+
+    func fetchMedicationLogsOrThrow(
+        startDate: Date? = nil,
+        endDate: Date? = nil,
+        medication: Medication? = nil
+    ) throws -> [MedicationLog] {
         let request = NSFetchRequest<MedicationLog>(entityName: "MedicationLog")
         var predicates: [NSPredicate] = []
 
@@ -386,15 +457,14 @@ class DataController: ObservableObject {
         }
 
         request.sortDescriptors = [NSSortDescriptor(keyPath: \MedicationLog.timestamp, ascending: false)]
-        
+
         // Prefetch the medication relationship to avoid faulting issues
         request.relationshipKeyPathsForPrefetching = ["medication"]
 
         do {
             return try container.viewContext.fetch(request)
         } catch {
-            print("Failed to fetch medication logs: \(error.localizedDescription)")
-            return []
+            throw DataError.fetchFailed(error)
         }
     }
 
@@ -462,6 +532,19 @@ class DataController: ObservableObject {
         endDate: Date? = nil,
         favoritesOnly: Bool = false
     ) -> [JournalEntry] {
+        do {
+            return try fetchJournalEntriesOrThrow(startDate: startDate, endDate: endDate, favoritesOnly: favoritesOnly)
+        } catch {
+            print("Failed to fetch journal entries: \(error.localizedDescription)")
+            return []
+        }
+    }
+
+    func fetchJournalEntriesOrThrow(
+        startDate: Date? = nil,
+        endDate: Date? = nil,
+        favoritesOnly: Bool = false
+    ) throws -> [JournalEntry] {
         let request = NSFetchRequest<JournalEntry>(entityName: "JournalEntry")
         var predicates: [NSPredicate] = []
 
@@ -486,8 +569,7 @@ class DataController: ObservableObject {
         do {
             return try container.viewContext.fetch(request)
         } catch {
-            print("Failed to fetch journal entries: \(error.localizedDescription)")
-            return []
+            throw DataError.fetchFailed(error)
         }
     }
 
@@ -501,6 +583,15 @@ class DataController: ObservableObject {
     }
 
     func searchJournalEntries(query: String) -> [JournalEntry] {
+        do {
+            return try searchJournalEntriesOrThrow(query: query)
+        } catch {
+            print("Failed to search journal entries: \(error.localizedDescription)")
+            return []
+        }
+    }
+
+    func searchJournalEntriesOrThrow(query: String) throws -> [JournalEntry] {
         let request = NSFetchRequest<JournalEntry>(entityName: "JournalEntry")
 
         let titlePredicate = NSPredicate(format: "title CONTAINS[cd] %@", query)
@@ -512,8 +603,7 @@ class DataController: ObservableObject {
         do {
             return try container.viewContext.fetch(request)
         } catch {
-            print("Failed to search journal entries: \(error.localizedDescription)")
-            return []
+            throw DataError.fetchFailed(error)
         }
     }
 
@@ -533,18 +623,35 @@ class DataController: ObservableObject {
     }
 
     func fetchUserProfiles() -> [UserProfile] {
-        let request = NSFetchRequest<UserProfile>(entityName: "UserProfile")
-        request.sortDescriptors = [NSSortDescriptor(keyPath: \UserProfile.name, ascending: true)]
-
         do {
-            return try container.viewContext.fetch(request)
+            return try fetchUserProfilesOrThrow()
         } catch {
             print("Failed to fetch user profiles: \(error.localizedDescription)")
             return []
         }
     }
 
+    func fetchUserProfilesOrThrow() throws -> [UserProfile] {
+        let request = NSFetchRequest<UserProfile>(entityName: "UserProfile")
+        request.sortDescriptors = [NSSortDescriptor(keyPath: \UserProfile.name, ascending: true)]
+
+        do {
+            return try container.viewContext.fetch(request)
+        } catch {
+            throw DataError.fetchFailed(error)
+        }
+    }
+
     func getCurrentUserProfile() -> UserProfile? {
+        do {
+            return try getCurrentUserProfileOrThrow()
+        } catch {
+            print("Failed to fetch current user profile: \(error.localizedDescription)")
+            return nil
+        }
+    }
+
+    func getCurrentUserProfileOrThrow() throws -> UserProfile? {
         let request = NSFetchRequest<UserProfile>(entityName: "UserProfile")
         request.fetchLimit = 1
         request.sortDescriptors = [NSSortDescriptor(keyPath: \UserProfile.createdAt, ascending: true)]
@@ -552,8 +659,7 @@ class DataController: ObservableObject {
         do {
             return try container.viewContext.fetch(request).first
         } catch {
-            print("Failed to fetch current user profile: \(error.localizedDescription)")
-            return nil
+            throw DataError.fetchFailed(error)
         }
     }
 
@@ -685,5 +791,92 @@ class DataController: ObservableObject {
         let patternType: String
         let category: String
         let timestamp: Date
+    }
+
+    // MARK: - Setup Item Management
+
+    func createSetupItem(
+        name: String,
+        category: SetupItemCategory,
+        effectTags: [String] = [],
+        icon: String? = nil,
+        notes: String? = nil,
+        startDate: Date? = nil
+    ) throws -> SetupItem {
+        try Validator(name, fieldName: "Item name")
+            .notEmpty()
+            .maxLength(100)
+
+        let item = SetupItem(context: container.viewContext)
+        item.id = UUID()
+        item.name = name
+        item.category = category.rawValue
+        item.setEffectTags(effectTags)
+        item.icon = icon
+        item.notes = notes
+        item.isActive = true
+        item.startDate = startDate ?? Date()
+        item.sortOrder = Int16(fetchSetupItems(category: category).count)
+
+        save()
+        return item
+    }
+
+    func fetchSetupItems(activeOnly: Bool = true, category: SetupItemCategory? = nil) -> [SetupItem] {
+        do {
+            return try fetchSetupItemsOrThrow(activeOnly: activeOnly, category: category)
+        } catch {
+            print("Failed to fetch setup items: \(error)")
+            return []
+        }
+    }
+
+    func fetchSetupItemsOrThrow(activeOnly: Bool = true, category: SetupItemCategory? = nil) throws -> [SetupItem] {
+        let request = NSFetchRequest<SetupItem>(entityName: "SetupItem")
+
+        var predicates: [NSPredicate] = []
+        if activeOnly {
+            predicates.append(NSPredicate(format: "isActive == YES"))
+        }
+        if let category = category {
+            predicates.append(NSPredicate(format: "category == %@", category.rawValue))
+        }
+
+        if !predicates.isEmpty {
+            request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: predicates)
+        }
+
+        request.sortDescriptors = [
+            NSSortDescriptor(keyPath: \SetupItem.category, ascending: true),
+            NSSortDescriptor(keyPath: \SetupItem.sortOrder, ascending: true)
+        ]
+
+        do {
+            return try container.viewContext.fetch(request)
+        } catch {
+            throw DataError.fetchFailed(error)
+        }
+    }
+
+    func updateSetupItem(_ item: SetupItem) {
+        save()
+    }
+
+    func deleteSetupItem(_ item: SetupItem) {
+        container.viewContext.delete(item)
+        save()
+    }
+
+    func toggleSetupItemActive(_ item: SetupItem) {
+        item.isActive.toggle()
+        save()
+    }
+
+    /// Get setup items grouped by category
+    func fetchSetupItemsGrouped(activeOnly: Bool = true) -> [SetupItemCategory: [SetupItem]] {
+        let items = fetchSetupItems(activeOnly: activeOnly)
+        return Dictionary(grouping: items) { item in
+            item.categoryEnum ?? .medication
+        }
     }
 }

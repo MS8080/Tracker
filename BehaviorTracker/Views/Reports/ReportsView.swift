@@ -78,7 +78,7 @@ struct ReportsView: View {
                 ZStack {
                     Circle()
                         .fill(theme.primaryColor)
-                        .frame(width: 44, height: 44)
+                        .frame(width: TouchTarget.recommended, height: TouchTarget.recommended)
 
                     Image(systemName: "chart.line.uptrend.xyaxis")
                         .font(.title3)
@@ -89,24 +89,17 @@ struct ReportsView: View {
                     Text("Correlations")
                         .font(.subheadline)
                         .fontWeight(.semibold)
-                        .foregroundColor(.primary)
+                        .foregroundStyle(CardText.body)
 
                     Text("Find triggers")
                         .font(.caption)
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(CardText.caption)
                 }
             }
             .frame(maxWidth: .infinity)
+            .frame(minHeight: TouchTarget.large)
             .padding(Spacing.lg)
-            .background(
-                RoundedRectangle(cornerRadius: CornerRadius.lg)
-                    .fill(theme.cardBackground)
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: CornerRadius.lg)
-                    .stroke(theme.cardBorderColor, lineWidth: 0.5)
-            )
-            .shadow(color: theme.cardShadowColor, radius: 6, y: 3)
+            .cardStyle(theme: theme)
         }
         .buttonStyle(.plain)
     }
@@ -119,7 +112,7 @@ struct ReportsView: View {
                 ZStack {
                     Circle()
                         .fill(SemanticColor.ai)
-                        .frame(width: 44, height: 44)
+                        .frame(width: TouchTarget.recommended, height: TouchTarget.recommended)
 
                     Image(systemName: "sparkles")
                         .font(.title3)
@@ -130,24 +123,17 @@ struct ReportsView: View {
                     Text("AI Insights")
                         .font(.subheadline)
                         .fontWeight(.semibold)
-                        .foregroundColor(.primary)
+                        .foregroundStyle(CardText.body)
 
                     Text("Get analysis")
                         .font(.caption)
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(CardText.caption)
                 }
             }
             .frame(maxWidth: .infinity)
+            .frame(minHeight: TouchTarget.large)
             .padding(Spacing.lg)
-            .background(
-                RoundedRectangle(cornerRadius: CornerRadius.lg)
-                    .fill(theme.cardBackground)
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: CornerRadius.lg)
-                    .stroke(theme.cardBorderColor, lineWidth: 0.5)
-            )
-            .shadow(color: theme.cardShadowColor, radius: 6, y: 3)
+            .cardStyle(theme: theme)
         }
         .buttonStyle(.plain)
     }
@@ -206,6 +192,7 @@ struct ReportsView: View {
 
                                     Text(category.rawValue)
                                         .font(.subheadline)
+                                        .foregroundStyle(CardText.body)
                                         .lineLimit(1)
 
                                     Spacer()
@@ -213,6 +200,7 @@ struct ReportsView: View {
                                     Text("\(count)")
                                         .font(.subheadline)
                                         .fontWeight(.medium)
+                                        .foregroundStyle(CardText.body)
                                 }
                             }
                         }
@@ -220,35 +208,7 @@ struct ReportsView: View {
                 }
             }
 
-            // Energy Trends Card - same size as Category Distribution
-            equalSizeReportCard(
-                title: "Energy Trends",
-                subtitle: "Average energy levels"
-            ) {
-                if viewModel.weeklyReport.energyTrend.isEmpty {
-                    emptyStateView(message: "No energy data logged")
-                } else {
-                    Chart {
-                        ForEach(viewModel.weeklyReport.energyTrend, id: \.date) { dataPoint in
-                            LineMark(
-                                x: .value("Day", dataPoint.date, unit: .day),
-                                y: .value("Energy", dataPoint.value)
-                            )
-                            .foregroundStyle(.yellow.gradient)
-                            .interpolationMethod(.catmullRom)
-
-                            PointMark(
-                                x: .value("Day", dataPoint.date, unit: .day),
-                                y: .value("Energy", dataPoint.value)
-                            )
-                            .foregroundStyle(.yellow)
-                        }
-                    }
-                    .chartYScale(domain: 1...5)
-                }
-            }
-
-            // Pattern Frequency Card
+            // Pattern Frequency Card - using SimpleBarChart
             equalSizeReportCard(
                 title: "Pattern Frequency",
                 subtitle: "Top patterns this week"
@@ -256,15 +216,17 @@ struct ReportsView: View {
                 if viewModel.weeklyReport.patternFrequency.isEmpty {
                     emptyStateView(message: "No data available")
                 } else {
-                    Chart {
-                        ForEach(Array(viewModel.weeklyReport.patternFrequency.prefix(5)), id: \.key) { pattern, count in
-                            BarMark(
-                                x: .value("Count", count),
-                                y: .value("Pattern", pattern)
+                    SimpleBarChart(
+                        data: viewModel.weeklyReport.patternFrequency.prefix(5).map { pattern, count in
+                            BarChartData(
+                                label: pattern,
+                                value: Double(count),
+                                color: theme.primaryColor
                             )
-                            .foregroundStyle(theme.primaryColor)
-                        }
-                    }
+                        },
+                        showValues: true,
+                        barHeight: 24
+                    )
                 }
             }
         }
@@ -289,9 +251,10 @@ struct ReportsView: View {
                 Text(title)
                     .font(.headline)
                     .fontWeight(.semibold)
+                    .foregroundStyle(CardText.title)
                 Text(subtitle)
                     .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(CardText.secondary)
             }
 
             content()
@@ -299,15 +262,7 @@ struct ReportsView: View {
         }
         .padding(Spacing.xl)
         .frame(minHeight: 280)
-        .background(
-            RoundedRectangle(cornerRadius: CornerRadius.lg)
-                .fill(theme.cardBackground)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: CornerRadius.lg)
-                .stroke(theme.cardBorderColor, lineWidth: 0.5)
-        )
-        .shadow(color: theme.cardShadowColor, radius: 6, y: 3)
+        .cardStyle(theme: theme)
     }
 
     private var monthlyReportView: some View {
@@ -341,18 +296,19 @@ struct ReportsView: View {
                                 Text("\(index + 1)")
                                     .font(.caption)
                                     .fontWeight(.bold)
-                                    .foregroundStyle(.secondary)
+                                    .foregroundStyle(CardText.secondary)
                                     .frame(width: 24)
 
                                 Text(item.key)
                                     .font(.subheadline)
+                                    .foregroundStyle(CardText.body)
 
                                 Spacer()
 
                                 Text("\(item.value)")
                                     .font(.subheadline)
                                     .fontWeight(.medium)
-                                    .foregroundStyle(theme.primaryColor)
+                                    .foregroundStyle(CardText.title)
                             }
                         }
                     }
@@ -372,7 +328,7 @@ struct ReportsView: View {
 
                             Text(correlation)
                                 .font(.subheadline)
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(CardText.secondary)
                         }
                     }
 
@@ -396,7 +352,7 @@ struct ReportsView: View {
                         ForEach(viewModel.monthlyReport.bestDays.prefix(3), id: \.self) { day in
                             Text(day)
                                 .font(.caption)
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(CardText.caption)
                         }
                     }
 
@@ -411,7 +367,7 @@ struct ReportsView: View {
                         ForEach(viewModel.monthlyReport.challengingDays.prefix(3), id: \.self) { day in
                             Text(day)
                                 .font(.caption)
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(CardText.caption)
                         }
                     }
                 }
@@ -428,23 +384,16 @@ struct ReportsView: View {
             VStack(alignment: .leading, spacing: Spacing.xs) {
                 Text(title)
                     .font(.headline)
+                    .foregroundStyle(CardText.title)
                 Text(subtitle)
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(CardText.caption)
             }
 
             content()
         }
         .padding(Spacing.xl)
-        .background(
-            RoundedRectangle(cornerRadius: CornerRadius.lg)
-                .fill(theme.cardBackground)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: CornerRadius.lg)
-                .stroke(theme.cardBorderColor, lineWidth: 0.5)
-        )
-        .shadow(color: theme.cardShadowColor, radius: 6, y: 3)
+        .cardStyle(theme: theme)
     }
 }
 
@@ -456,13 +405,14 @@ struct StatRow: View {
         HStack {
             Text(label)
                 .font(.subheadline)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(CardText.secondary)
 
             Spacer()
 
             Text(value)
                 .font(.subheadline)
                 .fontWeight(.medium)
+                .foregroundStyle(CardText.body)
         }
     }
 }
@@ -521,6 +471,7 @@ struct AIInsightsSheetView: View {
                     Button("Done") {
                         dismiss()
                     }
+                    .foregroundStyle(.white)
                 }
             }
             .sheet(isPresented: $viewModel.showingSettings) {
@@ -552,7 +503,7 @@ struct AIInsightsSheetView: View {
 
             Text("To provide AI insights, your data will be sent to Google's Gemini AI service. This includes:")
                 .font(.body)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(CardText.secondary)
 
             VStack(alignment: .leading, spacing: Spacing.sm) {
                 bulletPoint("Pattern entries and intensities")
@@ -562,7 +513,7 @@ struct AIInsightsSheetView: View {
 
             Text("No personally identifying information is sent. You choose which data to include.")
                 .font(.caption)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(CardText.caption)
 
             Button {
                 viewModel.acknowledgePrivacy()
@@ -578,11 +529,7 @@ struct AIInsightsSheetView: View {
             }
         }
         .padding(Spacing.xl)
-        .background(
-            RoundedRectangle(cornerRadius: CornerRadius.lg)
-                .fill(theme.cardBackground)
-        )
-        .shadow(color: theme.cardShadowColor, radius: 6, y: 3)
+        .cardStyle(theme: theme)
     }
 
     private func bulletPoint(_ text: String) -> some View {
@@ -611,7 +558,7 @@ struct AIInsightsSheetView: View {
 
             Text("To use AI insights, you need a free Gemini API key from Google.")
                 .font(.body)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(CardText.secondary)
 
             Link(destination: URL(string: "https://aistudio.google.com/app/apikey")!) {
                 HStack {
@@ -644,11 +591,7 @@ struct AIInsightsSheetView: View {
             .disabled(viewModel.apiKeyInput.isEmpty)
         }
         .padding(Spacing.xl)
-        .background(
-            RoundedRectangle(cornerRadius: CornerRadius.lg)
-                .fill(theme.cardBackground)
-        )
-        .shadow(color: theme.cardShadowColor, radius: 6, y: 3)
+        .cardStyle(theme: theme)
     }
 
     // MARK: - Analysis Options Card
@@ -694,7 +637,7 @@ struct AIInsightsSheetView: View {
             VStack(alignment: .leading, spacing: Spacing.sm) {
                 Text("Timeframe")
                     .font(.body)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(CardText.secondary)
 
                 Picker("Timeframe", selection: $viewModel.timeframeDays) {
                     Text("7 days").tag(7)
@@ -705,11 +648,7 @@ struct AIInsightsSheetView: View {
             }
         }
         .padding(Spacing.xl)
-        .background(
-            RoundedRectangle(cornerRadius: CornerRadius.lg)
-                .fill(theme.cardBackground)
-        )
-        .shadow(color: theme.cardShadowColor, radius: 6, y: 3)
+        .cardStyle(theme: theme)
     }
 
     // MARK: - Analyze Button
@@ -751,15 +690,11 @@ struct AIInsightsSheetView: View {
 
             Text(error)
                 .font(.body)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(CardText.secondary)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(Spacing.xl)
-        .background(
-            RoundedRectangle(cornerRadius: CornerRadius.lg)
-                .fill(theme.cardBackground)
-        )
-        .shadow(color: theme.cardShadowColor, radius: 6, y: 3)
+        .cardStyle(theme: theme)
     }
 
     // MARK: - Settings Button
@@ -775,15 +710,12 @@ struct AIInsightsSheetView: View {
 
                 Text("AI Settings")
                     .font(.body)
-                    .foregroundStyle(.primary.opacity(0.8))
+                    .foregroundStyle(CardText.secondary)
             }
             .padding(.vertical, Spacing.md)
             .padding(.horizontal, Spacing.lg)
             .frame(maxWidth: .infinity)
-            .background(
-                RoundedRectangle(cornerRadius: CornerRadius.md)
-                    .fill(theme.cardBackground)
-            )
+            .cardStyle(theme: theme, cornerRadius: CornerRadius.md)
         }
     }
 }

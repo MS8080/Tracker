@@ -67,7 +67,7 @@ struct SettingsView: View {
                     Text("Appearance")
                         .font(.callout)
                         .fontWeight(.medium)
-                        .foregroundStyle(.primary)
+                        .foregroundStyle(CardText.body)
                     
                     Spacer()
                 }
@@ -75,14 +75,10 @@ struct SettingsView: View {
                 .padding(.horizontal, 16)
             }
             .pickerStyle(.menu)
-            .background(
-                RoundedRectangle(cornerRadius: 14)
-                    .fill(theme.cardBackground)
-                    .shadow(color: .black.opacity(0.05), radius: 4, y: 2)
-            )
+            .cardStyle(theme: theme, cornerRadius: 14)
         }
     }
-    
+
     private var notificationsSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             SectionHeaderView(title: "Notifications", icon: "bell.fill")
@@ -100,7 +96,7 @@ struct SettingsView: View {
                         Text("Daily Reminders")
                             .font(.callout)
                             .fontWeight(.medium)
-                            .foregroundStyle(.primary)
+                            .foregroundStyle(CardText.body)
                     }
                 }
                 .padding(.vertical, 12)
@@ -121,14 +117,10 @@ struct SettingsView: View {
                     .tint(theme.primaryColor)
                 }
             }
-            .background(
-                RoundedRectangle(cornerRadius: 14)
-                    .fill(theme.cardBackground)
-                    .shadow(color: .black.opacity(0.05), radius: 4, y: 2)
-            )
+            .cardStyle(theme: theme, cornerRadius: 14)
         }
     }
-    
+
     private var quickLoggingSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             SectionHeaderView(title: "Quick Logging", icon: "bolt.fill")
@@ -147,31 +139,27 @@ struct SettingsView: View {
                     Text("Manage Favorites")
                         .font(.callout)
                         .fontWeight(.medium)
-                        .foregroundStyle(.primary)
-                    
+                        .foregroundStyle(CardText.body)
+
                     Spacer()
-                    
+
                     BadgeView(
                         text: "\(viewModel.favoritePatterns.count)",
                         color: theme.primaryColor
                     )
-                    
+
                     Image(systemName: "chevron.right")
                         .font(.caption)
                         .fontWeight(.semibold)
-                        .foregroundStyle(.tertiary)
+                        .foregroundStyle(CardText.muted)
                 }
                 .padding(.vertical, 12)
                 .padding(.horizontal, 16)
             }
-            .background(
-                RoundedRectangle(cornerRadius: 14)
-                    .fill(theme.cardBackground)
-                    .shadow(color: .black.opacity(0.05), radius: 4, y: 2)
-            )
+            .cardStyle(theme: theme, cornerRadius: 14)
         }
     }
-    
+
     private var dataSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             SectionHeaderView(title: "Data", icon: "externaldrive.fill")
@@ -203,27 +191,23 @@ struct SettingsView: View {
                         Text("Privacy & Security")
                             .font(.callout)
                             .fontWeight(.medium)
-                            .foregroundStyle(.primary)
-                        
+                            .foregroundStyle(CardText.body)
+
                         Spacer()
-                        
+
                         Image(systemName: "chevron.right")
                             .font(.caption)
                             .fontWeight(.semibold)
-                            .foregroundStyle(.tertiary)
+                            .foregroundStyle(CardText.muted)
                     }
                     .padding(.vertical, 12)
                     .padding(.horizontal, 16)
-                    .background(
-                        RoundedRectangle(cornerRadius: 14)
-                            .fill(theme.cardBackground)
-                            .shadow(color: .black.opacity(0.05), radius: 4, y: 2)
-                    )
+                    .cardStyle(theme: theme, cornerRadius: 14)
                 }
             }
         }
     }
-    
+
     private var aboutSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             SectionHeaderView(title: "About", icon: "info.circle.fill")
@@ -240,22 +224,17 @@ struct SettingsView: View {
                     Text("Version")
                         .font(.callout)
                         .fontWeight(.medium)
-                        .foregroundStyle(.primary)
-                    
+                        .foregroundStyle(CardText.body)
+
                     Spacer()
-                    
                     Text("1.0.0")
                         .font(.callout)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(CardText.secondary)
                 }
                 .padding(.vertical, 12)
                 .padding(.horizontal, 16)
-                .background(
-                    RoundedRectangle(cornerRadius: 14)
-                        .fill(theme.cardBackground)
-                        .shadow(color: .black.opacity(0.05), radius: 4, y: 2)
-                )
-                
+                .cardStyle(theme: theme, cornerRadius: 14)
+
                 NavigationLink {
                     AboutView()
                 } label: {
@@ -266,26 +245,22 @@ struct SettingsView: View {
                             size: 40,
                             backgroundStyle: .roundedSquare
                         )
-                        
+
                         Text("About")
                             .font(.callout)
                             .fontWeight(.medium)
-                            .foregroundStyle(.primary)
-                        
+                            .foregroundStyle(CardText.body)
+
                         Spacer()
-                        
+
                         Image(systemName: "chevron.right")
                             .font(.caption)
                             .fontWeight(.semibold)
-                            .foregroundStyle(.tertiary)
+                            .foregroundStyle(CardText.muted)
                     }
                     .padding(.vertical, 12)
                     .padding(.horizontal, 16)
-                    .background(
-                        RoundedRectangle(cornerRadius: 14)
-                            .fill(theme.cardBackground)
-                            .shadow(color: .black.opacity(0.05), radius: 4, y: 2)
-                    )
+                    .cardStyle(theme: theme, cornerRadius: 14)
                 }
             }
         }
@@ -343,7 +318,7 @@ struct EnhancedDataPrivacyView: View {
         ZStack {
             theme.gradient
                 .ignoresSafeArea()
-            
+
             ScrollView {
                 VStack(spacing: 16) {
                     InfoBox(

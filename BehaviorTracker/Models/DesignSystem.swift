@@ -19,6 +19,24 @@ enum CornerRadius {
     static let lg: CGFloat = 20
 }
 
+// MARK: - Touch Target Constants
+
+enum TouchTarget {
+    static let minimum: CGFloat = 44
+    static let recommended: CGFloat = 48
+    static let large: CGFloat = 56
+}
+
+// MARK: - Card Text Colors
+
+enum CardText {
+    static let title: Color = .primary
+    static let body: Color = .primary.opacity(0.9)
+    static let secondary: Color = .secondary
+    static let caption: Color = .secondary.opacity(0.8)
+    static let muted: Color = .secondary.opacity(0.6)
+}
+
 // MARK: - Semantic Colors
 
 enum SemanticColor {
@@ -272,5 +290,104 @@ struct LoadingView: View {
                 .fill(theme.cardBackground)
                 .shadow(color: theme.cardShadowColor, radius: 20, y: 10)
         )
+    }
+}
+
+// MARK: - Streak Counter Component
+
+struct StreakCounter: View {
+    let currentStreak: Int
+    let targetStreak: Int
+    let theme: AppTheme
+
+    private var progress: Double {
+        min(Double(currentStreak) / Double(targetStreak), 1.0)
+    }
+
+    var body: some View {
+        ZStack {
+            // Background ring
+            Circle()
+                .stroke(theme.primaryColor.opacity(0.2), lineWidth: 8)
+                .frame(width: 70, height: 70)
+
+            // Progress ring
+            Circle()
+                .trim(from: 0, to: progress)
+                .stroke(
+                    theme.primaryColor,
+                    style: StrokeStyle(lineWidth: 8, lineCap: .round)
+                )
+                .frame(width: 70, height: 70)
+                .rotationEffect(.degrees(-90))
+
+            // Streak number
+            VStack(spacing: 0) {
+                Text("\(currentStreak)")
+                    .font(.title2)
+                    .fontWeight(.bold)
+                    .foregroundStyle(CardText.title)
+                Text("days")
+                    .font(.caption2)
+                    .foregroundStyle(CardText.caption)
+            }
+        }
+    }
+}
+
+// MARK: - Bar Chart Data
+
+struct BarChartData: Identifiable {
+    let id = UUID()
+    let label: String
+    let value: Double
+    let color: Color
+}
+
+// MARK: - Simple Bar Chart Component
+
+struct SimpleBarChart: View {
+    let data: [BarChartData]
+    let showValues: Bool
+    let barHeight: CGFloat
+
+    init(data: [BarChartData], showValues: Bool = true, barHeight: CGFloat = 24) {
+        self.data = Array(data)
+        self.showValues = showValues
+        self.barHeight = barHeight
+    }
+
+    private var maxValue: Double {
+        data.map(\.value).max() ?? 1
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: Spacing.sm) {
+            ForEach(data) { item in
+                HStack(spacing: Spacing.sm) {
+                    Text(item.label)
+                        .font(.caption)
+                        .foregroundStyle(CardText.secondary)
+                        .frame(width: 80, alignment: .leading)
+                        .lineLimit(1)
+
+                    GeometryReader { geometry in
+                        let width = max(0, geometry.size.width * (item.value / maxValue))
+                        RoundedRectangle(cornerRadius: 4)
+                            .fill(item.color)
+                            .frame(width: width, height: barHeight)
+                    }
+                    .frame(height: barHeight)
+
+                    if showValues {
+                        Text("\(Int(item.value))")
+                            .font(.caption)
+                            .fontWeight(.medium)
+                            .foregroundStyle(CardText.body)
+                            .frame(width: 30, alignment: .trailing)
+                    }
+                }
+            }
+        }
     }
 }

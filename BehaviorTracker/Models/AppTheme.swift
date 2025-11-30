@@ -232,19 +232,19 @@ enum AppTheme: String, CaseIterable, Identifiable {
         primaryColor.opacity(0.40)
     }
 
-    /// Card/tile background - transparent with subtle white tint
+    /// Card/tile background - frosted glass effect
     var cardBackground: Color {
-        return Color.white.opacity(0.12)
+        return Color.white.opacity(0.15)
     }
 
-    /// Subtle border color for card edges
+    /// Border color for card edges
     var cardBorderColor: Color {
-        return Color.white.opacity(0.15)
+        return Color.white.opacity(0.25)
     }
 
     /// Shadow color for cards
     var cardShadowColor: Color {
-        return Color.black.opacity(0.3)
+        return Color.black.opacity(0.25)
     }
 
     /// Generate 9 mesh colors for gradient background - rich liquid depth
@@ -644,43 +644,6 @@ struct BlueLightFilterModifier: ViewModifier {
     }
 }
 
-// MARK: - Card Style Constants
-
-private enum CardStyle {
-    // Border settings - subtle but visible definition
-    static let borderWidth: CGFloat = 1.0
-    static let innerHighlightWidth: CGFloat = 0.5
-    static let compactBorderWidth: CGFloat = 1.0
-
-    // Material opacity - increased for better card distinction
-    static let materialOpacity: Double = 0.75
-    static let compactMaterialOpacity: Double = 0.65
-
-    // Card fill opacity - frosted glass base
-    static let fillOpacity: Double = 0.12
-    static let compactFillOpacity: Double = 0.10
-
-    // Shadow settings - theme glow (subtle)
-    static let glowOpacity: Double = 0.15
-    static let glowRadius: CGFloat = 20
-
-    // Shadow settings - depth shadow (stronger for lift)
-    static let shadowOpacity: Double = 0.5
-    static let shadowRadius: CGFloat = 16
-    static let shadowY: CGFloat = 10
-
-    // Compact shadow settings
-    static let compactGlowOpacity: Double = 0.12
-    static let compactGlowRadius: CGFloat = 12
-    static let compactShadowOpacity: Double = 0.4
-    static let compactShadowRadius: CGFloat = 10
-    static let compactShadowY: CGFloat = 6
-
-    // Border opacity - subtle but defining
-    static let borderOpacity: Double = 0.12
-    static let borderHighlightOpacity: Double = 0.20
-}
-
 // MARK: - Liquid Glass Card Modifier
 
 struct LiquidGlassCardModifier: ViewModifier {
@@ -716,7 +679,7 @@ struct CompactLiquidGlassCardModifier: ViewModifier {
                 RoundedRectangle(cornerRadius: CornerRadius.md)
                     .stroke(theme.cardBorderColor, lineWidth: 0.5)
             )
-            .shadow(color: theme.cardShadowColor, radius: 6, y: 3)
+            .shadow(color: theme.cardShadowColor, radius: 8, y: 4)
     }
 }
 

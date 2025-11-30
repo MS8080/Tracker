@@ -1,30 +1,12 @@
 import SwiftUI
 
-/// A reusable card container with consistent theming and styling
-/// Supports both standard theme-based backgrounds and material backgrounds
-///
-/// Usage:
-/// ```swift
-/// ThemedCard {
-///     VStack {
-///         Text("Hello")
-///     }
-/// }
-///
-/// // With material background
-/// ThemedCard(useMaterial: true) {
-///     VStack {
-///         Text("Hello")
-///     }
-/// }
-/// ```
+/// A reusable themed card container
 struct ThemedCard<Content: View>: View {
     let cornerRadius: CGFloat
-    let useMaterial: Bool
     let padding: CGFloat
     let content: Content
     @ThemeWrapper var theme
-    
+
     init(
         cornerRadius: CGFloat = 16,
         padding: CGFloat = 16,
@@ -33,40 +15,19 @@ struct ThemedCard<Content: View>: View {
     ) {
         self.cornerRadius = cornerRadius
         self.padding = padding
-        self.useMaterial = useMaterial
         self.content = content()
     }
-    
+
     var body: some View {
         content
             .padding(padding)
-            .background(backgroundView)
-            .overlay(overlayView)
-            .shadow(
-                color: useMaterial ? .black.opacity(0.2) : theme.cardShadowColor,
-                radius: useMaterial ? 10 : 8,
-                y: useMaterial ? 5 : 4
+            .background(
+                RoundedRectangle(cornerRadius: cornerRadius)
+                    .fill(Color.white.opacity(0.08))
             )
-    }
-    
-    @ViewBuilder
-    private var backgroundView: some View {
-        if useMaterial {
-            RoundedRectangle(cornerRadius: cornerRadius)
-                .fill(.ultraThinMaterial)
-                .shadow(color: .black.opacity(0.2), radius: 10, y: 5)
-        } else {
-            RoundedRectangle(cornerRadius: cornerRadius)
-                .fill(theme.cardBackground)
-        }
-    }
-    
-    @ViewBuilder
-    private var overlayView: some View {
-        RoundedRectangle(cornerRadius: cornerRadius)
-            .stroke(
-                useMaterial ? .white.opacity(0.2) : theme.cardBorderColor,
-                lineWidth: useMaterial ? 1 : 0.5
+            .overlay(
+                RoundedRectangle(cornerRadius: cornerRadius)
+                    .stroke(theme.primaryColor.opacity(0.35), lineWidth: 1.5)
             )
     }
 }

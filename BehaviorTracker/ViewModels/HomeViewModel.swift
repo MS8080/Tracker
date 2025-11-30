@@ -42,6 +42,7 @@ class HomeViewModel: ObservableObject {
     @Published var hasTodayEntries: Bool = false
     @Published var isGeneratingSlides: Bool = false
     @Published var slidesError: String?
+    @Published var currentStreak: Int = 0
 
     private let dataController = DataController.shared
     private let geminiService = GeminiService.shared
@@ -61,6 +62,12 @@ class HomeViewModel: ObservableObject {
         loadRecentContext()
         loadMemories()
         loadTodaySlides()
+        loadStreak()
+    }
+
+    private func loadStreak() {
+        let preferences = dataController.getUserPreferences()
+        currentStreak = Int(preferences.streakCount)
     }
 
     func refresh() async {
@@ -91,7 +98,6 @@ class HomeViewModel: ObservableObject {
     }
 
     private func loadRecentContext() {
-        // Get most recent entry
         let recentEntries = dataController.fetchPatternEntries(limit: 5)
 
         guard let mostRecent = recentEntries.first else {
@@ -100,8 +106,6 @@ class HomeViewModel: ObservableObject {
         }
 
         let timeAgo = RelativeDateTimeFormatter().localizedString(for: mostRecent.timestamp, relativeTo: Date())
-
-        // Create contextual message based on what was logged
         let patternType = mostRecent.patternType
         let category = mostRecent.patternCategoryEnum
 
@@ -113,7 +117,6 @@ class HomeViewModel: ObservableObject {
             icon = category.icon
             color = category.color
 
-            // Create natural language description
             switch category {
             case .sensory:
                 message = "You noted some sensory experiences"
@@ -199,9 +202,7 @@ class HomeViewModel: ObservableObject {
 
         let entries = dataController.fetchPatternEntries(startDate: twoWeeksAgo, endDate: Date())
 
-        // Find high intensity moments (4-5) followed by lower intensity or self-care
         for (index, entry) in entries.enumerated() where entry.intensity >= 4 {
-            // Check if there was recovery afterward
             if index > 0 {
                 let laterEntry = entries[index - 1] // entries are sorted newest first
                 let category = laterEntry.patternCategoryEnum

@@ -50,12 +50,14 @@ struct AddMedicationView: View {
                     Button("Cancel") {
                         dismiss()
                     }
+                    .foregroundStyle(.white)
                 }
 
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Save") {
                         saveMedication()
                     }
+                    .foregroundStyle(name.isEmpty ? .white.opacity(0.4) : .white)
                     .disabled(name.isEmpty)
                 }
             }

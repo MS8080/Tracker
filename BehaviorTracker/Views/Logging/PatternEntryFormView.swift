@@ -319,6 +319,7 @@ struct PatternEntryFormView: View {
                     Button("Cancel") {
                         dismiss()
                     }
+                    .foregroundStyle(.white)
                 }
 
                 ToolbarItem(placement: .confirmationAction) {
@@ -326,6 +327,7 @@ struct PatternEntryFormView: View {
                         saveEntry()
                     }
                     .fontWeight(.semibold)
+                    .foregroundStyle(.white)
                 }
             }
         }

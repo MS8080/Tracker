@@ -35,6 +35,25 @@
 		4E16DE672ECE7DF200FEFBD8 /* ContributingFactor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E16DE662ECE7DF200FEFBD8 /* ContributingFactor.swift */; };
 		4E16DE692ECE7F6F00FEFBD8 /* PatternCategory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E16DE682ECE7F6F00FEFBD8 /* PatternCategory.swift */; };
 		4E16DE6B2ECE7F8900FEFBD8 /* PatternType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E16DE6A2ECE7F8900FEFBD8 /* PatternType.swift */; };
+		4E30084A2EDBCF2D0061A03F /* FeelingFinderModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E3008492EDBCF2D0061A03F /* FeelingFinderModels.swift */; };
+		4E30084B2EDBCF2D0061A03F /* AIInsightsModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E3008482EDBCF2D0061A03F /* AIInsightsModels.swift */; };
+		4E30084C2EDBCF2D0061A03F /* FeelingFinderModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E3008492EDBCF2D0061A03F /* FeelingFinderModels.swift */; };
+		4E30084D2EDBCF2D0061A03F /* AIInsightsModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E3008482EDBCF2D0061A03F /* AIInsightsModels.swift */; };
+		4E3008502EDBCFA90061A03F /* AIInsightsTabViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E30084E2EDBCFA90061A03F /* AIInsightsTabViewModel.swift */; };
+		4E3008512EDBCFA90061A03F /* FeelingFinderViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E30084F2EDBCFA90061A03F /* FeelingFinderViewModel.swift */; };
+		4E3008522EDBCFA90061A03F /* AIInsightsTabViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E30084E2EDBCFA90061A03F /* AIInsightsTabViewModel.swift */; };
+		4E3008532EDBCFA90061A03F /* FeelingFinderViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E30084F2EDBCFA90061A03F /* FeelingFinderViewModel.swift */; };
+		4E3008572EDBCFD90061A03F /* AIInsightsSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E3008542EDBCFD90061A03F /* AIInsightsSettingsView.swift */; };
+		4E3008582EDBCFD90061A03F /* InsightTileViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E3008562EDBCFD90061A03F /* InsightTileViews.swift */; };
+		4E3008592EDBCFD90061A03F /* FullReportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E3008552EDBCFD90061A03F /* FullReportView.swift */; };
+		4E30085A2EDBCFD90061A03F /* AIInsightsSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E3008542EDBCFD90061A03F /* AIInsightsSettingsView.swift */; };
+		4E30085B2EDBCFD90061A03F /* InsightTileViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E3008562EDBCFD90061A03F /* InsightTileViews.swift */; };
+		4E30085C2EDBCFD90061A03F /* FullReportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E3008552EDBCFD90061A03F /* FullReportView.swift */; };
+		4E30085F2EDBD0000061A03F /* FeelingFinderStepViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E30085E2EDBD0000061A03F /* FeelingFinderStepViews.swift */; };
+		4E3008602EDBD0000061A03F /* FeelingFinderResultView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E30085D2EDBD0000061A03F /* FeelingFinderResultView.swift */; };
+		4E3008612EDBD0000061A03F /* FeelingFinderStepViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E30085E2EDBD0000061A03F /* FeelingFinderStepViews.swift */; };
+		4E3008622EDBD0000061A03F /* FeelingFinderResultView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E30085D2EDBD0000061A03F /* FeelingFinderResultView.swift */; };
+		4E3008652EDBD2D80061A03F /* DesignSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E3008632EDBD2D80061A03F /* DesignSystem.swift */; };
 		4E3591B02ED62BC0000A5E74 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 4E3591AE2ED62BC0000A5E74 /* Localizable.strings */; };
 		4E3591B12ED62BC0000A5E74 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 4E3591AE2ED62BC0000A5E74 /* Localizable.strings */; };
 		4E3591B52ED62BD1000A5E74 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 4E3591B32ED62BD1000A5E74 /* Localizable.strings */; };
@@ -59,19 +78,21 @@
 		4E3591DB2ED63C03000A5E74 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4E3591DA2ED63C03000A5E74 /* SwiftUI.framework */; };
 		4E3591E82ED63C04000A5E74 /* TrackerWidgetsExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 4E3591D62ED63C03000A5E74 /* TrackerWidgetsExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		4E4295F32ECE39AF006C6B00 /* UserProfile+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E4295F22ECE39AF006C6B00 /* UserProfile+CoreDataClass.swift */; };
+		4E5E76372EDA693900C37C68 /* WhisperKit in Frameworks */ = {isa = PBXBuildFile; productRef = 4E5E76362EDA693900C37C68 /* WhisperKit */; };
+		4E5E76392EDA6A7700C37C68 /* WhisperKit in Frameworks */ = {isa = PBXBuildFile; productRef = 4E5E76382EDA6A7700C37C68 /* WhisperKit */; };
 		4E86BDC42ECD0C9F00AD04F7 /* HealthKitManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E86BDC32ECD0C9F00AD04F7 /* HealthKitManager.swift */; };
 		4EAI00012EE0000000000001 /* GeminiService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EAI00012EE0000000000002 /* GeminiService.swift */; };
 		4EAI00012EE0000000000003 /* AIAnalysisService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EAI00012EE0000000000004 /* AIAnalysisService.swift */; };
 		4EAI00012EE0000000000005 /* AIInsightsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EAI00012EE0000000000006 /* AIInsightsView.swift */; };
 		4EAI00012EE0000000000009 /* AIInsightsTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EAI00012EE0000000000008 /* AIInsightsTabView.swift */; };
 		4EAPPEAR012EE0000000002 /* AppAppearance.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EAPPEAR012EE0000000001 /* AppAppearance.swift */; };
+		4EASD00012EE0000000000001 /* ASDPatternAnalysisService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EASD00012EE0000000000002 /* ASDPatternAnalysisService.swift */; };
+		4EASD00012EE0000000000003 /* ASDInsightsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EASD00012EE0000000000004 /* ASDInsightsView.swift */; };
 		4EAUD00012EE0000000000001 /* AudioRecordingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EAUD00012EE0000000000002 /* AudioRecordingService.swift */; };
 		4EC1D7182ED8FBE4003F9272 /* EmptyStateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EC1D7172ED8FBE4003F9272 /* EmptyStateView.swift */; };
 		4EC1D7192ED8FBE4003F9272 /* EmptyStateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EC1D7172ED8FBE4003F9272 /* EmptyStateView.swift */; };
 		4EC1D71E2ED8FF99003F9272 /* ThemeWrapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EC1D71D2ED8FF99003F9272 /* ThemeWrapper.swift */; };
 		4EC1D71F2ED8FF99003F9272 /* ThemeWrapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EC1D71D2ED8FF99003F9272 /* ThemeWrapper.swift */; };
-		4EC1D7212ED8FFA3003F9272 /* ThemedCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EC1D7202ED8FFA3003F9272 /* ThemedCard.swift */; };
-		4EC1D7222ED8FFA3003F9272 /* ThemedCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EC1D7202ED8FFA3003F9272 /* ThemedCard.swift */; };
 		4EC1D7272ED904BC003F9272 /* ImportMedicationsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EC1D7262ED904BC003F9272 /* ImportMedicationsView.swift */; };
 		4EC1D7282ED904BC003F9272 /* ImportMedicationsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EC1D7262ED904BC003F9272 /* ImportMedicationsView.swift */; };
 		4EC1D72A2ED90B9B003F9272 /* DesignSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EC1D7292ED90B9B003F9272 /* DesignSystem.swift */; };
@@ -81,7 +102,7 @@
 		4EF642062ECBA50F0055E3FB /* MedicationViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EF642052ECBA50F0055E3FB /* MedicationViewModel.swift */; };
 		4EFEEL0012EE0000000001 /* FeelingFinderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EFEEL0012EE0000000002 /* FeelingFinderView.swift */; };
 		4EJNL00012EE0000000000001 /* JournalEntry+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EJNL00012EE0000000000002 /* JournalEntry+CoreDataClass.swift */; };
-		4EJRNL0012EE0000000000001 /* JournalListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EJRNL0012EE0000000000002 /* JournalListView.swift */; };
+		4EJRNL0012EE0000000000001 /* JournalListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EF642032ECBA4D00055E3FB /* JournalListView.swift */; };
 		4EJRNL0012EE0000000000007 /* JournalEntryDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EJRNL0012EE0000000000004 /* JournalEntryDetailView.swift */; };
 		4EJRNL0012EE0000000000008 /* JournalEntryEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EJRNL0012EE0000000000006 /* JournalEntryEditorView.swift */; };
 		4EJVM00012EE0000000000002 /* JournalViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EJVM00012EE0000000000001 /* JournalViewModel.swift */; };
@@ -92,8 +113,11 @@
 		4EMEDFREQ012EE00000000001 /* MedicationFrequency.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EMEDFREQ012EE00000000002 /* MedicationFrequency.swift */; };
 		4EMEDLOG0012EE00000001 /* MedicationQuickLogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EMEDLOG0012EE00000002 /* MedicationQuickLogView.swift */; };
 		4EPROF0012EE0000000000001 /* ProfileContainerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EPROF0012EE0000000000002 /* ProfileContainerView.swift */; };
+		4ESETUP0012EE0000000001 /* SetupItem+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ESETUP0012EE0000000002 /* SetupItem+Extensions.swift */; };
+		4ESETUPCARD012EE000001 /* CurrentSetupCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ESETUPCARD012EE000002 /* CurrentSetupCard.swift */; };
 		4ETHEME0012EE0000000002 /* AppTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ETHEME0012EE0000000001 /* AppTheme.swift */; };
 		4ETTS00012EE0000000000001 /* TextToSpeechService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ETTS00012EE0000000000002 /* TextToSpeechService.swift */; };
+		4EWHISPER00012EE000000001 /* WhisperTranscriptionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EWHISPER00012EE000000002 /* WhisperTranscriptionService.swift */; };
 		A3B6464C00000001 /* BehaviorTrackerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3B6464C00000002 /* BehaviorTrackerApp.swift */; };
 		A3B6464C00000003 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3B6464C00000004 /* ContentView.swift */; };
 		A3B6464C00000005 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A3B6464C00000006 /* Assets.xcassets */; };
@@ -130,7 +154,7 @@
 		MAC0001000000035 /* AIInsightsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EAI00012EE0000000000006 /* AIInsightsView.swift */; };
 		MAC0001000000036 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E0091232EC1372900D8A0D1 /* SettingsView.swift */; };
 		MAC0001000000037 /* ExportDataView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E0091222EC1372900D8A0D1 /* ExportDataView.swift */; };
-		MAC0001000000039 /* JournalListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EJRNL0012EE0000000000002 /* JournalListView.swift */; };
+		MAC0001000000039 /* JournalListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EF642032ECBA4D00055E3FB /* JournalListView.swift */; };
 		MAC0001000000040 /* JournalEntryDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EJRNL0012EE0000000000004 /* JournalEntryDetailView.swift */; };
 		MAC0001000000041 /* JournalEntryEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EJRNL0012EE0000000000006 /* JournalEntryEditorView.swift */; };
 		MAC0001000000042 /* MedicationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EMED00012EE0000000000008 /* MedicationView.swift */; };
@@ -147,7 +171,12 @@
 		MAC0001000000054 /* Date+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E0091102EC1372900D8A0D1 /* Date+Extensions.swift */; };
 		MAC0001000000055 /* HapticFeedback.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E0091112EC1372900D8A0D1 /* HapticFeedback.swift */; };
 		MAC0001000000056 /* BehaviorTrackerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3B6464C00000002 /* BehaviorTrackerApp.swift */; };
+		MAC0001000000060 /* WhisperTranscriptionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EWHISPER00012EE000000002 /* WhisperTranscriptionService.swift */; };
 		MAC001APPEAR000001 /* AppAppearance.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EAPPEAR012EE0000000001 /* AppAppearance.swift */; };
+		MAC001ASD000000001 /* ASDPatternAnalysisService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EASD00012EE0000000000002 /* ASDPatternAnalysisService.swift */; };
+		MAC001ASD000000002 /* ASDInsightsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EASD00012EE0000000000004 /* ASDInsightsView.swift */; };
+		MAC001SETUP000001 /* SetupItem+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ESETUP0012EE0000000002 /* SetupItem+Extensions.swift */; };
+		MAC001SETUPCARD01 /* CurrentSetupCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ESETUPCARD012EE000002 /* CurrentSetupCard.swift */; };
 		MAC001THEME0000001 /* AppTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ETHEME0012EE0000000001 /* AppTheme.swift */; };
 /* End PBXBuildFile section */
 
@@ -203,6 +232,16 @@
 		4E16DE662ECE7DF200FEFBD8 /* ContributingFactor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContributingFactor.swift; sourceTree = "<group>"; };
 		4E16DE682ECE7F6F00FEFBD8 /* PatternCategory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatternCategory.swift; sourceTree = "<group>"; };
 		4E16DE6A2ECE7F8900FEFBD8 /* PatternType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatternType.swift; sourceTree = "<group>"; };
+		4E3008482EDBCF2D0061A03F /* AIInsightsModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIInsightsModels.swift; sourceTree = "<group>"; };
+		4E3008492EDBCF2D0061A03F /* FeelingFinderModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeelingFinderModels.swift; sourceTree = "<group>"; };
+		4E30084E2EDBCFA90061A03F /* AIInsightsTabViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIInsightsTabViewModel.swift; sourceTree = "<group>"; };
+		4E30084F2EDBCFA90061A03F /* FeelingFinderViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeelingFinderViewModel.swift; sourceTree = "<group>"; };
+		4E3008542EDBCFD90061A03F /* AIInsightsSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIInsightsSettingsView.swift; sourceTree = "<group>"; };
+		4E3008552EDBCFD90061A03F /* FullReportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FullReportView.swift; sourceTree = "<group>"; };
+		4E3008562EDBCFD90061A03F /* InsightTileViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InsightTileViews.swift; sourceTree = "<group>"; };
+		4E30085D2EDBD0000061A03F /* FeelingFinderResultView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeelingFinderResultView.swift; sourceTree = "<group>"; };
+		4E30085E2EDBD0000061A03F /* FeelingFinderStepViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeelingFinderStepViews.swift; sourceTree = "<group>"; };
+		4E3008632EDBD2D80061A03F /* DesignSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem.swift; sourceTree = "<group>"; };
 		4E3591AD2ED62BC0000A5E74 /* fr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = fr; path = Localizable.strings; sourceTree = "<group>"; };
 		4E3591B22ED62BD1000A5E74 /* de */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = de; path = Localizable.strings; sourceTree = "<group>"; };
 		4E3591B72ED62BE3000A5E74 /* Localizable.strings */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; path = Localizable.strings; sourceTree = "<group>"; };
@@ -225,10 +264,11 @@
 		4EAI00012EE0000000000006 /* AIInsightsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIInsightsView.swift; sourceTree = "<group>"; };
 		4EAI00012EE0000000000008 /* AIInsightsTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIInsightsTabView.swift; sourceTree = "<group>"; };
 		4EAPPEAR012EE0000000001 /* AppAppearance.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppAppearance.swift; sourceTree = "<group>"; };
+		4EASD00012EE0000000000002 /* ASDPatternAnalysisService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ASDPatternAnalysisService.swift; sourceTree = "<group>"; };
+		4EASD00012EE0000000000004 /* ASDInsightsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ASDInsightsView.swift; sourceTree = "<group>"; };
 		4EAUD00012EE0000000000002 /* AudioRecordingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioRecordingService.swift; sourceTree = "<group>"; };
 		4EC1D7172ED8FBE4003F9272 /* EmptyStateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmptyStateView.swift; sourceTree = "<group>"; };
 		4EC1D71D2ED8FF99003F9272 /* ThemeWrapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThemeWrapper.swift; sourceTree = "<group>"; };
-		4EC1D7202ED8FFA3003F9272 /* ThemedCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThemedCard.swift; sourceTree = "<group>"; };
 		4EC1D7262ED904BC003F9272 /* ImportMedicationsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImportMedicationsView.swift; sourceTree = "<group>"; };
 		4EC1D7292ED90B9B003F9272 /* DesignSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem.swift; sourceTree = "<group>"; };
 		4ECAA0212ED4F22B002970C9 /* Validator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Validator.swift; sourceTree = "<group>"; };
@@ -237,7 +277,6 @@
 		4EFEEL0012EE0000000002 /* FeelingFinderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeelingFinderView.swift; sourceTree = "<group>"; };
 		4EICON0012EE0000000000001 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		4EJNL00012EE0000000000002 /* JournalEntry+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "JournalEntry+CoreDataClass.swift"; sourceTree = "<group>"; };
-		4EJRNL0012EE0000000000002 /* JournalListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JournalListView.swift; sourceTree = "<group>"; };
 		4EJRNL0012EE0000000000004 /* JournalEntryDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JournalEntryDetailView.swift; sourceTree = "<group>"; };
 		4EJRNL0012EE0000000000006 /* JournalEntryEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JournalEntryEditorView.swift; sourceTree = "<group>"; };
 		4EJVM00012EE0000000000001 /* JournalViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JournalViewModel.swift; sourceTree = "<group>"; };
@@ -248,8 +287,11 @@
 		4EMEDFREQ012EE00000000002 /* MedicationFrequency.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MedicationFrequency.swift; sourceTree = "<group>"; };
 		4EMEDLOG0012EE00000002 /* MedicationQuickLogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MedicationQuickLogView.swift; sourceTree = "<group>"; };
 		4EPROF0012EE0000000000002 /* ProfileContainerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileContainerView.swift; sourceTree = "<group>"; };
+		4ESETUP0012EE0000000002 /* SetupItem+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SetupItem+Extensions.swift"; sourceTree = "<group>"; };
+		4ESETUPCARD012EE000002 /* CurrentSetupCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CurrentSetupCard.swift; sourceTree = "<group>"; };
 		4ETHEME0012EE0000000001 /* AppTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppTheme.swift; sourceTree = "<group>"; };
 		4ETTS00012EE0000000000002 /* TextToSpeechService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextToSpeechService.swift; sourceTree = "<group>"; };
+		4EWHISPER00012EE000000002 /* WhisperTranscriptionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhisperTranscriptionService.swift; sourceTree = "<group>"; };
 		619FF56700000001 /* BehaviorTracker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BehaviorTracker.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A3B6464C00000002 /* BehaviorTrackerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BehaviorTrackerApp.swift; sourceTree = "<group>"; };
 		A3B6464C00000004 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -277,6 +319,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4E5E76372EDA693900C37C68 /* WhisperKit in Frameworks */,
 				4E3591DB2ED63C03000A5E74 /* SwiftUI.framework in Frameworks */,
 				4E3591D92ED63C03000A5E74 /* WidgetKit.framework in Frameworks */,
 			);
@@ -286,6 +329,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4E5E76392EDA6A7700C37C68 /* WhisperKit in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -302,11 +346,14 @@
 		4E00910A2EC1372900D8A0D1 /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				4E3008632EDBD2D80061A03F /* DesignSystem.swift */,
+				4E3008482EDBCF2D0061A03F /* AIInsightsModels.swift */,
+				4E3008492EDBCF2D0061A03F /* FeelingFinderModels.swift */,
 				4E0091042EC1372900D8A0D1 /* BehaviorTrackerModel.xcdatamodeld */,
 				4E0091062EC1372900D8A0D1 /* PatternEntry+CoreDataClass.swift */,
 				4E0091072EC1372900D8A0D1 /* Medication+CoreDataClass.swift */,
-				4E00910A1EC1372900D8A0D1 /* MedicationLog+CoreDataClass.swift */,
 				4EJNL00012EE0000000000002 /* JournalEntry+CoreDataClass.swift */,
+				4E00910A1EC1372900D8A0D1 /* MedicationLog+CoreDataClass.swift */,
 				4E0091082EC1372900D8A0D1 /* Tag+CoreDataClass.swift */,
 				4E0091092EC1372900D8A0D1 /* UserPreferences+CoreDataClass.swift */,
 				4E4295F22ECE39AF006C6B00 /* UserProfile+CoreDataClass.swift */,
@@ -314,6 +361,7 @@
 				4EMEDFREQ012EE00000000002 /* MedicationFrequency.swift */,
 				4EAPPEAR012EE0000000001 /* AppAppearance.swift */,
 				4ETHEME0012EE0000000001 /* AppTheme.swift */,
+				4ESETUP0012EE0000000002 /* SetupItem+Extensions.swift */,
 				4EC1D7262ED904BC003F9272 /* ImportMedicationsView.swift */,
 				4EC1D7292ED90B9B003F9272 /* DesignSystem.swift */,
 			);
@@ -331,6 +379,8 @@
 				4EAI00012EE0000000000004 /* AIAnalysisService.swift */,
 				4ETTS00012EE0000000000002 /* TextToSpeechService.swift */,
 				4EAUD00012EE0000000000002 /* AudioRecordingService.swift */,
+				4EWHISPER00012EE000000002 /* WhisperTranscriptionService.swift */,
+				4EASD00012EE0000000000002 /* ASDPatternAnalysisService.swift */,
 				4E16DE682ECE7F6F00FEFBD8 /* PatternCategory.swift */,
 				4E16DE6A2ECE7F8900FEFBD8 /* PatternType.swift */,
 			);
@@ -353,8 +403,10 @@
 		4E0091182EC1372900D8A0D1 /* ViewModels */ = {
 			isa = PBXGroup;
 			children = (
+				4E30084E2EDBCFA90061A03F /* AIInsightsTabViewModel.swift */,
+				4E30084F2EDBCFA90061A03F /* FeelingFinderViewModel.swift */,
 				4E3591C02ED633C6000A5E74 /* CalendarViewModel.swift */,
-				4E0091132EC1372900D8A0D1 /* DashboardViewModel.swift */,
+				4E0091132EC1372900D8A0D1 /* HomeViewModel.swift */,
 				4EJVM00012EE0000000000001 /* JournalViewModel.swift */,
 				4E0091152EC1372900D8A0D1 /* LoggingViewModel.swift */,
 				4EF642052ECBA50F0055E3FB /* MedicationViewModel.swift */,
@@ -367,7 +419,8 @@
 		4E00911B2EC1372900D8A0D1 /* Dashboard */ = {
 			isa = PBXGroup;
 			children = (
-				4E0091192EC1372900D8A0D1 /* DashboardView.swift */,
+				4E0091192EC1372900D8A0D1 /* HomeView.swift */,
+				4ESETUPCARD012EE000002 /* CurrentSetupCard.swift */,
 			);
 			path = Dashboard;
 			sourceTree = "<group>";
@@ -388,10 +441,14 @@
 		4E0091212EC1372900D8A0D1 /* Reports */ = {
 			isa = PBXGroup;
 			children = (
+				4E3008542EDBCFD90061A03F /* AIInsightsSettingsView.swift */,
+				4E3008552EDBCFD90061A03F /* FullReportView.swift */,
+				4E3008562EDBCFD90061A03F /* InsightTileViews.swift */,
 				4E3591BD2ED62FA7000A5E74 /* CorrelationInsightsView.swift */,
 				4E0091202EC1372900D8A0D1 /* ReportsView.swift */,
 				4EAI00012EE0000000000006 /* AIInsightsView.swift */,
 				4EAI00012EE0000000000008 /* AIInsightsTabView.swift */,
+				4EASD00012EE0000000000004 /* ASDInsightsView.swift */,
 			);
 			path = Reports;
 			sourceTree = "<group>";
@@ -403,7 +460,6 @@
 				4E0091232EC1372900D8A0D1 /* SettingsView.swift */,
 				4EC1D7172ED8FBE4003F9272 /* EmptyStateView.swift */,
 				4EC1D71D2ED8FF99003F9272 /* ThemeWrapper.swift */,
-				4EC1D7202ED8FFA3003F9272 /* ThemedCard.swift */,
 			);
 			path = Settings;
 			sourceTree = "<group>";
@@ -411,6 +467,8 @@
 		4E0091252EC1372900D8A0D1 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				4E30085D2EDBD0000061A03F /* FeelingFinderResultView.swift */,
+				4E30085E2EDBD0000061A03F /* FeelingFinderStepViews.swift */,
 				4E3591C82ED634B1000A5E74 /* Calendar */,
 				4E00911B2EC1372900D8A0D1 /* Dashboard */,
 				4EJRNL0012EE0000000000003 /* Journal */,
@@ -461,7 +519,7 @@
 		4EJRNL0012EE0000000000003 /* Journal */ = {
 			isa = PBXGroup;
 			children = (
-				4EJRNL0012EE0000000000002 /* JournalListView.swift */,
+				4EF642032ECBA4D00055E3FB /* JournalListView.swift */,
 				4EJRNL0012EE0000000000004 /* JournalEntryDetailView.swift */,
 				4EJRNL0012EE0000000000006 /* JournalEntryEditorView.swift */,
 			);
@@ -515,7 +573,6 @@
 				A3B6464C00000004 /* ContentView.swift */,
 				A3B6464C00000006 /* Assets.xcassets */,
 				7990D6AB00000004 /* Preview Content */,
-				4EF642032ECBA4D00055E3FB /* JournalListView.swift */,
 			);
 			path = BehaviorTracker;
 			sourceTree = "<group>";
@@ -558,6 +615,7 @@
 			);
 			name = TrackerWidgetsExtension;
 			packageProductDependencies = (
+				4E5E76362EDA693900C37C68 /* WhisperKit */,
 			);
 			productName = TrackerWidgetsExtension;
 			productReference = 4E3591D62ED63C03000A5E74 /* TrackerWidgetsExtension.appex */;
@@ -631,6 +689,9 @@
 				de,
 			);
 			mainGroup = 7990D6AB00000001;
+			packageReferences = (
+				4E5E76352EDA678E00C37C68 /* XCRemoteSwiftPackageReference "WhisperKit" */,
+			);
 			productRefGroup = 7990D6AB00000003 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -688,12 +749,16 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4E3008522EDBCFA90061A03F /* AIInsightsTabViewModel.swift in Sources */,
+				4E3008532EDBCFA90061A03F /* FeelingFinderViewModel.swift in Sources */,
 				4EF642062ECBA50F0055E3FB /* MedicationViewModel.swift in Sources */,
 				4E0091272EC1372900D8A0D1 /* LoggingViewModel.swift in Sources */,
+				4E30084C2EDBCF2D0061A03F /* FeelingFinderModels.swift in Sources */,
+				4E30084D2EDBCF2D0061A03F /* AIInsightsModels.swift in Sources */,
 				4EJVM00012EE0000000000002 /* JournalViewModel.swift in Sources */,
 				4E1132462ED6574D001C5D0A /* CalendarEventService.swift in Sources */,
 				4E00912A2EC1372900D8A0D1 /* CategoryLoggingView.swift in Sources */,
-				4E00912B2EC1372900D8A0D1 /* DashboardViewModel.swift in Sources */,
+				4E00912B2EC1372900D8A0D1 /* HomeViewModel.swift in Sources */,
 				4E00912C2EC1372900D8A0D1 /* ExportDataView.swift in Sources */,
 				4E00912D2EC1372900D8A0D1 /* ReportsViewModel.swift in Sources */,
 				4EC1D7282ED904BC003F9272 /* ImportMedicationsView.swift in Sources */,
@@ -717,6 +782,7 @@
 				4EC1D72B2ED90B9B003F9272 /* DesignSystem.swift in Sources */,
 				4EAPPEAR012EE0000000002 /* AppAppearance.swift in Sources */,
 				4ETHEME0012EE0000000002 /* AppTheme.swift in Sources */,
+				4ESETUP0012EE0000000001 /* SetupItem+Extensions.swift in Sources */,
 				4ECAA0232ED4F22B002970C9 /* Validator.swift in Sources */,
 				4EJRNL0012EE0000000000007 /* JournalEntryDetailView.swift in Sources */,
 				4E16DE672ECE7DF200FEFBD8 /* ContributingFactor.swift in Sources */,
@@ -724,7 +790,6 @@
 				4E0091382EC1372900D8A0D1 /* BehaviorTrackerModel.xcdatamodeld in Sources */,
 				4EJRNL0012EE0000000000001 /* JournalListView.swift in Sources */,
 				4E0091392EC1372900D8A0D1 /* PatternEntryFormView.swift in Sources */,
-				4EC1D7212ED8FFA3003F9272 /* ThemedCard.swift in Sources */,
 				4E00913A2EC1372900D8A0D1 /* DataController.swift in Sources */,
 				4EAI00012EE0000000000001 /* GeminiService.swift in Sources */,
 				4E3591BB2ED62F58000A5E74 /* CorrelationAnalysisService.swift in Sources */,
@@ -733,6 +798,9 @@
 				4E3591CA2ED634B1000A5E74 /* CalendarView.swift in Sources */,
 				4E3591CB2ED634B1000A5E74 /* CalendarDayDetailView.swift in Sources */,
 				4EAUD00012EE0000000000001 /* AudioRecordingService.swift in Sources */,
+				4EWHISPER00012EE000000001 /* WhisperTranscriptionService.swift in Sources */,
+				4EASD00012EE0000000000001 /* ASDPatternAnalysisService.swift in Sources */,
+				4EASD00012EE0000000000003 /* ASDInsightsView.swift in Sources */,
 				4EAI00012EE0000000000003 /* AIAnalysisService.swift in Sources */,
 				4EAI00012EE0000000000005 /* AIInsightsView.swift in Sources */,
 				4EAI00012EE0000000000009 /* AIInsightsTabView.swift in Sources */,
@@ -744,7 +812,11 @@
 				4EMEDFREQ012EE00000000001 /* MedicationFrequency.swift in Sources */,
 				4EC1D7192ED8FBE4003F9272 /* EmptyStateView.swift in Sources */,
 				4E00913B2EC1372900D8A0D1 /* SettingsViewModel.swift in Sources */,
-				4E00913C2EC1372900D8A0D1 /* DashboardView.swift in Sources */,
+				4E00913C2EC1372900D8A0D1 /* HomeView.swift in Sources */,
+				4ESETUPCARD012EE000001 /* CurrentSetupCard.swift in Sources */,
+				4E3008572EDBCFD90061A03F /* AIInsightsSettingsView.swift in Sources */,
+				4E3008582EDBCFD90061A03F /* InsightTileViews.swift in Sources */,
+				4E3008592EDBCFD90061A03F /* FullReportView.swift in Sources */,
 				4E16DE6B2ECE7F8900FEFBD8 /* PatternType.swift in Sources */,
 				4E00913D2EC1372900D8A0D1 /* ReportsView.swift in Sources */,
 				4E00913E2EC1372900D8A0D1 /* HapticFeedback.swift in Sources */,
@@ -752,6 +824,8 @@
 				A3B6464C00000003 /* ContentView.swift in Sources */,
 				4E3591BF2ED62FA7000A5E74 /* CorrelationInsightsView.swift in Sources */,
 				4E3591D02ED63823000A5E74 /* Color+Extensions.swift in Sources */,
+				4E30085F2EDBD0000061A03F /* FeelingFinderStepViews.swift in Sources */,
+				4E3008602EDBD0000061A03F /* FeelingFinderResultView.swift in Sources */,
 				4E3591C22ED633C6000A5E74 /* CalendarViewModel.swift in Sources */,
 				A3B6464C00000001 /* BehaviorTrackerApp.swift in Sources */,
 			);
@@ -778,10 +852,12 @@
 				MAC0001000000016 /* PatternCategory.swift in Sources */,
 				MAC001APPEAR000001 /* AppAppearance.swift in Sources */,
 				MAC001THEME0000001 /* AppTheme.swift in Sources */,
+				MAC001SETUP000001 /* SetupItem+Extensions.swift in Sources */,
+				4E3008652EDBD2D80061A03F /* DesignSystem.swift in Sources */,
 				MAC0001000000017 /* PatternType.swift in Sources */,
 				4EC1D7272ED904BC003F9272 /* ImportMedicationsView.swift in Sources */,
 				MAC0001000000018 /* MedicationFrequency.swift in Sources */,
-				MAC0001000000019 /* DashboardViewModel.swift in Sources */,
+				MAC0001000000019 /* HomeViewModel.swift in Sources */,
 				4E3591CC2ED634B1000A5E74 /* CalendarDayCell.swift in Sources */,
 				4E3591CD2ED634B1000A5E74 /* CalendarView.swift in Sources */,
 				4EC1D72A2ED90B9B003F9272 /* DesignSystem.swift in Sources */,
@@ -792,11 +868,16 @@
 				MAC0001000000024 /* MedicationViewModel.swift in Sources */,
 				4EC1D7182ED8FBE4003F9272 /* EmptyStateView.swift in Sources */,
 				MAC0001000000025 /* JournalViewModel.swift in Sources */,
-				MAC0001000000027 /* DashboardView.swift in Sources */,
+				MAC0001000000027 /* HomeView.swift in Sources */,
+				MAC001SETUPCARD01 /* CurrentSetupCard.swift in Sources */,
 				MAC0001000000030 /* LoggingView.swift in Sources */,
 				MAC0001000000031 /* CategoryLoggingView.swift in Sources */,
 				4ECAA0222ED4F22B002970C9 /* Validator.swift in Sources */,
 				4E3591D12ED63823000A5E74 /* Color+Extensions.swift in Sources */,
+				4E30084A2EDBCF2D0061A03F /* FeelingFinderModels.swift in Sources */,
+				4E3008612EDBD0000061A03F /* FeelingFinderStepViews.swift in Sources */,
+				4E3008622EDBD0000061A03F /* FeelingFinderResultView.swift in Sources */,
+				4E30084B2EDBCF2D0061A03F /* AIInsightsModels.swift in Sources */,
 				MAC0001000000032 /* PatternEntryFormView.swift in Sources */,
 				MAC0001000000033 /* HealthKitManager.swift in Sources */,
 				MAC0001000000034 /* ReportsView.swift in Sources */,
@@ -807,6 +888,9 @@
 				MAC0001000000040 /* JournalEntryDetailView.swift in Sources */,
 				MAC0001000000041 /* JournalEntryEditorView.swift in Sources */,
 				MAC0001000000042 /* MedicationView.swift in Sources */,
+				4E30085A2EDBCFD90061A03F /* AIInsightsSettingsView.swift in Sources */,
+				4E30085B2EDBCFD90061A03F /* InsightTileViews.swift in Sources */,
+				4E30085C2EDBCFD90061A03F /* FullReportView.swift in Sources */,
 				MAC0001000000043 /* AddMedicationView.swift in Sources */,
 				MAC0001000000044 /* LogMedicationView.swift in Sources */,
 				MAC0001000000045 /* MedicationDetailView.swift in Sources */,
@@ -817,10 +901,14 @@
 				MAC0001000000049 /* AIAnalysisService.swift in Sources */,
 				MAC0001000000050 /* TextToSpeechService.swift in Sources */,
 				MAC0001000000051 /* AudioRecordingService.swift in Sources */,
+				MAC0001000000060 /* WhisperTranscriptionService.swift in Sources */,
+				MAC001ASD000000001 /* ASDPatternAnalysisService.swift in Sources */,
+				MAC001ASD000000002 /* ASDInsightsView.swift in Sources */,
 				4E3591C12ED633C6000A5E74 /* CalendarViewModel.swift in Sources */,
-				4EC1D7222ED8FFA3003F9272 /* ThemedCard.swift in Sources */,
 				MAC0001000000052 /* Accessibility+Extensions.swift in Sources */,
 				MAC0001000000053 /* AccessibilityLabels.swift in Sources */,
+				4E3008502EDBCFA90061A03F /* AIInsightsTabViewModel.swift in Sources */,
+				4E3008512EDBCFA90061A03F /* FeelingFinderViewModel.swift in Sources */,
 				MAC0001000000054 /* Date+Extensions.swift in Sources */,
 				MAC0001000000055 /* HapticFeedback.swift in Sources */,
 				MAC0001000000056 /* BehaviorTrackerApp.swift in Sources */,
@@ -1218,6 +1306,30 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		4E5E76352EDA678E00C37C68 /* XCRemoteSwiftPackageReference "WhisperKit" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/argmaxinc/WhisperKit.git";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		4E5E76362EDA693900C37C68 /* WhisperKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 4E5E76352EDA678E00C37C68 /* XCRemoteSwiftPackageReference "WhisperKit" */;
+			productName = WhisperKit;
+		};
+		4E5E76382EDA6A7700C37C68 /* WhisperKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 4E5E76352EDA678E00C37C68 /* XCRemoteSwiftPackageReference "WhisperKit" */;
+			productName = WhisperKit;
+		};
+/* End XCSwiftPackageProductDependency section */
 
 /* Begin XCVersionGroup section */
 		4E0091042EC1372900D8A0D1 /* BehaviorTrackerModel.xcdatamodeld */ = {

@@ -67,15 +67,7 @@ struct MedicationQuickLogView: View {
             .padding(.horizontal, 20)
             .padding(.vertical, 16)
             .frame(maxWidth: .infinity)
-            .background(
-                RoundedRectangle(cornerRadius: CornerRadius.lg, style: .continuous)
-                    .fill(theme.cardBackground)
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: CornerRadius.lg, style: .continuous)
-                    .stroke(theme.cardBorderColor, lineWidth: 0.5)
-            )
-            .shadow(color: theme.cardShadowColor, radius: 8, y: 4)
+            .cardStyle(theme: theme)
         }
         .buttonStyle(.plain)
     }
@@ -133,15 +125,7 @@ struct MedicationQuickLogView: View {
             }
         }
         .padding(20)
-        .background(
-            RoundedRectangle(cornerRadius: 28, style: .continuous)
-                .fill(theme.cardBackground)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 28, style: .continuous)
-                .stroke(theme.cardBorderColor, lineWidth: 0.5)
-        )
-        .shadow(color: theme.cardShadowColor, radius: 12, y: 6)
+        .cardStyle(theme: theme, cornerRadius: 28)
         .transition(.asymmetric(
             insertion: .scale(scale: 0.9).combined(with: .opacity),
             removal: .scale(scale: 0.95).combined(with: .opacity)

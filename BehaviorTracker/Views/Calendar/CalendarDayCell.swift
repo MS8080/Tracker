@@ -20,6 +20,35 @@ struct CalendarDayCell: View {
         return "\(day)"
     }
 
+    /// Color-coded intensity: higher intensity = more saturated color
+    private var intensityColor: Color {
+        guard let intensity = averageIntensity else {
+            return .clear
+        }
+
+        let baseColor = dominantCategory?.color ?? .blue
+
+        // Scale saturation based on intensity (1-5)
+        // Low intensity (1-2): 20-40% opacity
+        // Medium intensity (3): 50% opacity
+        // High intensity (4-5): 60-80% opacity
+        let saturation: Double
+        switch intensity {
+        case 0..<2:
+            saturation = 0.2
+        case 2..<3:
+            saturation = 0.35
+        case 3..<4:
+            saturation = 0.5
+        case 4..<5:
+            saturation = 0.65
+        default:
+            saturation = 0.8
+        }
+
+        return baseColor.opacity(saturation)
+    }
+
     var body: some View {
         VStack(spacing: 2) {
             // Day number
@@ -74,6 +103,24 @@ struct CalendarDayCell: View {
                 .strokeBorder(borderColor, lineWidth: borderWidth)
         )
         .opacity(isCurrentMonth ? 1.0 : 0.4)
+        .accessibilityLabel(accessibilityDescription)
+    }
+
+    /// Accessibility description for VoiceOver
+    private var accessibilityDescription: String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        var desc = formatter.string(from: date)
+
+        if isToday { desc += ", today" }
+        if entryCount > 0 { desc += ", \(entryCount) entries" }
+        if let intensity = averageIntensity {
+            desc += ", intensity \(String(format: "%.1f", intensity))"
+        }
+        if hasMedication { desc += ", medication logged" }
+        if hasJournal { desc += ", journal entry" }
+
+        return desc
     }
 
     private var textColor: Color {
@@ -95,8 +142,9 @@ struct CalendarDayCell: View {
             RoundedRectangle(cornerRadius: 8)
                 .fill(.blue.opacity(0.15))
         } else if entryCount > 0 {
+            // Use intensity-based color coding
             RoundedRectangle(cornerRadius: 8)
-                .fill((dominantCategory?.color ?? .blue).opacity(0.1))
+                .fill(intensityColor)
         } else {
             Color.clear
         }

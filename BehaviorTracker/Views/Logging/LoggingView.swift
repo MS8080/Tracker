@@ -17,33 +17,19 @@ struct LoggingView: View {
         self._showingProfile = showingProfile
     }
 
-    private var isSearching: Bool {
-        !searchText.isEmpty
-    }
-
-    private var filteredPatternTypes: [PatternType] {
-        guard isSearching else { return [] }
-        return PatternType.allCases.filter {
-            $0.rawValue.localizedCaseInsensitiveContains(searchText) ||
-            $0.category.rawValue.localizedCaseInsensitiveContains(searchText)
-        }
-    }
-
-    private var filteredFavorites: [String] {
-        if searchText.isEmpty {
-            return viewModel.favoritePatterns
-        }
-        return viewModel.favoritePatterns.filter { $0.localizedCaseInsensitiveContains(searchText) }
-    }
-
+    /// Filter categories based on search text
     private var filteredCategories: [PatternCategory] {
         if searchText.isEmpty {
             return PatternCategory.allCases
         }
-        // When searching, only show categories that have matching pattern types
-        return PatternCategory.allCases.filter { category in
-            filteredPatternTypes.contains { $0.category == category }
+        return PatternCategory.allCases.filter {
+            $0.rawValue.localizedCaseInsensitiveContains(searchText)
         }
+    }
+
+    /// Check if "Guided" should show based on search
+    private var showGuided: Bool {
+        searchText.isEmpty || "guided".localizedCaseInsensitiveContains(searchText)
     }
 
     var body: some View {
@@ -54,24 +40,18 @@ struct LoggingView: View {
 
                 ScrollView {
                     VStack(spacing: Spacing.lg) {
-                        if isSearching {
-                            // Search Results - show individual pattern types
-                            searchResultsSection
-                        } else {
-                            // Favorites
-                            if !filteredFavorites.isEmpty {
-                                favoritesSection
-                            }
-                            // All categories
-                            allCategoriesView
+                        searchBar
+
+                        if !viewModel.favoritePatterns.isEmpty && searchText.isEmpty {
+                            favoritesSection
                         }
+                        allCategoriesView
                     }
                     .padding()
                 }
                 .scrollContentBackground(.hidden)
             }
             .navigationTitle("Log")
-            .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .automatic), prompt: "Search patterns")
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
                     ProfileButton(showingProfile: $showingProfile)
@@ -93,6 +73,36 @@ struct LoggingView: View {
         }
     }
 
+    // MARK: - Search Bar
+
+    private var searchBar: some View {
+        HStack(spacing: Spacing.sm) {
+            Image(systemName: "magnifyingglass")
+                .foregroundStyle(.secondary)
+
+            TextField("Search categories...", text: $searchText)
+                .textFieldStyle(.plain)
+
+            if !searchText.isEmpty {
+                Button {
+                    searchText = ""
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .foregroundStyle(.secondary)
+                }
+            }
+        }
+        .padding(Spacing.md)
+        .background(
+            RoundedRectangle(cornerRadius: CornerRadius.md)
+                .fill(.ultraThinMaterial.opacity(0.6))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: CornerRadius.md)
+                .stroke(Color.white.opacity(0.1), lineWidth: 1)
+        )
+    }
+
     private var favoritesSection: some View {
         VStack(alignment: .leading, spacing: Spacing.md) {
             Text("Favorites")
@@ -101,7 +111,7 @@ struct LoggingView: View {
                 .padding(.horizontal, Spacing.xs)
 
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 160))], spacing: Spacing.md) {
-                ForEach(filteredFavorites, id: \.self) { patternTypeString in
+                ForEach(viewModel.favoritePatterns, id: \.self) { patternTypeString in
                     if let patternType = PatternType(rawValue: patternTypeString) {
                         QuickLogButton(patternType: patternType) {
                             _ = viewModel.quickLog(patternType: patternType)
@@ -112,76 +122,39 @@ struct LoggingView: View {
         }
     }
 
-    private var searchResultsSection: some View {
+    private var allCategoriesView: some View {
         VStack(alignment: .leading, spacing: Spacing.md) {
-            if filteredPatternTypes.isEmpty {
+            if filteredCategories.isEmpty && !showGuided {
                 // No results
                 VStack(spacing: Spacing.md) {
                     Image(systemName: "magnifyingglass")
-                        .font(.system(size: 40))
+                        .font(.largeTitle)
                         .foregroundStyle(.secondary)
-                    Text("No patterns found")
-                        .font(.headline)
-                        .foregroundStyle(.secondary)
-                    Text("Try a different search term")
+                    Text("No categories found")
                         .font(.subheadline)
-                        .foregroundStyle(.tertiary)
+                        .foregroundStyle(.secondary)
                 }
                 .frame(maxWidth: .infinity)
-                .padding(.vertical, Spacing.xxl)
+                .padding(.vertical, Spacing.xl)
             } else {
-                Text("\(filteredPatternTypes.count) Results")
-                    .font(.headline)
-                    .foregroundStyle(.secondary)
-                    .padding(.horizontal, Spacing.xs)
-
-                // Group results by category
-                ForEach(PatternCategory.allCases, id: \.self) { category in
-                    let patternsInCategory = filteredPatternTypes.filter { $0.category == category }
-                    if !patternsInCategory.isEmpty {
-                        VStack(alignment: .leading, spacing: Spacing.sm) {
-                            HStack(spacing: Spacing.sm) {
-                                Image(systemName: category.icon)
-                                    .foregroundStyle(category.color)
-                                Text(category.rawValue)
-                                    .font(.subheadline)
-                                    .fontWeight(.medium)
-                                    .foregroundStyle(.secondary)
-                            }
-                            .padding(.horizontal, Spacing.xs)
-
-                            LazyVGrid(columns: [GridItem(.adaptive(minimum: 160))], spacing: Spacing.sm) {
-                                ForEach(patternsInCategory, id: \.self) { patternType in
-                                    QuickLogButton(patternType: patternType) {
-                                        _ = viewModel.quickLog(patternType: patternType)
-                                    }
-                                }
-                            }
+                // 2-column grid layout
+                LazyVGrid(
+                    columns: [
+                        GridItem(.flexible(), spacing: Spacing.md),
+                        GridItem(.flexible(), spacing: Spacing.md)
+                    ],
+                    spacing: Spacing.md
+                ) {
+                    ForEach(filteredCategories, id: \.self) { category in
+                        CategoryGridButton(category: category) {
+                            selectedCategory = category
                         }
                     }
-                }
-            }
-        }
-    }
 
-    private var allCategoriesView: some View {
-        VStack(alignment: .leading, spacing: Spacing.md) {
-            Text("All Categories")
-                .font(.headline)
-                .foregroundStyle(.secondary)
-                .padding(.horizontal, Spacing.xs)
-
-            LazyVGrid(columns: [GridItem(.adaptive(minimum: 160))], spacing: Spacing.md) {
-                ForEach(filteredCategories, id: \.self) { category in
-                    CategoryButton(category: category) {
-                        selectedCategory = category
-                    }
-                }
-
-                // Feeling Finder - only show when not searching
-                if searchText.isEmpty {
-                    FeelingFinderCategoryButton {
-                        showingFeelingFinder = true
+                    if showGuided {
+                        FeelingFinderGridButton {
+                            showingFeelingFinder = true
+                        }
                     }
                 }
             }
@@ -206,7 +179,7 @@ struct CategoryButton: View {
                 isPressed = true
             }
             
-            HapticFeedback.light.trigger()
+            HapticFeedback.medium.trigger()
             
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                 withAnimation(.spring(response: 0.2, dampingFraction: 0.7)) {
@@ -215,32 +188,32 @@ struct CategoryButton: View {
                 action()
             }
         }) {
-            VStack(spacing: Spacing.md) {
+            HStack(spacing: Spacing.lg) {
+                // Icon
                 Image(systemName: category.icon)
                     .font(.system(size: 32, weight: .medium))
                     .foregroundStyle(category.color)
                     .symbolEffect(.bounce, value: isPressed)
+                    .frame(width: 44, height: 44)
 
+                // Text
                 Text(category.rawValue)
-                    .font(.subheadline)
+                    .font(.body)
                     .fontWeight(.semibold)
-                    .foregroundStyle(.primary)
-                    .multilineTextAlignment(.center)
+                    .foregroundStyle(CardText.body)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                
+                // Chevron indicator
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(CardText.muted)
             }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, Spacing.xl)
-            .background(
-                RoundedRectangle(cornerRadius: CornerRadius.lg)
-                    .fill(theme.cardBackground)
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: CornerRadius.lg)
-                    .stroke(theme.cardBorderColor, lineWidth: 0.5)
-            )
-            .shadow(color: theme.cardShadowColor, radius: 6, y: 3)
+            .padding(.horizontal, Spacing.lg)
+            .padding(.vertical, Spacing.lg)
+            .cardStyle(theme: theme)
         }
         .buttonStyle(.plain)
-        .scaleEffect(isPressed ? 0.95 : 1.0)
+        .scaleEffect(isPressed ? 0.98 : 1.0)
     }
 }
 
@@ -269,30 +242,31 @@ struct FeelingFinderCategoryButton: View {
                 action()
             }
         } label: {
-            VStack(spacing: Spacing.md) {
+            HStack(spacing: Spacing.lg) {
+                // Icon
                 Image(systemName: "questionmark.circle.fill")
                     .font(.system(size: 32, weight: .medium))
                     .foregroundStyle(.mint)
+                    .frame(width: 44, height: 44)
 
+                // Text
                 Text("Guided")
-                    .font(.subheadline)
+                    .font(.body)
                     .fontWeight(.semibold)
-                    .foregroundStyle(.primary)
+                    .foregroundStyle(CardText.body)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                
+                // Chevron indicator
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(CardText.muted)
             }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, Spacing.xl)
-            .background(
-                RoundedRectangle(cornerRadius: CornerRadius.lg)
-                    .fill(theme.cardBackground)
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: CornerRadius.lg)
-                    .stroke(theme.cardBorderColor, lineWidth: 0.5)
-            )
-            .shadow(color: theme.cardShadowColor, radius: 6, y: 3)
+            .padding(.horizontal, Spacing.lg)
+            .padding(.vertical, Spacing.lg)
+            .cardStyle(theme: theme)
         }
         .buttonStyle(.plain)
-        .scaleEffect(isPressed ? 0.95 : 1.0)
+        .scaleEffect(isPressed ? 0.98 : 1.0)
     }
 }
 
@@ -330,7 +304,7 @@ struct QuickLogButton: View {
                 Text(patternType.rawValue)
                     .font(.subheadline)
                     .fontWeight(.semibold)
-                    .foregroundStyle(.primary)
+                    .foregroundStyle(CardText.body)
                     .lineLimit(2)
                     .minimumScaleFactor(0.8)
 
@@ -342,18 +316,124 @@ struct QuickLogButton: View {
             }
             .padding(.horizontal, Spacing.md)
             .padding(.vertical, Spacing.md)
-            .background(
-                RoundedRectangle(cornerRadius: CornerRadius.md)
-                    .fill(theme.cardBackground)
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: CornerRadius.md)
-                    .stroke(theme.cardBorderColor, lineWidth: 0.5)
-            )
-            .shadow(color: theme.cardShadowColor, radius: 6, y: 3)
+            .cardStyle(theme: theme, cornerRadius: CornerRadius.md)
         }
         .buttonStyle(.plain)
         .scaleEffect(isPressed ? 0.97 : 1.0)
+    }
+}
+
+// MARK: - Grid Button Components (2x4 layout)
+
+struct CategoryGridButton: View {
+    let category: PatternCategory
+    let action: () -> Void
+
+    @AppStorage("selectedTheme") private var selectedThemeRaw: String = AppTheme.purple.rawValue
+    private var theme: AppTheme {
+        AppTheme(rawValue: selectedThemeRaw) ?? .purple
+    }
+
+    @State private var isPressed = false
+
+    var body: some View {
+        Button(action: {
+            withAnimation(.spring(response: 0.2, dampingFraction: 0.7)) {
+                isPressed = true
+            }
+
+            HapticFeedback.medium.trigger()
+
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                withAnimation(.spring(response: 0.2, dampingFraction: 0.7)) {
+                    isPressed = false
+                }
+                action()
+            }
+        }) {
+            VStack(spacing: Spacing.sm) {
+                // Icon with colored background
+                ZStack {
+                    RoundedRectangle(cornerRadius: CornerRadius.md)
+                        .fill(category.color.opacity(0.2))
+                        .frame(width: 52, height: 52)
+
+                    Image(systemName: category.icon)
+                        .font(.system(size: 26, weight: .medium))
+                        .foregroundStyle(category.color)
+                        .symbolEffect(.bounce, value: isPressed)
+                }
+
+                // Category name
+                Text(category.rawValue)
+                    .font(.caption)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(CardText.body)
+                    .lineLimit(2)
+                    .multilineTextAlignment(.center)
+                    .minimumScaleFactor(0.8)
+            }
+            .frame(maxWidth: .infinity)
+            .frame(height: 115)
+            .cardStyle(theme: theme, cornerRadius: 20)
+        }
+        .buttonStyle(.plain)
+        .scaleEffect(isPressed ? 0.96 : 1.0)
+    }
+}
+
+struct FeelingFinderGridButton: View {
+    let action: () -> Void
+
+    @AppStorage("selectedTheme") private var selectedThemeRaw: String = AppTheme.purple.rawValue
+    private var theme: AppTheme {
+        AppTheme(rawValue: selectedThemeRaw) ?? .purple
+    }
+
+    @State private var isPressed = false
+
+    var body: some View {
+        Button {
+            withAnimation(.spring(response: 0.2, dampingFraction: 0.7)) {
+                isPressed = true
+            }
+
+            HapticFeedback.medium.trigger()
+
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                withAnimation(.spring(response: 0.2, dampingFraction: 0.7)) {
+                    isPressed = false
+                }
+                action()
+            }
+        } label: {
+            VStack(spacing: Spacing.sm) {
+                // Icon with colored background
+                ZStack {
+                    RoundedRectangle(cornerRadius: CornerRadius.md)
+                        .fill(Color.mint.opacity(0.2))
+                        .frame(width: 52, height: 52)
+
+                    Image(systemName: "questionmark.circle.fill")
+                        .font(.system(size: 26, weight: .medium))
+                        .foregroundStyle(.mint)
+                        .symbolEffect(.bounce, value: isPressed)
+                }
+
+                // Label
+                Text("Guided")
+                    .font(.caption)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(CardText.body)
+                    .lineLimit(2)
+                    .multilineTextAlignment(.center)
+            }
+            .frame(maxWidth: .infinity)
+            .frame(height: 115)
+            .cardStyle(theme: theme, cornerRadius: 20)
+        }
+        .buttonStyle(.plain)
+        .scaleEffect(isPressed ? 0.96 : 1.0)
     }
 }
 

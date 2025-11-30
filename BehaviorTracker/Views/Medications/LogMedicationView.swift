@@ -92,12 +92,14 @@ struct LogMedicationView: View {
                     Button("Cancel") {
                         dismiss()
                     }
+                    .foregroundStyle(.white)
                 }
 
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Save") {
                         saveMedicationLog()
                     }
+                    .foregroundStyle(.white)
                 }
             }
         }

@@ -93,15 +93,7 @@ struct CorrelationInsightsView: View {
             }
         }
         .padding()
-        .background(
-            RoundedRectangle(cornerRadius: CornerRadius.lg)
-                .fill(theme.cardBackground)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: CornerRadius.lg)
-                .stroke(theme.cardBorderColor, lineWidth: 0.5)
-        )
-        .shadow(color: theme.cardShadowColor, radius: 8, y: 4)
+        .cardStyle(theme: theme)
     }
 
     // MARK: - Filter Chips
@@ -198,15 +190,7 @@ struct CorrelationInsightsView: View {
                 .multilineTextAlignment(.center)
         }
         .padding(40)
-        .background(
-            RoundedRectangle(cornerRadius: CornerRadius.lg)
-                .fill(theme.cardBackground)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: CornerRadius.lg)
-                .stroke(theme.cardBorderColor, lineWidth: 0.5)
-        )
-        .shadow(color: theme.cardShadowColor, radius: 8, y: 4)
+        .cardStyle(theme: theme)
     }
 
     // MARK: - Load Insights
@@ -290,6 +274,7 @@ struct InsightCard: View {
                     Text(insight.title)
                         .font(.headline)
                         .fontWeight(.semibold)
+                        .foregroundStyle(CardText.title)
                 }
 
                 Spacer()
@@ -314,21 +299,21 @@ struct InsightCard: View {
             // Description
             Text(insight.description)
                 .font(.body)
-                .foregroundStyle(.primary)
+                .foregroundStyle(CardText.body)
 
             // Strength bar
             VStack(alignment: .leading, spacing: 6) {
                 HStack {
                     Text("Correlation Strength")
                         .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(CardText.caption)
 
                     Spacer()
 
                     Text("\(Int(insight.strength * 100))%")
                         .font(.caption)
                         .fontWeight(.semibold)
-                        .foregroundStyle(theme.primaryColor)
+                        .foregroundStyle(CardText.title)
                 }
 
                 GeometryReader { geometry in
@@ -358,18 +343,10 @@ struct InsightCard: View {
                 Text("Based on \(insight.sampleSize) data points")
                     .font(.caption)
             }
-            .foregroundStyle(.secondary)
+            .foregroundStyle(CardText.caption)
         }
         .padding(Spacing.lg)
-        .background(
-            RoundedRectangle(cornerRadius: CornerRadius.lg)
-                .fill(theme.cardBackground)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: CornerRadius.lg)
-                .stroke(theme.cardBorderColor, lineWidth: 0.5)
-        )
-        .shadow(color: theme.cardShadowColor, radius: 8, y: 4)
+        .cardStyle(theme: theme)
     }
 
     private var confidenceColor: Color {

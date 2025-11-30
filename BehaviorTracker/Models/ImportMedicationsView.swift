@@ -93,11 +93,7 @@ struct ImportMedicationsView: View {
             }
         }
         .padding(32)
-        .background(
-            RoundedRectangle(cornerRadius: 20)
-                .fill(theme.cardBackground)
-                .shadow(color: .black.opacity(0.1), radius: 20, y: 10)
-        )
+        .cardStyle(theme: theme, cornerRadius: 20)
         .padding()
     }
     
@@ -365,11 +361,7 @@ struct ImportMedicationsView: View {
                     .opacity(0.5)
             }
             .padding(16)
-            .background(
-                RoundedRectangle(cornerRadius: 16)
-                    .fill(theme.cardBackground)
-                    .shadow(color: .black.opacity(0.08), radius: 8, y: 3)
-            )
+            .cardStyle(theme: theme, cornerRadius: 16)
             .overlay(
                 RoundedRectangle(cornerRadius: 16)
                     .stroke(

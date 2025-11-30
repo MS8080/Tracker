@@ -72,4 +72,15 @@
         <attribute name="profileImageData" optional="YES" attributeType="Binary"/>
         <attribute name="updatedAt" attributeType="Date" usesScalarValueType="NO"/>
     </entity>
+    <entity name="SetupItem" representedClassName="SetupItem" syncable="YES">
+        <attribute name="category" attributeType="String"/>
+        <attribute name="effectTags" optional="YES" attributeType="String"/>
+        <attribute name="icon" optional="YES" attributeType="String"/>
+        <attribute name="id" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="isActive" attributeType="Boolean" defaultValueString="YES" usesScalarValueType="YES"/>
+        <attribute name="name" attributeType="String"/>
+        <attribute name="notes" optional="YES" attributeType="String"/>
+        <attribute name="sortOrder" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="startDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+    </entity>
 </model>

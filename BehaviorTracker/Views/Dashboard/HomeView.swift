@@ -19,7 +19,7 @@ struct HomeView: View {
                 theme.gradient
                     .ignoresSafeArea()
 
-                ScrollView {
+                ScrollView(.vertical, showsIndicators: false) {
                     VStack(spacing: Spacing.md) {
                         greetingSection
                         specialTodaySection
@@ -269,7 +269,11 @@ struct HomeView: View {
 
 struct ProfileButton: View {
     @Binding var showingProfile: Bool
-    @ObservedObject private var dataController = DataController.shared
+    #if os(iOS)
+    @State private var profileImage: UIImage?
+    #elseif os(macOS)
+    @State private var profileImage: NSImage?
+    #endif
 
     @ThemeWrapper var theme
 
@@ -277,8 +281,7 @@ struct ProfileButton: View {
         Button {
             showingProfile = true
         } label: {
-            if let profile = dataController.getCurrentUserProfile(),
-               let profileImage = profile.profileImage {
+            if let profileImage = profileImage {
                 #if os(iOS)
                 Image(uiImage: profileImage)
                     .resizable()
@@ -317,6 +320,18 @@ struct ProfileButton: View {
                     )
                     .shadow(color: .black.opacity(0.3), radius: 4, x: 0, y: 2)
             }
+        }
+        .onAppear {
+            loadProfileImage()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .profileUpdated)) { _ in
+            loadProfileImage()
+        }
+    }
+
+    private func loadProfileImage() {
+        if let profile = DataController.shared.getCurrentUserProfile() {
+            profileImage = profile.profileImage
         }
     }
 }

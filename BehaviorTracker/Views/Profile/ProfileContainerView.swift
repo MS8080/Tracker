@@ -5,7 +5,7 @@ struct ProfileContainerView: View {
     @StateObject private var healthKitManager = HealthKitManager.shared
     @StateObject private var settingsViewModel = SettingsViewModel()
     @StateObject private var medicationViewModel = MedicationViewModel()
-    @ObservedObject var dataController = DataController.shared
+    private let dataController = DataController.shared
 
     @State private var profile: UserProfile?
     @State private var healthSummary: HealthDataSummary?
@@ -23,29 +23,34 @@ struct ProfileContainerView: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(spacing: 20) {
-                    // Profile Header
-                    profileHeaderSection
+            ZStack {
+                theme.gradient
+                    .ignoresSafeArea()
 
-                    // Health Data Section
-                    healthDataSection
+                ScrollView {
+                    VStack(spacing: 20) {
+                        // Profile Header
+                        profileHeaderSection
 
-                    // Medications Section
-                    medicationsSection
+                        // Health Data Section
+                        healthDataSection
 
-                    // Settings Section
-                    settingsSection
+                        // Medications Section
+                        medicationsSection
+
+                        // Settings Section
+                        settingsSection
+                    }
+                    .padding()
                 }
-                .padding()
+                .scrollContentBackground(.hidden)
             }
-            .scrollContentBackground(.hidden)
             .navigationTitle("Profile")
             .navigationBarTitleDisplayModeInline()
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
-                    HStack(spacing: 10) {
-                        // Font size controls - liquid crystal pill shape
+                    HStack(spacing: 8) {
+                        // Font size controls pill
                         HStack(spacing: 0) {
                             Button {
                                 if fontSizeScale > 0.8 {
@@ -55,7 +60,7 @@ struct ProfileContainerView: View {
                             } label: {
                                 Image(systemName: "textformat.size.smaller")
                                     .font(.system(size: 12, weight: .medium))
-                                    .foregroundStyle(fontSizeScale <= 0.8 ? .secondary : .primary)
+                                    .foregroundStyle(fontSizeScale <= 0.8 ? .white.opacity(0.4) : .white)
                                     .frame(width: 32, height: 32)
                             }
                             .disabled(fontSizeScale <= 0.8)
@@ -72,7 +77,7 @@ struct ProfileContainerView: View {
                             } label: {
                                 Image(systemName: "textformat.size.larger")
                                     .font(.system(size: 12, weight: .medium))
-                                    .foregroundStyle(fontSizeScale >= 1.4 ? .secondary : .primary)
+                                    .foregroundStyle(fontSizeScale >= 1.4 ? .white.opacity(0.4) : .white)
                                     .frame(width: 32, height: 32)
                             }
                             .disabled(fontSizeScale >= 1.4)
@@ -80,33 +85,23 @@ struct ProfileContainerView: View {
                         .background(
                             Capsule()
                                 .fill(.white.opacity(0.15))
-                                .shadow(color: .black.opacity(0.1), radius: 4, y: 2)
-                        )
-                        .overlay(
-                            Capsule()
-                                .stroke(.white.opacity(0.2), lineWidth: 0.5)
                         )
 
-                        // Blue light filter - separate circle button
+                        // Blue light filter circle
                         Button {
                             withAnimation(.easeInOut(duration: 0.3)) {
                                 blueLightFilterEnabled.toggle()
                             }
                             HapticFeedback.light.trigger()
                         } label: {
-                            ZStack {
-                                Circle()
-                                    .fill(blueLightFilterEnabled ? Color.orange.opacity(0.8) : .white.opacity(0.15))
-                                    .shadow(color: .black.opacity(0.1), radius: 4, y: 2)
-
-                                Circle()
-                                    .stroke(.white.opacity(0.2), lineWidth: 0.5)
-
-                                Image(systemName: blueLightFilterEnabled ? "sun.max.fill" : "moon.fill")
-                                    .font(.system(size: 13, weight: .medium))
-                                    .foregroundStyle(blueLightFilterEnabled ? .white : .primary)
-                            }
-                            .frame(width: 32, height: 32)
+                            Image(systemName: blueLightFilterEnabled ? "sun.max.fill" : "moon.fill")
+                                .font(.system(size: 13, weight: .medium))
+                                .foregroundStyle(.white)
+                                .frame(width: 32, height: 32)
+                                .background(
+                                    Circle()
+                                        .fill(blueLightFilterEnabled ? Color.orange.opacity(0.8) : .white.opacity(0.15))
+                                )
                         }
                     }
                 }
@@ -115,6 +110,7 @@ struct ProfileContainerView: View {
                     Button("Done") {
                         dismiss()
                     }
+                    .foregroundStyle(.white)
                 }
             }
             .onAppear {
@@ -687,7 +683,7 @@ struct ModernSettingsRow: View {
 
 struct EditProfileView: View {
     @Environment(\.dismiss) private var dismiss
-    @ObservedObject var dataController: DataController
+    let dataController: DataController
     @Binding var profile: UserProfile?
 
     @State private var name: String = ""
@@ -858,6 +854,9 @@ struct EditProfileView: View {
         }
 
         dataController.updateUserProfile(p)
+
+        // Notify other views that profile was updated
+        NotificationCenter.default.post(name: .profileUpdated, object: nil)
     }
 }
 

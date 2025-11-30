@@ -53,8 +53,11 @@ struct ContentView: View {
                 }
                 .tag(3)
         }
+        .onAppear {
+            configureTabBarAppearance()
+        }
         .blueLightFilter()
-        .tint(theme.primaryColor)  // Match the selected theme!
+        .tint(theme.primaryColor)
         .preferredColorScheme(appearance.colorScheme)
         .dynamicTypeSize(dynamicTypeSize)
         .sheet(isPresented: $showingProfile) {
@@ -62,6 +65,22 @@ struct ContentView: View {
                 .themedBackground()
                 .blueLightFilter()
                 .dynamicTypeSize(dynamicTypeSize)
+        }
+    }
+
+    private func configureTabBarAppearance() {
+        let appearance = UITabBarAppearance()
+        appearance.configureWithDefaultBackground()
+
+        // More opaque, darker background
+        appearance.backgroundColor = UIColor.black.withAlphaComponent(0.5)
+
+        // Blur effect
+        appearance.backgroundEffect = UIBlurEffect(style: .systemUltraThinMaterialDark)
+
+        UITabBar.appearance().standardAppearance = appearance
+        if #available(iOS 15.0, *) {
+            UITabBar.appearance().scrollEdgeAppearance = appearance
         }
     }
 }

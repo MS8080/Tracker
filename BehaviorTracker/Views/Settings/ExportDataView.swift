@@ -60,11 +60,7 @@ struct ExportDataView: View {
             }
             .padding(16)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(theme.cardBackground)
-            )
-            .shadow(color: theme.cardShadowColor, radius: 6, y: 3)
+            .cardStyle(theme: theme, cornerRadius: 12)
             .padding(.horizontal, 32)
             .transition(.scale.combined(with: .opacity))
             .animation(.spring(response: 0.2, dampingFraction: 0.7), value: selectedFormat)

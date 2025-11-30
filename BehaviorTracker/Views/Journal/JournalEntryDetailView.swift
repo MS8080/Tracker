@@ -1,18 +1,55 @@
 import SwiftUI
 
 struct JournalEntryDetailView: View {
-    let entry: JournalEntry  // Changed from @ObservedObject to let
-    let onDelete: () -> Void  // Changed to take no parameters
+    let entry: JournalEntry
+    let onDelete: () -> Void
     @StateObject private var audioService = AudioRecordingService.shared
+    @StateObject private var ttsService = TextToSpeechService.shared
     @Environment(\.dismiss) private var dismiss
-    @State private var isEditing = false
+
+    // Editable state
+    @State private var title: String
+    @State private var content: String
+    @State private var hasChanges = false
+    @State private var showingAnalysis = false
+    @FocusState private var isContentFocused: Bool
+
+    @AppStorage("selectedTheme") private var selectedThemeRaw: String = AppTheme.purple.rawValue
+    private var theme: AppTheme {
+        AppTheme(rawValue: selectedThemeRaw) ?? .purple
+    }
+
+    init(entry: JournalEntry, onDelete: @escaping () -> Void) {
+        self.entry = entry
+        self.onDelete = onDelete
+        _title = State(initialValue: entry.title ?? "")
+        _content = State(initialValue: entry.content)
+    }
 
     var body: some View {
         NavigationView {
             ScrollView {
-                VStack(alignment: .leading, spacing: 20) {
-                    // Header with metadata
-                    entryHeader
+                VStack(alignment: .leading, spacing: 16) {
+                    // Date header
+                    HStack {
+                        Label(entry.formattedDate, systemImage: "calendar")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+
+                        Spacer()
+
+                        if entry.isFavorite {
+                            Image(systemName: "star.fill")
+                                .foregroundColor(.yellow)
+                                .font(.subheadline)
+                        }
+                    }
+
+                    // Title field
+                    TextField("Add a title (optional)", text: $title)
+                        .font(.title3)
+                        .fontWeight(.semibold)
+                        .onChange(of: title) { _, _ in hasChanges = true }
 
                     Divider()
 
@@ -22,8 +59,20 @@ struct JournalEntryDetailView: View {
                         Divider()
                     }
 
-                    // Content
-                    entryContent
+                    // Content - directly editable
+                    ZStack(alignment: .topLeading) {
+                        if content.isEmpty && !isContentFocused {
+                            Text("Write your thoughts here...")
+                                .foregroundColor(.gray)
+                                .padding(.top, 8)
+                                .padding(.leading, 4)
+                        }
+
+                        TextEditor(text: $content)
+                            .frame(minHeight: isContentFocused ? 300 : 200)
+                            .focused($isContentFocused)
+                            .onChange(of: content) { _, _ in hasChanges = true }
+                    }
 
                     // Related items
                     if entry.relatedPatternEntry != nil || entry.relatedMedicationLog != nil {
@@ -34,88 +83,86 @@ struct JournalEntryDetailView: View {
                 .padding()
             }
             .navigationTitle("Journal Entry")
-            .navigationBarTitleDisplayModeInline()
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Done") {
+                    Button(hasChanges ? "Cancel" : "Done") {
+                        if hasChanges {
+                            // Discard changes
+                            title = entry.title ?? ""
+                            content = entry.content
+                            hasChanges = false
+                        }
                         dismiss()
                     }
-                    .accessibilityLabel("Close journal entry")
+                    .foregroundStyle(.white)
                 }
 
                 ToolbarItem(placement: .primaryAction) {
-                    Menu {
-                        Button(action: {
-                            isEditing = true
-                        }) {
-                            Label("Edit", systemImage: "pencil")
+                    HStack(spacing: 16) {
+                        if hasChanges {
+                            Button {
+                                saveChanges()
+                            } label: {
+                                Image(systemName: "checkmark")
+                                    .fontWeight(.semibold)
+                                    .foregroundStyle(.green)
+                            }
                         }
-                        .accessibilityLabel("Edit journal entry")
 
-                        Button(action: {
-                            toggleFavorite()
-                        }) {
-                            Label(
-                                entry.isFavorite ? "Remove from Favorites" : "Add to Favorites",
-                                systemImage: entry.isFavorite ? "star.slash" : "star"
-                            )
+                        Menu {
+                            Button {
+                                toggleFavorite()
+                            } label: {
+                                Label(
+                                    entry.isFavorite ? "Remove Bookmark" : "Bookmark",
+                                    systemImage: entry.isFavorite ? "bookmark.slash" : "bookmark"
+                                )
+                            }
+
+                            Button {
+                                showingAnalysis = true
+                            } label: {
+                                Label("Analyze", systemImage: "sparkles")
+                            }
+
+                            Button {
+                                ttsService.speakJournalEntry(entry)
+                            } label: {
+                                Label("Read Aloud", systemImage: "speaker.wave.2")
+                            }
+
+                            Divider()
+
+                            Button(role: .destructive) {
+                                deleteEntry()
+                            } label: {
+                                Label("Delete", systemImage: "trash")
+                            }
+                        } label: {
+                            Image(systemName: "ellipsis.circle")
+                                .font(.title3)
+                                .foregroundStyle(.white)
                         }
-                        .accessibilityLabel(entry.isFavorite ? "Remove from favorites" : "Add to favorites")
-
-                        Divider()
-
-                        Button(role: .destructive, action: {
-                            deleteEntry()
-                        }) {
-                            Label("Delete", systemImage: "trash")
-                        }
-                        .accessibilityLabel("Delete journal entry")
-                    } label: {
-                        Image(systemName: "ellipsis.circle")
-                            .accessibilityLabel("More options")
                     }
                 }
+
             }
-            .sheet(isPresented: $isEditing) {
-                JournalEntryEditorView(entry: entry)
+            .onDisappear {
+                // Auto-save on dismiss if there are changes
+                if hasChanges {
+                    saveChanges()
+                }
+            }
+            .sheet(isPresented: $showingAnalysis) {
+                JournalEntryAnalysisView(entry: entry)
             }
         }
     }
 
-    private var entryHeader: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                if let title = entry.title, !title.isEmpty {
-                    Text(title)
-                        .font(.title2)
-                        .fontWeight(.bold)
-                        .accessibilityLabel("Title: \(title)")
-                }
-
-                Spacer()
-
-                if entry.isFavorite {
-                    Image(systemName: "star.fill")
-                        .foregroundColor(.yellow)
-                        .font(.title3)
-                        .accessibilityLabel("Favorite")
-                }
-            }
-
-            HStack(spacing: 16) {
-                Label(entry.formattedDate, systemImage: "calendar")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-                    .accessibilityLabel("Created on \(entry.formattedDate)")
-
-                if entry.mood > 0 {
-                    Label(moodText(for: entry.mood), systemImage: "face.smiling")
-                        .font(.subheadline)
-                        .foregroundColor(.blue)
-                        .accessibilityLabel("Mood: \(moodText(for: entry.mood))")
-                }
-            }
-        }
+    private func toggleFavorite() {
+        entry.isFavorite.toggle()
+        DataController.shared.updateJournalEntry(entry)
     }
 
     private var voiceNotePlaybackSection: some View {
@@ -188,24 +235,10 @@ struct JournalEntryDetailView: View {
         .cornerRadius(12)
     }
 
-    private var entryContent: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Content")
-                .font(.headline)
-                .accessibilityLabel("Entry content")
-
-            Text(entry.content)
-                .font(.body)
-                .textSelection(.enabled)
-                .accessibilityLabel(entry.content)
-        }
-    }
-
     private var relatedItemsSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Related Items")
                 .font(.headline)
-                .accessibilityLabel("Related items")
 
             if let pattern = entry.relatedPatternEntry {
                 HStack {
@@ -219,7 +252,6 @@ struct JournalEntryDetailView: View {
                             .font(.subheadline)
                     }
                 }
-                .accessibilityLabel("Related to pattern: \(pattern.patternType)")
             }
 
             if let medication = entry.relatedMedicationLog {
@@ -236,32 +268,21 @@ struct JournalEntryDetailView: View {
                         }
                     }
                 }
-                .accessibilityLabel("Related to medication log")
             }
         }
     }
 
-    private func moodText(for mood: Int16) -> String {
-        switch mood {
-        case 1: return "Very Low"
-        case 2: return "Low"
-        case 3: return "Neutral"
-        case 4: return "Good"
-        case 5: return "Very Good"
-        default: return "Unknown"
-        }
-    }
+    private func saveChanges() {
+        guard !content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
 
-    private func toggleFavorite() {
-        entry.isFavorite.toggle()
+        entry.title = title.isEmpty ? nil : title
+        entry.content = content
         DataController.shared.updateJournalEntry(entry)
+        hasChanges = false
     }
 
     private func deleteEntry() {
-        // Mark for deletion first
         onDelete()
-
-        // Then dismiss - the actual deletion will happen after dismiss completes
         dismiss()
     }
 }
