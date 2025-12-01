@@ -15,12 +15,21 @@ class CalendarViewModel: ObservableObject {
     private let calendarEventService = CalendarEventService.shared
     private let calendar = Calendar.current
 
+    // MARK: - Cached Formatters (Performance Optimization)
+    private static let monthYearFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MMMM yyyy"
+        return formatter
+    }()
+
+    private static let cachedWeekdaySymbols: [String] = {
+        DateFormatter().shortWeekdaySymbols
+    }()
+
     // MARK: - Month Navigation
 
     var monthYearString: String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "MMMM yyyy"
-        return formatter.string(from: currentMonth)
+        Self.monthYearFormatter.string(from: currentMonth)
     }
 
     var daysInMonth: [Date] {
@@ -42,8 +51,7 @@ class CalendarViewModel: ObservableObject {
     }
 
     var weekdaySymbols: [String] {
-        let formatter = DateFormatter()
-        return formatter.shortWeekdaySymbols
+        Self.cachedWeekdaySymbols
     }
 
     func previousMonth() {

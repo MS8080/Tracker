@@ -47,6 +47,19 @@ class HomeViewModel: ObservableObject {
     private let dataController = DataController.shared
     private let geminiService = GeminiService.shared
 
+    // MARK: - Cached Formatters (Performance Optimization)
+    private static let relativeDateFormatter: RelativeDateTimeFormatter = {
+        let formatter = RelativeDateTimeFormatter()
+        formatter.unitsStyle = .full
+        return formatter
+    }()
+
+    private static let timeFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.timeStyle = .short
+        return formatter
+    }()
+
     var greeting: String {
         let hour = Calendar.current.component(.hour, from: Date())
         switch hour {
@@ -105,7 +118,7 @@ class HomeViewModel: ObservableObject {
             return
         }
 
-        let timeAgo = RelativeDateTimeFormatter().localizedString(for: mostRecent.timestamp, relativeTo: Date())
+        let timeAgo = Self.relativeDateFormatter.localizedString(for: mostRecent.timestamp, relativeTo: Date())
         let patternType = mostRecent.patternType
         let category = mostRecent.patternCategoryEnum
 
@@ -208,9 +221,7 @@ class HomeViewModel: ObservableObject {
                 let category = laterEntry.patternCategoryEnum
 
                 if category == .physicalWellbeing || laterEntry.intensity <= 2 {
-                    let formatter = RelativeDateTimeFormatter()
-                    formatter.unitsStyle = .full
-                    let timeAgo = formatter.localizedString(for: entry.timestamp, relativeTo: Date())
+                    let timeAgo = Self.relativeDateFormatter.localizedString(for: entry.timestamp, relativeTo: Date())
 
                     return Memory(
                         timeframe: "You got through it",
@@ -318,9 +329,7 @@ class HomeViewModel: ObservableObject {
         if !todayPatterns.isEmpty {
             dataSummary += "LOGGED PATTERNS:\n"
             for entry in todayPatterns {
-                let timeFormatter = DateFormatter()
-                timeFormatter.timeStyle = .short
-                let time = timeFormatter.string(from: entry.timestamp)
+                let time = Self.timeFormatter.string(from: entry.timestamp)
                 dataSummary += "- [\(time)] \(entry.patternType) (intensity: \(entry.intensity)/5)"
                 if let notes = entry.contextNotes, !notes.isEmpty {
                     dataSummary += " - \"\(notes)\""
@@ -333,9 +342,7 @@ class HomeViewModel: ObservableObject {
         if !todayJournals.isEmpty {
             dataSummary += "JOURNAL ENTRIES:\n"
             for entry in todayJournals {
-                let timeFormatter = DateFormatter()
-                timeFormatter.timeStyle = .short
-                let time = timeFormatter.string(from: entry.timestamp)
+                let time = Self.timeFormatter.string(from: entry.timestamp)
                 let moodText = entry.mood > 0 ? " (mood: \(entry.mood)/5)" : ""
                 let title = entry.title ?? ""
                 dataSummary += "- [\(time)]\(title.isEmpty ? "" : " \(title)")\(moodText): \"\(entry.content)\"\n"

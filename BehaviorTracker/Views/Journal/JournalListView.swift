@@ -250,6 +250,25 @@ struct DayTimelineCard: View {
     let onAnalyze: (JournalEntry) -> Void
     let onAnalyzeDay: ([JournalEntry], Date) -> Void
 
+    // MARK: - Cached Formatters (Performance Optimization)
+    private static let dateHeaderFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "EEEE, MMMM d"
+        return formatter
+    }()
+
+    private static let fullDateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .full
+        return formatter
+    }()
+
+    private static let timeFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "h:mm a"
+        return formatter
+    }()
+
     private var isToday: Bool {
         Calendar.current.isDateInToday(date)
     }
@@ -260,27 +279,20 @@ struct DayTimelineCard: View {
         } else if Calendar.current.isDateInYesterday(date) {
             return NSLocalizedString("time.yesterday", comment: "")
         } else {
-            let formatter = DateFormatter()
-            formatter.dateFormat = "EEEE, MMMM d"
-            return formatter.string(from: date)
+            return Self.dateHeaderFormatter.string(from: date)
         }
     }
 
     private var dateHeaderFull: String {
-        let formatter = DateFormatter()
-        formatter.dateStyle = .full
-        return formatter.string(from: date)
+        Self.fullDateFormatter.string(from: date)
     }
 
     private func copyDayTimeline() {
-        let timeFormatter = DateFormatter()
-        timeFormatter.dateFormat = "h:mm a"
-
         var copyText = "📅 \(dateHeaderFull)\n"
         copyText += String(repeating: "─", count: 30) + "\n\n"
 
         for entry in entries.sorted(by: { $0.timestamp < $1.timestamp }) {
-            let time = timeFormatter.string(from: entry.timestamp)
+            let time = Self.timeFormatter.string(from: entry.timestamp)
             copyText += "⏱ \(time)\n"
 
             if let title = entry.title, !title.isEmpty {
@@ -377,17 +389,25 @@ struct JournalTimelineEntryRow: View {
     let onAnalyzeDay: () -> Void
     let onCopyDay: () -> Void
 
-    private var timeString: String {
+    // MARK: - Cached Formatters (Performance Optimization)
+    private static let timeFormatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.dateFormat = "h:mm a"
-        return formatter.string(from: entry.timestamp)
+        return formatter
+    }()
+
+    private static let dateTimeFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .long
+        formatter.timeStyle = .short
+        return formatter
+    }()
+
+    private var timeString: String {
+        Self.timeFormatter.string(from: entry.timestamp)
     }
 
     private func copyEntryToClipboard() {
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateStyle = .long
-        dateFormatter.timeStyle = .short
-
         var copyText = ""
 
         // Add title if present
@@ -399,7 +419,7 @@ struct JournalTimelineEntryRow: View {
         copyText += entry.content
 
         // Add date and time
-        copyText += "\n\n— \(dateFormatter.string(from: entry.timestamp))"
+        copyText += "\n\n— \(Self.dateTimeFormatter.string(from: entry.timestamp))"
 
         UIPasteboard.general.string = copyText
         HapticFeedback.light.trigger()
