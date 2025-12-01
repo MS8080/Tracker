@@ -113,13 +113,13 @@ struct ProfileContainerView: View {
                     .foregroundStyle(.white)
                 }
             }
-            .onAppear {
-                loadProfile()
-                medicationViewModel.loadMedications()
-                Task {
-                    await healthKitManager.checkAuthorizationStatus()
-                    loadHealthData()
-                }
+            .task {
+                // Load data concurrently to avoid blocking animations
+                async let profileTask: () = loadProfileAsync()
+                async let medicationsTask: () = loadMedicationsAsync()
+                async let healthTask: () = loadHealthDataAsync()
+
+                _ = await (profileTask, medicationsTask, healthTask)
             }
             .sheet(isPresented: $showingEditProfile) {
                 EditProfileView(dataController: dataController, profile: $profile)
@@ -420,7 +420,10 @@ struct ProfileContainerView: View {
                             NavigationLink {
                                 MedicationDetailView(medication: medication, viewModel: medicationViewModel)
                             } label: {
-                                ProfileMedicationRowView(medication: medication, viewModel: medicationViewModel)
+                                ProfileMedicationRowView(
+                                    medication: medication,
+                                    hasTakenToday: medicationViewModel.hasTakenToday(medication: medication)
+                                )
                             }
                             .buttonStyle(PlainButtonStyle())
                         }
@@ -553,6 +556,39 @@ struct ProfileContainerView: View {
         profile = dataController.getOrCreateUserProfile()
     }
 
+    private func loadProfileAsync() async {
+        let loadedProfile = await Task.detached(priority: .userInitiated) {
+            DataController.shared.getOrCreateUserProfile()
+        }.value
+        await MainActor.run {
+            profile = loadedProfile
+        }
+    }
+
+    private func loadMedicationsAsync() async {
+        await Task.detached(priority: .userInitiated) {
+            await MainActor.run {
+                self.medicationViewModel.loadMedications()
+            }
+        }.value
+    }
+
+    private func loadHealthDataAsync() async {
+        await healthKitManager.checkAuthorizationStatus()
+        guard healthKitManager.isAuthorized else { return }
+
+        await MainActor.run {
+            isLoadingHealth = true
+        }
+
+        let summary = await healthKitManager.fetchHealthSummary()
+
+        await MainActor.run {
+            healthSummary = summary
+            isLoadingHealth = false
+        }
+    }
+
     private func loadHealthData() {
         guard healthKitManager.isAuthorized else { return }
 
@@ -601,7 +637,7 @@ struct HealthStatCard: View {
 
 struct ProfileMedicationRowView: View {
     let medication: Medication
-    @ObservedObject var viewModel: MedicationViewModel
+    let hasTakenToday: Bool  // Pass computed value instead of viewModel
 
     var body: some View {
         HStack {
@@ -620,7 +656,7 @@ struct ProfileMedicationRowView: View {
 
             Spacer()
 
-            if viewModel.hasTakenToday(medication: medication) {
+            if hasTakenToday {
                 Image(systemName: "checkmark.circle.fill")
                     .foregroundColor(.green)
             }

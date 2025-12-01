@@ -59,9 +59,9 @@ struct CalendarView: View {
                     }
                 }
             }
-            .onAppear {
+            .task {
                 viewModel.checkCalendarAuthorization()
-                viewModel.loadMonthData()
+                await viewModel.loadMonthDataAsync()
             }
             .sheet(isPresented: $showingDayDetail) {
                 if let selectedDate = viewModel.selectedDate {

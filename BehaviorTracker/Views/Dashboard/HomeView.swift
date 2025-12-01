@@ -323,17 +323,23 @@ struct ProfileButton: View {
                     .shadow(color: .black.opacity(0.3), radius: 4, x: 0, y: 2)
             }
         }
-        .onAppear {
-            loadProfileImage()
+        .task {
+            await loadProfileImageAsync()
         }
         .onReceive(NotificationCenter.default.publisher(for: .profileUpdated)) { _ in
-            loadProfileImage()
+            Task {
+                await loadProfileImageAsync()
+            }
         }
     }
 
-    private func loadProfileImage() {
-        if let profile = DataController.shared.getCurrentUserProfile() {
-            profileImage = profile.profileImage
+    private func loadProfileImageAsync() async {
+        let image = await Task.detached(priority: .userInitiated) {
+            DataController.shared.getCurrentUserProfile()?.profileImage
+        }.value
+
+        await MainActor.run {
+            profileImage = image
         }
     }
 }

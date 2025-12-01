@@ -100,6 +100,75 @@ class CalendarViewModel: ObservableObject {
         loadCalendarEvents()
     }
 
+    /// Async version for background loading - use with .task modifier
+    func loadMonthDataAsync() async {
+        guard let monthInterval = calendar.dateInterval(of: .month, for: currentMonth) else { return }
+
+        let startDate = calendar.date(byAdding: .day, value: -7, to: monthInterval.start) ?? monthInterval.start
+        let endDate = calendar.date(byAdding: .day, value: 7, to: monthInterval.end) ?? monthInterval.end
+
+        // Load data concurrently in background
+        async let patterns = loadPatternEntriesAsync(from: startDate, to: endDate)
+        async let medications = loadMedicationLogsAsync(from: startDate, to: endDate)
+        async let journals = loadJournalEntriesAsync(from: startDate, to: endDate)
+
+        let (patternsResult, medicationsResult, journalsResult) = await (patterns, medications, journals)
+
+        // Update UI on main thread
+        entriesByDate = patternsResult
+        medicationLogsByDate = medicationsResult
+        journalEntriesByDate = journalsResult
+
+        loadCalendarEvents()
+    }
+
+    private func loadPatternEntriesAsync(from startDate: Date, to endDate: Date) async -> [Date: [PatternEntry]] {
+        await Task.detached(priority: .userInitiated) { [dataController, calendar] in
+            let entries = dataController.fetchPatternEntries(startDate: startDate, endDate: endDate)
+            var grouped: [Date: [PatternEntry]] = [:]
+            for entry in entries {
+                let day = calendar.startOfDay(for: entry.timestamp)
+                grouped[day, default: []].append(entry)
+            }
+            return grouped
+        }.value
+    }
+
+    private func loadMedicationLogsAsync(from startDate: Date, to endDate: Date) async -> [Date: [MedicationLog]] {
+        await Task.detached(priority: .userInitiated) { [dataController, calendar] in
+            let request = NSFetchRequest<MedicationLog>(entityName: "MedicationLog")
+            request.predicate = NSPredicate(format: "timestamp >= %@ AND timestamp < %@", startDate as NSDate, endDate as NSDate)
+            request.sortDescriptors = [NSSortDescriptor(keyPath: \MedicationLog.timestamp, ascending: true)]
+
+            do {
+                let logs = try dataController.container.viewContext.fetch(request)
+                var grouped: [Date: [MedicationLog]] = [:]
+                for log in logs {
+                    let day = calendar.startOfDay(for: log.timestamp)
+                    grouped[day, default: []].append(log)
+                }
+                return grouped
+            } catch {
+                print("Error fetching medication logs: \(error)")
+                return [:]
+            }
+        }.value
+    }
+
+    private func loadJournalEntriesAsync(from startDate: Date, to endDate: Date) async -> [Date: [JournalEntry]] {
+        await Task.detached(priority: .userInitiated) { [dataController, calendar] in
+            let entries = dataController.fetchJournalEntries()
+                .filter { $0.timestamp >= startDate && $0.timestamp < endDate }
+
+            var grouped: [Date: [JournalEntry]] = [:]
+            for entry in entries {
+                let day = calendar.startOfDay(for: entry.timestamp)
+                grouped[day, default: []].append(entry)
+            }
+            return grouped
+        }.value
+    }
+
     // MARK: - Calendar Events
 
     func requestCalendarAccess() async {
