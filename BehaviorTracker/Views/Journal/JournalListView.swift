@@ -9,6 +9,7 @@ struct JournalListView: View {
     @State private var entryToDelete: JournalEntry?
     @State private var searchText = ""
     @State private var entryToAnalyze: JournalEntry?
+    @State private var dayToAnalyze: DayAnalysisData?
     @State private var isSearching = false
     @Binding var showingProfile: Bool
 
@@ -159,6 +160,9 @@ struct JournalListView: View {
                         },
                         onAnalyze: { entry in
                             entryToAnalyze = entry
+                        },
+                        onAnalyzeDay: { entries, date in
+                            dayToAnalyze = DayAnalysisData(entries: entries, date: date)
                         }
                     )
                 }
@@ -171,6 +175,9 @@ struct JournalListView: View {
         }
         .sheet(item: $entryToAnalyze) { entry in
             JournalEntryAnalysisView(entry: entry)
+        }
+        .sheet(item: $dayToAnalyze) { dayData in
+            DayAnalysisView(entries: dayData.entries, date: dayData.date)
         }
     }
     
@@ -241,6 +248,7 @@ struct DayTimelineCard: View {
     let onSpeak: (JournalEntry) -> Void
     let onDelete: (JournalEntry) -> Void
     let onAnalyze: (JournalEntry) -> Void
+    let onAnalyzeDay: ([JournalEntry], Date) -> Void
 
     private var isToday: Bool {
         Calendar.current.isDateInToday(date)
@@ -258,26 +266,86 @@ struct DayTimelineCard: View {
         }
     }
 
+    private var dateHeaderFull: String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .full
+        return formatter.string(from: date)
+    }
+
+    private func copyDayTimeline() {
+        let timeFormatter = DateFormatter()
+        timeFormatter.dateFormat = "h:mm a"
+
+        var copyText = "📅 \(dateHeaderFull)\n"
+        copyText += String(repeating: "─", count: 30) + "\n\n"
+
+        for entry in entries.sorted(by: { $0.timestamp < $1.timestamp }) {
+            let time = timeFormatter.string(from: entry.timestamp)
+            copyText += "⏱ \(time)\n"
+
+            if let title = entry.title, !title.isEmpty {
+                copyText += "📝 \(title)\n"
+            }
+
+            copyText += entry.content + "\n\n"
+        }
+
+        UIPasteboard.general.string = copyText
+        HapticFeedback.medium.trigger()
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.md) {
-            // Date Header
-            Text(dateHeader)
-                .font(.title2)
-                .fontWeight(.bold)
-                .frame(maxWidth: .infinity, alignment: .leading)
+            // Date Header with context menu for day actions
+            HStack {
+                Text(dateHeader)
+                    .font(.title2)
+                    .fontWeight(.bold)
+                Spacer()
+
+                // Entry count badge
+                Text("\(entries.count)")
+                    .font(.caption)
+                    .fontWeight(.medium)
+                    .foregroundStyle(.secondary)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(
+                        Capsule()
+                            .fill(theme.primaryColor.opacity(0.15))
+                    )
+            }
+            .contentShape(Rectangle())
+            .contextMenu {
+                Button {
+                    copyDayTimeline()
+                } label: {
+                    Label("Copy Day", systemImage: "doc.on.doc")
+                }
+
+                Button {
+                    onAnalyzeDay(entries, date)
+                } label: {
+                    Label("Analyze Day", systemImage: "sparkles")
+                }
+            }
 
             // Timeline
             VStack(alignment: .leading, spacing: 0) {
                 ForEach(Array(entries.enumerated()), id: \.element.id) { index, entry in
                     JournalTimelineEntryRow(
                         entry: entry,
+                        allDayEntries: entries,
+                        date: date,
                         isLast: index == entries.count - 1,
                         theme: theme,
                         onTap: { onEntryTap(entry) },
                         onToggleFavorite: { onToggleFavorite(entry) },
                         onSpeak: { onSpeak(entry) },
                         onDelete: { onDelete(entry) },
-                        onAnalyze: { onAnalyze(entry) }
+                        onAnalyze: { onAnalyze(entry) },
+                        onAnalyzeDay: { onAnalyzeDay(entries, date) },
+                        onCopyDay: { copyDayTimeline() }
                     )
                 }
             }
@@ -297,6 +365,8 @@ struct DayTimelineCard: View {
 
 struct JournalTimelineEntryRow: View {
     let entry: JournalEntry
+    let allDayEntries: [JournalEntry]
+    let date: Date
     let isLast: Bool
     let theme: AppTheme
     let onTap: () -> Void
@@ -304,11 +374,35 @@ struct JournalTimelineEntryRow: View {
     let onSpeak: () -> Void
     let onDelete: () -> Void
     let onAnalyze: () -> Void
+    let onAnalyzeDay: () -> Void
+    let onCopyDay: () -> Void
 
     private var timeString: String {
         let formatter = DateFormatter()
         formatter.dateFormat = "h:mm a"
         return formatter.string(from: entry.timestamp)
+    }
+
+    private func copyEntryToClipboard() {
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateStyle = .long
+        dateFormatter.timeStyle = .short
+
+        var copyText = ""
+
+        // Add title if present
+        if let title = entry.title, !title.isEmpty {
+            copyText += "\(title)\n\n"
+        }
+
+        // Add content
+        copyText += entry.content
+
+        // Add date and time
+        copyText += "\n\n— \(dateFormatter.string(from: entry.timestamp))"
+
+        UIPasteboard.general.string = copyText
+        HapticFeedback.light.trigger()
     }
 
     var body: some View {
@@ -433,25 +527,49 @@ struct JournalTimelineEntryRow: View {
                 onTap()
             }
             .contextMenu {
-                Button {
-                    onAnalyze()
-                } label: {
-                    Label("Analyze", systemImage: "sparkles")
+                // Entry-specific actions
+                Section("This Entry") {
+                    Button {
+                        onAnalyze()
+                    } label: {
+                        Label("Analyze Entry", systemImage: "sparkles")
+                    }
+
+                    Button {
+                        copyEntryToClipboard()
+                    } label: {
+                        Label("Copy Entry", systemImage: "doc.on.doc")
+                    }
+
+                    Button {
+                        onToggleFavorite()
+                    } label: {
+                        Label(
+                            entry.isFavorite ? "Unfavorite" : "Favorite",
+                            systemImage: entry.isFavorite ? "star.slash" : "star.fill"
+                        )
+                    }
+
+                    Button {
+                        onSpeak()
+                    } label: {
+                        Label("Read Aloud", systemImage: "speaker.wave.2.fill")
+                    }
                 }
 
-                Button {
-                    onToggleFavorite()
-                } label: {
-                    Label(
-                        entry.isFavorite ? "Unfavorite" : "Favorite",
-                        systemImage: entry.isFavorite ? "star.slash" : "star.fill"
-                    )
-                }
+                // Day-level actions
+                Section("Whole Day (\(allDayEntries.count) entries)") {
+                    Button {
+                        onAnalyzeDay()
+                    } label: {
+                        Label("Analyze Day", systemImage: "calendar.badge.sparkles")
+                    }
 
-                Button {
-                    onSpeak()
-                } label: {
-                    Label("Read Aloud", systemImage: "speaker.wave.2.fill")
+                    Button {
+                        onCopyDay()
+                    } label: {
+                        Label("Copy Day", systemImage: "doc.on.doc.fill")
+                    }
                 }
 
                 Button(role: .destructive) {
@@ -841,6 +959,381 @@ class JournalAnalysisViewModel: ObservableObject {
         2. Note any potential triggers or correlations
         3. Provide 2-3 actionable insights or suggestions
         4. Keep the response concise and supportive
+
+        Focus on being helpful and constructive. Do not diagnose or provide medical advice.
+        """
+
+        return prompt
+    }
+}
+
+// MARK: - Day Analysis Data
+
+struct DayAnalysisData: Identifiable {
+    let id = UUID()
+    let entries: [JournalEntry]
+    let date: Date
+}
+
+// MARK: - Day Analysis View
+
+struct DayAnalysisView: View {
+    let entries: [JournalEntry]
+    let date: Date
+    @Environment(\.dismiss) private var dismiss
+    @Environment(\.managedObjectContext) private var viewContext
+    @StateObject private var analysisViewModel = DayAnalysisViewModel()
+
+    @ThemeWrapper var theme
+
+    private var dateHeader: String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .full
+        return formatter.string(from: date)
+    }
+
+    var body: some View {
+        NavigationStack {
+            ZStack {
+                theme.gradient
+                    .ignoresSafeArea()
+
+                ScrollView {
+                    VStack(spacing: Spacing.lg) {
+                        // Day overview card
+                        VStack(alignment: .leading, spacing: Spacing.md) {
+                            HStack {
+                                Image(systemName: "calendar")
+                                    .foregroundStyle(.blue)
+                                Text("Analyzing Day")
+                                    .font(.headline)
+                                Spacer()
+                                Text("\(entries.count) entries")
+                                    .font(.subheadline)
+                                    .foregroundStyle(.secondary)
+                            }
+
+                            Text(dateHeader)
+                                .font(.title3)
+                                .fontWeight(.semibold)
+
+                            // Timeline preview
+                            VStack(alignment: .leading, spacing: Spacing.sm) {
+                                ForEach(entries.sorted(by: { $0.timestamp < $1.timestamp }), id: \.id) { entry in
+                                    HStack(alignment: .top, spacing: Spacing.sm) {
+                                        let timeFormatter = DateFormatter()
+                                        Text({
+                                            timeFormatter.dateFormat = "h:mm a"
+                                            return timeFormatter.string(from: entry.timestamp)
+                                        }())
+                                            .font(.caption)
+                                            .foregroundStyle(.secondary)
+                                            .frame(width: 70, alignment: .leading)
+
+                                        Text(entry.title ?? entry.preview)
+                                            .font(.caption)
+                                            .lineLimit(1)
+                                    }
+                                }
+                            }
+                            .padding(.top, Spacing.xs)
+                        }
+                        .padding(Spacing.xl)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(
+                            RoundedRectangle(cornerRadius: 20)
+                                .fill(theme.cardBackground)
+                        )
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 20)
+                                .stroke(theme.cardBorderColor, lineWidth: 0.5)
+                        )
+                        .shadow(color: theme.cardShadowColor, radius: 8, y: 4)
+
+                        // Analysis results
+                        if analysisViewModel.isAnalyzing {
+                            VStack(spacing: Spacing.lg) {
+                                ProgressView()
+                                    .scaleEffect(1.2)
+                                Text("Analyzing your day...")
+                                    .font(.subheadline)
+                                    .foregroundStyle(.secondary)
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding(40)
+                            .background(
+                                RoundedRectangle(cornerRadius: 20)
+                                    .fill(theme.cardBackground)
+                            )
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 20)
+                                    .stroke(theme.cardBorderColor, lineWidth: 0.5)
+                            )
+                            .shadow(color: theme.cardShadowColor, radius: 8, y: 4)
+                        } else if let analysis = analysisViewModel.analysisResult {
+                            dayAnalysisResultView(analysis)
+                        } else if let error = analysisViewModel.errorMessage {
+                            // Error state
+                            VStack(spacing: Spacing.md) {
+                                Image(systemName: "exclamationmark.triangle")
+                                    .font(.largeTitle)
+                                    .foregroundStyle(.orange)
+                                Text(error)
+                                    .font(.subheadline)
+                                    .foregroundStyle(.secondary)
+                                    .multilineTextAlignment(.center)
+
+                                Button("Try Again") {
+                                    Task {
+                                        await analysisViewModel.analyzeDay(entries: entries, date: date, context: viewContext)
+                                    }
+                                }
+                                .buttonStyle(.borderedProminent)
+                            }
+                            .padding(30)
+                            .frame(maxWidth: .infinity)
+                            .background(
+                                RoundedRectangle(cornerRadius: 20)
+                                    .fill(theme.cardBackground)
+                            )
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 20)
+                                    .stroke(theme.cardBorderColor, lineWidth: 0.5)
+                            )
+                            .shadow(color: theme.cardShadowColor, radius: 8, y: 4)
+                        }
+                    }
+                    .padding()
+                }
+            }
+            .navigationTitle("Day Analysis")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Close") {
+                        dismiss()
+                    }
+                }
+            }
+            .task {
+                await analysisViewModel.analyzeDay(entries: entries, date: date, context: viewContext)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func dayAnalysisResultView(_ analysis: String) -> some View {
+        VStack(alignment: .leading, spacing: 16) {
+            HStack {
+                Image(systemName: "sparkles")
+                    .foregroundStyle(SemanticColor.warning)
+                Text("Day Analysis")
+                    .font(.headline)
+                Spacer()
+            }
+
+            // Parse and format the analysis (reusing the same logic)
+            formattedDayAnalysisContent(analysis)
+        }
+        .padding(20)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(
+            RoundedRectangle(cornerRadius: 20)
+                .fill(theme.cardBackground)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 20)
+                .stroke(theme.cardBorderColor, lineWidth: 0.5)
+        )
+        .shadow(color: theme.cardShadowColor, radius: 8, y: 4)
+    }
+
+    @ViewBuilder
+    private func formattedDayAnalysisContent(_ content: String) -> some View {
+        let sections = parseDayAnalysisSections(content)
+
+        VStack(alignment: .leading, spacing: 20) {
+            ForEach(sections, id: \.title) { section in
+                VStack(alignment: .leading, spacing: 10) {
+                    if !section.title.isEmpty {
+                        Text(section.title)
+                            .font(.subheadline)
+                            .fontWeight(.semibold)
+                            .foregroundStyle(theme.timelineColor)
+                    }
+
+                    ForEach(section.bullets, id: \.self) { bullet in
+                        HStack(alignment: .top, spacing: 10) {
+                            Circle()
+                                .fill(theme.timelineColor.opacity(0.6))
+                                .frame(width: 6, height: 6)
+                                .padding(.top, 7)
+
+                            Text(bullet)
+                                .font(.body)
+                                .foregroundStyle(.primary.opacity(0.9))
+                        }
+                    }
+
+                    if !section.paragraph.isEmpty {
+                        Text(section.paragraph)
+                            .font(.body)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
+        }
+    }
+
+    private func parseDayAnalysisSections(_ content: String) -> [DayAnalysisSection] {
+        var sections: [DayAnalysisSection] = []
+        let lines = content.components(separatedBy: "\n")
+
+        var currentTitle = ""
+        var currentBullets: [String] = []
+        var currentParagraph = ""
+
+        for line in lines {
+            let trimmed = line.trimmingCharacters(in: .whitespaces)
+
+            if trimmed.hasPrefix("##") || (trimmed.hasPrefix("**") && trimmed.hasSuffix("**")) ||
+               trimmed.range(of: "^\\*?\\*?\\d+\\.\\s*", options: .regularExpression) != nil {
+                if !currentTitle.isEmpty || !currentBullets.isEmpty || !currentParagraph.isEmpty {
+                    sections.append(DayAnalysisSection(
+                        title: currentTitle,
+                        bullets: currentBullets,
+                        paragraph: currentParagraph
+                    ))
+                }
+
+                currentTitle = trimmed
+                    .replacingOccurrences(of: "##", with: "")
+                    .replacingOccurrences(of: "**", with: "")
+                    .replacingOccurrences(of: "^\\d+\\.\\s*", with: "", options: .regularExpression)
+                    .trimmingCharacters(in: .whitespaces)
+                currentBullets = []
+                currentParagraph = ""
+
+            } else if trimmed.hasPrefix("- ") || trimmed.hasPrefix("* ") || trimmed.hasPrefix("• ") {
+                var bullet = String(trimmed.dropFirst(2)).trimmingCharacters(in: .whitespaces)
+                bullet = bullet.replacingOccurrences(of: "**", with: "")
+                if !bullet.isEmpty {
+                    currentBullets.append(bullet)
+                }
+            } else if !trimmed.isEmpty {
+                let cleanedLine = trimmed.replacingOccurrences(of: "**", with: "")
+                if currentParagraph.isEmpty {
+                    currentParagraph = cleanedLine
+                } else {
+                    currentParagraph += " " + cleanedLine
+                }
+            }
+        }
+
+        if !currentTitle.isEmpty || !currentBullets.isEmpty || !currentParagraph.isEmpty {
+            sections.append(DayAnalysisSection(
+                title: currentTitle,
+                bullets: currentBullets,
+                paragraph: currentParagraph
+            ))
+        }
+
+        return sections
+    }
+}
+
+private struct DayAnalysisSection: Hashable {
+    let title: String
+    let bullets: [String]
+    let paragraph: String
+}
+
+// MARK: - Day Analysis ViewModel
+
+@MainActor
+class DayAnalysisViewModel: ObservableObject {
+    @Published var isAnalyzing = false
+    @Published var analysisResult: String?
+    @Published var errorMessage: String?
+
+    private let aiService = AIAnalysisService.shared
+
+    func analyzeDay(entries: [JournalEntry], date: Date, context: NSManagedObjectContext) async {
+        isAnalyzing = true
+        errorMessage = nil
+
+        do {
+            let recentPatterns = fetchRecentPatterns(context: context)
+            let prompt = buildDayAnalysisPrompt(entries: entries, date: date, patterns: recentPatterns)
+            let result = try await aiService.analyzeWithPrompt(prompt)
+            analysisResult = result
+        } catch {
+            errorMessage = "Failed to analyze: \(error.localizedDescription)"
+        }
+
+        isAnalyzing = false
+    }
+
+    private func fetchRecentPatterns(context: NSManagedObjectContext) -> [PatternEntry] {
+        let request = NSFetchRequest<PatternEntry>(entityName: "PatternEntry")
+        let thirtyDaysAgo = Calendar.current.date(byAdding: .day, value: -30, to: Date())!
+        request.predicate = NSPredicate(format: "timestamp >= %@", thirtyDaysAgo as NSDate)
+        request.sortDescriptors = [NSSortDescriptor(keyPath: \PatternEntry.timestamp, ascending: false)]
+        request.fetchLimit = 50
+
+        do {
+            return try context.fetch(request)
+        } catch {
+            return []
+        }
+    }
+
+    private func buildDayAnalysisPrompt(entries: [JournalEntry], date: Date, patterns: [PatternEntry]) -> String {
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateStyle = .full
+        let dateString = dateFormatter.string(from: date)
+
+        let timeFormatter = DateFormatter()
+        timeFormatter.dateFormat = "h:mm a"
+
+        var prompt = """
+        Analyze this day's journal entries and provide insights:
+
+        ## Day: \(dateString)
+        ## Number of entries: \(entries.count)
+
+        ## Timeline of Entries:
+        """
+
+        for entry in entries.sorted(by: { $0.timestamp < $1.timestamp }) {
+            let time = timeFormatter.string(from: entry.timestamp)
+            prompt += "\n\n### \(time)"
+            if let title = entry.title, !title.isEmpty {
+                prompt += " - \(title)"
+            }
+            prompt += "\n\(entry.content)"
+        }
+
+        if !patterns.isEmpty {
+            prompt += "\n\n## Recent Logged Patterns (last 30 days)\n"
+            let patternCounts = Dictionary(grouping: patterns) { $0.patternType }
+                .mapValues { $0.count }
+                .sorted { $0.value > $1.value }
+
+            for (pattern, count) in patternCounts.prefix(10) {
+                prompt += "- \(pattern): \(count) times\n"
+            }
+        }
+
+        prompt += """
+
+        ## Analysis Request
+        Based on the day's entries above:
+        1. Identify the overall emotional arc or progression throughout the day
+        2. Note any patterns, triggers, or significant moments
+        3. Highlight connections between different entries
+        4. Provide 2-3 actionable insights or observations
+        5. Keep the response concise and supportive
 
         Focus on being helpful and constructive. Do not diagnose or provide medical advice.
         """

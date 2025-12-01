@@ -79,7 +79,8 @@ struct HomeView: View {
 
             VStack(alignment: .leading, spacing: Spacing.sm) {
                 Text("Tracking Streak")
-                    .font(.headline)
+                    .font(.title3)
+                    .fontWeight(.bold)
                     .foregroundStyle(CardText.title)
 
                 Text("Keep it up! You've been tracking for \(viewModel.currentStreak) days in a row.")
@@ -115,7 +116,8 @@ struct HomeView: View {
 
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Your Day So Far")
-                        .font(.headline)
+                        .font(.title3)
+                        .fontWeight(.bold)
                         .foregroundStyle(CardText.body)
 
                     Text("Tap to see a summary")
@@ -216,7 +218,7 @@ struct HomeView: View {
                     .foregroundStyle(.yellow)
                 Text("Recently")
                     .font(.title3)
-                    .fontWeight(.semibold)
+                    .fontWeight(.bold)
                     .foregroundStyle(CardText.title)
             }
 
@@ -251,7 +253,7 @@ struct HomeView: View {
                     .foregroundStyle(.mint)
                 Text(memory.timeframe)
                     .font(.title3)
-                    .fontWeight(.semibold)
+                    .fontWeight(.bold)
                     .foregroundStyle(CardText.title)
             }
 

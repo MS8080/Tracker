@@ -657,21 +657,8 @@ struct LiquidGlassCardModifier: ViewModifier {
                     .fill(theme.cardBackground)
             )
             .overlay(
-                // Inner highlight - top/left lighter edge
                 RoundedRectangle(cornerRadius: cornerRadius)
-                    .stroke(
-                        LinearGradient(
-                            colors: [
-                                Color.white.opacity(0.3),
-                                Color.white.opacity(0.1),
-                                Color.black.opacity(0.1),
-                                Color.black.opacity(0.2)
-                            ],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        ),
-                        lineWidth: 1
-                    )
+                    .stroke(Color.white.opacity(0.2), lineWidth: 1)
             )
             .shadow(color: theme.cardShadowColor, radius: 8, y: 4)
     }
@@ -689,21 +676,8 @@ struct CompactLiquidGlassCardModifier: ViewModifier {
                     .fill(theme.cardBackground)
             )
             .overlay(
-                // Inner highlight - top/left lighter edge
                 RoundedRectangle(cornerRadius: CornerRadius.md)
-                    .stroke(
-                        LinearGradient(
-                            colors: [
-                                Color.white.opacity(0.3),
-                                Color.white.opacity(0.1),
-                                Color.black.opacity(0.1),
-                                Color.black.opacity(0.2)
-                            ],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        ),
-                        lineWidth: 1
-                    )
+                    .stroke(Color.white.opacity(0.2), lineWidth: 1)
             )
             .shadow(color: theme.cardShadowColor, radius: 6, y: 3)
     }

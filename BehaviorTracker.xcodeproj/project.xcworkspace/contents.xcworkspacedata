@@ -4,16 +4,4 @@
    <FileRef
       location = "self:">
    </FileRef>
-   <FileRef
-      location = "group:LiquidGlassComponents.swift">
-   </FileRef>
-   <FileRef
-      location = "group:LiquidGlassShowcaseView.swift">
-   </FileRef>
-   <FileRef
-      location = "group:VISUAL_IMPROVEMENTS.md">
-   </FileRef>
-   <FileRef
-      location = "group:MIGRATION_GUIDE.md">
-   </FileRef>
 </Workspace>
