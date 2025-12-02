@@ -350,32 +350,34 @@ class HomeViewModel: ObservableObject {
         }
 
         let prompt = """
-        You are analyzing behavioral tracking data for someone with autism/ADHD. Your job is to find CONNECTIONS and PATTERNS - NOT to list what was logged.
+        You are analyzing behavioral tracking data for someone with autism/ADHD. Provide a MEANINGFUL, INSIGHTFUL narrative summary - NOT a list of what was logged.
 
         \(dataSummary)
 
         CRITICAL RULES:
         1. DO NOT say "You logged X" or "You noted X" - that's just repeating data
         2. DO NOT list individual entries - find what they MEAN together
-        3. DO find cause-effect relationships (e.g., sensory issues → energy drop)
-        4. DO notice timing patterns (morning vs afternoon trends)
-        5. DO identify the overall story of the day
-        6. Be neutral and observational, not cheerful or judgmental
+        3. DO find cause-effect relationships and correlations (e.g., "Sensory overload preceded the energy crash by 90 minutes - the brain may have been compensating")
+        4. DO notice temporal patterns and transitions (e.g., "The day started calm but degraded after lunch - likely related to accumulated cognitive load")
+        5. DO identify triggers, cycles, and environmental factors
+        6. DO provide actionable observations for future days
+        7. Be neutral, analytical, and specific - avoid vague platitudes
+        8. Each insight should be 100-200 characters for depth
 
         GOOD examples:
-        - "Sensory sensitivity peaked before the energy crash - possible connection"
-        - "Morning was calmer, afternoon brought more challenges"
-        - "Physical discomfort and focus issues appeared together today"
+        - "Sensory sensitivity spiked 60-90min before focus deteriorated. Your nervous system may benefit from sensory breaks before tasks."
+        - "Morning clarity was consistent until 2pm when multiple stressors converged. Consider protecting afternoon executive function time."
+        - "Lighting and sound sensitivities clustered together - possible shared underlying factor like arousal state or inflammation."
 
         BAD examples (NEVER do this):
         - "You logged bright lights at 10am" ❌
         - "Today you noted 3 sensory experiences" ❌
         - "You experienced task initiation difficulty" ❌
 
-        Generate 2-3 analytical insights. Return ONLY valid JSON array:
-        [{"icon": "SF Symbol", "colorName": "gray/blue/purple/orange/green/cyan", "title": "2-3 word title", "message": "Insight under 60 chars"}]
+        Generate 3-5 deep analytical insights that help understand patterns. Return ONLY valid JSON array:
+        [{"icon": "SF Symbol", "colorName": "gray/blue/purple/orange/green/cyan", "title": "Pattern title (3-5 words)", "message": "Detailed insight explaining the pattern, connection, or implication (100-200 chars)"}]
 
-        Icons: brain.head.profile, arrow.triangle.branch, clock.fill, bolt.fill, eye.fill, ear.fill, figure.walk, moon.fill, sun.max.fill, leaf.fill, link, arrow.up.arrow.down
+        Icons: brain.head.profile, arrow.triangle.branch, clock.fill, bolt.fill, eye.fill, ear.fill, figure.walk, moon.fill, sun.max.fill, leaf.fill, link, arrow.up.arrow.down, waveform.path.ecg, chart.line.uptrend.xyaxis, chart.xyaxis.line
         """
 
         do {

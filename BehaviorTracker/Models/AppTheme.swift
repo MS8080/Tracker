@@ -671,7 +671,7 @@ struct LiquidGlassCardModifier: ViewModifier {
                     lineWidth: 1.5
                 )
 
-            RoundedRectangle(cornerRadius: cornerRadius)
+            RoundedRectangle(cornerRadius: cornerRadius - 2) // Match inset from padding
                 .stroke(
                     LinearGradient(
                         colors: [.white.opacity(0.4), .clear],
@@ -719,7 +719,7 @@ struct CompactLiquidGlassCardModifier: ViewModifier {
                     lineWidth: 1
                 )
 
-            RoundedRectangle(cornerRadius: CornerRadius.md)
+            RoundedRectangle(cornerRadius: CornerRadius.md - 1.5) // Match inset from padding
                 .stroke(
                     LinearGradient(
                         colors: [.white.opacity(0.4), .clear],
@@ -780,7 +780,7 @@ struct FocusableLiquidGlassCardModifier: ViewModifier {
                     lineWidth: isFocused ? 2 : 1.5
                 )
 
-            RoundedRectangle(cornerRadius: cornerRadius)
+            RoundedRectangle(cornerRadius: cornerRadius - (isFocused ? 2.5 : 2)) // Match inset
                 .stroke(
                     LinearGradient(
                         colors: [.white.opacity(isFocused ? 0.5 : 0.4), .clear],

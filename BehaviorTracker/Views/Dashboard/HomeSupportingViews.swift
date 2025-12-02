@@ -153,16 +153,16 @@ struct DaySlideshowView: View {
                     Spacer()
                 } else if !viewModel.todaySlides.isEmpty {
                     ScrollView {
-                        VStack(spacing: Spacing.md) {
+                        VStack(spacing: Spacing.lg) {
                             ForEach(Array(viewModel.todaySlides.enumerated()), id: \.element.id) { index, slide in
-                                slideCard(slide, index: index)
+                                insightRow(slide, index: index)
                                     .transition(.asymmetric(
                                         insertion: .opacity.combined(with: .move(edge: .bottom)),
                                         removal: .opacity
                                     ))
                             }
                         }
-                        .padding(.horizontal)
+                        .padding(.horizontal, Spacing.xl)
                         .padding(.bottom, 40)
                     }
                 }
@@ -175,33 +175,46 @@ struct DaySlideshowView: View {
         }
     }
 
-    private func slideCard(_ slide: DaySummarySlide, index: Int) -> some View {
-        HStack(spacing: Spacing.md) {
-            Image(systemName: slide.icon)
-                .font(.title2)
-                .foregroundStyle(slide.color)
-                .frame(width: 44, height: 44)
-                .background(
-                    RoundedRectangle(cornerRadius: CornerRadius.sm)
-                        .fill(slide.color.opacity(0.15))
-                )
+    private func insightRow(_ slide: DaySummarySlide, index: Int) -> some View {
+        HStack(alignment: .top, spacing: Spacing.md) {
+            // Icon with number badge
+            ZStack(alignment: .topTrailing) {
+                Image(systemName: slide.icon)
+                    .font(.system(size: 24, weight: .medium))
+                    .foregroundStyle(slide.color)
+                    .frame(width: 44, height: 44)
+                    .background(
+                        Circle()
+                            .fill(slide.color.opacity(0.15))
+                    )
 
-            VStack(alignment: .leading, spacing: 4) {
-                Text(slide.title)
-                    .font(.subheadline)
-                    .fontWeight(.semibold)
-                    .foregroundStyle(CardText.body)
-
-                Text(slide.detail)
-                    .font(.subheadline)
-                    .foregroundStyle(CardText.secondary)
-                    .lineLimit(3)
+                // Number badge
+                Text("\(index + 1)")
+                    .font(.system(size: 10, weight: .bold))
+                    .foregroundStyle(.white)
+                    .frame(width: 16, height: 16)
+                    .background(
+                        Circle()
+                            .fill(slide.color)
+                    )
+                    .offset(x: 4, y: -4)
             }
 
-            Spacer()
+            VStack(alignment: .leading, spacing: Spacing.sm) {
+                Text(slide.title)
+                    .font(.headline)
+                    .fontWeight(.bold)
+                    .foregroundStyle(.white.opacity(0.95))
+
+                Text(slide.detail)
+                    .font(.callout)
+                    .foregroundStyle(.white.opacity(0.75))
+                    .lineSpacing(3)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .padding(Spacing.md)
-        .cardStyle(theme: theme, cornerRadius: CornerRadius.md)
+        .padding(Spacing.lg)
     }
 }
 
