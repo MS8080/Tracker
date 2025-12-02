@@ -234,7 +234,7 @@ enum AppTheme: String, CaseIterable, Identifiable {
 
     /// Card/tile background - transparent with subtle white tint
     var cardBackground: Color {
-        return Color.white.opacity(0.12)
+        return Color.white.opacity(0.08)
     }
 
     /// Subtle border color for card edges
@@ -247,107 +247,57 @@ enum AppTheme: String, CaseIterable, Identifiable {
         return Color.black.opacity(0.3)
     }
 
+    /// Mesh color configuration per theme
+    private var meshConfig: (lightnesses: [Double], satMultipliers: [Double], hueOffsets: [Double]) {
+        // Common saturation multiplier patterns
+        let standardSatMult = [0.80, 0.78, 0.76, 0.82, 0.80, 0.78, 0.72, 0.68, 0.60]
+        let standardHueOffsets = [-8.0, 0, 8, -5, 0, 5, -3, 0, 3]
+
+        switch self {
+        case .purple:
+            return (
+                [0.36, 0.34, 0.32, 0.28, 0.24, 0.22, 0.16, 0.13, 0.10],
+                [0.80, 0.82, 0.78, 0.85, 0.88, 0.85, 0.75, 0.70, 0.60],
+                [-5, 0, 5, 8, 12, 10, 15, 18, 20]  // Shift toward plum at bottom
+            )
+        case .burgundy:
+            return (
+                [0.34, 0.32, 0.30, 0.26, 0.22, 0.20, 0.14, 0.11, 0.09],
+                [0.78, 0.80, 0.76, 0.82, 0.85, 0.82, 0.70, 0.65, 0.55],
+                [5, 0, -5, -8, -12, -10, -15, -18, -20]  // Shift toward wine at bottom
+            )
+        case .amber:
+            return (
+                [0.38, 0.35, 0.32, 0.30, 0.27, 0.24, 0.22, 0.20, 0.18],
+                [0.85, 0.82, 0.80, 0.88, 0.85, 0.82, 0.80, 0.78, 0.75],
+                [-5, 0, 5, -3, 0, 3, -2, 0, 2]
+            )
+        case .green:
+            return (
+                [0.35, 0.33, 0.31, 0.28, 0.25, 0.22, 0.17, 0.14, 0.11],
+                standardSatMult,
+                standardHueOffsets
+            )
+        default:  // Blue/Grey
+            return (
+                [0.38, 0.35, 0.32, 0.30, 0.27, 0.24, 0.22, 0.20, 0.18],
+                [0.80, 0.78, 0.76, 0.82, 0.80, 0.78, 0.76, 0.74, 0.70],
+                [-5, 0, 5, -3, 0, 3, -2, 0, 2]
+            )
+        }
+    }
+
     /// Generate 9 mesh colors for gradient background - rich liquid depth
     var meshColors: [Color] {
         let baseHue = ThemeColorToken.baseHue(for: self)
         let baseSat = ThemeColorToken.baseSaturation(for: self)
-
-        // Theme-specific adjustments for deep liquid effect
-        let (lightnesses, saturations, hueOffsets): ([Double], [Double], [Double])
-
-        switch self {
-        case .purple:
-            // Purple: Shift toward burgundy/plum at bottom for depth
-            lightnesses = [
-                0.36, 0.34, 0.32,  // Top row - lighter purple
-                0.28, 0.24, 0.22,  // Middle row - transitioning
-                0.16, 0.13, 0.10   // Bottom row - deep plum/burgundy
-            ]
-            saturations = [
-                baseSat * 0.80, baseSat * 0.82, baseSat * 0.78,
-                baseSat * 0.85, baseSat * 0.88, baseSat * 0.85,
-                baseSat * 0.75, baseSat * 0.70, baseSat * 0.60
-            ]
-            hueOffsets = [
-                -5, 0, 5,          // Top row - subtle variation
-                8, 12, 10,         // Middle row - shift toward plum
-                15, 18, 20         // Bottom row - burgundy/plum territory
-            ]
-        case .burgundy:
-            // Burgundy: Deep wine tones, shift toward purple at top
-            lightnesses = [
-                0.34, 0.32, 0.30,  // Top row
-                0.26, 0.22, 0.20,  // Middle row
-                0.14, 0.11, 0.09   // Bottom row - very deep
-            ]
-            saturations = [
-                baseSat * 0.78, baseSat * 0.80, baseSat * 0.76,
-                baseSat * 0.82, baseSat * 0.85, baseSat * 0.82,
-                baseSat * 0.70, baseSat * 0.65, baseSat * 0.55
-            ]
-            hueOffsets = [
-                5, 0, -5,          // Top row - hint of purple
-                -8, -12, -10,      // Middle row - deeper burgundy
-                -15, -18, -20      // Bottom row - deep wine
-            ]
-        case .amber:
-            // Amber: Darker and more saturated
-            lightnesses = [
-                0.34, 0.32, 0.30,
-                0.28, 0.25, 0.22,
-                0.18, 0.15, 0.12
-            ]
-            saturations = [
-                baseSat * 0.82, baseSat * 0.80, baseSat * 0.78,
-                baseSat * 0.85, baseSat * 0.82, baseSat * 0.80,
-                baseSat * 0.72, baseSat * 0.68, baseSat * 0.60
-            ]
-            hueOffsets = [
-                -5, 0, 5,
-                -8, 0, 8,
-                -10, 0, 10
-            ]
-        case .green:
-            // Green: Rich forest tones
-            lightnesses = [
-                0.35, 0.33, 0.31,
-                0.28, 0.25, 0.22,
-                0.17, 0.14, 0.11
-            ]
-            saturations = [
-                baseSat * 0.80, baseSat * 0.78, baseSat * 0.76,
-                baseSat * 0.82, baseSat * 0.80, baseSat * 0.78,
-                baseSat * 0.72, baseSat * 0.68, baseSat * 0.60
-            ]
-            hueOffsets = [
-                -8, 0, 8,
-                -5, 0, 5,
-                -3, 0, 3
-            ]
-        default:
-            // Blue/Grey: Standard with depth
-            lightnesses = [
-                0.35, 0.33, 0.31,  // Top row
-                0.27, 0.24, 0.21,  // Middle row
-                0.16, 0.13, 0.10   // Bottom row - deep
-            ]
-            saturations = [
-                baseSat * 0.75, baseSat * 0.72, baseSat * 0.70,
-                baseSat * 0.78, baseSat * 0.75, baseSat * 0.72,
-                baseSat * 0.65, baseSat * 0.60, baseSat * 0.50
-            ]
-            hueOffsets = [
-                -8, 0, 8,
-                -5, 0, 5,
-                -3, 0, 3
-            ]
-        }
+        let config = meshConfig
 
         return (0..<9).map { index in
             HSLColor(
-                hue: (baseHue + hueOffsets[index] + 360).truncatingRemainder(dividingBy: 360),
-                saturation: saturations[index],
-                lightness: lightnesses[index]
+                hue: (baseHue + config.hueOffsets[index] + 360).truncatingRemainder(dividingBy: 360),
+                saturation: baseSat * config.satMultipliers[index],
+                lightness: config.lightnesses[index]
             ).toColor()
         }
     }
@@ -445,16 +395,29 @@ struct MeshGradientBackground: View {
                     endRadius: 350
                 )
 
-                // Layer 7: Subtle vignette for additional depth
+                // Layer 7: Edge vignette - darker edges for liquid crystal depth
                 RadialGradient(
                     colors: [
                         Color.clear,
-                        Color.black.opacity(0.2)
+                        Color.clear,
+                        Color.black.opacity(0.25),
+                        Color.black.opacity(0.5)
                     ],
                     center: .center,
-                    startRadius: 250,
-                    endRadius: 650
+                    startRadius: 150,
+                    endRadius: 550
                 )
+
+                // Layer 8: Corner shadows for bezel blend
+                Rectangle()
+                    .fill(
+                        EllipticalGradient(
+                            colors: [Color.clear, Color.black.opacity(0.35)],
+                            center: .center,
+                            startRadiusFraction: 0.4,
+                            endRadiusFraction: 0.85
+                        )
+                    )
             }
             .onAppear { isVisible = true }
             .onDisappear { isVisible = false }
@@ -580,16 +543,29 @@ private struct LiquidDepthFallback: View {
                 endRadius: 350
             )
 
-            // Layer 7: Vignette for depth
+            // Layer 7: Edge vignette - darker edges for liquid crystal depth
             RadialGradient(
                 colors: [
                     Color.clear,
-                    Color.black.opacity(0.2)
+                    Color.clear,
+                    Color.black.opacity(0.25),
+                    Color.black.opacity(0.5)
                 ],
                 center: .center,
-                startRadius: 250,
-                endRadius: 650
+                startRadius: 150,
+                endRadius: 550
             )
+
+            // Layer 8: Corner shadows for bezel blend
+            Rectangle()
+                .fill(
+                    EllipticalGradient(
+                        colors: [Color.clear, Color.black.opacity(0.35)],
+                        center: .center,
+                        startRadiusFraction: 0.4,
+                        endRadiusFraction: 0.85
+                    )
+                )
         }
         .onAppear {
             isVisible = true
@@ -658,8 +634,9 @@ struct LiquidGlassCardModifier: ViewModifier {
             )
             .overlay(
                 RoundedRectangle(cornerRadius: cornerRadius)
-                    .stroke(Color.white.opacity(0.2), lineWidth: 1)
+                    .stroke(Color.white.opacity(0.15), lineWidth: 0.5)
             )
+            .shadow(color: Color.black.opacity(0.15), radius: 20, y: 8)
             .shadow(color: theme.cardShadowColor, radius: 8, y: 4)
     }
 }
@@ -677,8 +654,9 @@ struct CompactLiquidGlassCardModifier: ViewModifier {
             )
             .overlay(
                 RoundedRectangle(cornerRadius: CornerRadius.md)
-                    .stroke(Color.white.opacity(0.2), lineWidth: 1)
+                    .stroke(Color.white.opacity(0.15), lineWidth: 0.5)
             )
+            .shadow(color: Color.black.opacity(0.12), radius: 16, y: 6)
             .shadow(color: theme.cardShadowColor, radius: 6, y: 3)
     }
 }
