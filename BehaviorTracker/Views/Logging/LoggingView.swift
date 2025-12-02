@@ -39,7 +39,7 @@ struct LoggingView: View {
                     .ignoresSafeArea()
 
                 ScrollView {
-                    VStack(spacing: Spacing.xl) {
+                    VStack(spacing: Spacing.md) {
                         searchBar
 
                         if !viewModel.favoritePatterns.isEmpty && searchText.isEmpty {
@@ -48,7 +48,7 @@ struct LoggingView: View {
                         allCategoriesView
                     }
                     .padding(.horizontal, Spacing.lg)
-                    .padding(.vertical, Spacing.xl)
+                    .padding(.vertical, Spacing.md)
                 }
                 .scrollContentBackground(.hidden)
             }
@@ -124,7 +124,7 @@ struct LoggingView: View {
     }
 
     private var allCategoriesView: some View {
-        VStack(alignment: .leading, spacing: Spacing.lg) {
+        VStack(alignment: .leading, spacing: Spacing.md) {
             if filteredCategories.isEmpty && !showGuided {
                 // No results
                 VStack(spacing: Spacing.md) {
@@ -138,13 +138,13 @@ struct LoggingView: View {
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, Spacing.xl)
             } else {
-                // 2-column grid layout with generous spacing
+                // 2-column grid layout - compact to fit all on screen
                 LazyVGrid(
                     columns: [
-                        GridItem(.flexible(), spacing: Spacing.lg),
-                        GridItem(.flexible(), spacing: Spacing.lg)
+                        GridItem(.flexible(), spacing: Spacing.md),
+                        GridItem(.flexible(), spacing: Spacing.md)
                     ],
-                    spacing: Spacing.lg
+                    spacing: Spacing.md
                 ) {
                     ForEach(filteredCategories, id: \.self) { category in
                         CategoryGridButton(category: category) {

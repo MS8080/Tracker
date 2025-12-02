@@ -195,27 +195,26 @@ struct CategoryGridButton: View {
                 action()
             }
         }) {
-            VStack(spacing: Spacing.md) {
+            VStack(spacing: Spacing.sm) {
                 // Icon - clean, simple, no background
                 Image(systemName: category.icon)
-                    .font(.system(size: 36, weight: .medium))
+                    .font(.system(size: 28, weight: .medium))
                     .foregroundStyle(category.color)
                     .symbolEffect(.bounce, value: isPressed)
-                    .frame(width: 64, height: 64)
+                    .frame(width: 48, height: 48)
 
-                // Category name - larger, more readable
+                // Category name - compact but readable
                 Text(category.rawValue)
-                    .font(.subheadline)
+                    .font(.caption)
                     .fontWeight(.semibold)
                     .foregroundStyle(CardText.title)
                     .lineLimit(2)
                     .multilineTextAlignment(.center)
-                    .minimumScaleFactor(0.85)
+                    .minimumScaleFactor(0.8)
             }
             .frame(maxWidth: .infinity)
-            .frame(minHeight: 140)
-            .padding(.vertical, Spacing.lg)
-            .cardStyle(theme: theme, cornerRadius: 24)
+            .frame(height: 100)
+            .cardStyle(theme: theme, cornerRadius: 20)
         }
         .buttonStyle(.plain)
         .scaleEffect(isPressed ? 0.96 : 1.0)
@@ -249,26 +248,25 @@ struct FeelingFinderGridButton: View {
                 action()
             }
         } label: {
-            VStack(spacing: Spacing.md) {
+            VStack(spacing: Spacing.sm) {
                 // Icon - clean, simple, no background
                 Image(systemName: "questionmark.circle.fill")
-                    .font(.system(size: 36, weight: .medium))
+                    .font(.system(size: 28, weight: .medium))
                     .foregroundStyle(.mint)
                     .symbolEffect(.bounce, value: isPressed)
-                    .frame(width: 64, height: 64)
+                    .frame(width: 48, height: 48)
 
-                // Label - larger, more readable
+                // Label - compact but readable
                 Text("Guided")
-                    .font(.subheadline)
+                    .font(.caption)
                     .fontWeight(.semibold)
                     .foregroundStyle(CardText.title)
                     .lineLimit(2)
                     .multilineTextAlignment(.center)
             }
             .frame(maxWidth: .infinity)
-            .frame(minHeight: 140)
-            .padding(.vertical, Spacing.lg)
-            .cardStyle(theme: theme, cornerRadius: 24)
+            .frame(height: 100)
+            .cardStyle(theme: theme, cornerRadius: 20)
         }
         .buttonStyle(.plain)
         .scaleEffect(isPressed ? 0.96 : 1.0)
