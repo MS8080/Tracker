@@ -91,12 +91,12 @@ private enum ThemeColorToken {
         )
     }
 
-    /// Gradient top color - lighter, more vibrant
+    /// Gradient top color - softer, less vibrant
     static func gradientTop(for theme: AppTheme) -> HSLColor {
         HSLColor(
             hue: baseHue(for: theme),
-            saturation: baseSaturation(for: theme) * 0.75,
-            lightness: 0.38
+            saturation: baseSaturation(for: theme) * 0.45, // Reduced from 0.75
+            lightness: 0.30 // Darker
         )
     }
 
@@ -106,41 +106,41 @@ private enum ThemeColorToken {
         let hueShift = theme == .burgundy ? -8.0 : (theme == .purple ? 5.0 : 0.0)
         return HSLColor(
             hue: (baseHue(for: theme) + hueShift + 360).truncatingRemainder(dividingBy: 360),
-            saturation: baseSaturation(for: theme) * 0.8,
-            lightness: 0.30
+            saturation: baseSaturation(for: theme) * 0.5, // Reduced from 0.8
+            lightness: 0.24 // Darker
         )
     }
 
-    /// Gradient middle color - rich mid-tone
+    /// Gradient middle color - softer mid-tone
     static func gradientMid(for theme: AppTheme) -> HSLColor {
         // Deeper saturation in the middle
         let hueShift = theme == .burgundy ? -12.0 : (theme == .purple ? 8.0 : 0.0)
         return HSLColor(
             hue: (baseHue(for: theme) + hueShift + 360).truncatingRemainder(dividingBy: 360),
-            saturation: baseSaturation(for: theme) * 0.85,
-            lightness: 0.22
+            saturation: baseSaturation(for: theme) * 0.55, // Reduced from 0.85
+            lightness: 0.18 // Darker
         )
     }
 
-    /// Gradient lower-mid color - transitioning to deep
+    /// Gradient lower-mid color - softer transition
     static func gradientLowerMid(for theme: AppTheme) -> HSLColor {
         // Shift toward burgundy/plum
         let hueShift = theme == .burgundy ? -15.0 : (theme == .purple ? 12.0 : 0.0)
         return HSLColor(
             hue: (baseHue(for: theme) + hueShift + 360).truncatingRemainder(dividingBy: 360),
-            saturation: baseSaturation(for: theme) * 0.75,
-            lightness: 0.16
+            saturation: baseSaturation(for: theme) * 0.45, // Reduced from 0.75
+            lightness: 0.14 // Darker
         )
     }
 
-    /// Gradient bottom color - deep burgundy/plum base
+    /// Gradient bottom color - deep but not harsh
     static func gradientBottom(for theme: AppTheme) -> HSLColor {
         // Deep, rich bottom - shift toward red/burgundy for depth
         let hueShift = theme == .burgundy ? -18.0 : (theme == .purple ? 15.0 : 0.0)
         return HSLColor(
             hue: (baseHue(for: theme) + hueShift + 360).truncatingRemainder(dividingBy: 360),
-            saturation: baseSaturation(for: theme) * 0.6,
-            lightness: 0.10
+            saturation: baseSaturation(for: theme) * 0.35, // Reduced from high saturation
+            lightness: 0.12 // Very dark
         )
     }
 }
@@ -651,28 +651,13 @@ struct LiquidGlassCardModifier: ViewModifier {
     @ViewBuilder
     private var cardStyle: some View {
         ZStack {
-            // Slightly more tint to pick up background color
+            // Subtle tinted background
             RoundedRectangle(cornerRadius: cornerRadius)
                 .fill(theme.cardGlassTint.opacity(0.12))
 
-            // Glass overlay - keeps cards readable
+            // Glass overlay
             RoundedRectangle(cornerRadius: cornerRadius)
                 .fill(theme.cardBackground)
-            
-            // Border matches gradient direction
-            RoundedRectangle(cornerRadius: cornerRadius)
-                .strokeBorder(
-                    LinearGradient(
-                        colors: [
-                            theme.primaryColor.opacity(0.5),
-                            theme.primaryColor.opacity(0.25),
-                            theme.primaryColor.opacity(0.15)
-                        ],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    ),
-                    lineWidth: 1.5
-                )
         }
     }
 }
@@ -696,20 +681,6 @@ struct CompactLiquidGlassCardModifier: ViewModifier {
 
             RoundedRectangle(cornerRadius: CornerRadius.md)
                 .fill(theme.cardBackground)
-            
-            RoundedRectangle(cornerRadius: CornerRadius.md)
-                .strokeBorder(
-                    LinearGradient(
-                        colors: [
-                            theme.primaryColor.opacity(0.5),
-                            theme.primaryColor.opacity(0.25),
-                            theme.primaryColor.opacity(0.15)
-                        ],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    ),
-                    lineWidth: 1
-                )
         }
     }
 }
@@ -736,31 +707,12 @@ struct FocusableLiquidGlassCardModifier: ViewModifier {
     @ViewBuilder
     private var cardStyle: some View {
         ZStack {
-            // More tint when focused to show "activation"
+            // More tint when focused
             RoundedRectangle(cornerRadius: cornerRadius)
                 .fill(theme.cardGlassTint.opacity(isFocused ? 0.18 : 0.12))
 
             RoundedRectangle(cornerRadius: cornerRadius)
                 .fill(theme.cardBackground)
-            
-            // Brighter, thicker border when focused
-            RoundedRectangle(cornerRadius: cornerRadius)
-                .strokeBorder(
-                    LinearGradient(
-                        colors: isFocused ? [
-                            theme.primaryColor.opacity(0.7),
-                            theme.primaryColor.opacity(0.45),
-                            theme.primaryColor.opacity(0.25)
-                        ] : [
-                            theme.primaryColor.opacity(0.5),
-                            theme.primaryColor.opacity(0.25),
-                            theme.primaryColor.opacity(0.15)
-                        ],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    ),
-                    lineWidth: isFocused ? 2 : 1.5
-                )
         }
     }
 }

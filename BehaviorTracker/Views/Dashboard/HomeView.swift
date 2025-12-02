@@ -5,6 +5,7 @@ struct HomeView: View {
     @Binding var showingProfile: Bool
     @State private var specialNote: String = ""
     @State private var showingSlideshow = false
+    @State private var showingSavedMessage = false
     @FocusState private var isNoteFieldFocused: Bool
 
     init(showingProfile: Binding<Bool> = .constant(false)) {
@@ -50,6 +51,16 @@ struct HomeView: View {
                 .refreshable {
                     HapticFeedback.light.trigger()
                     await viewModel.refresh()
+                }
+
+                // Success message overlay
+                if showingSavedMessage {
+                    VStack {
+                        savedMessageBanner
+                        Spacer()
+                    }
+                    .transition(.move(edge: .top).combined(with: .opacity))
+                    .zIndex(1)
                 }
             }
             .navigationBarTitleDisplayMode(.inline)
@@ -198,6 +209,68 @@ struct HomeView: View {
         specialNote = ""
         isNoteFieldFocused = false
         HapticFeedback.success.trigger()
+
+        // Show success message
+        withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
+            showingSavedMessage = true
+        }
+
+        // Hide after 3 seconds
+        Task {
+            try? await Task.sleep(nanoseconds: 3_000_000_000)
+            withAnimation(.easeOut(duration: 0.3)) {
+                showingSavedMessage = false
+            }
+        }
+    }
+
+    // MARK: - Saved Message Banner
+
+    private var savedMessageBanner: some View {
+        VStack(spacing: Spacing.sm) {
+            HStack(spacing: Spacing.md) {
+                Image(systemName: "sparkles")
+                    .font(.title2)
+                    .foregroundStyle(.yellow)
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Saved to Journal!")
+                        .font(.headline)
+                        .fontWeight(.bold)
+                        .foregroundStyle(.white)
+
+                    Text("More than one thing might make today special")
+                        .font(.caption)
+                        .foregroundStyle(.white.opacity(0.8))
+                }
+
+                Spacer()
+
+                Button {
+                    withAnimation(.easeOut(duration: 0.2)) {
+                        showingSavedMessage = false
+                    }
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.title3)
+                        .foregroundStyle(.white.opacity(0.5))
+                }
+            }
+            .padding(Spacing.lg)
+            .background(
+                RoundedRectangle(cornerRadius: CornerRadius.lg)
+                    .fill(
+                        LinearGradient(
+                            colors: [theme.primaryColor.opacity(0.8), theme.primaryColor.opacity(0.6)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .shadow(color: .black.opacity(0.3), radius: 12, x: 0, y: 4)
+            )
+        }
+        .padding(.horizontal, Spacing.lg)
+        .padding(.top, Spacing.md)
     }
 
     // MARK: - Recent Context
