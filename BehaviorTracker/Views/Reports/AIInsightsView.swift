@@ -6,7 +6,7 @@ import AppKit
 #endif
 
 struct AIInsightsView: View {
-    @StateObject private var viewModel = AIInsightsViewModel()
+    @StateObject private var viewModel = AIInsightsTabViewModel()
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
@@ -304,7 +304,7 @@ struct AIInsightsView: View {
 // MARK: - Settings View
 
 struct AISettingsView: View {
-    @ObservedObject var viewModel: AIInsightsViewModel
+    @ObservedObject var viewModel: AIInsightsTabViewModel
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
@@ -358,80 +358,6 @@ struct AISettingsView: View {
                 }
             }
         }
-    }
-}
-
-// MARK: - ViewModel
-
-@MainActor
-class AIInsightsViewModel: ObservableObject {
-    @Published var includePatterns = true
-    @Published var includeJournals = true
-    @Published var includeMedications = true
-    @Published var timeframeDays = 30
-
-    @Published var isAnalyzing = false
-    @Published var insights: AIInsights?
-    @Published var errorMessage: String?
-
-    @Published var apiKeyInput = ""
-    @Published var showingSettings = false
-    @Published var showCopiedFeedback = false
-
-    private let geminiService = GeminiService.shared
-    private let analysisService = AIAnalysisService.shared
-
-    var hasAcknowledgedPrivacy: Bool {
-        UserDefaults.standard.bool(forKey: "ai_privacy_acknowledged")
-    }
-
-    var isAPIKeyConfigured: Bool {
-        geminiService.isConfigured
-    }
-
-    init() {
-        apiKeyInput = geminiService.apiKey ?? ""
-    }
-
-    func acknowledgePrivacy() {
-        UserDefaults.standard.set(true, forKey: "ai_privacy_acknowledged")
-        objectWillChange.send()
-    }
-
-    func resetPrivacyAcknowledgment() {
-        UserDefaults.standard.set(false, forKey: "ai_privacy_acknowledged")
-        objectWillChange.send()
-    }
-
-    func saveAPIKey() {
-        geminiService.apiKey = apiKeyInput
-        objectWillChange.send()
-    }
-
-    func removeAPIKey() {
-        geminiService.apiKey = nil
-        apiKeyInput = ""
-        objectWillChange.send()
-    }
-
-    func analyze() async {
-        isAnalyzing = true
-        errorMessage = nil
-
-        let preferences = AIAnalysisService.AnalysisPreferences(
-            includePatterns: includePatterns,
-            includeJournals: includeJournals,
-            includeMedications: includeMedications,
-            timeframeDays: timeframeDays
-        )
-
-        do {
-            insights = try await analysisService.analyzeData(preferences: preferences)
-        } catch {
-            errorMessage = error.localizedDescription
-        }
-
-        isAnalyzing = false
     }
 }
 

@@ -399,30 +399,6 @@ struct CalendarView: View {
     }
 }
 
-// MARK: - Category Pill
-
-struct CategoryPill: View {
-    let category: PatternCategory
-    let count: Int
-
-    var body: some View {
-        HStack(spacing: 4) {
-            Image(systemName: category.icon)
-                .font(.caption2)
-            Text("\(count)")
-                .font(.caption)
-                .fontWeight(.medium)
-        }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 6)
-        .background(
-            Capsule()
-                .fill(category.color.opacity(0.2))
-        )
-        .foregroundStyle(category.color)
-    }
-}
-
 #Preview {
     CalendarView()
         .environment(\.managedObjectContext, DataController.shared.container.viewContext)

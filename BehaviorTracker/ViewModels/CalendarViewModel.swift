@@ -100,73 +100,26 @@ class CalendarViewModel: ObservableObject {
         loadCalendarEvents()
     }
 
-    /// Async version for background loading - use with .task modifier
+    /// Async version for loading - use with .task modifier
+    /// Yields to allow animations to start before data loads
     func loadMonthDataAsync() async {
         guard let monthInterval = calendar.dateInterval(of: .month, for: currentMonth) else { return }
 
         let startDate = calendar.date(byAdding: .day, value: -7, to: monthInterval.start) ?? monthInterval.start
         let endDate = calendar.date(byAdding: .day, value: 7, to: monthInterval.end) ?? monthInterval.end
 
-        // Load data concurrently in background
-        async let patterns = loadPatternEntriesAsync(from: startDate, to: endDate)
-        async let medications = loadMedicationLogsAsync(from: startDate, to: endDate)
-        async let journals = loadJournalEntriesAsync(from: startDate, to: endDate)
+        // Yield to allow animations to start
+        await Task.yield()
 
-        let (patternsResult, medicationsResult, journalsResult) = await (patterns, medications, journals)
+        // Load data on main actor (Core Data objects aren't Sendable)
+        loadPatternEntries(from: startDate, to: endDate)
+        await Task.yield()
 
-        // Update UI on main thread
-        entriesByDate = patternsResult
-        medicationLogsByDate = medicationsResult
-        journalEntriesByDate = journalsResult
+        loadMedicationLogs(from: startDate, to: endDate)
+        await Task.yield()
 
+        loadJournalEntries(from: startDate, to: endDate)
         loadCalendarEvents()
-    }
-
-    private func loadPatternEntriesAsync(from startDate: Date, to endDate: Date) async -> [Date: [PatternEntry]] {
-        await Task.detached(priority: .userInitiated) { [dataController, calendar] in
-            let entries = dataController.fetchPatternEntries(startDate: startDate, endDate: endDate)
-            var grouped: [Date: [PatternEntry]] = [:]
-            for entry in entries {
-                let day = calendar.startOfDay(for: entry.timestamp)
-                grouped[day, default: []].append(entry)
-            }
-            return grouped
-        }.value
-    }
-
-    private func loadMedicationLogsAsync(from startDate: Date, to endDate: Date) async -> [Date: [MedicationLog]] {
-        await Task.detached(priority: .userInitiated) { [dataController, calendar] in
-            let request = NSFetchRequest<MedicationLog>(entityName: "MedicationLog")
-            request.predicate = NSPredicate(format: "timestamp >= %@ AND timestamp < %@", startDate as NSDate, endDate as NSDate)
-            request.sortDescriptors = [NSSortDescriptor(keyPath: \MedicationLog.timestamp, ascending: true)]
-
-            do {
-                let logs = try dataController.container.viewContext.fetch(request)
-                var grouped: [Date: [MedicationLog]] = [:]
-                for log in logs {
-                    let day = calendar.startOfDay(for: log.timestamp)
-                    grouped[day, default: []].append(log)
-                }
-                return grouped
-            } catch {
-                print("Error fetching medication logs: \(error)")
-                return [:]
-            }
-        }.value
-    }
-
-    private func loadJournalEntriesAsync(from startDate: Date, to endDate: Date) async -> [Date: [JournalEntry]] {
-        await Task.detached(priority: .userInitiated) { [dataController, calendar] in
-            let entries = dataController.fetchJournalEntries()
-                .filter { $0.timestamp >= startDate && $0.timestamp < endDate }
-
-            var grouped: [Date: [JournalEntry]] = [:]
-            for entry in entries {
-                let day = calendar.startOfDay(for: entry.timestamp)
-                grouped[day, default: []].append(entry)
-            }
-            return grouped
-        }.value
     }
 
     // MARK: - Calendar Events

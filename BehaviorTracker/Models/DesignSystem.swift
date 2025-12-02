@@ -14,9 +14,9 @@ enum Spacing {
 // MARK: - Corner Radius Constants
 
 enum CornerRadius {
-    static let sm: CGFloat = 12
-    static let md: CGFloat = 16
-    static let lg: CGFloat = 20
+    static let sm: CGFloat = 16
+    static let md: CGFloat = 24
+    static let lg: CGFloat = 32
 }
 
 // MARK: - Touch Target Constants
@@ -30,9 +30,9 @@ enum TouchTarget {
 // MARK: - Card Text Colors
 
 enum CardText {
-    static let title: Color = .primary
-    static let body: Color = .primary.opacity(0.9)
-    static let secondary: Color = .secondary
+    static let title: Color = .primary.opacity(0.95)
+    static let body: Color = .primary.opacity(0.85)
+    static let secondary: Color = .primary.opacity(0.7)
     static let caption: Color = .secondary.opacity(0.8)
     static let muted: Color = .secondary.opacity(0.6)
 }
@@ -389,5 +389,52 @@ struct SimpleBarChart: View {
                 }
             }
         }
+    }
+}
+
+// MARK: - Flow Layout
+
+/// A layout that arranges views in a flowing, wrapping manner (like tags/chips)
+struct FlowLayout: Layout {
+    var spacing: CGFloat = 8
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        let result = arrangement(in: proposal.width ?? 0, subviews: subviews)
+        return CGSize(width: proposal.width ?? 0, height: result.height)
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        let result = arrangement(in: bounds.width, subviews: subviews)
+
+        for (index, subview) in subviews.enumerated() {
+            let point = CGPoint(
+                x: bounds.minX + result.positions[index].x,
+                y: bounds.minY + result.positions[index].y
+            )
+            subview.place(at: point, proposal: .unspecified)
+        }
+    }
+
+    private func arrangement(in maxWidth: CGFloat, subviews: Subviews) -> (positions: [CGPoint], height: CGFloat) {
+        var positions: [CGPoint] = []
+        var x: CGFloat = 0
+        var y: CGFloat = 0
+        var rowHeight: CGFloat = 0
+
+        for subview in subviews {
+            let size = subview.sizeThatFits(.unspecified)
+
+            if x + size.width > maxWidth && x > 0 {
+                x = 0
+                y += rowHeight + spacing
+                rowHeight = 0
+            }
+
+            positions.append(CGPoint(x: x, y: y))
+            rowHeight = max(rowHeight, size.height)
+            x += size.width + spacing
+        }
+
+        return (positions, y + rowHeight)
     }
 }

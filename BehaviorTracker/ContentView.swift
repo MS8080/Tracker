@@ -39,7 +39,7 @@ struct ContentView: View {
                 }
                 .tag(1)
 
-            JournalListView(showingProfile: $showingProfile)
+            DynamicJournalView(showingProfile: $showingProfile)
                 .themedBackground()
                 .tabItem {
                     Label(NSLocalizedString("tab.journal", comment: ""), systemImage: "book.fill")

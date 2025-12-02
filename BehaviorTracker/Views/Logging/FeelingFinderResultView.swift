@@ -20,114 +20,67 @@ struct ResultStep: View {
         AppTheme(rawValue: selectedThemeRaw) ?? .purple
     }
 
-    /// Get specific pattern types based on user's detail selections
+    /// Pattern mappings for detail selections
+    private static let detailToPatterns: [String: [PatternType]] = [
+        // Environment
+        "Bright or harsh lighting": [.sensoryOverload, .environmentalSensitivity],
+        "Noise level": [.sensoryOverload, .environmentalSensitivity],
+        "Smells": [.sensoryOverload, .environmentalSensitivity],
+        "Temperature uncomfortable": [.sensoryOverload, .environmentalSensitivity],
+        "Too many people around": [.sensoryOverload],
+        "Crowded or cluttered space": [.sensoryOverload],
+        "Been in same place too long": [.sensoryRecovery],
+        // Events
+        "Upcoming exam or test": [.externalDemand, .taskAvoidance],
+        "Job interview": [.externalDemand, .taskAvoidance],
+        "Deadline at work or school": [.externalDemand, .taskAvoidance],
+        "Public speaking or presentation": [.externalDemand, .taskAvoidance],
+        "Social invitation or gathering": [.socialInteraction],
+        "Family event or obligation": [.socialInteraction],
+        "Conflict or argument that happened": [.miscommunication, .socialRecovery],
+        "Something unexpected happened": [.unexpectedChange, .routineDisruption],
+        "Waiting for results or answer": [.emotionalOverwhelm],
+        // Health
+        "Heart racing or pounding": [.emotionalOverwhelm],
+        "Breathing feels off": [.emotionalOverwhelm],
+        "Muscle tension": [.physicalTension],
+        "Headache or pressure": [.physicalTension],
+        "Fatigue or heaviness": [.burnoutIndicator, .energyLevel],
+        "Restlessness": [.regulatoryStimming],
+        "Sensory sensitivity": [.sensoryOverload],
+        "Haven't eaten or slept well": [.sleepQuality, .appetiteChange],
+        // Social
+        "Recent difficult conversation": [.socialInteraction, .socialRecovery],
+        "Anticipating social interaction": [.socialInteraction],
+        "Feeling isolated or lonely": [.socialRecovery],
+        "Someone is upset with me": [.miscommunication],
+        "I'm upset with someone": [.miscommunication],
+        "Had to mask or pretend": [.maskingIntensity],
+        "Feeling misunderstood": [.communicationDifficulty],
+        "Rejection or criticism": [.emotionalOverwhelm],
+        // Demand
+        "Task I keep avoiding": [.taskAvoidance, .taskInitiation],
+        "Too many things to do": [.decisionFatigue, .burnoutIndicator],
+        "Someone expecting something from me": [.externalDemand],
+        "Decision I need to make": [.decisionFatigue],
+        "Pressure to be productive": [.internalDemand],
+        "Responsibility I don't want": [.taskAvoidance, .autonomyNeed],
+    ]
+
     private var relatedPatternTypes: [PatternType] {
+        let allDetails = viewModel.data.environmentDetails
+            .union(viewModel.data.eventDetails)
+            .union(viewModel.data.healthDetails)
+            .union(viewModel.data.socialDetails)
+            .union(viewModel.data.demandDetails)
+
         var patterns = Set<PatternType>()
-
-        // Map environment details to pattern types
-        for detail in viewModel.data.environmentDetails {
-            switch detail {
-            case "Bright or harsh lighting", "Noise level", "Smells", "Temperature uncomfortable":
-                patterns.insert(.sensoryOverload)
-                patterns.insert(.environmentalSensitivity)
-            case "Too many people around", "Crowded or cluttered space":
-                patterns.insert(.sensoryOverload)
-            case "Been in same place too long":
-                patterns.insert(.sensoryRecovery)
-            default: break
+        for detail in allDetails {
+            if let mapped = Self.detailToPatterns[detail] {
+                patterns.formUnion(mapped)
             }
         }
-
-        // Map event details to pattern types
-        for detail in viewModel.data.eventDetails {
-            switch detail {
-            case "Upcoming exam or test", "Job interview", "Deadline at work or school", "Public speaking or presentation":
-                patterns.insert(.externalDemand)
-                patterns.insert(.taskAvoidance)
-            case "Social invitation or gathering", "Family event or obligation":
-                patterns.insert(.socialInteraction)
-            case "Conflict or argument that happened":
-                patterns.insert(.miscommunication)
-                patterns.insert(.socialRecovery)
-            case "Something unexpected happened":
-                patterns.insert(.unexpectedChange)
-                patterns.insert(.routineDisruption)
-            case "Waiting for results or answer":
-                patterns.insert(.emotionalOverwhelm)
-            default:
-                patterns.insert(.routineDisruption)
-            }
-        }
-
-        // Map health details to pattern types
-        for detail in viewModel.data.healthDetails {
-            switch detail {
-            case "Heart racing or pounding", "Breathing feels off":
-                patterns.insert(.emotionalOverwhelm)
-            case "Muscle tension", "Headache or pressure":
-                patterns.insert(.physicalTension)
-            case "Fatigue or heaviness":
-                patterns.insert(.burnoutIndicator)
-                patterns.insert(.energyLevel)
-            case "Restlessness":
-                patterns.insert(.regulatoryStimming)
-            case "Sensory sensitivity":
-                patterns.insert(.sensoryOverload)
-            case "Haven't eaten or slept well":
-                patterns.insert(.sleepQuality)
-                patterns.insert(.appetiteChange)
-            default:
-                patterns.insert(.physicalTension)
-            }
-        }
-
-        // Map social details to pattern types
-        for detail in viewModel.data.socialDetails {
-            switch detail {
-            case "Recent difficult conversation":
-                patterns.insert(.socialInteraction)
-                patterns.insert(.socialRecovery)
-            case "Anticipating social interaction":
-                patterns.insert(.socialInteraction)
-            case "Feeling isolated or lonely":
-                patterns.insert(.socialRecovery)
-            case "Someone is upset with me", "I'm upset with someone":
-                patterns.insert(.miscommunication)
-            case "Had to mask or pretend":
-                patterns.insert(.maskingIntensity)
-            case "Feeling misunderstood":
-                patterns.insert(.communicationDifficulty)
-            case "Rejection or criticism":
-                patterns.insert(.emotionalOverwhelm)
-            default:
-                patterns.insert(.socialInteraction)
-            }
-        }
-
-        // Map demand details to pattern types
-        for detail in viewModel.data.demandDetails {
-            switch detail {
-            case "Task I keep avoiding":
-                patterns.insert(.taskAvoidance)
-                patterns.insert(.taskInitiation)
-            case "Too many things to do":
-                patterns.insert(.decisionFatigue)
-                patterns.insert(.burnoutIndicator)
-            case "Someone expecting something from me":
-                patterns.insert(.externalDemand)
-            case "Decision I need to make":
-                patterns.insert(.decisionFatigue)
-            case "Pressure to be productive":
-                patterns.insert(.internalDemand)
-            case "Responsibility I don't want":
-                patterns.insert(.taskAvoidance)
-                patterns.insert(.autonomyNeed)
-            default:
-                patterns.insert(.taskAvoidance)
-            }
-        }
-
-        return Array(patterns).sorted { $0.rawValue < $1.rawValue }
+        return patterns.sorted { $0.rawValue < $1.rawValue }
     }
 
     var body: some View {
@@ -265,7 +218,7 @@ struct ResultStep: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
 
-            CategoryFlowLayout(spacing: 6) {
+            FlowLayout(spacing: 6) {
                 ForEach(relatedPatternTypes.prefix(5), id: \.self) { pattern in
                     Text(pattern.rawValue)
                         .font(.caption2)
@@ -584,46 +537,3 @@ struct FeelingFinderFlyingTile: View {
     }
 }
 
-// MARK: - Category Flow Layout Helper
-
-struct CategoryFlowLayout: Layout {
-    var spacing: CGFloat = 8
-
-    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
-        let result = arrangement(proposal: proposal, subviews: subviews)
-        return result.size
-    }
-
-    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
-        let result = arrangement(proposal: proposal, subviews: subviews)
-        for (index, position) in result.positions.enumerated() {
-            subviews[index].place(at: CGPoint(x: bounds.minX + position.x, y: bounds.minY + position.y), proposal: .unspecified)
-        }
-    }
-
-    private func arrangement(proposal: ProposedViewSize, subviews: Subviews) -> (size: CGSize, positions: [CGPoint]) {
-        let maxWidth = proposal.width ?? .infinity
-        var positions: [CGPoint] = []
-        var currentX: CGFloat = 0
-        var currentY: CGFloat = 0
-        var lineHeight: CGFloat = 0
-        var maxX: CGFloat = 0
-
-        for subview in subviews {
-            let size = subview.sizeThatFits(.unspecified)
-
-            if currentX + size.width > maxWidth && currentX > 0 {
-                currentX = 0
-                currentY += lineHeight + spacing
-                lineHeight = 0
-            }
-
-            positions.append(CGPoint(x: currentX, y: currentY))
-            lineHeight = max(lineHeight, size.height)
-            currentX += size.width + spacing
-            maxX = max(maxX, currentX)
-        }
-
-        return (CGSize(width: maxX, height: currentY + lineHeight), positions)
-    }
-}

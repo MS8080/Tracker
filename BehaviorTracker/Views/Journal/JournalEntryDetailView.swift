@@ -63,15 +63,19 @@ struct JournalEntryDetailView: View {
                     ZStack(alignment: .topLeading) {
                         if content.isEmpty && !isContentFocused {
                             Text("Write your thoughts here...")
-                                .foregroundColor(.gray)
+                                .font(.callout)
+                                .foregroundStyle(.secondary.opacity(0.7))
                                 .padding(.top, 8)
                                 .padding(.leading, 4)
                         }
 
                         TextEditor(text: $content)
+                            .font(.callout)
+                            .lineSpacing(4)
                             .frame(minHeight: isContentFocused ? 300 : 200)
                             .focused($isContentFocused)
                             .onChange(of: content) { _, _ in hasChanges = true }
+                            .scrollContentBackground(.hidden)
                     }
 
                     // Related items

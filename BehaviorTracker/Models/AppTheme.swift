@@ -80,7 +80,11 @@ private enum ThemeColorToken {
 
     /// Timeline/accent color - brighter variant
     static func timeline(for theme: AppTheme) -> HSLColor {
-        HSLColor(
+        // Sky blue for blue theme
+        if theme == .blue {
+            return HSLColor(hue: 200, saturation: 0.85, lightness: 0.65)
+        }
+        return HSLColor(
             hue: baseHue(for: theme),
             saturation: min(1.0, baseSaturation(for: theme) + 0.15),
             lightness: 0.65
@@ -232,14 +236,25 @@ enum AppTheme: String, CaseIterable, Identifiable {
         primaryColor.opacity(0.40)
     }
 
-    /// Card/tile background - transparent with subtle white tint
+    /// Card/tile background - transparent for integrated look
     var cardBackground: Color {
-        return Color.white.opacity(0.08)
+        return Color.white.opacity(0.06)
     }
 
-    /// Subtle border color for card edges
+    /// Theme-tinted glass overlay for depth
+    var cardGlassTint: Color {
+        // Subtle tint matching the theme's primary color
+        return primaryColor.opacity(0.05)
+    }
+
+    /// Border color for card edges (theme-colored outer border)
     var cardBorderColor: Color {
-        return Color.white.opacity(0.15)
+        return primaryColor.opacity(0.35)
+    }
+
+    /// Glow color for top and partial side edges
+    var cardGlowColor: Color {
+        return Color.white.opacity(0.65)
     }
 
     /// Shadow color for cards
@@ -313,8 +328,8 @@ struct MeshGradientBackground: View {
         if #available(iOS 18.0, *) {
             // Layered liquid depth background
             ZStack {
-                // Base layer: Deep rich animated mesh gradient
-                TimelineView(.animation(minimumInterval: 1/20, paused: !isVisible)) { timeline in
+                // Base layer: Deep rich animated mesh gradient (OPTIMIZED: 10 FPS instead of 20)
+                TimelineView(.animation(minimumInterval: 1/10, paused: !isVisible)) { timeline in
                     let time = timeline.date.timeIntervalSinceReferenceDate
 
                     MeshGradient(
@@ -324,12 +339,13 @@ struct MeshGradientBackground: View {
                         colors: theme.meshColors
                     )
                 }
+                .drawingGroup() // GPU acceleration for mesh gradient
 
-                // Layer 2: Top-left lighter pool (creates depth illusion)
+                // Layer 2: Top-left lighter pool (creates depth illusion) - REDUCED
                 RadialGradient(
                     colors: [
-                        theme.liquidDepthColors[0].opacity(0.45),
-                        theme.liquidDepthColors[0].opacity(0.15),
+                        theme.liquidDepthColors[0].opacity(0.30),
+                        theme.liquidDepthColors[0].opacity(0.10),
                         Color.clear
                     ],
                     center: UnitPoint(x: 0.15, y: 0.1),
@@ -337,11 +353,11 @@ struct MeshGradientBackground: View {
                     endRadius: 380
                 )
 
-                // Layer 3: Mid-right pool with plum tones
+                // Layer 3: Mid-right pool with plum tones - REDUCED
                 RadialGradient(
                     colors: [
-                        theme.liquidDepthColors[1].opacity(0.4),
-                        theme.liquidDepthColors[1].opacity(0.12),
+                        theme.liquidDepthColors[1].opacity(0.25),
+                        theme.liquidDepthColors[1].opacity(0.08),
                         Color.clear
                     ],
                     center: UnitPoint(x: 0.85, y: 0.35),
@@ -349,11 +365,11 @@ struct MeshGradientBackground: View {
                     endRadius: 320
                 )
 
-                // Layer 4: Center-left mid-depth pool
+                // Layer 4: Center-left mid-depth pool - REDUCED
                 RadialGradient(
                     colors: [
-                        theme.liquidDepthColors[1].opacity(0.3),
-                        theme.liquidDepthColors[2].opacity(0.15),
+                        theme.liquidDepthColors[1].opacity(0.20),
+                        theme.liquidDepthColors[2].opacity(0.10),
                         Color.clear
                     ],
                     center: UnitPoint(x: 0.25, y: 0.55),
@@ -361,12 +377,12 @@ struct MeshGradientBackground: View {
                     endRadius: 280
                 )
 
-                // Layer 5: Deep bottom pool (burgundy/plum depth)
+                // Layer 5: Deep bottom pool (burgundy/plum depth) - REDUCED
                 RadialGradient(
                     colors: [
-                        theme.liquidDepthColors[2].opacity(0.6),
-                        theme.liquidDepthColors[3].opacity(0.4),
-                        theme.liquidDepthColors[3].opacity(0.15),
+                        theme.liquidDepthColors[2].opacity(0.40),
+                        theme.liquidDepthColors[3].opacity(0.25),
+                        theme.liquidDepthColors[3].opacity(0.10),
                         Color.clear
                     ],
                     center: UnitPoint(x: 0.5, y: 1.15),
@@ -374,10 +390,10 @@ struct MeshGradientBackground: View {
                     endRadius: 550
                 )
 
-                // Layer 6: Bottom corners - extra depth
+                // Layer 6: Bottom corners - extra depth - REDUCED
                 RadialGradient(
                     colors: [
-                        theme.liquidDepthColors[3].opacity(0.5),
+                        theme.liquidDepthColors[3].opacity(0.30),
                         Color.clear
                     ],
                     center: UnitPoint(x: 0.0, y: 1.0),
@@ -387,7 +403,7 @@ struct MeshGradientBackground: View {
 
                 RadialGradient(
                     colors: [
-                        theme.liquidDepthColors[3].opacity(0.5),
+                        theme.liquidDepthColors[3].opacity(0.30),
                         Color.clear
                     ],
                     center: UnitPoint(x: 1.0, y: 1.0),
@@ -395,24 +411,24 @@ struct MeshGradientBackground: View {
                     endRadius: 350
                 )
 
-                // Layer 7: Edge vignette - darker edges for liquid crystal depth
+                // Layer 7: Edge vignette - SOFTENED for less visual noise
                 RadialGradient(
                     colors: [
                         Color.clear,
                         Color.clear,
-                        Color.black.opacity(0.25),
-                        Color.black.opacity(0.5)
+                        Color.black.opacity(0.15),
+                        Color.black.opacity(0.35)
                     ],
                     center: .center,
                     startRadius: 150,
                     endRadius: 550
                 )
 
-                // Layer 8: Corner shadows for bezel blend
+                // Layer 8: Corner shadows for bezel blend - LIGHTENED
                 Rectangle()
                     .fill(
                         EllipticalGradient(
-                            colors: [Color.clear, Color.black.opacity(0.35)],
+                            colors: [Color.clear, Color.black.opacity(0.20)],
                             center: .center,
                             startRadiusFraction: 0.4,
                             endRadiusFraction: 0.85
@@ -461,11 +477,11 @@ private struct LiquidDepthFallback: View {
             // Base layer: Rich multi-tone gradient background
             theme.gradient
 
-            // Layer 2: Top-left lighter pool
+            // Layer 2: Top-left lighter pool - REDUCED
             RadialGradient(
                 colors: [
-                    theme.liquidDepthColors[0].opacity(0.5),
-                    theme.liquidDepthColors[0].opacity(0.2),
+                    theme.liquidDepthColors[0].opacity(0.30),
+                    theme.liquidDepthColors[0].opacity(0.12),
                     .clear
                 ],
                 center: UnitPoint(
@@ -476,11 +492,11 @@ private struct LiquidDepthFallback: View {
                 endRadius: 380
             )
 
-            // Layer 3: Mid-right plum pool
+            // Layer 3: Mid-right plum pool - REDUCED
             RadialGradient(
                 colors: [
-                    theme.liquidDepthColors[1].opacity(0.4),
-                    theme.liquidDepthColors[1].opacity(0.12),
+                    theme.liquidDepthColors[1].opacity(0.25),
+                    theme.liquidDepthColors[1].opacity(0.08),
                     .clear
                 ],
                 center: UnitPoint(
@@ -491,11 +507,11 @@ private struct LiquidDepthFallback: View {
                 endRadius: 320
             )
 
-            // Layer 4: Center-left depth
+            // Layer 4: Center-left depth - REDUCED
             RadialGradient(
                 colors: [
-                    theme.liquidDepthColors[1].opacity(0.3),
-                    theme.liquidDepthColors[2].opacity(0.15),
+                    theme.liquidDepthColors[1].opacity(0.20),
+                    theme.liquidDepthColors[2].opacity(0.10),
                     .clear
                 ],
                 center: UnitPoint(
@@ -506,12 +522,12 @@ private struct LiquidDepthFallback: View {
                 endRadius: 280
             )
 
-            // Layer 5: Deep bottom pool (burgundy/plum)
+            // Layer 5: Deep bottom pool (burgundy/plum) - REDUCED
             RadialGradient(
                 colors: [
-                    theme.liquidDepthColors[2].opacity(0.6),
-                    theme.liquidDepthColors[3].opacity(0.35),
-                    theme.liquidDepthColors[3].opacity(0.1),
+                    theme.liquidDepthColors[2].opacity(0.40),
+                    theme.liquidDepthColors[3].opacity(0.22),
+                    theme.liquidDepthColors[3].opacity(0.08),
                     .clear
                 ],
                 center: UnitPoint(
@@ -522,10 +538,10 @@ private struct LiquidDepthFallback: View {
                 endRadius: 550
             )
 
-            // Layer 6: Bottom corners depth
+            // Layer 6: Bottom corners depth - REDUCED
             RadialGradient(
                 colors: [
-                    theme.liquidDepthColors[3].opacity(0.45),
+                    theme.liquidDepthColors[3].opacity(0.28),
                     .clear
                 ],
                 center: UnitPoint(x: 0.0, y: 1.0),
@@ -535,7 +551,7 @@ private struct LiquidDepthFallback: View {
 
             RadialGradient(
                 colors: [
-                    theme.liquidDepthColors[3].opacity(0.45),
+                    theme.liquidDepthColors[3].opacity(0.28),
                     .clear
                 ],
                 center: UnitPoint(x: 1.0, y: 1.0),
@@ -543,24 +559,24 @@ private struct LiquidDepthFallback: View {
                 endRadius: 350
             )
 
-            // Layer 7: Edge vignette - darker edges for liquid crystal depth
+            // Layer 7: Edge vignette - SOFTENED
             RadialGradient(
                 colors: [
                     Color.clear,
                     Color.clear,
-                    Color.black.opacity(0.25),
-                    Color.black.opacity(0.5)
+                    Color.black.opacity(0.15),
+                    Color.black.opacity(0.35)
                 ],
                 center: .center,
                 startRadius: 150,
                 endRadius: 550
             )
 
-            // Layer 8: Corner shadows for bezel blend
+            // Layer 8: Corner shadows for bezel blend - LIGHTENED
             Rectangle()
                 .fill(
                     EllipticalGradient(
-                        colors: [Color.clear, Color.black.opacity(0.35)],
+                        colors: [Color.clear, Color.black.opacity(0.20)],
                         center: .center,
                         startRadiusFraction: 0.4,
                         endRadiusFraction: 0.85
@@ -628,16 +644,44 @@ struct LiquidGlassCardModifier: ViewModifier {
 
     func body(content: Content) -> some View {
         content
-            .background(
-                RoundedRectangle(cornerRadius: cornerRadius)
-                    .fill(theme.cardBackground)
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: cornerRadius)
-                    .stroke(Color.white.opacity(0.15), lineWidth: 0.5)
-            )
-            .shadow(color: Color.black.opacity(0.15), radius: 20, y: 8)
-            .shadow(color: theme.cardShadowColor, radius: 8, y: 4)
+            .background(cardStyle)
+            .shadow(color: theme.primaryColor.opacity(0.2), radius: 15, x: 0, y: 4)
+    }
+    
+    @ViewBuilder
+    private var cardStyle: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: cornerRadius)
+                .fill(theme.cardGlassTint.opacity(0.08))
+
+            RoundedRectangle(cornerRadius: cornerRadius)
+                .fill(theme.cardBackground)
+            
+            RoundedRectangle(cornerRadius: cornerRadius)
+                .strokeBorder(
+                    LinearGradient(
+                        colors: [
+                            theme.primaryColor.opacity(0.6),
+                            theme.primaryColor.opacity(0.3),
+                            theme.primaryColor.opacity(0.2)
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ),
+                    lineWidth: 1.5
+                )
+
+            RoundedRectangle(cornerRadius: cornerRadius)
+                .stroke(
+                    LinearGradient(
+                        colors: [.white.opacity(0.4), .clear],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    ),
+                    lineWidth: 1
+                )
+                .padding(2)
+        }
     }
 }
 
@@ -648,16 +692,105 @@ struct CompactLiquidGlassCardModifier: ViewModifier {
 
     func body(content: Content) -> some View {
         content
-            .background(
-                RoundedRectangle(cornerRadius: CornerRadius.md)
-                    .fill(theme.cardBackground)
+            .background(cardStyle)
+            .shadow(color: theme.primaryColor.opacity(0.15), radius: 12, x: 0, y: 4)
+    }
+    
+    @ViewBuilder
+    private var cardStyle: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: CornerRadius.md)
+                .fill(theme.cardGlassTint.opacity(0.08))
+
+            RoundedRectangle(cornerRadius: CornerRadius.md)
+                .fill(theme.cardBackground)
+            
+            RoundedRectangle(cornerRadius: CornerRadius.md)
+                .strokeBorder(
+                    LinearGradient(
+                        colors: [
+                            theme.primaryColor.opacity(0.5),
+                            theme.primaryColor.opacity(0.25),
+                            theme.primaryColor.opacity(0.15)
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ),
+                    lineWidth: 1
+                )
+
+            RoundedRectangle(cornerRadius: CornerRadius.md)
+                .stroke(
+                    LinearGradient(
+                        colors: [.white.opacity(0.4), .clear],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    ),
+                    lineWidth: 1
+                )
+                .padding(1.5)
+        }
+    }
+}
+
+// MARK: - Focusable Liquid Glass Card Modifier
+
+struct FocusableLiquidGlassCardModifier: ViewModifier {
+    let theme: AppTheme
+    let cornerRadius: CGFloat
+    let isFocused: Bool
+
+    func body(content: Content) -> some View {
+        content
+            .background(cardStyle)
+            .shadow(
+                color: isFocused ? theme.primaryColor.opacity(0.35) : theme.primaryColor.opacity(0.15),
+                radius: isFocused ? 20 : 12,
+                x: 0,
+                y: isFocused ? 6 : 4
             )
-            .overlay(
-                RoundedRectangle(cornerRadius: CornerRadius.md)
-                    .stroke(Color.white.opacity(0.15), lineWidth: 0.5)
-            )
-            .shadow(color: Color.black.opacity(0.12), radius: 16, y: 6)
-            .shadow(color: theme.cardShadowColor, radius: 6, y: 3)
+            .scaleEffect(isFocused ? 1.0 : 0.98)
+    }
+    
+    @ViewBuilder
+    private var cardStyle: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: cornerRadius)
+                .fill(theme.cardGlassTint.opacity(isFocused ? 0.15 : 0.08))
+
+            RoundedRectangle(cornerRadius: cornerRadius)
+                .fill(theme.cardBackground)
+            
+            RoundedRectangle(cornerRadius: cornerRadius)
+                .strokeBorder(
+                    LinearGradient(
+                        colors: isFocused ? [
+                            theme.primaryColor.opacity(0.8),
+                            theme.primaryColor.opacity(0.5),
+                            theme.primaryColor.opacity(0.3),
+                            theme.primaryColor.opacity(0.2)
+                        ] : [
+                            theme.primaryColor.opacity(0.6),
+                            theme.primaryColor.opacity(0.3),
+                            theme.primaryColor.opacity(0.2)
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ),
+                    lineWidth: isFocused ? 2 : 1.5
+                )
+
+            RoundedRectangle(cornerRadius: cornerRadius)
+                .stroke(
+                    LinearGradient(
+                        colors: [.white.opacity(isFocused ? 0.5 : 0.4), .clear],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    ),
+                    lineWidth: 1
+                )
+                .padding(isFocused ? 2.5 : 2)
+        }
     }
 }
 
@@ -680,5 +813,10 @@ extension View {
     /// Compact card style - simplified liquid glass for list items
     func compactCardStyle(theme: AppTheme) -> some View {
         modifier(CompactLiquidGlassCardModifier(theme: theme))
+    }
+    
+    /// Focusable card style - dynamic appearance based on focus state
+    func focusableCardStyle(theme: AppTheme, cornerRadius: CGFloat = CornerRadius.lg, isFocused: Bool = false) -> some View {
+        modifier(FocusableLiquidGlassCardModifier(theme: theme, cornerRadius: cornerRadius, isFocused: isFocused))
     }
 }

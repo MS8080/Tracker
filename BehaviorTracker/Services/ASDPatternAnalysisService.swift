@@ -83,6 +83,45 @@ class ASDPatternAnalysisService: ObservableObject {
 
     private init() {}
 
+    // MARK: - Helper Methods
+
+    /// Filter patterns by category for a given date
+    private func patternsForCategory(_ patterns: [PatternEntry], category: PatternCategory, on date: Date? = nil) -> [PatternEntry] {
+        let calendar = Calendar.current
+        return patterns.filter {
+            let categoryMatch = PatternType(rawValue: $0.patternType)?.category == category
+            if let date = date {
+                return categoryMatch && calendar.isDate($0.timestamp, inSameDayAs: date)
+            }
+            return categoryMatch
+        }
+    }
+
+    /// Filter patterns by type
+    private func patternsOfType(_ patterns: [PatternEntry], type: PatternType, on date: Date? = nil) -> [PatternEntry] {
+        let calendar = Calendar.current
+        return patterns.filter {
+            let typeMatch = $0.patternType == type.rawValue
+            if let date = date {
+                return typeMatch && calendar.isDate($0.timestamp, inSameDayAs: date)
+            }
+            return typeMatch
+        }
+    }
+
+    /// Calculate average intensity for patterns
+    private func averageIntensity(_ patterns: [PatternEntry]) -> Double {
+        guard !patterns.isEmpty else { return 0 }
+        return Double(patterns.reduce(0) { $0 + Int($1.intensity) }) / Double(patterns.count)
+    }
+
+    /// Get today's patterns from a collection
+    private func todayPatterns(from patterns: [PatternEntry]) -> [PatternEntry] {
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        return patterns.filter { calendar.isDate($0.timestamp, inSameDayAs: today) }
+    }
+
     // MARK: - Main Analysis
 
     func analyzePatterns(days: Int = 14) async {
@@ -129,22 +168,15 @@ class ASDPatternAnalysisService: ObservableObject {
         let calendar = Calendar.current
         let today = calendar.startOfDay(for: Date())
 
-        // Get today's patterns
-        let todayPatterns = patterns.filter {
-            calendar.isDate($0.timestamp, inSameDayAs: today)
-        }
+        let todaysPatterns = todayPatterns(from: patterns)
 
         // Calculate cumulative stress factors
         var riskScore: Double = 0
         var riskFactors: [String] = []
 
         // Check for high-intensity sensory patterns today
-        let sensoryPatterns = todayPatterns.filter {
-            let type = PatternType(rawValue: $0.patternType)
-            return type?.category == .sensory
-        }
-        let avgSensoryIntensity = sensoryPatterns.isEmpty ? 0 :
-            Double(sensoryPatterns.reduce(0) { $0 + Int($1.intensity) }) / Double(sensoryPatterns.count)
+        let sensoryPatterns = patternsForCategory(todaysPatterns, category: .sensory)
+        let avgSensoryIntensity = averageIntensity(sensoryPatterns)
 
         if avgSensoryIntensity >= 4 {
             riskScore += 25
@@ -154,9 +186,8 @@ class ASDPatternAnalysisService: ObservableObject {
         }
 
         // Check for masking
-        let maskingPatterns = todayPatterns.filter { $0.patternType == PatternType.maskingIntensity.rawValue }
-        let avgMaskingIntensity = maskingPatterns.isEmpty ? 0 :
-            Double(maskingPatterns.reduce(0) { $0 + Int($1.intensity) }) / Double(maskingPatterns.count)
+        let maskingPatterns = patternsOfType(todaysPatterns, type: .maskingIntensity)
+        let avgMaskingIntensity = averageIntensity(maskingPatterns)
 
         if avgMaskingIntensity >= 4 {
             riskScore += 20
@@ -166,29 +197,21 @@ class ASDPatternAnalysisService: ObservableObject {
         }
 
         // Check for emotional overwhelm
-        let overwhelmPatterns = todayPatterns.filter { $0.patternType == PatternType.emotionalOverwhelm.rawValue }
+        let overwhelmPatterns = patternsOfType(todaysPatterns, type: .emotionalOverwhelm)
         if !overwhelmPatterns.isEmpty {
-            let avgIntensity = Double(overwhelmPatterns.reduce(0) { $0 + Int($1.intensity) }) / Double(overwhelmPatterns.count)
-            riskScore += avgIntensity * 6
+            riskScore += averageIntensity(overwhelmPatterns) * 6
             riskFactors.append("Emotional overwhelm")
         }
 
         // Check for routine disruption
-        let routinePatterns = todayPatterns.filter {
-            let type = PatternType(rawValue: $0.patternType)
-            return type?.category == .routineChange
-        }
+        let routinePatterns = patternsForCategory(todaysPatterns, category: .routineChange)
         if !routinePatterns.isEmpty {
-            let avgIntensity = Double(routinePatterns.reduce(0) { $0 + Int($1.intensity) }) / Double(routinePatterns.count)
-            riskScore += avgIntensity * 4
+            riskScore += averageIntensity(routinePatterns) * 4
             riskFactors.append("Routine disruption")
         }
 
         // Check for demand overload
-        let demandPatterns = todayPatterns.filter {
-            let type = PatternType(rawValue: $0.patternType)
-            return type?.category == .demandAvoidance
-        }
+        let demandPatterns = patternsForCategory(todaysPatterns, category: .demandAvoidance)
         if demandPatterns.count >= 2 {
             riskScore += 15
             riskFactors.append("Multiple demands")
@@ -197,7 +220,7 @@ class ASDPatternAnalysisService: ObservableObject {
         // Check sleep from yesterday/today
         let yesterdayStart = calendar.date(byAdding: .day, value: -1, to: today)!
         let recentPatterns = patterns.filter { $0.timestamp >= yesterdayStart }
-        let sleepPatterns = recentPatterns.filter { $0.patternType == PatternType.sleepQuality.rawValue }
+        let sleepPatterns = patternsOfType(recentPatterns, type: .sleepQuality)
         if let lastSleep = sleepPatterns.first, lastSleep.intensity <= 2 {
             riskScore += 15
             riskFactors.append("Poor sleep")
@@ -214,7 +237,7 @@ class ASDPatternAnalysisService: ObservableObject {
                 color: .red,
                 actionSuggestion: "Take a sensory break, reduce demands, and allow recovery time",
                 relatedPatterns: riskFactors,
-                dataPoints: todayPatterns.count
+                dataPoints: todaysPatterns.count
             ))
         } else if riskScore >= 40 {
             insights.append(ASDInsight(
@@ -226,7 +249,7 @@ class ASDPatternAnalysisService: ObservableObject {
                 color: .orange,
                 actionSuggestion: "Consider a short break or reducing upcoming demands",
                 relatedPatterns: riskFactors,
-                dataPoints: todayPatterns.count
+                dataPoints: todaysPatterns.count
             ))
         } else if riskScore >= 25 {
             insights.append(ASDInsight(
@@ -238,7 +261,7 @@ class ASDPatternAnalysisService: ObservableObject {
                 color: .yellow,
                 actionSuggestion: "Monitor and take breaks as needed",
                 relatedPatterns: riskFactors,
-                dataPoints: todayPatterns.count
+                dataPoints: todaysPatterns.count
             ))
         }
 
@@ -249,21 +272,11 @@ class ASDPatternAnalysisService: ObservableObject {
 
     private func analyzeSensoryLoad(patterns: [PatternEntry]) -> [ASDInsight] {
         var insights: [ASDInsight] = []
-        let calendar = Calendar.current
-        let today = calendar.startOfDay(for: Date())
 
-        // Get sensory patterns for today
-        let todaySensory = patterns.filter {
-            calendar.isDate($0.timestamp, inSameDayAs: today) &&
-            PatternType(rawValue: $0.patternType)?.category == .sensory
-        }
-
+        let todaySensory = patternsForCategory(todayPatterns(from: patterns), category: .sensory)
         guard !todaySensory.isEmpty else { return insights }
 
-        let totalLoad = todaySensory.reduce(0) { $0 + Int($1.intensity) }
-        let avgIntensity = Double(totalLoad) / Double(todaySensory.count)
-
-        // Check for sensory recovery logged
+        let avgIntensity = averageIntensity(todaySensory)
         let recoveryLogged = todaySensory.contains { $0.patternType == PatternType.sensoryRecovery.rawValue }
 
         if avgIntensity >= 4 && !recoveryLogged {
@@ -310,18 +323,15 @@ class ASDPatternAnalysisService: ObservableObject {
 
         guard !recentMasking.isEmpty else { return insights }
 
-        let avgMasking = Double(recentMasking.reduce(0) { $0 + Int($1.intensity) }) / Double(recentMasking.count)
+        let avgMasking = averageIntensity(recentMasking)
 
         // Check for consecutive high masking days
         var consecutiveHighDays = 0
         for dayOffset in 0..<3 {
             let day = calendar.date(byAdding: .day, value: -dayOffset, to: Date())!
             let dayMasking = recentMasking.filter { calendar.isDate($0.timestamp, inSameDayAs: day) }
-            if !dayMasking.isEmpty {
-                let dayAvg = Double(dayMasking.reduce(0) { $0 + Int($1.intensity) }) / Double(dayMasking.count)
-                if dayAvg >= 3 {
-                    consecutiveHighDays += 1
-                }
+            if averageIntensity(dayMasking) >= 3 {
+                consecutiveHighDays += 1
             }
         }
 
@@ -358,18 +368,12 @@ class ASDPatternAnalysisService: ObservableObject {
 
     private func analyzeSocialBattery(patterns: [PatternEntry]) -> [ASDInsight] {
         var insights: [ASDInsight] = []
-        let calendar = Calendar.current
-        let today = calendar.startOfDay(for: Date())
 
-        // Get social patterns for today
-        let todaySocial = patterns.filter {
-            calendar.isDate($0.timestamp, inSameDayAs: today) &&
-            PatternType(rawValue: $0.patternType)?.category == .social
-        }
+        let todaySocial = patternsForCategory(todayPatterns(from: patterns), category: .social)
 
         // Calculate social drain vs recovery
-        let interactions = todaySocial.filter { $0.patternType == PatternType.socialInteraction.rawValue }
-        let recoveries = todaySocial.filter { $0.patternType == PatternType.socialRecovery.rawValue }
+        let interactions = patternsOfType(todaySocial, type: .socialInteraction)
+        let recoveries = patternsOfType(todaySocial, type: .socialRecovery)
 
         let drainTotal = interactions.reduce(0) { $0 + Int($1.intensity) }
         let recoveryTotal = recoveries.reduce(0) { $0 + Int($1.intensity) }
@@ -412,14 +416,10 @@ class ASDPatternAnalysisService: ObservableObject {
         let calendar = Calendar.current
         let today = calendar.startOfDay(for: Date())
 
-        // Check for routine disruption patterns today
-        let todayRoutine = patterns.filter {
-            calendar.isDate($0.timestamp, inSameDayAs: today) &&
-            PatternType(rawValue: $0.patternType)?.category == .routineChange
-        }
+        let todayRoutine = patternsForCategory(todayPatterns(from: patterns), category: .routineChange)
 
         if !todayRoutine.isEmpty {
-            let avgIntensity = Double(todayRoutine.reduce(0) { $0 + Int($1.intensity) }) / Double(todayRoutine.count)
+            let avgIntensity = averageIntensity(todayRoutine)
 
             if avgIntensity >= 4 || todayRoutine.count >= 2 {
                 insights.append(ASDInsight(
@@ -455,8 +455,8 @@ class ASDPatternAnalysisService: ObservableObject {
         }
 
         // Compare with today - analyze missing patterns
-        let todayPatterns = patterns.filter { calendar.isDate($0.timestamp, inSameDayAs: today) }
-        let todayTypes = Set(todayPatterns.map { $0.patternType })
+        let todaysPatterns = todayPatterns(from: patterns)
+        let todayTypes = Set(todaysPatterns.map { $0.patternType })
 
         // Check if expected morning patterns are missing
         let missingPatterns = typicalMorningPatterns.subtracting(todayTypes)
@@ -538,15 +538,13 @@ class ASDPatternAnalysisService: ObservableObject {
         var insights: [ASDInsight] = []
         let calendar = Calendar.current
         let weekAgo = calendar.date(byAdding: .day, value: -7, to: Date())!
+        let recentPatterns = patterns.filter { $0.timestamp >= weekAgo }
 
         // Check for burnout indicator patterns
-        let burnoutPatterns = patterns.filter {
-            $0.timestamp >= weekAgo &&
-            $0.patternType == PatternType.burnoutIndicator.rawValue
-        }
+        let burnoutPatterns = patternsOfType(recentPatterns, type: .burnoutIndicator)
 
         if !burnoutPatterns.isEmpty {
-            let avgIntensity = Double(burnoutPatterns.reduce(0) { $0 + Int($1.intensity) }) / Double(burnoutPatterns.count)
+            let avgIntensity = averageIntensity(burnoutPatterns)
 
             if avgIntensity >= 4 || burnoutPatterns.count >= 3 {
                 insights.append(ASDInsight(
@@ -576,13 +574,10 @@ class ASDPatternAnalysisService: ObservableObject {
         }
 
         // Check for executive function degradation (increasing task avoidance)
-        let taskAvoidance = patterns.filter {
-            $0.timestamp >= weekAgo &&
-            $0.patternType == PatternType.taskAvoidance.rawValue
-        }
+        let taskAvoidance = patternsOfType(recentPatterns, type: .taskAvoidance)
 
         if taskAvoidance.count >= 5 {
-            let avgIntensity = Double(taskAvoidance.reduce(0) { $0 + Int($1.intensity) }) / Double(taskAvoidance.count)
+            let avgIntensity = averageIntensity(taskAvoidance)
             if avgIntensity >= 3 {
                 insights.append(ASDInsight(
                     type: .burnoutWarning,
@@ -609,14 +604,12 @@ class ASDPatternAnalysisService: ObservableObject {
 
         // Get last 7 days of sleep data
         let weekAgo = calendar.date(byAdding: .day, value: -7, to: Date())!
-        let sleepPatterns = patterns.filter {
-            $0.timestamp >= weekAgo &&
-            $0.patternType == PatternType.sleepQuality.rawValue
-        }
+        let recentPatterns = patterns.filter { $0.timestamp >= weekAgo }
+        let sleepPatterns = patternsOfType(recentPatterns, type: .sleepQuality)
 
         guard sleepPatterns.count >= 3 else { return insights }
 
-        let avgSleep = Double(sleepPatterns.reduce(0) { $0 + Int($1.intensity) }) / Double(sleepPatterns.count)
+        let avgSleep = averageIntensity(sleepPatterns)
 
         // Count poor sleep days
         let poorSleepDays = sleepPatterns.filter { $0.intensity <= 2 }.count
@@ -654,58 +647,30 @@ class ASDPatternAnalysisService: ObservableObject {
 
     private func findPositivePatterns(patterns: [PatternEntry]) -> [ASDInsight] {
         var insights: [ASDInsight] = []
-        let calendar = Calendar.current
-        let today = calendar.startOfDay(for: Date())
+        let todaysPatterns = todayPatterns(from: patterns)
 
-        // Check for positive patterns today
-        let todayPatterns = patterns.filter { calendar.isDate($0.timestamp, inSameDayAs: today) }
+        // Positive pattern definitions
+        let positiveTypes: [(type: PatternType, title: String, message: String, icon: String, color: Color)] = [
+            (.flowState, "Flow State Achieved", "You found your flow today", "sparkles", .blue),
+            (.specialInterest, "Special Interest Time", "You engaged with something you love", "star.fill", .yellow),
+            (.authenticityMoment, "Authenticity Moment", "You were your true self", "heart.fill", .pink)
+        ]
 
-        // Flow state
-        let flowStates = todayPatterns.filter { $0.patternType == PatternType.flowState.rawValue }
-        if !flowStates.isEmpty {
-            insights.append(ASDInsight(
-                type: .positivePattern,
-                title: "Flow State Achieved",
-                message: "You found your flow today",
-                severity: .info,
-                icon: "sparkles",
-                color: .blue,
-                actionSuggestion: nil,
-                relatedPatterns: ["Flow State"],
-                dataPoints: flowStates.count
-            ))
-        }
-
-        // Special interest engagement
-        let specialInterest = todayPatterns.filter { $0.patternType == PatternType.specialInterest.rawValue }
-        if !specialInterest.isEmpty {
-            insights.append(ASDInsight(
-                type: .positivePattern,
-                title: "Special Interest Time",
-                message: "You engaged with something you love",
-                severity: .info,
-                icon: "star.fill",
-                color: .yellow,
-                actionSuggestion: nil,
-                relatedPatterns: ["Special Interest"],
-                dataPoints: specialInterest.count
-            ))
-        }
-
-        // Authenticity moments
-        let authenticMoments = todayPatterns.filter { $0.patternType == PatternType.authenticityMoment.rawValue }
-        if !authenticMoments.isEmpty {
-            insights.append(ASDInsight(
-                type: .positivePattern,
-                title: "Authenticity Moment",
-                message: "You were your true self",
-                severity: .info,
-                icon: "heart.fill",
-                color: .pink,
-                actionSuggestion: nil,
-                relatedPatterns: ["Authenticity Moment"],
-                dataPoints: authenticMoments.count
-            ))
+        for positive in positiveTypes {
+            let matches = patternsOfType(todaysPatterns, type: positive.type)
+            if !matches.isEmpty {
+                insights.append(ASDInsight(
+                    type: .positivePattern,
+                    title: positive.title,
+                    message: positive.message,
+                    severity: .info,
+                    icon: positive.icon,
+                    color: positive.color,
+                    actionSuggestion: nil,
+                    relatedPatterns: [positive.type.rawValue],
+                    dataPoints: matches.count
+                ))
+            }
         }
 
         return insights
@@ -713,46 +678,37 @@ class ASDPatternAnalysisService: ObservableObject {
 
     // MARK: - Daily Load Calculation
 
+    /// Calculate load for a category (sum of intensities / 5.0)
+    private func loadForCategory(_ patterns: [PatternEntry], category: PatternCategory) -> Double {
+        let categoryPatterns = patternsForCategory(patterns, category: category)
+        guard !categoryPatterns.isEmpty else { return 0 }
+        return Double(categoryPatterns.reduce(0) { $0 + Int($1.intensity) }) / 5.0
+    }
+
     private func calculateDailyLoads(patterns: [PatternEntry], days: Int) -> [DailyLoad] {
         var loads: [DailyLoad] = []
         let calendar = Calendar.current
 
         for dayOffset in 0..<days {
-            guard let day = calendar.date(byAdding: .day, value: -dayOffset, to: Date()) else { continue }
-            let dayStart = calendar.startOfDay(for: day)
-            guard let dayEnd = calendar.date(byAdding: .day, value: 1, to: dayStart) else { continue }
+            guard let day = calendar.date(byAdding: .day, value: -dayOffset, to: Date()),
+                  let dayEnd = calendar.date(byAdding: .day, value: 1, to: calendar.startOfDay(for: day)) else { continue }
 
+            let dayStart = calendar.startOfDay(for: day)
             let dayPatterns = patterns.filter { $0.timestamp >= dayStart && $0.timestamp < dayEnd }
 
-            // Calculate sensory load
-            let sensoryPatterns = dayPatterns.filter { PatternType(rawValue: $0.patternType)?.category == .sensory }
-            let sensoryLoad = sensoryPatterns.isEmpty ? 0 :
-                Double(sensoryPatterns.reduce(0) { $0 + Int($1.intensity) }) / 5.0
+            let sensoryLoad = loadForCategory(dayPatterns, category: .sensory)
+            let socialLoad = loadForCategory(dayPatterns, category: .social)
+            let demandLoad = loadForCategory(dayPatterns, category: .demandAvoidance)
 
-            // Calculate social load
-            let socialPatterns = dayPatterns.filter { PatternType(rawValue: $0.patternType)?.category == .social }
-            let socialLoad = socialPatterns.isEmpty ? 0 :
-                Double(socialPatterns.reduce(0) { $0 + Int($1.intensity) }) / 5.0
-
-            // Calculate demand load
-            let demandPatterns = dayPatterns.filter { PatternType(rawValue: $0.patternType)?.category == .demandAvoidance }
-            let demandLoad = demandPatterns.isEmpty ? 0 :
-                Double(demandPatterns.reduce(0) { $0 + Int($1.intensity) }) / 5.0
-
-            // Check for meltdown/shutdown
-            let hadCrisis = dayPatterns.contains {
-                $0.patternType == PatternType.meltdown.rawValue ||
-                $0.patternType == PatternType.shutdown.rawValue
-            }
-
-            let overall = (sensoryLoad + socialLoad + demandLoad) / 3.0
+            let hadCrisis = !patternsOfType(dayPatterns, type: .meltdown).isEmpty ||
+                           !patternsOfType(dayPatterns, type: .shutdown).isEmpty
 
             loads.append(DailyLoad(
                 date: dayStart,
                 sensoryLoad: sensoryLoad,
                 socialLoad: socialLoad,
                 demandLoad: demandLoad,
-                overallLoad: overall,
+                overallLoad: (sensoryLoad + socialLoad + demandLoad) / 3.0,
                 hadMeltdownOrShutdown: hadCrisis
             ))
         }
@@ -814,48 +770,37 @@ class ASDPatternAnalysisService: ObservableObject {
     func getCurrentRiskLevel() -> (level: String, color: Color, score: Int) {
         let calendar = Calendar.current
         let today = calendar.startOfDay(for: Date())
-
         let patterns = dataController.fetchPatternEntries(startDate: today, endDate: Date())
 
         var riskScore = 0
 
         // Sensory load
-        let sensory = patterns.filter { PatternType(rawValue: $0.patternType)?.category == .sensory }
-        let avgSensory = sensory.isEmpty ? 0 : sensory.reduce(0) { $0 + Int($1.intensity) } / sensory.count
-        riskScore += avgSensory * 4
+        let sensory = patternsForCategory(patterns, category: .sensory)
+        riskScore += Int(averageIntensity(sensory)) * 4
 
         // Masking
-        let masking = patterns.filter { $0.patternType == PatternType.maskingIntensity.rawValue }
-        let avgMasking = masking.isEmpty ? 0 : masking.reduce(0) { $0 + Int($1.intensity) } / masking.count
-        riskScore += avgMasking * 5
+        let masking = patternsOfType(patterns, type: .maskingIntensity)
+        riskScore += Int(averageIntensity(masking)) * 5
 
         // Emotional overwhelm
-        let overwhelm = patterns.filter { $0.patternType == PatternType.emotionalOverwhelm.rawValue }
-        if !overwhelm.isEmpty {
+        if !patternsOfType(patterns, type: .emotionalOverwhelm).isEmpty {
             riskScore += 20
         }
 
         // Routine disruption
-        let routine = patterns.filter { PatternType(rawValue: $0.patternType)?.category == .routineChange }
-        riskScore += routine.count * 5
+        riskScore += patternsForCategory(patterns, category: .routineChange).count * 5
 
         // Already had meltdown/shutdown
-        let crisis = patterns.filter {
-            $0.patternType == PatternType.meltdown.rawValue ||
-            $0.patternType == PatternType.shutdown.rawValue
-        }
-        if !crisis.isEmpty {
+        if !patternsOfType(patterns, type: .meltdown).isEmpty ||
+           !patternsOfType(patterns, type: .shutdown).isEmpty {
             riskScore += 30
         }
 
-        if riskScore >= 60 {
-            return ("High", .red, riskScore)
-        } else if riskScore >= 35 {
-            return ("Elevated", .orange, riskScore)
-        } else if riskScore >= 15 {
-            return ("Moderate", .yellow, riskScore)
-        } else {
-            return ("Low", .green, riskScore)
+        switch riskScore {
+        case 60...: return ("High", .red, riskScore)
+        case 35...: return ("Elevated", .orange, riskScore)
+        case 15...: return ("Moderate", .yellow, riskScore)
+        default: return ("Low", .green, riskScore)
         }
     }
 }

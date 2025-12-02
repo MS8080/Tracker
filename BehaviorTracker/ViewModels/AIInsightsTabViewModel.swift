@@ -38,8 +38,19 @@ class AIInsightsTabViewModel: ObservableObject {
         objectWillChange.send()
     }
 
+    func resetPrivacyAcknowledgment() {
+        UserDefaults.standard.set(false, forKey: "ai_privacy_acknowledged")
+        objectWillChange.send()
+    }
+
     func saveAPIKey() {
         geminiService.apiKey = apiKeyInput
+        objectWillChange.send()
+    }
+
+    func removeAPIKey() {
+        geminiService.apiKey = nil
+        apiKeyInput = ""
         objectWillChange.send()
     }
 

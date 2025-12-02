@@ -354,7 +354,8 @@ class WhisperTranscriptionService: ObservableObject {
         }
     }
 
-    func stopRecordingAndTranscribe() async -> String? {
+    /// Common cleanup when stopping recording
+    private func cleanupRecording(deleteFile: Bool = false) {
         audioRecorder?.stop()
         audioRecorder = nil
         isRecording = false
@@ -364,9 +365,18 @@ class WhisperTranscriptionService: ObservableObject {
         levelTimer = nil
         audioLevel = 0
 
+        if deleteFile, let url = currentRecordingURL {
+            try? FileManager.default.removeItem(at: url)
+            currentRecordingURL = nil
+        }
+
         #if os(iOS)
         try? AVAudioSession.sharedInstance().setActive(false)
         #endif
+    }
+
+    func stopRecordingAndTranscribe() async -> String? {
+        cleanupRecording()
 
         guard let recordingURL = currentRecordingURL else {
             errorMessage = "No recording found"
@@ -377,24 +387,8 @@ class WhisperTranscriptionService: ObservableObject {
     }
 
     func cancelRecording() {
-        audioRecorder?.stop()
-        audioRecorder = nil
-        isRecording = false
-        recordingTimer?.invalidate()
-        recordingTimer = nil
-        levelTimer?.invalidate()
-        levelTimer = nil
-        audioLevel = 0
+        cleanupRecording(deleteFile: true)
         recordingTime = 0
-
-        if let url = currentRecordingURL {
-            try? FileManager.default.removeItem(at: url)
-        }
-        currentRecordingURL = nil
-
-        #if os(iOS)
-        try? AVAudioSession.sharedInstance().setActive(false)
-        #endif
     }
 
     private func transcribe(audioURL: URL) async -> String? {
