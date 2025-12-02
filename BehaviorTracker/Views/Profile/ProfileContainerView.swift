@@ -2,9 +2,11 @@ import SwiftUI
 
 struct ProfileContainerView: View {
     @Environment(\.dismiss) private var dismiss
-    @StateObject private var healthKitManager = HealthKitManager.shared
-    @StateObject private var settingsViewModel = SettingsViewModel()
-    @StateObject private var medicationViewModel = MedicationViewModel()
+
+    // Lazy initialization - only create when needed
+    @State private var healthKitManager: HealthKitManager?
+    @State private var settingsViewModel: SettingsViewModel?
+    @State private var medicationViewModel: MedicationViewModel?
     private let dataController = DataController.shared
 
     @State private var profile: UserProfile?
@@ -15,6 +17,7 @@ struct ProfileContainerView: View {
     @State private var showingImportMedications = false
     @State private var isMedicationsExpanded = false
     @State private var isSettingsExpanded = false
+    @State private var isInitialized = false
 
     @AppStorage("fontSizeScale") private var fontSizeScale: Double = 1.0
     @AppStorage("blueLightFilterEnabled") private var blueLightFilterEnabled: Bool = false
@@ -27,42 +30,55 @@ struct ProfileContainerView: View {
                 theme.gradient
                     .ignoresSafeArea()
 
-                ScrollView {
-                    VStack(spacing: 20) {
-                        ProfileHeaderSection(profile: profile) {
-                            showingEditProfile = true
-                        }
-
-                        ProfileHealthDataSection(
-                            healthSummary: healthSummary,
-                            isAuthorized: healthKitManager.isAuthorized,
-                            isLoading: isLoadingHealth,
-                            onRefresh: { loadHealthData() },
-                            onConnect: {
-                                await healthKitManager.requestAuthorization()
-                                if healthKitManager.isAuthorized {
-                                    loadHealthData()
-                                }
+                if !isInitialized {
+                    // Show placeholder while initializing
+                    ProgressView()
+                        .scaleEffect(1.5)
+                        .tint(.white)
+                } else {
+                    ScrollView {
+                        VStack(spacing: 20) {
+                            ProfileHeaderSection(profile: profile) {
+                                showingEditProfile = true
                             }
-                        )
 
-                        ProfileMedicationsSection(
-                            medications: medicationViewModel.medications,
-                            isExpanded: $isMedicationsExpanded,
-                            hasTakenToday: { medicationViewModel.hasTakenToday(medication: $0) },
-                            onAddTapped: { showingAddMedication = true },
-                            onImportTapped: { showingImportMedications = true },
-                            medicationViewModel: medicationViewModel
-                        )
+                            if let healthKitManager = healthKitManager {
+                                ProfileHealthDataSection(
+                                    healthSummary: healthSummary,
+                                    isAuthorized: healthKitManager.isAuthorized,
+                                    isLoading: isLoadingHealth,
+                                    onRefresh: { loadHealthData() },
+                                    onConnect: {
+                                        await healthKitManager.requestAuthorization()
+                                        if healthKitManager.isAuthorized {
+                                            loadHealthData()
+                                        }
+                                    }
+                                )
+                            }
 
-                        ProfileSettingsSection(
-                            isExpanded: $isSettingsExpanded,
-                            settingsViewModel: settingsViewModel
-                        )
+                            if let medicationViewModel = medicationViewModel {
+                                ProfileMedicationsSection(
+                                    medications: medicationViewModel.medications,
+                                    isExpanded: $isMedicationsExpanded,
+                                    hasTakenToday: { medicationViewModel.hasTakenToday(medication: $0) },
+                                    onAddTapped: { showingAddMedication = true },
+                                    onImportTapped: { showingImportMedications = true },
+                                    medicationViewModel: medicationViewModel
+                                )
+                            }
+
+                            if let settingsViewModel = settingsViewModel {
+                                ProfileSettingsSection(
+                                    isExpanded: $isSettingsExpanded,
+                                    settingsViewModel: settingsViewModel
+                                )
+                            }
+                        }
+                        .padding()
                     }
-                    .padding()
+                    .scrollContentBackground(.hidden)
                 }
-                .scrollContentBackground(.hidden)
             }
             .navigationTitle("Profile")
             .navigationBarTitleDisplayModeInline()
@@ -82,6 +98,14 @@ struct ProfileContainerView: View {
                 }
             }
             .task {
+                // Initialize ViewModels asynchronously AFTER sheet appears
+                healthKitManager = HealthKitManager.shared
+                settingsViewModel = SettingsViewModel()
+                medicationViewModel = MedicationViewModel()
+
+                isInitialized = true
+
+                // Load data in parallel
                 async let profileTask: () = loadProfileAsync()
                 async let medicationsTask: () = loadMedicationsAsync()
                 async let healthTask: () = loadHealthDataAsync()
@@ -97,10 +121,14 @@ struct ProfileContainerView: View {
                 }
             }
             .sheet(isPresented: $showingAddMedication) {
-                AddMedicationView(viewModel: medicationViewModel)
+                if let medicationViewModel = medicationViewModel {
+                    AddMedicationView(viewModel: medicationViewModel)
+                }
             }
             .sheet(isPresented: $showingImportMedications) {
-                ImportMedicationsView(medicationViewModel: medicationViewModel)
+                if let medicationViewModel = medicationViewModel {
+                    ImportMedicationsView(medicationViewModel: medicationViewModel)
+                }
             }
         }
     }
@@ -117,11 +145,13 @@ struct ProfileContainerView: View {
     }
 
     private func loadMedicationsAsync() async {
+        guard let medicationViewModel = medicationViewModel else { return }
         await Task.yield()
         medicationViewModel.loadMedications()
     }
 
     private func loadHealthDataAsync() async {
+        guard let healthKitManager = healthKitManager else { return }
         await healthKitManager.checkAuthorizationStatus()
         guard healthKitManager.isAuthorized else { return }
 
@@ -132,6 +162,7 @@ struct ProfileContainerView: View {
     }
 
     private func loadHealthData() {
+        guard let healthKitManager = healthKitManager else { return }
         guard healthKitManager.isAuthorized else { return }
 
         isLoadingHealth = true

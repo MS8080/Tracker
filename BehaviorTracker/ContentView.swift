@@ -62,9 +62,9 @@ struct ContentView: View {
         .dynamicTypeSize(dynamicTypeSize)
         .sheet(isPresented: $showingProfile) {
             ProfileContainerView()
-                .themedBackground()
-                .blueLightFilter()
-                .dynamicTypeSize(dynamicTypeSize)
+                .presentationDragIndicator(.visible)
+                .presentationDetents([.large])
+                .presentationContentInteraction(.scrolls)
         }
     }
 

@@ -651,36 +651,28 @@ struct LiquidGlassCardModifier: ViewModifier {
     @ViewBuilder
     private var cardStyle: some View {
         ZStack {
+            // Slightly more tint to pick up background color
             RoundedRectangle(cornerRadius: cornerRadius)
-                .fill(theme.cardGlassTint.opacity(0.08))
+                .fill(theme.cardGlassTint.opacity(0.12))
 
+            // Glass overlay - keeps cards readable
             RoundedRectangle(cornerRadius: cornerRadius)
                 .fill(theme.cardBackground)
             
+            // Border matches gradient direction
             RoundedRectangle(cornerRadius: cornerRadius)
                 .strokeBorder(
                     LinearGradient(
                         colors: [
-                            theme.primaryColor.opacity(0.6),
-                            theme.primaryColor.opacity(0.3),
-                            theme.primaryColor.opacity(0.2)
+                            theme.primaryColor.opacity(0.5),
+                            theme.primaryColor.opacity(0.25),
+                            theme.primaryColor.opacity(0.15)
                         ],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     ),
                     lineWidth: 1.5
                 )
-
-            RoundedRectangle(cornerRadius: cornerRadius - 2) // Match inset from padding
-                .stroke(
-                    LinearGradient(
-                        colors: [.white.opacity(0.4), .clear],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    ),
-                    lineWidth: 1
-                )
-                .padding(2)
         }
     }
 }
@@ -718,17 +710,6 @@ struct CompactLiquidGlassCardModifier: ViewModifier {
                     ),
                     lineWidth: 1
                 )
-
-            RoundedRectangle(cornerRadius: CornerRadius.md - 1.5) // Match inset from padding
-                .stroke(
-                    LinearGradient(
-                        colors: [.white.opacity(0.4), .clear],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    ),
-                    lineWidth: 1
-                )
-                .padding(1.5)
         }
     }
 }
@@ -755,41 +736,31 @@ struct FocusableLiquidGlassCardModifier: ViewModifier {
     @ViewBuilder
     private var cardStyle: some View {
         ZStack {
+            // More tint when focused to show "activation"
             RoundedRectangle(cornerRadius: cornerRadius)
-                .fill(theme.cardGlassTint.opacity(isFocused ? 0.15 : 0.08))
+                .fill(theme.cardGlassTint.opacity(isFocused ? 0.18 : 0.12))
 
             RoundedRectangle(cornerRadius: cornerRadius)
                 .fill(theme.cardBackground)
             
+            // Brighter, thicker border when focused
             RoundedRectangle(cornerRadius: cornerRadius)
                 .strokeBorder(
                     LinearGradient(
                         colors: isFocused ? [
-                            theme.primaryColor.opacity(0.8),
-                            theme.primaryColor.opacity(0.5),
-                            theme.primaryColor.opacity(0.3),
-                            theme.primaryColor.opacity(0.2)
+                            theme.primaryColor.opacity(0.7),
+                            theme.primaryColor.opacity(0.45),
+                            theme.primaryColor.opacity(0.25)
                         ] : [
-                            theme.primaryColor.opacity(0.6),
-                            theme.primaryColor.opacity(0.3),
-                            theme.primaryColor.opacity(0.2)
+                            theme.primaryColor.opacity(0.5),
+                            theme.primaryColor.opacity(0.25),
+                            theme.primaryColor.opacity(0.15)
                         ],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     ),
                     lineWidth: isFocused ? 2 : 1.5
                 )
-
-            RoundedRectangle(cornerRadius: cornerRadius - (isFocused ? 2.5 : 2)) // Match inset
-                .stroke(
-                    LinearGradient(
-                        colors: [.white.opacity(isFocused ? 0.5 : 0.4), .clear],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    ),
-                    lineWidth: 1
-                )
-                .padding(isFocused ? 2.5 : 2)
         }
     }
 }
