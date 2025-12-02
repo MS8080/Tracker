@@ -195,31 +195,27 @@ struct CategoryGridButton: View {
                 action()
             }
         }) {
-            VStack(spacing: Spacing.sm) {
-                // Icon with colored background
-                ZStack {
-                    RoundedRectangle(cornerRadius: CornerRadius.md)
-                        .fill(category.color.opacity(0.2))
-                        .frame(width: 52, height: 52)
+            VStack(spacing: Spacing.md) {
+                // Icon - clean, simple, no background
+                Image(systemName: category.icon)
+                    .font(.system(size: 36, weight: .medium))
+                    .foregroundStyle(category.color)
+                    .symbolEffect(.bounce, value: isPressed)
+                    .frame(width: 64, height: 64)
 
-                    Image(systemName: category.icon)
-                        .font(.system(size: 26, weight: .medium))
-                        .foregroundStyle(category.color)
-                        .symbolEffect(.bounce, value: isPressed)
-                }
-
-                // Category name
+                // Category name - larger, more readable
                 Text(category.rawValue)
-                    .font(.caption)
+                    .font(.subheadline)
                     .fontWeight(.semibold)
-                    .foregroundStyle(CardText.body)
+                    .foregroundStyle(CardText.title)
                     .lineLimit(2)
                     .multilineTextAlignment(.center)
-                    .minimumScaleFactor(0.8)
+                    .minimumScaleFactor(0.85)
             }
             .frame(maxWidth: .infinity)
-            .frame(height: 115)
-            .cardStyle(theme: theme, cornerRadius: 20)
+            .frame(minHeight: 140)
+            .padding(.vertical, Spacing.lg)
+            .cardStyle(theme: theme, cornerRadius: 24)
         }
         .buttonStyle(.plain)
         .scaleEffect(isPressed ? 0.96 : 1.0)
@@ -253,30 +249,26 @@ struct FeelingFinderGridButton: View {
                 action()
             }
         } label: {
-            VStack(spacing: Spacing.sm) {
-                // Icon with colored background
-                ZStack {
-                    RoundedRectangle(cornerRadius: CornerRadius.md)
-                        .fill(Color.mint.opacity(0.2))
-                        .frame(width: 52, height: 52)
+            VStack(spacing: Spacing.md) {
+                // Icon - clean, simple, no background
+                Image(systemName: "questionmark.circle.fill")
+                    .font(.system(size: 36, weight: .medium))
+                    .foregroundStyle(.mint)
+                    .symbolEffect(.bounce, value: isPressed)
+                    .frame(width: 64, height: 64)
 
-                    Image(systemName: "questionmark.circle.fill")
-                        .font(.system(size: 26, weight: .medium))
-                        .foregroundStyle(.mint)
-                        .symbolEffect(.bounce, value: isPressed)
-                }
-
-                // Label
+                // Label - larger, more readable
                 Text("Guided")
-                    .font(.caption)
+                    .font(.subheadline)
                     .fontWeight(.semibold)
-                    .foregroundStyle(CardText.body)
+                    .foregroundStyle(CardText.title)
                     .lineLimit(2)
                     .multilineTextAlignment(.center)
             }
             .frame(maxWidth: .infinity)
-            .frame(height: 115)
-            .cardStyle(theme: theme, cornerRadius: 20)
+            .frame(minHeight: 140)
+            .padding(.vertical, Spacing.lg)
+            .cardStyle(theme: theme, cornerRadius: 24)
         }
         .buttonStyle(.plain)
         .scaleEffect(isPressed ? 0.96 : 1.0)
