@@ -272,39 +272,6 @@ struct AdaptiveTimelineEntry: View {
                             .foregroundStyle(theme.primaryColor.opacity(0.8))
                             .padding(.top, 2)
                     }
-
-                    // Action buttons (only in timeline, not expanded)
-                    if !isExpanded {
-                        HStack(spacing: Spacing.md) {
-                            // Favorite button
-                            Button {
-                                onToggleFavorite()
-                            } label: {
-                                Image(systemName: entry.isFavorite ? "star.fill" : "star")
-                                    .font(.system(size: 16, weight: .medium))
-                                    .foregroundStyle(entry.isFavorite ? .yellow : .white.opacity(0.6))
-                            }
-
-                            // Analyze button
-                            Button {
-                                onAnalyze()
-                            } label: {
-                                Image(systemName: "sparkles")
-                                    .font(.system(size: 16, weight: .medium))
-                                    .foregroundStyle(.white.opacity(0.6))
-                            }
-
-                            // Speak button
-                            Button {
-                                onSpeak()
-                            } label: {
-                                Image(systemName: "speaker.wave.2")
-                                    .font(.system(size: 16, weight: .medium))
-                                    .foregroundStyle(.white.opacity(0.6))
-                            }
-                        }
-                        .padding(.top, Spacing.sm)
-                    }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.bottom, isLast ? 0 : spacing)
@@ -381,8 +348,6 @@ struct ExpandedDayContentView: View {
                     )
                 }
             }
-            .padding()
-            .cardStyle(theme: theme, cornerRadius: CornerRadius.lg)
 
             // Day actions
             HStack(spacing: Spacing.md) {

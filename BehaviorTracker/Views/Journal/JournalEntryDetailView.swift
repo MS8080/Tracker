@@ -86,6 +86,7 @@ struct JournalEntryDetailView: View {
                 }
                 .padding()
             }
+            .themedBackground()
             .navigationTitle("Journal Entry")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
