@@ -102,18 +102,10 @@ struct DynamicDayCard: View {
         VStack(alignment: .leading, spacing: Spacing.lg) {
             // Date Header
             HStack {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(dateHeader)
-                        .font(isFocused ? .title : .title3)
-                        .fontWeight(.bold)
-                        .foregroundStyle(.white.opacity(0.95))
-
-                    if !isToday {
-                        Text(Self.dateHeaderFormatter.string(from: date))
-                            .font(.caption)
-                            .foregroundStyle(.white.opacity(0.6))
-                    }
-                }
+                Text(dateHeader)
+                    .font(isFocused ? .title : .title3)
+                    .fontWeight(.bold)
+                    .foregroundStyle(.white.opacity(0.95))
 
                 Spacer()
 

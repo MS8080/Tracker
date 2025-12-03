@@ -58,7 +58,7 @@ struct DynamicJournalView: View {
                 floatingActionButton
             }
             .navigationTitle(viewMode == .expanded ? "" : NSLocalizedString("journal.title", comment: ""))
-            .navigationBarTitleDisplayMode(viewMode == .expanded ? .inline : .large)
+            .navigationBarTitleDisplayMode(.large)
             .toolbar {
                 if viewMode != .expanded {
                     ToolbarItem(placement: .primaryAction) {
