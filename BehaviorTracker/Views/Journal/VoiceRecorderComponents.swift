@@ -66,7 +66,7 @@ struct VoiceRecorderOverlay: View {
             .ignoresSafeArea(edges: .bottom)
         }
         .onAppear {
-            withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+            withAnimation(.spring(response: 0.25, dampingFraction: 0.75)) {
                 appearAnimation = true
             }
         }
@@ -88,7 +88,7 @@ struct VoiceRecorderOverlay: View {
             if transcriptionService.isModelLoaded && recordingState == .idle && transcriptionService.errorMessage == nil {
                 let started = await transcriptionService.startRecording()
                 if started {
-                    withAnimation(.spring(response: 0.3)) {
+                    withAnimation(.spring(response: 0.2, dampingFraction: 0.7)) {
                         recordingState = .recording
                     }
                 }
@@ -156,7 +156,7 @@ struct VoiceRecorderOverlay: View {
                             .scaleEffect(pulseScale)
                             .opacity(2 - pulseScale)
                             .onAppear {
-                                withAnimation(.easeOut(duration: 1.0).repeatForever(autoreverses: false)) {
+                                withAnimation(.easeOut(duration: 0.8).repeatForever(autoreverses: false)) {
                                     pulseScale = 2.0
                                 }
                             }
@@ -193,7 +193,7 @@ struct VoiceRecorderOverlay: View {
                         }
                     }
                     .disabled(transcriptionService.isLoadingModel)
-                    .animation(.spring(response: 0.3, dampingFraction: 0.6), value: recordingState)
+                    .animation(.spring(response: 0.2, dampingFraction: 0.65), value: recordingState)
                 }
                 .frame(height: 120)
             }
@@ -203,7 +203,7 @@ struct VoiceRecorderOverlay: View {
                 Button {
                     HapticFeedback.light.trigger()
                     transcriptionService.cancelRecording()
-                    withAnimation(.spring(response: 0.3)) {
+                    withAnimation(.spring(response: 0.2, dampingFraction: 0.7)) {
                         recordingState = .idle
                     }
                 } label: {

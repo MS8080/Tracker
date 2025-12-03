@@ -594,7 +594,7 @@ private struct LiquidDepthFallback: View {
 
     private func startAnimation() {
         guard isVisible else { return }
-        withAnimation(.linear(duration: 20).repeatForever(autoreverses: false)) {
+        withAnimation(.linear(duration: 12).repeatForever(autoreverses: false)) {
             animationPhase = .pi * 2
         }
     }

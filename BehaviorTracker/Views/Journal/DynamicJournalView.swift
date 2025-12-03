@@ -97,7 +97,7 @@ struct DynamicJournalView: View {
         }
         .onAppear {
             // Hero animation on appear - focus on today
-            withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
+            withAnimation(.spring(response: 0.35, dampingFraction: 0.75)) {
                 viewMode = .focused
             }
         }
@@ -143,7 +143,7 @@ struct DynamicJournalView: View {
                                 dayToAnalyze = DayAnalysisData(entries: entries, date: date)
                             },
                             onTapCard: {
-                                withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
+                                withAnimation(.spring(response: 0.3, dampingFraction: 0.75)) {
                                     expandedDayDate = todayGroup.date
                                     viewMode = .expanded
                                 }
@@ -155,7 +155,7 @@ struct DynamicJournalView: View {
                         // Subtle hint about other days
                         if entriesGroupedByDay.count > 1 {
                             Button {
-                                withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
+                                withAnimation(.spring(response: 0.3, dampingFraction: 0.75)) {
                                     viewMode = .timeline
                                 }
                             } label: {
@@ -222,7 +222,7 @@ struct DynamicJournalView: View {
                                 dayToAnalyze = DayAnalysisData(entries: entries, date: date)
                             },
                             onTapCard: {
-                                withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
+                                withAnimation(.spring(response: 0.3, dampingFraction: 0.75)) {
                                     expandedDayDate = dayGroup.date
                                     viewMode = .expanded
                                 }
@@ -244,7 +244,7 @@ struct DynamicJournalView: View {
             ToolbarItem(placement: .navigationBarLeading) {
                 if !entriesGroupedByDay.isEmpty && todayGroup != nil {
                     Button {
-                        withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.75)) {
                             viewMode = .focused
                         }
                     } label: {
@@ -293,7 +293,7 @@ struct DynamicJournalView: View {
 
                 // Close button
                 Button {
-                    withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.75)) {
                         expandedDayDate = nil
                         viewMode = todayGroup != nil ? .focused : .timeline
                     }
