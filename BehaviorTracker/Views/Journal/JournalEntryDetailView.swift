@@ -34,13 +34,13 @@ struct JournalEntryDetailView: View {
                     HStack {
                         Label(entry.formattedDate, systemImage: "calendar")
                             .font(.subheadline)
-                            .foregroundColor(.secondary)
+                            .foregroundStyle(.white.opacity(0.7))
 
                         Spacer()
 
                         if entry.isFavorite {
                             Image(systemName: "star.fill")
-                                .foregroundColor(.yellow)
+                                .foregroundStyle(.yellow)
                                 .font(.subheadline)
                         }
                     }
@@ -49,14 +49,17 @@ struct JournalEntryDetailView: View {
                     TextField("Add a title (optional)", text: $title)
                         .font(.title3)
                         .fontWeight(.semibold)
+                        .foregroundStyle(.white.opacity(0.95))
                         .onChange(of: title) { _, _ in hasChanges = true }
 
                     Divider()
+                        .background(.white.opacity(0.2))
 
                     // Voice Note Playback (if exists)
                     if entry.hasVoiceNote {
                         voiceNotePlaybackSection
                         Divider()
+                            .background(.white.opacity(0.2))
                     }
 
                     // Content - directly editable
@@ -64,7 +67,7 @@ struct JournalEntryDetailView: View {
                         if content.isEmpty && !isContentFocused {
                             Text("Write your thoughts here...")
                                 .font(.callout)
-                                .foregroundStyle(.secondary.opacity(0.7))
+                                .foregroundStyle(.white.opacity(0.5))
                                 .padding(.top, 8)
                                 .padding(.leading, 4)
                         }
@@ -72,6 +75,7 @@ struct JournalEntryDetailView: View {
                         TextEditor(text: $content)
                             .font(.callout)
                             .lineSpacing(4)
+                            .foregroundStyle(.white.opacity(0.9))
                             .frame(minHeight: isContentFocused ? 300 : 200)
                             .focused($isContentFocused)
                             .onChange(of: content) { _, _ in hasChanges = true }
@@ -81,9 +85,12 @@ struct JournalEntryDetailView: View {
                     // Related items
                     if entry.relatedPatternEntry != nil || entry.relatedMedicationLog != nil {
                         Divider()
+                            .background(.white.opacity(0.2))
                         relatedItemsSection
                     }
                 }
+                .padding(20)
+                .cardStyle(theme: theme)
                 .padding()
             }
             .themedBackground()

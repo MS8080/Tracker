@@ -306,32 +306,12 @@ struct ExpandedDayContentView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.xl) {
-            // Date header - single date display with entry count
-            HStack(spacing: Spacing.md) {
-                Text(Self.dateFormatter.string(from: date))
-                    .font(.title2)
-                    .fontWeight(.bold)
-                    .foregroundStyle(.white.opacity(0.95))
-
-                Spacer()
-
-                // Entry count badge
-                HStack(spacing: Spacing.xs) {
-                    Image(systemName: "doc.text.fill")
-                        .font(.caption)
-                    Text("\(entries.count)")
-                        .font(.caption)
-                        .fontWeight(.semibold)
-                }
-                .foregroundStyle(theme.primaryColor)
-                .padding(.horizontal, 10)
-                .padding(.vertical, 6)
-                .background(
-                    Capsule()
-                        .fill(theme.primaryColor.opacity(0.2))
-                )
-            }
-            .padding(.bottom, Spacing.sm)
+            // Date header - single date display only
+            Text(Self.dateFormatter.string(from: date))
+                .font(.title2)
+                .fontWeight(.bold)
+                .foregroundStyle(.white.opacity(0.95))
+                .padding(.bottom, Spacing.sm)
 
             // Full timeline with generous spacing
             VStack(alignment: .leading, spacing: 0) {
