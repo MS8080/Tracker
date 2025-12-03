@@ -79,29 +79,23 @@ struct LoggingView: View {
     private var searchBar: some View {
         HStack(spacing: Spacing.sm) {
             Image(systemName: "magnifyingglass")
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.white.opacity(0.6))
 
             TextField("Search categories...", text: $searchText)
                 .textFieldStyle(.plain)
+                .foregroundStyle(.white)
 
             if !searchText.isEmpty {
                 Button {
                     searchText = ""
                 } label: {
                     Image(systemName: "xmark.circle.fill")
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(.white.opacity(0.5))
                 }
             }
         }
         .padding(Spacing.md)
-        .background(
-            RoundedRectangle(cornerRadius: CornerRadius.md)
-                .fill(.ultraThinMaterial.opacity(0.6))
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: CornerRadius.md)
-                .stroke(Color.white.opacity(0.1), lineWidth: 1)
-        )
+        .glassEffect(.regular.tint(theme.primaryColor.opacity(0.15)))
     }
 
     private var favoritesSection: some View {

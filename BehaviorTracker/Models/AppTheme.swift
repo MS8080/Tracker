@@ -172,15 +172,18 @@ enum AppTheme: String, CaseIterable, Identifiable {
         ThemeColorToken.timeline(for: self).toColor()
     }
 
-    /// Rich gradient background - multi-tone liquid depth effect
+    /// Simple soft gradient - theme color fading smoothly to dark
     var gradient: LinearGradient {
         LinearGradient(
             colors: [
-                ThemeColorToken.gradientTop(for: self).toColor(),
-                ThemeColorToken.gradientUpperMid(for: self).toColor(),
-                ThemeColorToken.gradientMid(for: self).toColor(),
-                ThemeColorToken.gradientLowerMid(for: self).toColor(),
-                ThemeColorToken.gradientBottom(for: self).toColor()
+                primaryColor.opacity(0.50),
+                primaryColor.opacity(0.40),
+                primaryColor.opacity(0.30),
+                primaryColor.opacity(0.20),
+                primaryColor.opacity(0.12),
+                primaryColor.opacity(0.06),
+                primaryColor.opacity(0.03),
+                primaryColor.opacity(0.01)
             ],
             startPoint: .top,
             endPoint: .bottom
@@ -486,7 +489,8 @@ struct ThemedBackgroundModifier: ViewModifier {
 
     func body(content: Content) -> some View {
         ZStack {
-            MeshGradientBackground(theme: theme)
+            // Simple linear gradient - no mesh or radial gradients
+            theme.gradient
                 .ignoresSafeArea()
             content
         }

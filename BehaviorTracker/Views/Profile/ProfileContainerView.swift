@@ -27,10 +27,8 @@ struct ProfileContainerView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                // Background - use simple color instead of heavy gradient
-                // (gradient is already visible from parent view through sheet)
-                Color.clear
-                    .background(.ultraThinMaterial)
+                // Apply theme gradient background
+                theme.gradient
                     .ignoresSafeArea()
 
                 if !isInitialized {

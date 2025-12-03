@@ -40,10 +40,8 @@ struct ProfileToolbarControls: View {
                 }
                 .disabled(fontSizeScale >= 1.4)
             }
-            .background(
-                Capsule()
-                    .fill(.white.opacity(0.15))
-            )
+            .glassEffect(.regular.tint(.white.opacity(0.1)))
+            .clipShape(Capsule())
 
             // Blue light filter circle
             Button {
@@ -56,10 +54,8 @@ struct ProfileToolbarControls: View {
                     .font(.system(size: 13, weight: .medium))
                     .foregroundStyle(.white)
                     .frame(width: 32, height: 32)
-                    .background(
-                        Circle()
-                            .fill(blueLightFilterEnabled ? Color.orange.opacity(0.8) : .white.opacity(0.15))
-                    )
+                    .glassEffect(.regular.tint(blueLightFilterEnabled ? Color.orange.opacity(0.5) : .white.opacity(0.1)))
+                    .clipShape(Circle())
             }
         }
     }
@@ -581,16 +577,15 @@ struct ModernSettingsRow: View {
 
     var body: some View {
         HStack(spacing: 14) {
-            // Icon with background
-            ZStack {
-                RoundedRectangle(cornerRadius: 10)
-                    .fill(iconBackground)
-                    .frame(width: 40, height: 40)
-
-                Image(systemName: icon)
-                    .foregroundStyle(iconColor)
-                    .font(.system(size: 18, weight: .semibold))
-            }
+            // Icon with simple tinted background (no blur - lightweight)
+            Image(systemName: icon)
+                .foregroundStyle(iconColor)
+                .font(.system(size: 18, weight: .semibold))
+                .frame(width: 40, height: 40)
+                .background(
+                    RoundedRectangle(cornerRadius: 10)
+                        .fill(iconColor.opacity(0.15))
+                )
 
             // Title and subtitle
             VStack(alignment: .leading, spacing: 3) {
@@ -611,10 +606,7 @@ struct ModernSettingsRow: View {
                 .foregroundColor(.white.opacity(0.4))
         }
         .padding(14)
-        .background(
-            RoundedRectangle(cornerRadius: 14)
-                .fill(.white.opacity(0.08))
-        )
+        .glassEffect(.regular.tint(.white.opacity(0.08)).interactive())
     }
 }
 

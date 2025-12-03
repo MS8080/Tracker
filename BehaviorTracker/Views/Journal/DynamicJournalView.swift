@@ -176,17 +176,11 @@ struct DynamicJournalView: View {
                                     Image(systemName: "chevron.down")
                                         .font(.caption)
                                 }
-                                .foregroundStyle(.white.opacity(0.7))
+                                .foregroundStyle(.white.opacity(0.9))
                                 .padding(.horizontal, Spacing.lg)
                                 .padding(.vertical, Spacing.md)
-                                .background(
-                                    Capsule()
-                                        .fill(.white.opacity(0.1))
-                                        .overlay(
-                                            Capsule()
-                                                .stroke(.white.opacity(0.2), lineWidth: 1)
-                                        )
-                                )
+                                .glassEffect(.regular.tint(theme.primaryColor.opacity(0.2)).interactive())
+                                .clipShape(Capsule())
                             }
                             .padding(.bottom, Spacing.xxl)
                         }
@@ -304,20 +298,13 @@ struct DynamicJournalView: View {
                     showingNewEntry = true
                     HapticFeedback.medium.trigger()
                 }) {
-                    ZStack {
-                        Circle()
-                            .fill(theme.primaryColor)
-                            .frame(width: 56, height: 56)
-
-                        Circle()
-                            .stroke(.white.opacity(0.3), lineWidth: 0.5)
-                            .frame(width: 56, height: 56)
-
-                        Image(systemName: "square.and.pencil")
-                            .font(.system(size: 22, weight: .medium))
-                            .foregroundStyle(.white)
-                    }
-                    .shadow(color: theme.primaryColor.opacity(0.3), radius: 10, y: 5)
+                    Image(systemName: "square.and.pencil")
+                        .font(.system(size: 22, weight: .medium))
+                        .foregroundStyle(.white)
+                        .frame(width: 56, height: 56)
+                        .glassEffect(.regular.tint(theme.primaryColor.opacity(0.5)).interactive())
+                        .clipShape(Circle())
+                        .shadow(color: theme.primaryColor.opacity(0.2), radius: 6, y: 4)
                 }
                 .padding(.trailing, 20)
                 .padding(.bottom, 20)
