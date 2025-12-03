@@ -99,7 +99,7 @@ struct DynamicDayCard: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: Spacing.lg) {
+        VStack(alignment: .leading, spacing: Spacing.md) {
             // Date Header
             Text(dateHeader)
                 .font(isFocused ? .title : .title3)
@@ -154,9 +154,8 @@ struct DynamicDayCard: View {
                 }
             }
         }
-        .padding(isExpanded ? Spacing.xxl : Spacing.lg)
+        .padding(isExpanded ? Spacing.lg : Spacing.md)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .frame(height: dynamicCardHeight) // Dynamic height!
         .focusableCardStyle(
             theme: theme,
             cornerRadius: isFocused ? CornerRadius.lg : CornerRadius.md,
