@@ -105,6 +105,7 @@ struct DynamicDayCard: View {
                 .font(isFocused ? .title : .title3)
                 .fontWeight(.bold)
                 .foregroundStyle(.white.opacity(0.95))
+                .padding(.leading, 4)
 
             // Timeline Entries
             VStack(alignment: .leading, spacing: 0) {
