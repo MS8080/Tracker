@@ -215,14 +215,14 @@ struct AdaptiveTimelineEntry: View {
                 VStack(alignment: .leading, spacing: Spacing.sm) {
                     // Time
                     Text(Self.timeFormatter.string(from: entry.timestamp))
-                        .font(isExpanded ? .subheadline : .caption)
+                        .font(isExpanded ? .subheadline : .subheadline)
                         .fontWeight(.semibold)
                         .foregroundStyle(theme.timelineColor)
 
                     // Title (if exists)
                     if let title = entry.title, !title.isEmpty {
                         Text(title)
-                            .font(isExpanded ? .callout : .caption)
+                            .font(isExpanded ? .body : .subheadline)
                             .fontWeight(.semibold)
                             .foregroundStyle(.white.opacity(0.95))
                             .lineLimit(1)
@@ -230,20 +230,12 @@ struct AdaptiveTimelineEntry: View {
 
                     // Content preview with better readability
                     Text(entry.preview)
-                        .font(isExpanded ? .callout : .caption)
-                        .lineSpacing(isExpanded ? 4 : 3)
-                        .foregroundStyle(.white.opacity(0.85))
+                        .font(isExpanded ? .body : .subheadline)
+                        .lineSpacing(isExpanded ? 5 : 4)
+                        .foregroundStyle(.white.opacity(0.9))
                         .lineLimit(lineLimit)
                         .multilineTextAlignment(.leading)
                         .fixedSize(horizontal: false, vertical: true)
-
-                    // Show "Read more..." for truncated long entries
-                    if !isExpanded && entry.content.count > 150 {
-                        Text("Read more...")
-                            .font(.caption2)
-                            .foregroundStyle(theme.primaryColor.opacity(0.8))
-                            .padding(.top, 2)
-                    }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.bottom, isLast ? 0 : spacing)
