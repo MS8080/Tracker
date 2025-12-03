@@ -28,72 +28,77 @@ struct JournalEntryDetailView: View {
 
     var body: some View {
         NavigationView {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 16) {
-                    // Date header
-                    HStack {
-                        Label(entry.formattedDate, systemImage: "calendar")
-                            .font(.subheadline)
-                            .foregroundStyle(.white.opacity(0.7))
+            ZStack {
+                // Themed background
+                theme.gradient
+                    .ignoresSafeArea()
 
-                        Spacer()
-
-                        if entry.isFavorite {
-                            Image(systemName: "star.fill")
-                                .foregroundStyle(.yellow)
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 16) {
+                        // Date header
+                        HStack {
+                            Label(entry.formattedDate, systemImage: "calendar")
                                 .font(.subheadline)
+                                .foregroundStyle(.white.opacity(0.7))
+
+                            Spacer()
+
+                            if entry.isFavorite {
+                                Image(systemName: "star.fill")
+                                    .foregroundStyle(.yellow)
+                                    .font(.subheadline)
+                            }
                         }
-                    }
 
-                    // Title field
-                    TextField("Add a title (optional)", text: $title)
-                        .font(.title3)
-                        .fontWeight(.semibold)
-                        .foregroundStyle(.white.opacity(0.95))
-                        .onChange(of: title) { _, _ in hasChanges = true }
+                        // Title field
+                        TextField("Add a title (optional)", text: $title)
+                            .font(.title3)
+                            .fontWeight(.semibold)
+                            .foregroundStyle(.white.opacity(0.95))
+                            .onChange(of: title) { _, _ in hasChanges = true }
 
-                    Divider()
-                        .background(.white.opacity(0.2))
-
-                    // Voice Note Playback (if exists)
-                    if entry.hasVoiceNote {
-                        voiceNotePlaybackSection
                         Divider()
                             .background(.white.opacity(0.2))
-                    }
 
-                    // Content - directly editable
-                    ZStack(alignment: .topLeading) {
-                        if content.isEmpty && !isContentFocused {
-                            Text("Write your thoughts here...")
+                        // Voice Note Playback (if exists)
+                        if entry.hasVoiceNote {
+                            voiceNotePlaybackSection
+                            Divider()
+                                .background(.white.opacity(0.2))
+                        }
+
+                        // Content - directly editable
+                        ZStack(alignment: .topLeading) {
+                            if content.isEmpty && !isContentFocused {
+                                Text("Write your thoughts here...")
+                                    .font(.callout)
+                                    .foregroundStyle(.white.opacity(0.5))
+                                    .padding(.top, 8)
+                                    .padding(.leading, 4)
+                            }
+
+                            TextEditor(text: $content)
                                 .font(.callout)
-                                .foregroundStyle(.white.opacity(0.5))
-                                .padding(.top, 8)
-                                .padding(.leading, 4)
+                                .lineSpacing(4)
+                                .foregroundStyle(.white.opacity(0.9))
+                                .frame(minHeight: isContentFocused ? 300 : 200)
+                                .focused($isContentFocused)
+                                .onChange(of: content) { _, _ in hasChanges = true }
+                                .scrollContentBackground(.hidden)
                         }
 
-                        TextEditor(text: $content)
-                            .font(.callout)
-                            .lineSpacing(4)
-                            .foregroundStyle(.white.opacity(0.9))
-                            .frame(minHeight: isContentFocused ? 300 : 200)
-                            .focused($isContentFocused)
-                            .onChange(of: content) { _, _ in hasChanges = true }
-                            .scrollContentBackground(.hidden)
+                        // Related items
+                        if entry.relatedPatternEntry != nil || entry.relatedMedicationLog != nil {
+                            Divider()
+                                .background(.white.opacity(0.2))
+                            relatedItemsSection
+                        }
                     }
-
-                    // Related items
-                    if entry.relatedPatternEntry != nil || entry.relatedMedicationLog != nil {
-                        Divider()
-                            .background(.white.opacity(0.2))
-                        relatedItemsSection
-                    }
+                    .padding(20)
+                    .cardStyle(theme: theme)
+                    .padding()
                 }
-                .padding(20)
-                .cardStyle(theme: theme)
-                .padding()
             }
-            .themedBackground()
             .navigationTitle("Journal Entry")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
