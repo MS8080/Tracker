@@ -40,6 +40,7 @@ enum PatternType: String, CaseIterable, Codable {
     case transitionDifficulty = "Transition Difficulty"
     case unexpectedChange = "Unexpected Change"
     case samenessNeed = "Need for Sameness"
+    case uncertaintyIntolerance = "Uncertainty Intolerance"
     
     // MARK: - Demand Avoidance
     case taskAvoidance = "Task Avoidance"
@@ -68,7 +69,7 @@ enum PatternType: String, CaseIterable, Codable {
             return .energyRegulation
         case .socialInteraction, .socialRecovery, .miscommunication, .communicationDifficulty, .processingTime:
             return .social
-        case .routineDisruption, .transitionDifficulty, .unexpectedChange, .samenessNeed:
+        case .routineDisruption, .transitionDifficulty, .unexpectedChange, .samenessNeed, .uncertaintyIntolerance:
             return .routineChange
         case .taskAvoidance, .internalDemand, .externalDemand, .autonomyNeed, .avoidanceStrategy:
             return .demandAvoidance
@@ -87,7 +88,7 @@ enum PatternType: String, CaseIterable, Codable {
              .routineDisruption, .unexpectedChange, .taskAvoidance, .internalDemand,
              .externalDemand, .autonomyNeed, .sleepQuality, .physicalTension, .specialInterest,
              .decisionFatigue, .samenessNeed, .emotionalOverwhelm, .rumination, .flowState,
-             .authenticityMoment:
+             .authenticityMoment, .uncertaintyIntolerance:
             return true
         default:
             return false
@@ -155,6 +156,8 @@ enum PatternType: String, CaseIterable, Codable {
             return "What changed? How did it affect you?"
         case .samenessNeed:
             return "What did you need to stay the same?"
+        case .uncertaintyIntolerance:
+            return "What was uncertain? How did it affect you?"
         case .taskAvoidance:
             return "What task? Why do you think you avoided it?"
         case .internalDemand:
