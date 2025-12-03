@@ -339,21 +339,32 @@ struct ExpandedDayContentView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.xl) {
-            // Date header
-            VStack(alignment: .leading, spacing: Spacing.sm) {
+            // Date header - single date display with entry count
+            HStack(spacing: Spacing.md) {
                 Text(Self.dateFormatter.string(from: date))
-                    .font(.title)
+                    .font(.title2)
                     .fontWeight(.bold)
                     .foregroundStyle(.white.opacity(0.95))
 
-                HStack(spacing: Spacing.md) {
-                    Label("\(entries.count) entries", systemImage: "doc.text.fill")
-                    Text(date, format: .dateTime.hour().minute())
+                Spacer()
+
+                // Entry count badge
+                HStack(spacing: Spacing.xs) {
+                    Image(systemName: "doc.text.fill")
+                        .font(.caption)
+                    Text("\(entries.count)")
+                        .font(.caption)
+                        .fontWeight(.semibold)
                 }
-                .font(.subheadline)
-                .foregroundStyle(.white.opacity(0.7))
+                .foregroundStyle(theme.primaryColor)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 6)
+                .background(
+                    Capsule()
+                        .fill(theme.primaryColor.opacity(0.2))
+                )
             }
-            .padding(.bottom, Spacing.md)
+            .padding(.bottom, Spacing.sm)
 
             // Full timeline with generous spacing
             VStack(alignment: .leading, spacing: 0) {
@@ -454,35 +465,69 @@ struct ExpandedTimelineEntry: View {
                         .lineSpacing(6)
                         .foregroundStyle(.primary.opacity(0.9))
 
-                    // Actions
+                    // Actions - larger, more visible buttons
                     HStack(spacing: Spacing.lg) {
                         Button {
+                            HapticFeedback.light.trigger()
                             onToggleFavorite()
                         } label: {
-                            Label(
-                                entry.isFavorite ? "Favorited" : "Favorite",
-                                systemImage: entry.isFavorite ? "star.fill" : "star"
+                            HStack(spacing: Spacing.xs) {
+                                Image(systemName: entry.isFavorite ? "star.fill" : "star")
+                                    .font(.system(size: 16, weight: .medium))
+                                Text(entry.isFavorite ? "Favorited" : "Favorite")
+                                    .font(.subheadline)
+                                    .fontWeight(.medium)
+                            }
+                            .foregroundStyle(entry.isFavorite ? .yellow : .white.opacity(0.8))
+                            .padding(.horizontal, Spacing.md)
+                            .padding(.vertical, Spacing.sm)
+                            .background(
+                                Capsule()
+                                    .fill(entry.isFavorite ? Color.yellow.opacity(0.15) : Color.white.opacity(0.1))
                             )
-                            .font(.caption)
-                            .foregroundStyle(entry.isFavorite ? SemanticColor.warning : .secondary)
                         }
 
                         Button {
+                            HapticFeedback.light.trigger()
                             onSpeak()
                         } label: {
-                            Label("Read", systemImage: "speaker.wave.2")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
+                            HStack(spacing: Spacing.xs) {
+                                Image(systemName: "speaker.wave.2")
+                                    .font(.system(size: 16, weight: .medium))
+                                Text("Read")
+                                    .font(.subheadline)
+                                    .fontWeight(.medium)
+                            }
+                            .foregroundStyle(.white.opacity(0.8))
+                            .padding(.horizontal, Spacing.md)
+                            .padding(.vertical, Spacing.sm)
+                            .background(
+                                Capsule()
+                                    .fill(Color.white.opacity(0.1))
+                            )
                         }
 
                         Button {
+                            HapticFeedback.light.trigger()
                             onAnalyze()
                         } label: {
-                            Label("Analyze", systemImage: "sparkles")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
+                            HStack(spacing: Spacing.xs) {
+                                Image(systemName: "sparkles")
+                                    .font(.system(size: 16, weight: .medium))
+                                Text("Analyze")
+                                    .font(.subheadline)
+                                    .fontWeight(.medium)
+                            }
+                            .foregroundStyle(.white.opacity(0.8))
+                            .padding(.horizontal, Spacing.md)
+                            .padding(.vertical, Spacing.sm)
+                            .background(
+                                Capsule()
+                                    .fill(Color.white.opacity(0.1))
+                            )
                         }
                     }
+                    .padding(.top, Spacing.xs)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.bottom, isLast ? 0 : Spacing.xxl)
