@@ -438,11 +438,16 @@ struct ProfileSettingsSection: View {
 struct SettingsExpandedContent: View {
     @ObservedObject var settingsViewModel: SettingsViewModel
 
+    enum SettingsDestination: Hashable {
+        case appearance
+        case notifications
+        case exportData
+        case about
+    }
+
     var body: some View {
         VStack(spacing: 12) {
-            NavigationLink {
-                AppearanceSettingsView(viewModel: settingsViewModel)
-            } label: {
+            NavigationLink(value: SettingsDestination.appearance) {
                 ModernSettingsRow(
                     icon: "paintbrush.fill",
                     iconColor: .purple,
@@ -452,9 +457,7 @@ struct SettingsExpandedContent: View {
                 )
             }
 
-            NavigationLink {
-                NotificationSettingsView(viewModel: settingsViewModel)
-            } label: {
+            NavigationLink(value: SettingsDestination.notifications) {
                 ModernSettingsRow(
                     icon: "bell.badge.fill",
                     iconColor: .red,
@@ -464,9 +467,7 @@ struct SettingsExpandedContent: View {
                 )
             }
 
-            NavigationLink {
-                ExportDataView(viewModel: settingsViewModel)
-            } label: {
+            NavigationLink(value: SettingsDestination.exportData) {
                 ModernSettingsRow(
                     icon: "square.and.arrow.up.fill",
                     iconColor: .green,
@@ -476,9 +477,7 @@ struct SettingsExpandedContent: View {
                 )
             }
 
-            NavigationLink {
-                AboutView()
-            } label: {
+            NavigationLink(value: SettingsDestination.about) {
                 ModernSettingsRow(
                     icon: "info.circle.fill",
                     iconColor: .cyan,
@@ -486,6 +485,18 @@ struct SettingsExpandedContent: View {
                     title: "About",
                     subtitle: "Version & info"
                 )
+            }
+        }
+        .navigationDestination(for: SettingsDestination.self) { destination in
+            switch destination {
+            case .appearance:
+                AppearanceSettingsView(viewModel: settingsViewModel)
+            case .notifications:
+                NotificationSettingsView(viewModel: settingsViewModel)
+            case .exportData:
+                ExportDataView(viewModel: settingsViewModel)
+            case .about:
+                AboutView()
             }
         }
     }

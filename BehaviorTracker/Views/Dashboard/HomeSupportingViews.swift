@@ -41,22 +41,15 @@ struct ProfileButton: View {
                     .shadow(color: .black.opacity(0.3), radius: 4, x: 0, y: 2)
                 #endif
             } else {
-                Circle()
-                    .fill(theme.primaryColor)
-                    .frame(width: 36, height: 36)
-                    .overlay(
-                        Image(systemName: "person.fill")
-                            .font(.system(size: 18, weight: .medium))
-                            .foregroundStyle(.white)
-                    )
-                    .overlay(
-                        Circle()
-                            .stroke(Color.white.opacity(0.4), lineWidth: 2.5)
-                    )
+                Image(systemName: "person.circle.fill")
+                    .font(.system(size: 36))
+                    .foregroundStyle(.white.opacity(0.9))
                     .shadow(color: .black.opacity(0.3), radius: 4, x: 0, y: 2)
             }
         }
         .buttonStyle(.plain)
+        .buttonBorderShape(.circle)
+        .clipShape(Circle())
         .task {
             await loadProfileImageAsync()
         }

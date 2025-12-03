@@ -2,6 +2,45 @@ import Foundation
 import CoreData
 import SwiftUI
 
+// MARK: - Liquid Glass Support
+
+extension SetupItemCategory {
+    /// Glass tint color for Liquid Glass effects
+    var glassTintColor: Color {
+        switch self {
+        case .medication: return .blue.opacity(0.3)
+        case .supplement: return .green.opacity(0.3)
+        case .activity: return .orange.opacity(0.3)
+        case .accommodation: return .purple.opacity(0.3)
+        }
+    }
+    
+    /// Corner radius for glass effects
+    var glassCornerRadius: CGFloat {
+        return 16.0
+    }
+}
+
+extension EffectTag {
+    /// Glass tint color for effect tag badges
+    var glassTintColor: Color {
+        switch self {
+        case .focus, .memory, .clarity, .neuroplasticity, .creativity:
+            return .blue.opacity(0.2)
+        case .energy, .motivation:
+            return .orange.opacity(0.2)
+        case .calmness, .mood, .stress:
+            return .green.opacity(0.2)
+        case .sleep, .recovery:
+            return .indigo.opacity(0.2)
+        case .inflammation, .immune, .digestion:
+            return .pink.opacity(0.2)
+        case .adhd, .anxiety, .sensory, .executive, .regulation:
+            return .purple.opacity(0.2)
+        }
+    }
+}
+
 // MARK: - Setup Item Category
 
 enum SetupItemCategory: String, CaseIterable, Codable, Identifiable {

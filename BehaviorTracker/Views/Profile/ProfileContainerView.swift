@@ -27,7 +27,10 @@ struct ProfileContainerView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                theme.gradient
+                // Background - use simple color instead of heavy gradient
+                // (gradient is already visible from parent view through sheet)
+                Color.clear
+                    .background(.ultraThinMaterial)
                     .ignoresSafeArea()
 
                 if !isInitialized {
@@ -98,7 +101,10 @@ struct ProfileContainerView: View {
                 }
             }
             .task {
-                // Initialize ViewModels asynchronously AFTER sheet appears
+                // Defer initialization slightly to let sheet settle
+                try? await Task.sleep(nanoseconds: 50_000_000) // 50ms delay
+
+                // Initialize ViewModels asynchronously
                 healthKitManager = HealthKitManager.shared
                 settingsViewModel = SettingsViewModel()
                 medicationViewModel = MedicationViewModel()

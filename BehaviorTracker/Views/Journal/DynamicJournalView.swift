@@ -7,11 +7,8 @@ struct DynamicJournalView: View {
     @StateObject private var ttsService = TextToSpeechService.shared
     @State private var showingNewEntry = false
     @State private var selectedEntry: JournalEntry?
-    @State private var entryToDelete: JournalEntry?
-    @State private var searchText = ""
     @State private var entryToAnalyze: JournalEntry?
     @State private var dayToAnalyze: DayAnalysisData?
-    @State private var isSearching = false
     @State private var expandedDayDate: Date?
     @State private var viewMode: ViewMode = .focused
 
@@ -24,6 +21,10 @@ struct DynamicJournalView: View {
         case timeline   // All days visible in timeline
         case expanded   // A day is fullscreen
     }
+    
+    // MARK: - Animation Constants
+    
+    private static let standardSpring = Animation.spring(response: 0.3, dampingFraction: 0.75)
 
     init(showingProfile: Binding<Bool> = .constant(false)) {
         self._showingProfile = showingProfile
@@ -40,6 +41,30 @@ struct DynamicJournalView: View {
 
     private var todayGroup: (date: Date, entries: [JournalEntry])? {
         entriesGroupedByDay.first { Calendar.current.isDateInToday($0.date) }
+    }
+    
+    // MARK: - Reusable Card Configuration
+    
+    private func dayCardView(
+        date: Date,
+        entries: [JournalEntry],
+        isExpanded: Bool,
+        onTapCard: @escaping () -> Void
+    ) -> some View {
+        DynamicDayCard(
+            date: date,
+            entries: entries,
+            theme: theme,
+            isExpanded: isExpanded,
+            namespace: animation,
+            onEntryTap: { selectedEntry = $0 },
+            onToggleFavorite: { viewModel.toggleFavorite($0) },
+            onSpeak: { ttsService.speakJournalEntry($0) },
+            onDelete: { entry in withAnimation { viewModel.deleteEntry(entry) } },
+            onAnalyze: { entryToAnalyze = $0 },
+            onAnalyzeDay: { dayToAnalyze = DayAnalysisData(entries: $0, date: $1) },
+            onTapCard: onTapCard
+        )
     }
 
     var body: some View {
@@ -69,35 +94,33 @@ struct DynamicJournalView: View {
             .sheet(isPresented: $showingNewEntry) {
                 JournalEntryEditorView()
             }
-            .onChange(of: showingNewEntry) { _, isShowing in
-                if !isShowing {
+            .onChange(of: showingNewEntry) { _, newValue in
+                if !newValue {
                     viewModel.loadJournalEntries()
                 }
             }
             .sheet(item: $selectedEntry) { entry in
                 JournalEntryDetailView(entry: entry) {
-                    entryToDelete = entry
+                    withAnimation {
+                        viewModel.deleteEntry(entry)
+                    }
                 }
             }
             .onChange(of: selectedEntry) { _, newValue in
                 if newValue == nil {
-                    if let entryToDelete = entryToDelete {
-                        withAnimation {
-                            viewModel.deleteEntry(entryToDelete)
-                        }
-                        self.entryToDelete = nil
-                    } else {
-                        viewModel.loadJournalEntries()
-                    }
+                    viewModel.loadJournalEntries()
                 }
             }
-        }
-        .onChange(of: searchText) { _, newValue in
-            viewModel.searchQuery = newValue
+            .sheet(item: $entryToAnalyze) { entry in
+                JournalEntryAnalysisView(entry: entry)
+            }
+            .sheet(item: $dayToAnalyze) { dayData in
+                DayAnalysisView(entries: dayData.entries, date: dayData.date)
+            }
         }
         .onAppear {
             // Hero animation on appear - focus on today
-            withAnimation(.spring(response: 0.35, dampingFraction: 0.75)) {
+            withAnimation(Self.standardSpring) {
                 viewMode = .focused
             }
         }
@@ -125,25 +148,12 @@ struct DynamicJournalView: View {
                 ScrollView {
                     VStack(spacing: Spacing.xl) {
                         // Hero today card - fills most of screen
-                        DynamicDayCard(
+                        dayCardView(
                             date: todayGroup.date,
                             entries: todayGroup.entries,
-                            theme: theme,
                             isExpanded: true,
-                            isFocused: true,
-                            namespace: animation,
-                            onEntryTap: { entry in selectedEntry = entry },
-                            onToggleFavorite: { entry in viewModel.toggleFavorite(entry) },
-                            onSpeak: { entry in ttsService.speakJournalEntry(entry) },
-                            onDelete: { entry in
-                                withAnimation { viewModel.deleteEntry(entry) }
-                            },
-                            onAnalyze: { entry in entryToAnalyze = entry },
-                            onAnalyzeDay: { entries, date in
-                                dayToAnalyze = DayAnalysisData(entries: entries, date: date)
-                            },
                             onTapCard: {
-                                withAnimation(.spring(response: 0.3, dampingFraction: 0.75)) {
+                                withAnimation(Self.standardSpring) {
                                     expandedDayDate = todayGroup.date
                                     viewMode = .expanded
                                 }
@@ -155,7 +165,7 @@ struct DynamicJournalView: View {
                         // Subtle hint about other days
                         if entriesGroupedByDay.count > 1 {
                             Button {
-                                withAnimation(.spring(response: 0.3, dampingFraction: 0.75)) {
+                                withAnimation(Self.standardSpring) {
                                     viewMode = .timeline
                                 }
                             } label: {
@@ -187,12 +197,6 @@ struct DynamicJournalView: View {
                 timelineView
             }
         }
-        .sheet(item: $entryToAnalyze) { entry in
-            JournalEntryAnalysisView(entry: entry)
-        }
-        .sheet(item: $dayToAnalyze) { (dayData: DayAnalysisData) in
-            DayAnalysisView(entries: dayData.entries, date: dayData.date)
-        }
     }
 
     // MARK: - Timeline View (All Days)
@@ -202,27 +206,12 @@ struct DynamicJournalView: View {
             ScrollView {
                 LazyVStack(spacing: Spacing.md) {
                     ForEach(entriesGroupedByDay, id: \.date) { dayGroup in
-                        let isToday = Calendar.current.isDateInToday(dayGroup.date)
-
-                        DynamicDayCard(
+                        dayCardView(
                             date: dayGroup.date,
                             entries: dayGroup.entries,
-                            theme: theme,
                             isExpanded: false,
-                            isFocused: isToday,
-                            namespace: animation,
-                            onEntryTap: { entry in selectedEntry = entry },
-                            onToggleFavorite: { entry in viewModel.toggleFavorite(entry) },
-                            onSpeak: { entry in ttsService.speakJournalEntry(entry) },
-                            onDelete: { entry in
-                                withAnimation { viewModel.deleteEntry(entry) }
-                            },
-                            onAnalyze: { entry in entryToAnalyze = entry },
-                            onAnalyzeDay: { entries, date in
-                                dayToAnalyze = DayAnalysisData(entries: entries, date: date)
-                            },
                             onTapCard: {
-                                withAnimation(.spring(response: 0.3, dampingFraction: 0.75)) {
+                                withAnimation(Self.standardSpring) {
                                     expandedDayDate = dayGroup.date
                                     viewMode = .expanded
                                 }
@@ -235,17 +224,11 @@ struct DynamicJournalView: View {
                 .padding(.vertical)
             }
         }
-        .sheet(item: $entryToAnalyze) { entry in
-            JournalEntryAnalysisView(entry: entry)
-        }
-        .sheet(item: $dayToAnalyze) { (dayData: DayAnalysisData) in
-            DayAnalysisView(entries: dayData.entries, date: dayData.date)
-        }
         .toolbar {
             ToolbarItem(placement: .navigationBarLeading) {
                 if !entriesGroupedByDay.isEmpty && todayGroup != nil {
                     Button {
-                        withAnimation(.spring(response: 0.3, dampingFraction: 0.75)) {
+                        withAnimation(Self.standardSpring) {
                             viewMode = .focused
                         }
                     } label: {
@@ -295,7 +278,7 @@ struct DynamicJournalView: View {
 
                 // Close button
                 Button {
-                    withAnimation(.spring(response: 0.3, dampingFraction: 0.75)) {
+                    withAnimation(Self.standardSpring) {
                         expandedDayDate = nil
                         viewMode = todayGroup != nil ? .focused : .timeline
                     }

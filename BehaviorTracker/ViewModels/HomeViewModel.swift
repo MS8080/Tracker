@@ -46,6 +46,12 @@ class HomeViewModel: ObservableObject {
 
     private let dataController = DataController.shared
     private let geminiService = GeminiService.shared
+    
+    // PERFORMANCE: Cache to avoid redundant queries
+    private var lastLoadDate: Date?
+    private var memoriesCache: [Memory] = []
+    private var recentContextCache: RecentContext?
+    private let cacheValidityInterval: TimeInterval = 300 // 5 minutes
 
     // MARK: - Cached Formatters (Performance Optimization)
     private static let relativeDateFormatter: RelativeDateTimeFormatter = {
@@ -71,11 +77,23 @@ class HomeViewModel: ObservableObject {
     }
 
     func loadData() {
+        // Load lightweight data first for instant UI
         loadUserName()
+        loadStreak()
+        loadTodaySlides()
+        
+        // Defer heavy queries to background
+        Task.detached(priority: .utility) {
+            await self.loadHeavyData()
+        }
+    }
+    
+    @MainActor
+    private func loadHeavyData() async {
+        // Load expensive queries on background thread
+        await Task.yield() // Allow UI to render first
         loadRecentContext()
         loadMemories()
-        loadTodaySlides()
-        loadStreak()
     }
 
     private func loadStreak() {
@@ -111,6 +129,14 @@ class HomeViewModel: ObservableObject {
     }
 
     private func loadRecentContext() {
+        // Use cache if valid
+        if let lastLoad = lastLoadDate,
+           Date().timeIntervalSince(lastLoad) < cacheValidityInterval,
+           let cached = recentContextCache {
+            recentContext = cached
+            return
+        }
+        
         let recentEntries = dataController.fetchPatternEntries(limit: 5)
 
         guard let mostRecent = recentEntries.first else {
@@ -158,9 +184,21 @@ class HomeViewModel: ObservableObject {
             message: message,
             timeAgo: timeAgo
         )
+        
+        // Update cache
+        recentContextCache = recentContext
+        lastLoadDate = Date()
     }
 
     private func loadMemories() {
+        // Use cache if valid
+        if let lastLoad = lastLoadDate,
+           Date().timeIntervalSince(lastLoad) < cacheValidityInterval,
+           !memoriesCache.isEmpty {
+            memories = memoriesCache
+            return
+        }
+        
         var foundMemories: [Memory] = []
         let calendar = Calendar.current
 
@@ -204,6 +242,10 @@ class HomeViewModel: ObservableObject {
         }
 
         memories = foundMemories
+        
+        // Update cache
+        memoriesCache = foundMemories
+        lastLoadDate = Date()
     }
 
     private func findOvercomeMemory() -> Memory? {

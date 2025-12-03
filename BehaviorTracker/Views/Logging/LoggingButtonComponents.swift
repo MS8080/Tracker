@@ -29,28 +29,32 @@ struct CategoryButton: View {
             }
         }) {
             HStack(spacing: Spacing.lg) {
-                // Icon
+                // Icon - WHITE on glass circle background
                 Image(systemName: category.icon)
-                    .font(.system(size: 32, weight: .medium))
-                    .foregroundStyle(category.color)
+                    .font(.system(size: 28, weight: .medium))
+                    .foregroundStyle(.white)
                     .symbolEffect(.bounce, value: isPressed)
                     .frame(width: 44, height: 44)
+                    .background(
+                        Circle()
+                            .fill(category.color.opacity(0.3))
+                    )
 
                 // Text
                 Text(category.rawValue)
                     .font(.body)
                     .fontWeight(.semibold)
-                    .foregroundStyle(CardText.body)
+                    .foregroundStyle(.white)
                     .frame(maxWidth: .infinity, alignment: .leading)
 
                 // Chevron indicator
                 Image(systemName: "chevron.right")
                     .font(.system(size: 14, weight: .semibold))
-                    .foregroundStyle(CardText.muted)
+                    .foregroundStyle(.white.opacity(0.6))
             }
             .padding(.horizontal, Spacing.lg)
             .padding(.vertical, Spacing.lg)
-            .cardStyle(theme: theme)
+            .glassEffect(.regular.tint(category.color.opacity(0.2)).interactive())
         }
         .buttonStyle(.plain)
         .scaleEffect(isPressed ? 0.98 : 1.0)
@@ -85,27 +89,31 @@ struct FeelingFinderCategoryButton: View {
             }
         } label: {
             HStack(spacing: Spacing.lg) {
-                // Icon
+                // Icon - WHITE on glass circle
                 Image(systemName: "questionmark.circle.fill")
-                    .font(.system(size: 32, weight: .medium))
-                    .foregroundStyle(.mint)
+                    .font(.system(size: 28, weight: .medium))
+                    .foregroundStyle(.white)
                     .frame(width: 44, height: 44)
+                    .background(
+                        Circle()
+                            .fill(Color.mint.opacity(0.3))
+                    )
 
                 // Text
                 Text("Guided")
                     .font(.body)
                     .fontWeight(.semibold)
-                    .foregroundStyle(CardText.body)
+                    .foregroundStyle(.white)
                     .frame(maxWidth: .infinity, alignment: .leading)
 
                 // Chevron indicator
                 Image(systemName: "chevron.right")
                     .font(.system(size: 14, weight: .semibold))
-                    .foregroundStyle(CardText.muted)
+                    .foregroundStyle(.white.opacity(0.6))
             }
             .padding(.horizontal, Spacing.lg)
             .padding(.vertical, Spacing.lg)
-            .cardStyle(theme: theme)
+            .glassEffect(.regular.tint(Color.mint.opacity(0.2)).interactive())
         }
         .buttonStyle(.plain)
         .scaleEffect(isPressed ? 0.98 : 1.0)

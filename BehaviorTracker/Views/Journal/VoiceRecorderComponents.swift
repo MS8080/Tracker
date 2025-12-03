@@ -334,24 +334,29 @@ struct LiveWaveformView: View {
     }
 
     var body: some View {
-        TimelineView(.animation(minimumInterval: 0.05)) { timeline in
+        // Reduced animation frequency for better performance: 10 FPS instead of 20 FPS
+        TimelineView(.animation(minimumInterval: 0.1)) { timeline in
             Canvas { context, size in
                 let barWidth: CGFloat = 4
                 let spacing: CGFloat = 3
                 let totalWidth = CGFloat(barCount) * (barWidth + spacing) - spacing
                 let startX = (size.width - totalWidth) / 2
 
+                // Pre-calculate constants outside loop
+                let time = timeline.date.timeIntervalSinceReferenceDate
+                let levelFactor = Double(level) * 0.7 + 0.3
+                let minHeight: CGFloat = 4
+                let maxHeight = size.height - 4
+                let heightRange = maxHeight - minHeight
+                let centerIndex = Double(barCount) / 2
+
                 for i in 0..<barCount {
                     let x = startX + CGFloat(i) * (barWidth + spacing)
-                    let time = timeline.date.timeIntervalSinceReferenceDate
 
-                    let wavePhase = sin(time * 3 + Double(i) * 0.3 + phases[i])
-                    let levelFactor = Double(level) * 0.7 + 0.3
+                    // Simplified wave calculation
+                    let wavePhase = sin(time * 2.5 + Double(i) * 0.25 + phases[i])
                     let normalizedHeight = (wavePhase * 0.5 + 0.5) * levelFactor
-
-                    let minHeight: CGFloat = 4
-                    let maxHeight = size.height - 4
-                    let barHeight = minHeight + CGFloat(normalizedHeight) * (maxHeight - minHeight)
+                    let barHeight = minHeight + CGFloat(normalizedHeight) * heightRange
 
                     let rect = CGRect(
                         x: x,
@@ -363,13 +368,15 @@ struct LiveWaveformView: View {
                     let path = RoundedRectangle(cornerRadius: 2)
                         .path(in: rect)
 
-                    let centerDistance = abs(Double(i) - Double(barCount) / 2) / (Double(barCount) / 2)
+                    // Simplified opacity calculation
+                    let centerDistance = abs(Double(i) - centerIndex) / centerIndex
                     let opacity = 1.0 - centerDistance * 0.4
 
                     context.fill(path, with: .color(theme.primaryColor.opacity(opacity)))
                 }
             }
         }
+        .drawingGroup() // GPU acceleration for Canvas
     }
 }
 

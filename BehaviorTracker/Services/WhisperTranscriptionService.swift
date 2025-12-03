@@ -420,7 +420,7 @@ class WhisperTranscriptionService: ObservableObject {
             )
 
             let results = try await whisper.transcribe(audioPath: audioURL.path, decodeOptions: options)
-            var transcription = results.map { $0.text }.joined(separator: " ").trimmingCharacters(in: .whitespacesAndNewlines)
+            var transcription = results.map { $0.text }.joined(separator: " ").trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
 
             // Apply post-processing to correct medication names
             if !transcription.isEmpty {

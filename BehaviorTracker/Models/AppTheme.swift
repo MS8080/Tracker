@@ -322,144 +322,76 @@ enum AppTheme: String, CaseIterable, Identifiable {
 
 struct MeshGradientBackground: View {
     let theme: AppTheme
-    @State private var isVisible = true
 
     var body: some View {
         if #available(iOS 18.0, *) {
             // Layered liquid depth background
             ZStack {
-                // Base layer: Deep rich animated mesh gradient (OPTIMIZED: 10 FPS instead of 20)
-                TimelineView(.animation(minimumInterval: 1/10, paused: !isVisible)) { timeline in
-                    let time = timeline.date.timeIntervalSinceReferenceDate
-
-                    MeshGradient(
-                        width: 3,
-                        height: 3,
-                        points: meshPoints(time: time),
-                        colors: theme.meshColors
-                    )
-                }
+                // Base layer: Static mesh gradient (no animation for better performance)
+                MeshGradient(
+                    width: 3,
+                    height: 3,
+                    points: staticMeshPoints(),
+                    colors: theme.meshColors
+                )
                 .drawingGroup() // GPU acceleration for mesh gradient
 
-                // Layer 2: Top-left lighter pool (creates depth illusion) - REDUCED
+                // REDUCED LAYERS: Only 3 radial gradients instead of 7
+                // Layer 2: Top accent glow
                 RadialGradient(
                     colors: [
-                        theme.liquidDepthColors[0].opacity(0.30),
-                        theme.liquidDepthColors[0].opacity(0.10),
+                        theme.liquidDepthColors[0].opacity(0.25),
+                        theme.liquidDepthColors[0].opacity(0.08),
                         Color.clear
                     ],
                     center: UnitPoint(x: 0.15, y: 0.1),
                     startRadius: 0,
-                    endRadius: 380
+                    endRadius: 400
                 )
 
-                // Layer 3: Mid-right pool with plum tones - REDUCED
+                // Layer 3: Bottom depth pool
                 RadialGradient(
                     colors: [
-                        theme.liquidDepthColors[1].opacity(0.25),
-                        theme.liquidDepthColors[1].opacity(0.08),
+                        theme.liquidDepthColors[2].opacity(0.35),
+                        theme.liquidDepthColors[3].opacity(0.20),
                         Color.clear
                     ],
-                    center: UnitPoint(x: 0.85, y: 0.35),
+                    center: UnitPoint(x: 0.5, y: 1.2),
                     startRadius: 0,
-                    endRadius: 320
-                )
-
-                // Layer 4: Center-left mid-depth pool - REDUCED
-                RadialGradient(
-                    colors: [
-                        theme.liquidDepthColors[1].opacity(0.20),
-                        theme.liquidDepthColors[2].opacity(0.10),
-                        Color.clear
-                    ],
-                    center: UnitPoint(x: 0.25, y: 0.55),
-                    startRadius: 0,
-                    endRadius: 280
-                )
-
-                // Layer 5: Deep bottom pool (burgundy/plum depth) - REDUCED
-                RadialGradient(
-                    colors: [
-                        theme.liquidDepthColors[2].opacity(0.40),
-                        theme.liquidDepthColors[3].opacity(0.25),
-                        theme.liquidDepthColors[3].opacity(0.10),
-                        Color.clear
-                    ],
-                    center: UnitPoint(x: 0.5, y: 1.15),
-                    startRadius: 0,
-                    endRadius: 550
-                )
-
-                // Layer 6: Bottom corners - extra depth - REDUCED
-                RadialGradient(
-                    colors: [
-                        theme.liquidDepthColors[3].opacity(0.30),
-                        Color.clear
-                    ],
-                    center: UnitPoint(x: 0.0, y: 1.0),
-                    startRadius: 0,
-                    endRadius: 350
-                )
-
-                RadialGradient(
-                    colors: [
-                        theme.liquidDepthColors[3].opacity(0.30),
-                        Color.clear
-                    ],
-                    center: UnitPoint(x: 1.0, y: 1.0),
-                    startRadius: 0,
-                    endRadius: 350
-                )
-
-                // Layer 7: Edge vignette - VERY SOFT for text readability
-                RadialGradient(
-                    colors: [
-                        Color.clear,
-                        Color.clear,
-                        Color.black.opacity(0.08),
-                        Color.black.opacity(0.18)
-                    ],
-                    center: .center,
-                    startRadius: 180,
                     endRadius: 600
                 )
 
-                // Layer 8: Corner shadows for bezel blend - MUCH LIGHTER
+                // Layer 4: Subtle edge vignette
                 Rectangle()
                     .fill(
-                        EllipticalGradient(
-                            colors: [Color.clear, Color.black.opacity(0.10)],
+                        RadialGradient(
+                            colors: [Color.clear, Color.black.opacity(0.15)],
                             center: .center,
-                            startRadiusFraction: 0.4,
-                            endRadiusFraction: 0.85
+                            startRadius: 200,
+                            endRadius: 650
                         )
                     )
             }
-            .onAppear { isVisible = true }
-            .onDisappear { isVisible = false }
         } else {
             // iOS 17 fallback with layered liquid effect
             LiquidDepthFallback(theme: theme)
         }
     }
 
-    /// Generate animated mesh points with liquid motion
-    private func meshPoints(time: Double) -> [SIMD2<Float>] {
-        let t = Float(time)
-        let amplitude: Float = 0.06  // Subtle liquid movement
-
+    /// Generate static mesh points for consistent gradient shape
+    private func staticMeshPoints() -> [SIMD2<Float>] {
         return [
-            // Top row - corners fixed
+            // Top row
             SIMD2(0.0, 0.0),
-            SIMD2(0.5 + amplitude * sin(t * 0.32), amplitude * cos(t * 0.41)),
+            SIMD2(0.5, 0.0),
             SIMD2(1.0, 0.0),
-            // Middle row - gentle movement with organic variation
-            SIMD2(amplitude * sin(t * 0.37), 0.5 + amplitude * cos(t * 0.29)),
-            SIMD2(0.5 + amplitude * cos(t * 0.26), 0.5 + amplitude * sin(t * 0.31)),
-            SIMD2(1.0 - amplitude * sin(t * 0.34), 0.5 + amplitude * cos(t * 0.38)),
-            // Bottom row - corners fixed
+            // Middle row - slight organic variation for visual interest
+            SIMD2(0.0, 0.5),
+            SIMD2(0.5, 0.5),
+            SIMD2(1.0, 0.5),
+            // Bottom row
             SIMD2(0.0, 1.0),
-            SIMD2(0.5 + amplitude * cos(t * 0.30), 1.0 - amplitude * sin(t * 0.33)),
+            SIMD2(0.5, 1.0),
             SIMD2(1.0, 1.0)
         ]
     }
@@ -471,115 +403,52 @@ private struct LiquidDepthFallback: View {
     let theme: AppTheme
     @State private var animationPhase: Double = 0
     @State private var isVisible = true
+    @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
         ZStack {
             // Base layer: Rich multi-tone gradient background
             theme.gradient
 
-            // Layer 2: Top-left lighter pool - REDUCED
+            // REDUCED LAYERS: Only 3 animated gradients instead of 7
+            // Layer 2: Top accent (animated)
             RadialGradient(
                 colors: [
-                    theme.liquidDepthColors[0].opacity(0.30),
-                    theme.liquidDepthColors[0].opacity(0.12),
+                    theme.liquidDepthColors[0].opacity(0.25),
+                    theme.liquidDepthColors[0].opacity(0.10),
                     .clear
                 ],
                 center: UnitPoint(
-                    x: 0.15 + 0.08 * sin(animationPhase * 0.5),
-                    y: 0.1 + 0.04 * cos(animationPhase * 0.4)
+                    x: 0.15 + 0.06 * sin(animationPhase * 0.4),
+                    y: 0.1 + 0.03 * cos(animationPhase * 0.3)
                 ),
                 startRadius: 0,
-                endRadius: 380
+                endRadius: 400
             )
 
-            // Layer 3: Mid-right plum pool - REDUCED
+            // Layer 3: Bottom depth (animated)
             RadialGradient(
                 colors: [
-                    theme.liquidDepthColors[1].opacity(0.25),
-                    theme.liquidDepthColors[1].opacity(0.08),
+                    theme.liquidDepthColors[2].opacity(0.35),
+                    theme.liquidDepthColors[3].opacity(0.18),
                     .clear
                 ],
                 center: UnitPoint(
-                    x: 0.85 + 0.06 * cos(animationPhase * 0.45),
-                    y: 0.35 + 0.05 * sin(animationPhase * 0.5)
+                    x: 0.5 + 0.08 * sin(animationPhase * 0.35),
+                    y: 1.15 + 0.05 * cos(animationPhase * 0.4)
                 ),
                 startRadius: 0,
-                endRadius: 320
-            )
-
-            // Layer 4: Center-left depth - REDUCED
-            RadialGradient(
-                colors: [
-                    theme.liquidDepthColors[1].opacity(0.20),
-                    theme.liquidDepthColors[2].opacity(0.10),
-                    .clear
-                ],
-                center: UnitPoint(
-                    x: 0.25 + 0.07 * sin(animationPhase * 0.38),
-                    y: 0.55 + 0.05 * cos(animationPhase * 0.42)
-                ),
-                startRadius: 0,
-                endRadius: 280
-            )
-
-            // Layer 5: Deep bottom pool (burgundy/plum) - REDUCED
-            RadialGradient(
-                colors: [
-                    theme.liquidDepthColors[2].opacity(0.40),
-                    theme.liquidDepthColors[3].opacity(0.22),
-                    theme.liquidDepthColors[3].opacity(0.08),
-                    .clear
-                ],
-                center: UnitPoint(
-                    x: 0.5 + 0.1 * sin(animationPhase * 0.35),
-                    y: 1.15 + 0.06 * cos(animationPhase * 0.4)
-                ),
-                startRadius: 0,
-                endRadius: 550
-            )
-
-            // Layer 6: Bottom corners depth - REDUCED
-            RadialGradient(
-                colors: [
-                    theme.liquidDepthColors[3].opacity(0.28),
-                    .clear
-                ],
-                center: UnitPoint(x: 0.0, y: 1.0),
-                startRadius: 0,
-                endRadius: 350
-            )
-
-            RadialGradient(
-                colors: [
-                    theme.liquidDepthColors[3].opacity(0.28),
-                    .clear
-                ],
-                center: UnitPoint(x: 1.0, y: 1.0),
-                startRadius: 0,
-                endRadius: 350
-            )
-
-            // Layer 7: Edge vignette - VERY SOFT for text readability
-            RadialGradient(
-                colors: [
-                    Color.clear,
-                    Color.clear,
-                    Color.black.opacity(0.08),
-                    Color.black.opacity(0.18)
-                ],
-                center: .center,
-                startRadius: 180,
                 endRadius: 600
             )
 
-            // Layer 8: Corner shadows for bezel blend - MUCH LIGHTER
+            // Layer 4: Subtle vignette (static)
             Rectangle()
                 .fill(
-                    EllipticalGradient(
-                        colors: [Color.clear, Color.black.opacity(0.10)],
+                    RadialGradient(
+                        colors: [Color.clear, Color.black.opacity(0.15)],
                         center: .center,
-                        startRadiusFraction: 0.4,
-                        endRadiusFraction: 0.85
+                        startRadius: 200,
+                        endRadius: 650
                     )
                 )
         }
@@ -590,11 +459,17 @@ private struct LiquidDepthFallback: View {
         .onDisappear {
             isVisible = false
         }
+        .onChange(of: scenePhase) { _, newPhase in
+            if newPhase == .active && isVisible {
+                startAnimation()
+            }
+        }
     }
 
     private func startAnimation() {
-        guard isVisible else { return }
-        withAnimation(.linear(duration: 12).repeatForever(autoreverses: false)) {
+        guard isVisible && scenePhase == .active else { return }
+        // Slower animation: 16 seconds instead of 12
+        withAnimation(.linear(duration: 16).repeatForever(autoreverses: false)) {
             animationPhase = .pi * 2
         }
     }
@@ -636,84 +511,161 @@ struct BlueLightFilterModifier: ViewModifier {
     }
 }
 
-// MARK: - Liquid Glass Card Modifier
 
-struct LiquidGlassCardModifier: ViewModifier {
+
+// MARK: - True Liquid Glass Card Modifiers
+
+struct TrueLiquidGlassCardModifier: ViewModifier {
     let theme: AppTheme
     let cornerRadius: CGFloat
+    let isInteractive: Bool
+    @State private var isPressed = false
 
     func body(content: Content) -> some View {
         content
-            .background(cardStyle)
-            .shadow(color: theme.primaryColor.opacity(0.2), radius: 15, x: 0, y: 4)
-    }
-    
-    @ViewBuilder
-    private var cardStyle: some View {
-        ZStack {
-            // Subtle tinted background
-            RoundedRectangle(cornerRadius: cornerRadius)
-                .fill(theme.cardGlassTint.opacity(0.12))
+            .background(
+                ZStack {
+                    // True blur background
+                    RoundedRectangle(cornerRadius: cornerRadius)
+                        .fill(.ultraThinMaterial)
 
-            // Glass overlay
-            RoundedRectangle(cornerRadius: cornerRadius)
-                .fill(theme.cardBackground)
-        }
+                    // Theme-tinted overlay
+                    RoundedRectangle(cornerRadius: cornerRadius)
+                        .fill(theme.primaryColor.opacity(0.15))
+                        .blendMode(.plusLighter)
+                }
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: cornerRadius)
+                    .strokeBorder(
+                        LinearGradient(
+                            colors: [
+                                Color.white.opacity(isPressed ? 0.25 : 0.15),
+                                Color.white.opacity(isPressed ? 0.12 : 0.08),
+                                theme.primaryColor.opacity(0.05),
+                                Color.clear,
+                                Color.clear
+                            ],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        ),
+                        lineWidth: 1
+                    )
+            )
+            .shadow(
+                color: Color.black.opacity(isPressed ? 0.2 : 0.1),
+                radius: isPressed ? 8 : 4,
+                x: 0,
+                y: isPressed ? 4 : 2
+            )
+            .scaleEffect(isPressed && isInteractive ? 0.98 : 1.0)
+            .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isPressed)
+            .simultaneousGesture(
+                isInteractive ?
+                DragGesture(minimumDistance: 0)
+                    .onChanged { _ in isPressed = true }
+                    .onEnded { _ in isPressed = false }
+                : nil
+            )
     }
 }
 
-// MARK: - Compact Liquid Glass Card Modifier
-
-struct CompactLiquidGlassCardModifier: ViewModifier {
+struct TrueLiquidGlassCompactModifier: ViewModifier {
     let theme: AppTheme
 
     func body(content: Content) -> some View {
         content
-            .background(cardStyle)
-            .shadow(color: theme.primaryColor.opacity(0.15), radius: 12, x: 0, y: 4)
-    }
-    
-    @ViewBuilder
-    private var cardStyle: some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: CornerRadius.md)
-                .fill(theme.cardGlassTint.opacity(0.08))
+            .background(
+                ZStack {
+                    RoundedRectangle(cornerRadius: CornerRadius.md)
+                        .fill(.ultraThinMaterial)
 
-            RoundedRectangle(cornerRadius: CornerRadius.md)
-                .fill(theme.cardBackground)
-        }
+                    RoundedRectangle(cornerRadius: CornerRadius.md)
+                        .fill(theme.primaryColor.opacity(0.12))
+                        .blendMode(.plusLighter)
+                }
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: CornerRadius.md)
+                    .strokeBorder(
+                        LinearGradient(
+                            colors: [
+                                Color.white.opacity(0.15),
+                                Color.white.opacity(0.06),
+                                theme.primaryColor.opacity(0.04),
+                                Color.clear,
+                                Color.clear
+                            ],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        ),
+                        lineWidth: 0.5
+                    )
+            )
+            .shadow(color: Color.black.opacity(0.08), radius: 6, x: 0, y: 2)
     }
 }
 
-// MARK: - Focusable Liquid Glass Card Modifier
-
-struct FocusableLiquidGlassCardModifier: ViewModifier {
+struct TrueLiquidGlassFocusableModifier: ViewModifier {
     let theme: AppTheme
     let cornerRadius: CGFloat
     let isFocused: Bool
-
+    @State private var isPressed = false
+    
     func body(content: Content) -> some View {
         content
-            .background(cardStyle)
-            .shadow(
-                color: isFocused ? theme.primaryColor.opacity(0.35) : theme.primaryColor.opacity(0.15),
-                radius: isFocused ? 20 : 12,
-                x: 0,
-                y: isFocused ? 6 : 4
+            .background(
+                ZStack {
+                    RoundedRectangle(cornerRadius: cornerRadius)
+                        .fill(.ultraThinMaterial)
+                    
+                    RoundedRectangle(cornerRadius: cornerRadius)
+                        .fill(theme.primaryColor.opacity(isFocused ? 0.25 : 0.15))
+                        .blendMode(.plusLighter)
+                    
+                    // Extra glow when focused
+                    if isFocused {
+                        RoundedRectangle(cornerRadius: cornerRadius)
+                            .fill(
+                                RadialGradient(
+                                    colors: [
+                                        theme.primaryColor.opacity(0.3),
+                                        Color.clear
+                                    ],
+                                    center: .center,
+                                    startRadius: 0,
+                                    endRadius: 200
+                                )
+                            )
+                            .blendMode(.screen)
+                    }
+                }
             )
-            .scaleEffect(isFocused ? 1.0 : 0.98)
-    }
-    
-    @ViewBuilder
-    private var cardStyle: some View {
-        ZStack {
-            // More tint when focused
-            RoundedRectangle(cornerRadius: cornerRadius)
-                .fill(theme.cardGlassTint.opacity(isFocused ? 0.18 : 0.12))
-
-            RoundedRectangle(cornerRadius: cornerRadius)
-                .fill(theme.cardBackground)
-        }
+            .overlay(
+                RoundedRectangle(cornerRadius: cornerRadius)
+                    .strokeBorder(
+                        LinearGradient(
+                            colors: [
+                                Color.white.opacity(isFocused ? 0.3 : 0.15),
+                                Color.white.opacity(isFocused ? 0.15 : 0.08),
+                                theme.primaryColor.opacity(isFocused ? 0.08 : 0.05),
+                                Color.clear,
+                                Color.clear
+                            ],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        ),
+                        lineWidth: isFocused ? 1.5 : 1
+                    )
+            )
+            .shadow(
+                color: Color.black.opacity(isFocused ? 0.15 : 0.1),
+                radius: isFocused ? 10 : 4,
+                x: 0,
+                y: isFocused ? 4 : 2
+            )
+            .scaleEffect(isFocused ? 1.02 : 0.98)
+            .animation(.spring(response: 0.35, dampingFraction: 0.7), value: isFocused)
     }
 }
 
@@ -728,18 +680,18 @@ extension View {
         modifier(BlueLightFilterModifier())
     }
 
-    /// Standard card style - liquid glass with theme integration
-    func cardStyle(theme: AppTheme, cornerRadius: CGFloat = CornerRadius.lg) -> some View {
-        modifier(LiquidGlassCardModifier(theme: theme, cornerRadius: cornerRadius))
+    /// True Liquid Glass card style - uses real blur and interactive effects
+    func cardStyle(theme: AppTheme, cornerRadius: CGFloat = CornerRadius.lg, interactive: Bool = false) -> some View {
+        modifier(TrueLiquidGlassCardModifier(theme: theme, cornerRadius: cornerRadius, isInteractive: interactive))
     }
 
-    /// Compact card style - simplified liquid glass for list items
+    /// Compact Liquid Glass style - simplified for list items
     func compactCardStyle(theme: AppTheme) -> some View {
-        modifier(CompactLiquidGlassCardModifier(theme: theme))
+        modifier(TrueLiquidGlassCompactModifier(theme: theme))
     }
     
-    /// Focusable card style - dynamic appearance based on focus state
+    /// Focusable Liquid Glass card style - dynamic appearance based on focus state
     func focusableCardStyle(theme: AppTheme, cornerRadius: CGFloat = CornerRadius.lg, isFocused: Bool = false) -> some View {
-        modifier(FocusableLiquidGlassCardModifier(theme: theme, cornerRadius: cornerRadius, isFocused: isFocused))
+        modifier(TrueLiquidGlassFocusableModifier(theme: theme, cornerRadius: cornerRadius, isFocused: isFocused))
     }
 }

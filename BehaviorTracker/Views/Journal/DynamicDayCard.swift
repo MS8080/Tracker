@@ -7,7 +7,6 @@ struct DynamicDayCard: View {
     let entries: [JournalEntry]
     let theme: AppTheme
     var isExpanded: Bool = false
-    var isFocused: Bool = false
     var namespace: Namespace.ID
     let onEntryTap: (JournalEntry) -> Void
     let onToggleFavorite: (JournalEntry) -> Void
@@ -102,7 +101,7 @@ struct DynamicDayCard: View {
         VStack(alignment: .leading, spacing: Spacing.md) {
             // Date Header
             Text(dateHeader)
-                .font(isFocused ? .title : .title3)
+                .font(isExpanded ? .title : .title3)
                 .fontWeight(.bold)
                 .foregroundStyle(.white.opacity(0.95))
                 .padding(.leading, 4)
@@ -157,10 +156,10 @@ struct DynamicDayCard: View {
         }
         .padding(isExpanded ? Spacing.lg : Spacing.md)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .focusableCardStyle(
+        .cardStyle(
             theme: theme,
-            cornerRadius: isFocused ? CornerRadius.lg : CornerRadius.md,
-            isFocused: isFocused
+            cornerRadius: isExpanded ? CornerRadius.lg : CornerRadius.md,
+            interactive: false
         )
         .contentShape(Rectangle())
         .onTapGesture {

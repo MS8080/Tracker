@@ -30,8 +30,6 @@ struct HomeView: View {
                             streakCard
                         }
 
-                        CurrentSetupCard()
-
                         if viewModel.hasTodayEntries {
                             daySummaryButton
                         }
@@ -43,6 +41,8 @@ struct HomeView: View {
                         if !viewModel.memories.isEmpty {
                             memoriesSection
                         }
+
+                        CurrentSetupCard()
                     }
                     .padding(.horizontal, Spacing.lg)
                     .padding(.vertical, Spacing.lg)
@@ -92,24 +92,28 @@ struct HomeView: View {
                 Text("Tracking Streak")
                     .font(.title3)
                     .fontWeight(.bold)
-                    .foregroundStyle(CardText.title)
+                    .foregroundStyle(.white)
 
                 Text("Keep it up! You've been tracking for \(viewModel.currentStreak) days in a row.")
                     .font(.subheadline)
-                    .foregroundStyle(CardText.secondary)
+                    .foregroundStyle(.white.opacity(0.85))
                     .fixedSize(horizontal: false, vertical: true)
 
                 if viewModel.currentStreak >= 7 {
-                    Text("You've reached your weekly goal!")
-                        .font(.caption)
-                        .foregroundStyle(.green)
+                    HStack(spacing: 4) {
+                        Image(systemName: "checkmark.circle.fill")
+                            .foregroundStyle(.green)
+                        Text("Weekly goal reached!")
+                            .font(.caption)
+                            .foregroundStyle(.green)
+                    }
                 }
             }
 
             Spacer()
         }
         .padding(Spacing.xl)
-        .cardStyle(theme: theme)
+        .cardStyle(theme: theme, interactive: true)
     }
 
     // MARK: - Day Summary Button
@@ -120,31 +124,37 @@ struct HomeView: View {
             HapticFeedback.medium.trigger()
         } label: {
             HStack(spacing: Spacing.md) {
-                Image(systemName: "play.circle.fill")
-                    .font(.title2)
-                    .foregroundStyle(.cyan)
-                    .frame(width: TouchTarget.recommended, height: TouchTarget.recommended)
+                ZStack {
+                    Circle()
+                        .fill(Color.cyan.opacity(0.2))
+                        .frame(width: TouchTarget.recommended, height: TouchTarget.recommended)
+                    
+                    Image(systemName: "play.circle.fill")
+                        .font(.title2)
+                        .foregroundStyle(.cyan)
+                }
 
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Your Day So Far")
                         .font(.title3)
                         .fontWeight(.bold)
-                        .foregroundStyle(CardText.body)
+                        .foregroundStyle(.white)
 
                     Text("Tap to see a summary")
                         .font(.caption)
-                        .foregroundStyle(CardText.caption)
+                        .foregroundStyle(.white.opacity(0.7))
                 }
 
                 Spacer()
 
                 Image(systemName: "chevron.right")
                     .font(.caption)
-                    .foregroundStyle(CardText.muted)
+                    .foregroundStyle(.white.opacity(0.5))
+                    .padding(.trailing, 4)
             }
             .padding(Spacing.lg)
             .frame(minHeight: TouchTarget.recommended)
-            .cardStyle(theme: theme)
+            .cardStyle(theme: theme, interactive: false)
         }
         .buttonStyle(.plain)
     }
@@ -228,9 +238,15 @@ struct HomeView: View {
     private var savedMessageBanner: some View {
         VStack(spacing: Spacing.sm) {
             HStack(spacing: Spacing.md) {
-                Image(systemName: "sparkles")
-                    .font(.title2)
-                    .foregroundStyle(.yellow)
+                ZStack {
+                    Circle()
+                        .fill(Color.yellow.opacity(0.25))
+                        .frame(width: 44, height: 44)
+                    
+                    Image(systemName: "sparkles")
+                        .font(.title2)
+                        .foregroundStyle(.yellow)
+                }
 
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Saved to Journal!")
@@ -257,15 +273,39 @@ struct HomeView: View {
             }
             .padding(Spacing.lg)
             .background(
-                RoundedRectangle(cornerRadius: CornerRadius.lg)
-                    .fill(
-                        LinearGradient(
-                            colors: [theme.primaryColor.opacity(0.8), theme.primaryColor.opacity(0.6)],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
+                ZStack {
+                    RoundedRectangle(cornerRadius: CornerRadius.lg)
+                        .fill(.ultraThinMaterial)
+                    
+                    RoundedRectangle(cornerRadius: CornerRadius.lg)
+                        .fill(
+                            LinearGradient(
+                                colors: [
+                                    theme.primaryColor.opacity(0.5),
+                                    theme.primaryColor.opacity(0.3)
+                                ],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
                         )
-                    )
-                    .shadow(color: .black.opacity(0.3), radius: 12, x: 0, y: 4)
+                        .blendMode(.plusLighter)
+                }
+                .overlay(
+                    RoundedRectangle(cornerRadius: CornerRadius.lg)
+                        .strokeBorder(
+                            LinearGradient(
+                                colors: [
+                                    Color.white.opacity(0.5),
+                                    Color.white.opacity(0.2),
+                                    theme.primaryColor.opacity(0.3)
+                                ],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ),
+                            lineWidth: 1
+                        )
+                )
+                .shadow(color: theme.primaryColor.opacity(0.4), radius: 20, x: 0, y: 8)
             )
         }
         .padding(.horizontal, Spacing.lg)
@@ -277,23 +317,30 @@ struct HomeView: View {
     private func recentContextCard(_ context: RecentContext) -> some View {
         VStack(alignment: .leading, spacing: Spacing.md) {
             HStack(spacing: Spacing.sm) {
-                Image(systemName: context.icon)
-                    .font(.title3)
-                    .foregroundStyle(.yellow)
+                ZStack {
+                    Circle()
+                        .fill(Color.yellow.opacity(0.2))
+                        .frame(width: 36, height: 36)
+                    
+                    Image(systemName: context.icon)
+                        .font(.title3)
+                        .foregroundStyle(.yellow)
+                }
+                
                 Text("Recently")
                     .font(.title3)
                     .fontWeight(.bold)
-                    .foregroundStyle(CardText.title)
+                    .foregroundStyle(.white)
             }
 
             Text(context.message)
                 .font(.body)
-                .foregroundStyle(CardText.body)
+                .foregroundStyle(.white.opacity(0.85))
 
             if let timeAgo = context.timeAgo {
                 Text(timeAgo)
                     .font(.caption)
-                    .foregroundStyle(CardText.caption)
+                    .foregroundStyle(.white.opacity(0.6))
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -312,21 +359,28 @@ struct HomeView: View {
     private func memoryCard(_ memory: Memory) -> some View {
         VStack(alignment: .leading, spacing: Spacing.sm) {
             HStack(spacing: Spacing.sm) {
-                Image(systemName: "clock.arrow.circlepath")
-                    .font(.title3)
-                    .foregroundStyle(.mint)
+                ZStack {
+                    Circle()
+                        .fill(Color.mint.opacity(0.2))
+                        .frame(width: 36, height: 36)
+                    
+                    Image(systemName: "clock.arrow.circlepath")
+                        .font(.title3)
+                        .foregroundStyle(.mint)
+                }
+                
                 Text(memory.timeframe)
                     .font(.title3)
                     .fontWeight(.bold)
-                    .foregroundStyle(CardText.title)
+                    .foregroundStyle(.white)
             }
 
             Text(memory.description)
                 .font(.body)
-                .foregroundStyle(CardText.body)
+                .foregroundStyle(.white.opacity(0.85))
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(Spacing.lg)
+        .padding(Spacing.lg) 
         .cardStyle(theme: theme)
     }
 }
