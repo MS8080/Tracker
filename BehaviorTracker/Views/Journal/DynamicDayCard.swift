@@ -348,24 +348,6 @@ struct ExpandedDayContentView: View {
                     )
                 }
             }
-
-            // Day actions
-            HStack(spacing: Spacing.md) {
-                Button {
-                    onAnalyzeDay(entries, date)
-                } label: {
-                    Label("Analyze This Day", systemImage: "sparkles")
-                        .font(.subheadline)
-                        .fontWeight(.medium)
-                        .foregroundStyle(.white)
-                        .padding()
-                        .frame(maxWidth: .infinity)
-                        .background(
-                            RoundedRectangle(cornerRadius: CornerRadius.md)
-                                .fill(theme.primaryColor)
-                        )
-                }
-            }
         }
     }
 }
@@ -403,7 +385,6 @@ struct ExpandedTimelineEntry: View {
                         Rectangle()
                             .fill(theme.timelineColor.opacity(0.5))
                             .frame(width: 2)
-                            .frame(maxHeight: .infinity)
                     }
                 }
                 .frame(width: 14)
@@ -430,69 +411,6 @@ struct ExpandedTimelineEntry: View {
                         .lineSpacing(6)
                         .foregroundStyle(.primary.opacity(0.9))
 
-                    // Actions - larger, more visible buttons
-                    HStack(spacing: Spacing.lg) {
-                        Button {
-                            HapticFeedback.light.trigger()
-                            onToggleFavorite()
-                        } label: {
-                            HStack(spacing: Spacing.xs) {
-                                Image(systemName: entry.isFavorite ? "star.fill" : "star")
-                                    .font(.system(size: 16, weight: .medium))
-                                Text(entry.isFavorite ? "Favorited" : "Favorite")
-                                    .font(.subheadline)
-                                    .fontWeight(.medium)
-                            }
-                            .foregroundStyle(entry.isFavorite ? .yellow : .white.opacity(0.8))
-                            .padding(.horizontal, Spacing.md)
-                            .padding(.vertical, Spacing.sm)
-                            .background(
-                                Capsule()
-                                    .fill(entry.isFavorite ? Color.yellow.opacity(0.15) : Color.white.opacity(0.1))
-                            )
-                        }
-
-                        Button {
-                            HapticFeedback.light.trigger()
-                            onSpeak()
-                        } label: {
-                            HStack(spacing: Spacing.xs) {
-                                Image(systemName: "speaker.wave.2")
-                                    .font(.system(size: 16, weight: .medium))
-                                Text("Read")
-                                    .font(.subheadline)
-                                    .fontWeight(.medium)
-                            }
-                            .foregroundStyle(.white.opacity(0.8))
-                            .padding(.horizontal, Spacing.md)
-                            .padding(.vertical, Spacing.sm)
-                            .background(
-                                Capsule()
-                                    .fill(Color.white.opacity(0.1))
-                            )
-                        }
-
-                        Button {
-                            HapticFeedback.light.trigger()
-                            onAnalyze()
-                        } label: {
-                            HStack(spacing: Spacing.xs) {
-                                Image(systemName: "sparkles")
-                                    .font(.system(size: 16, weight: .medium))
-                                Text("Analyze")
-                                    .font(.subheadline)
-                                    .fontWeight(.medium)
-                            }
-                            .foregroundStyle(.white.opacity(0.8))
-                            .padding(.horizontal, Spacing.md)
-                            .padding(.vertical, Spacing.sm)
-                            .background(
-                                Capsule()
-                                    .fill(Color.white.opacity(0.1))
-                            )
-                        }
-                    }
-                    .padding(.top, Spacing.xs)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.bottom, isLast ? 0 : Spacing.xxl)

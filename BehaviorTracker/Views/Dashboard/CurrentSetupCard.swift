@@ -16,7 +16,7 @@ struct CurrentSetupCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.md) {
             // Header
-            HStack(spacing: Spacing.sm) {
+            HStack(spacing: Spacing.xs) {
                 Image(systemName: "gearshape.2.fill")
                     .font(.title2)
                     .foregroundStyle(.orange)
