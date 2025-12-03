@@ -58,16 +58,15 @@ struct DynamicDayCard: View {
     /// Maximum lines to show for entry preview
     private func lineLimitForEntry(_ entry: JournalEntry) -> Int {
         if isExpanded {
-            return 5
+            return 10
         }
 
+        // In timeline view, limit long entries to 2 lines max
         let contentLength = entry.content.count
-        if contentLength < 50 {
-            return 1
-        } else if contentLength < 150 {
+        if contentLength < 80 {
             return 2
         } else {
-            return 3
+            return 2  // Max 2 lines for long entries to avoid boring scrolling
         }
     }
 
@@ -253,17 +252,59 @@ struct AdaptiveTimelineEntry: View {
                         Text(title)
                             .font(isExpanded ? .callout : .caption)
                             .fontWeight(.semibold)
-                            .foregroundStyle(.primary.opacity(0.95))
+                            .foregroundStyle(.white.opacity(0.95))
                             .lineLimit(1)
                     }
 
-                    // Content preview
+                    // Content preview with better readability
                     Text(entry.preview)
-                        .font(isExpanded ? .callout : .caption2)
-                        .lineSpacing(isExpanded ? 4 : 2)
-                        .foregroundStyle(.primary.opacity(0.85))
+                        .font(isExpanded ? .callout : .caption)
+                        .lineSpacing(isExpanded ? 4 : 3)
+                        .foregroundStyle(.white.opacity(0.85))
                         .lineLimit(lineLimit)
                         .multilineTextAlignment(.leading)
+                        .fixedSize(horizontal: false, vertical: true)
+
+                    // Show "Read more..." for truncated long entries
+                    if !isExpanded && entry.content.count > 150 {
+                        Text("Read more...")
+                            .font(.caption2)
+                            .foregroundStyle(theme.primaryColor.opacity(0.8))
+                            .padding(.top, 2)
+                    }
+
+                    // Action buttons (only in timeline, not expanded)
+                    if !isExpanded {
+                        HStack(spacing: Spacing.md) {
+                            // Favorite button
+                            Button {
+                                onToggleFavorite()
+                            } label: {
+                                Image(systemName: entry.isFavorite ? "star.fill" : "star")
+                                    .font(.system(size: 16, weight: .medium))
+                                    .foregroundStyle(entry.isFavorite ? .yellow : .white.opacity(0.6))
+                            }
+
+                            // Analyze button
+                            Button {
+                                onAnalyze()
+                            } label: {
+                                Image(systemName: "sparkles")
+                                    .font(.system(size: 16, weight: .medium))
+                                    .foregroundStyle(.white.opacity(0.6))
+                            }
+
+                            // Speak button
+                            Button {
+                                onSpeak()
+                            } label: {
+                                Image(systemName: "speaker.wave.2")
+                                    .font(.system(size: 16, weight: .medium))
+                                    .foregroundStyle(.white.opacity(0.6))
+                            }
+                        }
+                        .padding(.top, Spacing.sm)
+                    }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.bottom, isLast ? 0 : spacing)
@@ -271,13 +312,6 @@ struct AdaptiveTimelineEntry: View {
                 .onTapGesture {
                     HapticFeedback.light.trigger()
                     onTap()
-                }
-
-                // Favorite indicator
-                if entry.isFavorite {
-                    Image(systemName: "star.fill")
-                        .foregroundStyle(SemanticColor.warning)
-                        .font(.caption2)
                 }
             }
         }

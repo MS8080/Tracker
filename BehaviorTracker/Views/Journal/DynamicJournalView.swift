@@ -13,9 +13,6 @@ struct DynamicJournalView: View {
     @State private var dayToAnalyze: DayAnalysisData?
     @State private var isSearching = false
     @State private var expandedDayDate: Date?
-    @State private var scrollOffset: CGFloat = 0
-    @State private var showDateScrubber = false
-    @State private var scrubberDate: Date = Date()
     @State private var viewMode: ViewMode = .focused
 
     @Binding var showingProfile: Bool
@@ -55,11 +52,6 @@ struct DynamicJournalView: View {
                     emptyStateView
                 } else {
                     mainContentView
-                }
-
-                // Date scrubber overlay
-                if showDateScrubber {
-                    dateScrubberOverlay
                 }
 
                 // Floating Action Button
@@ -241,18 +233,6 @@ struct DynamicJournalView: View {
                 }
                 .padding()
             }
-            .simultaneousGesture(
-                DragGesture(minimumDistance: 0)
-                    .onChanged { value in
-                        // Detect fast scrolling for date scrubber
-                        let velocity = value.predictedEndTranslation.height - value.translation.height
-                        if abs(velocity) > 1000 {
-                            withAnimation {
-                                showDateScrubber = true
-                            }
-                        }
-                    }
-            )
         }
         .sheet(item: $entryToAnalyze) { entry in
             JournalEntryAnalysisView(entry: entry)
@@ -324,45 +304,6 @@ struct DynamicJournalView: View {
                         .padding()
                 }
                 .padding(.top, 8)
-            }
-        }
-    }
-
-    // MARK: - Date Scrubber Overlay
-
-    private var dateScrubberOverlay: some View {
-        VStack {
-            Spacer()
-
-            HStack {
-                Spacer()
-
-                VStack(spacing: Spacing.xs) {
-                    Text(scrubberDate, style: .date)
-                        .font(.headline)
-                        .fontWeight(.bold)
-                    Text(scrubberDate, format: .dateTime.year())
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-                .padding()
-                .background(
-                    RoundedRectangle(cornerRadius: CornerRadius.md)
-                        .fill(.ultraThinMaterial)
-                        .shadow(radius: 20)
-                )
-                .padding()
-
-                Spacer()
-            }
-        }
-        .transition(.opacity.combined(with: .scale))
-        .onAppear {
-            // Auto-hide after delay
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                withAnimation {
-                    showDateScrubber = false
-                }
             }
         }
     }

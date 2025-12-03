@@ -133,14 +133,14 @@ private enum ThemeColorToken {
         )
     }
 
-    /// Gradient bottom color - deep but not harsh
+    /// Gradient bottom color - brighter for text readability
     static func gradientBottom(for theme: AppTheme) -> HSLColor {
-        // Deep, rich bottom - shift toward red/burgundy for depth
+        // Brighter bottom for better text visibility
         let hueShift = theme == .burgundy ? -18.0 : (theme == .purple ? 15.0 : 0.0)
         return HSLColor(
             hue: (baseHue(for: theme) + hueShift + 360).truncatingRemainder(dividingBy: 360),
-            saturation: baseSaturation(for: theme) * 0.35, // Reduced from high saturation
-            lightness: 0.12 // Very dark
+            saturation: baseSaturation(for: theme) * 0.45, // Increased from 0.35
+            lightness: 0.20 // Brighter from 0.12 for better readability
         )
     }
 }
@@ -271,31 +271,31 @@ enum AppTheme: String, CaseIterable, Identifiable {
         switch self {
         case .purple:
             return (
-                [0.36, 0.34, 0.32, 0.28, 0.24, 0.22, 0.16, 0.13, 0.10],
+                [0.36, 0.34, 0.32, 0.28, 0.25, 0.23, 0.20, 0.18, 0.16],  // Brighter bottom row
                 [0.80, 0.82, 0.78, 0.85, 0.88, 0.85, 0.75, 0.70, 0.60],
                 [-5, 0, 5, 8, 12, 10, 15, 18, 20]  // Shift toward plum at bottom
             )
         case .burgundy:
             return (
-                [0.34, 0.32, 0.30, 0.26, 0.22, 0.20, 0.14, 0.11, 0.09],
+                [0.34, 0.32, 0.30, 0.26, 0.23, 0.21, 0.18, 0.16, 0.14],  // Brighter bottom row
                 [0.78, 0.80, 0.76, 0.82, 0.85, 0.82, 0.70, 0.65, 0.55],
                 [5, 0, -5, -8, -12, -10, -15, -18, -20]  // Shift toward wine at bottom
             )
         case .amber:
             return (
-                [0.38, 0.35, 0.32, 0.30, 0.27, 0.24, 0.22, 0.20, 0.18],
+                [0.38, 0.35, 0.32, 0.30, 0.28, 0.26, 0.24, 0.22, 0.20],  // Brighter bottom row
                 [0.85, 0.82, 0.80, 0.88, 0.85, 0.82, 0.80, 0.78, 0.75],
                 [-5, 0, 5, -3, 0, 3, -2, 0, 2]
             )
         case .green:
             return (
-                [0.35, 0.33, 0.31, 0.28, 0.25, 0.22, 0.17, 0.14, 0.11],
+                [0.35, 0.33, 0.31, 0.28, 0.26, 0.24, 0.21, 0.19, 0.17],  // Brighter bottom row
                 standardSatMult,
                 standardHueOffsets
             )
         default:  // Blue/Grey
             return (
-                [0.38, 0.35, 0.32, 0.30, 0.27, 0.24, 0.22, 0.20, 0.18],
+                [0.38, 0.35, 0.32, 0.30, 0.28, 0.26, 0.24, 0.22, 0.20],  // Brighter bottom row
                 [0.80, 0.78, 0.76, 0.82, 0.80, 0.78, 0.76, 0.74, 0.70],
                 [-5, 0, 5, -3, 0, 3, -2, 0, 2]
             )
@@ -411,24 +411,24 @@ struct MeshGradientBackground: View {
                     endRadius: 350
                 )
 
-                // Layer 7: Edge vignette - SOFTENED for less visual noise
+                // Layer 7: Edge vignette - VERY SOFT for text readability
                 RadialGradient(
                     colors: [
                         Color.clear,
                         Color.clear,
-                        Color.black.opacity(0.15),
-                        Color.black.opacity(0.35)
+                        Color.black.opacity(0.08),
+                        Color.black.opacity(0.18)
                     ],
                     center: .center,
-                    startRadius: 150,
-                    endRadius: 550
+                    startRadius: 180,
+                    endRadius: 600
                 )
 
-                // Layer 8: Corner shadows for bezel blend - LIGHTENED
+                // Layer 8: Corner shadows for bezel blend - MUCH LIGHTER
                 Rectangle()
                     .fill(
                         EllipticalGradient(
-                            colors: [Color.clear, Color.black.opacity(0.20)],
+                            colors: [Color.clear, Color.black.opacity(0.10)],
                             center: .center,
                             startRadiusFraction: 0.4,
                             endRadiusFraction: 0.85
@@ -559,24 +559,24 @@ private struct LiquidDepthFallback: View {
                 endRadius: 350
             )
 
-            // Layer 7: Edge vignette - SOFTENED
+            // Layer 7: Edge vignette - VERY SOFT for text readability
             RadialGradient(
                 colors: [
                     Color.clear,
                     Color.clear,
-                    Color.black.opacity(0.15),
-                    Color.black.opacity(0.35)
+                    Color.black.opacity(0.08),
+                    Color.black.opacity(0.18)
                 ],
                 center: .center,
-                startRadius: 150,
-                endRadius: 550
+                startRadius: 180,
+                endRadius: 600
             )
 
-            // Layer 8: Corner shadows for bezel blend - LIGHTENED
+            // Layer 8: Corner shadows for bezel blend - MUCH LIGHTER
             Rectangle()
                 .fill(
                     EllipticalGradient(
-                        colors: [Color.clear, Color.black.opacity(0.20)],
+                        colors: [Color.clear, Color.black.opacity(0.10)],
                         center: .center,
                         startRadiusFraction: 0.4,
                         endRadiusFraction: 0.85
