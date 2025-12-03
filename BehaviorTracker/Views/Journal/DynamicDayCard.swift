@@ -101,30 +101,10 @@ struct DynamicDayCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.lg) {
             // Date Header
-            HStack {
-                Text(dateHeader)
-                    .font(isFocused ? .title : .title3)
-                    .fontWeight(.bold)
-                    .foregroundStyle(.white.opacity(0.95))
-
-                Spacer()
-
-                // Entry count badge
-                HStack(spacing: Spacing.xs) {
-                    Image(systemName: "doc.text.fill")
-                        .font(.caption2)
-                    Text("\(entries.count)")
-                        .font(.caption)
-                        .fontWeight(.semibold)
-                }
-                .foregroundStyle(theme.primaryColor)
-                .padding(.horizontal, 10)
-                .padding(.vertical, 6)
-                .background(
-                    Capsule()
-                        .fill(theme.primaryColor.opacity(0.2))
-                )
-            }
+            Text(dateHeader)
+                .font(isFocused ? .title : .title3)
+                .fontWeight(.bold)
+                .foregroundStyle(.white.opacity(0.95))
 
             // Timeline Entries
             VStack(alignment: .leading, spacing: 0) {
