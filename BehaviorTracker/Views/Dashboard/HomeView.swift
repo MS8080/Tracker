@@ -166,7 +166,6 @@ struct HomeView: View {
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.top, Spacing.md)
     }
 
     // MARK: - What's Special Today
