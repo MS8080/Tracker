@@ -149,7 +149,7 @@ struct DynamicJournalView: View {
                                 }
                             }
                         )
-                        .padding(.horizontal)
+                        .padding(.horizontal, Spacing.lg)
                         .padding(.top, Spacing.xl)
 
                         // Subtle hint about other days
@@ -231,7 +231,8 @@ struct DynamicJournalView: View {
                         .id(dayGroup.date)
                     }
                 }
-                .padding()
+                .padding(.horizontal, Spacing.lg)
+                .padding(.vertical)
             }
         }
         .sheet(item: $entryToAnalyze) { entry in
@@ -287,7 +288,8 @@ struct DynamicJournalView: View {
                             }
                         )
                     }
-                    .padding()
+                    .padding(.horizontal, Spacing.lg)
+                    .padding(.vertical)
                     .padding(.top, 60)
                 }
 
