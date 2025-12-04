@@ -1,0 +1,190 @@
+import Foundation
+
+/// Pattern bank definition for AI analysis
+/// This defines all ASD/PDA patterns the AI should recognize and match
+enum PatternBank {
+
+    /// Full pattern bank prompt to embed in AI requests
+    static let prompt = """
+    You are an expert ASD/PDA pattern analyst. Analyze journal entries to extract behavioral patterns.
+
+    PATTERN CATEGORIES AND TYPES:
+
+    === SENSORY ===
+    - Sensory Overload: overwhelmed by sensory input, too much noise/light/touch/smell, need to escape
+    - Sensory Seeking/Stimming: seeking specific sensory input, stimming behaviors, pressure seeking
+    - Environmental Sensitivity: bothered by environment, temperature, lighting, sounds, smells
+    - Sensory Recovery Time: needing quiet/dark/alone time after sensory events
+
+    === EXECUTIVE FUNCTION ===
+    - Task Initiation Difficulty: can't start tasks, paralysis, knowing what to do but unable to begin
+    - Task Switching Challenge: difficulty changing activities, stuck on one thing, can't transition
+    - Time Blindness: losing track of time, surprised by how much time passed, always late
+    - Decision Fatigue: overwhelmed by choices, can't decide, exhausted from decisions
+    - Hyperfocus Session: deep focus on one thing, losing awareness of surroundings/time/needs
+
+    === ENERGY & REGULATION ===
+    - Energy/Spoon Level: overall energy, capacity for tasks, spoon theory reference
+    - Masking Intensity: hiding autistic traits, performing neurotypical, exhaustion from pretending
+    - Burnout Indicator: prolonged exhaustion, loss of skills, everything harder than usual
+    - Meltdown: emotional explosion, loss of control, intense overwhelm expressed outward
+    - Shutdown: going nonverbal, withdrawing, freezing, unable to respond or function
+    - Regulatory Stimming: stimming to regulate, self-soothing behaviors
+    - Emotional Overwhelm: intense emotions, can't process feelings, emotional flooding
+    - Rumination/Thought Loops: repetitive thoughts, can't stop thinking about something, mental loops
+    - Flow State Achieved: positive hyperfocus, productive, in the zone
+    - Authenticity Moment: feeling genuine, unmasked, comfortable being self
+
+    === SOCIAL & COMMUNICATION ===
+    - Social Interaction: any social contact, meeting people, conversations
+    - Social Recovery Needed: exhausted after socializing, need alone time
+    - Miscommunication: being misunderstood, misunderstanding others, unclear communication
+    - Communication Difficulty: hard to express thoughts, word finding, phone anxiety
+    - Processing Time Needed: need extra time to understand, delayed processing
+
+    === ROUTINE & CHANGE ===
+    - Routine Disruption: schedule changed, routine broken, unexpected events
+    - Transition Difficulty: hard time moving between activities or places
+    - Unexpected Change: plans changed, surprises, things not as expected
+    - Need for Sameness: wanting things to stay the same, comfort in routine
+    - Uncertainty Intolerance: anxiety about unknown, can't handle not knowing, need certainty
+
+    === DEMAND AVOIDANCE (PDA) ===
+    - Task Avoidance: avoiding tasks, procrastination driven by demand, resistance
+    - Internal Demand Struggle: own expectations feel like demands, self-imposed pressure
+    - External Demand Struggle: others' requests/expectations feel overwhelming
+    - Autonomy Need: need for control, resistance when autonomy threatened
+    - What Helped Complete Task: strategies that worked to overcome avoidance
+
+    === PHYSICAL & SLEEP ===
+    - Sleep Quality: how well slept, insomnia, sleep disturbances
+    - Appetite Change: eating more/less, food aversions, sensory food issues
+    - Physical Tension/Pain: body tension, headaches, jaw clenching, physical stress
+    - Digestive Issue: stomach problems, often stress-related
+
+    === SPECIAL INTERESTS ===
+    - Special Interest Engagement: time with special interest, joy from focused interest
+    - Difficulty Disengaging: can't stop activity, unable to transition away
+
+    ---
+
+    ANALYSIS INSTRUCTIONS:
+
+    1. Read the journal entry carefully
+    2. Identify ALL patterns present (there may be multiple)
+    3. For each pattern, determine:
+       - The exact pattern type from the list above
+       - Intensity (1-10 scale)
+       - Any triggers mentioned
+       - Time of day if mentioned
+       - Any coping strategies used
+
+    4. Identify CASCADES - patterns that led to other patterns:
+       - Example: "Sensory Overload" → "Shutdown"
+       - Example: "Routine Disruption" → "Uncertainty Intolerance" → "Meltdown"
+       - Include confidence score (0.0-1.0) for each connection
+
+    5. Extract any TRIGGERS mentioned (what caused the patterns)
+
+    6. Note the overall CONTEXT (time of day, location, who was present, etc.)
+
+    ---
+
+    RESPONSE FORMAT:
+
+    Return ONLY valid JSON with this exact structure:
+
+    {
+      "patterns": [
+        {
+          "type": "Pattern Type Name",
+          "category": "Category Name",
+          "intensity": 7,
+          "triggers": ["trigger1", "trigger2"],
+          "time_of_day": "morning|afternoon|evening|night|unknown",
+          "coping_used": ["strategy1"],
+          "details": "brief description of how this manifested"
+        }
+      ],
+      "cascades": [
+        {
+          "from": "Pattern Type Name",
+          "to": "Pattern Type Name",
+          "confidence": 0.85,
+          "description": "brief explanation of the connection"
+        }
+      ],
+      "triggers": ["overall trigger1", "overall trigger2"],
+      "context": {
+        "time_of_day": "morning|afternoon|evening|night|unknown",
+        "location": "home|work|public|social|unknown",
+        "social_context": "alone|with_family|with_friends|with_strangers|at_work|unknown",
+        "sleep_mentioned": true|false,
+        "medication_mentioned": true|false
+      },
+      "overall_intensity": 6,
+      "confidence": 0.8,
+      "summary": "One sentence summary of the entry's main theme"
+    }
+
+    IMPORTANT:
+    - Use EXACT pattern type names from the list above
+    - If no patterns found, return empty arrays
+    - If uncertain about a pattern, include it with lower confidence
+    - Always return valid JSON, nothing else
+    """
+
+    /// Mapping from AI response pattern names to PatternType enum
+    static let patternTypeMapping: [String: PatternType] = [
+        "Sensory Overload": .sensoryOverload,
+        "Sensory Seeking/Stimming": .sensorySeeking,
+        "Environmental Sensitivity": .environmentalSensitivity,
+        "Sensory Recovery Time": .sensoryRecovery,
+        "Task Initiation Difficulty": .taskInitiation,
+        "Task Switching Challenge": .taskSwitching,
+        "Time Blindness": .timeBlindness,
+        "Decision Fatigue": .decisionFatigue,
+        "Hyperfocus Session": .hyperfocus,
+        "Energy/Spoon Level": .energyLevel,
+        "Masking Intensity": .maskingIntensity,
+        "Burnout Indicator": .burnoutIndicator,
+        "Meltdown": .meltdown,
+        "Shutdown": .shutdown,
+        "Regulatory Stimming": .regulatoryStimming,
+        "Emotional Overwhelm": .emotionalOverwhelm,
+        "Rumination/Thought Loops": .rumination,
+        "Flow State Achieved": .flowState,
+        "Authenticity Moment": .authenticityMoment,
+        "Social Interaction": .socialInteraction,
+        "Social Recovery Needed": .socialRecovery,
+        "Miscommunication": .miscommunication,
+        "Communication Difficulty": .communicationDifficulty,
+        "Processing Time Needed": .processingTime,
+        "Routine Disruption": .routineDisruption,
+        "Transition Difficulty": .transitionDifficulty,
+        "Unexpected Change": .unexpectedChange,
+        "Need for Sameness": .samenessNeed,
+        "Uncertainty Intolerance": .uncertaintyIntolerance,
+        "Task Avoidance": .taskAvoidance,
+        "Internal Demand Struggle": .internalDemand,
+        "External Demand Struggle": .externalDemand,
+        "Autonomy Need": .autonomyNeed,
+        "What Helped Complete Task": .avoidanceStrategy,
+        "Sleep Quality": .sleepQuality,
+        "Appetite Change": .appetiteChange,
+        "Physical Tension/Pain": .physicalTension,
+        "Digestive Issue": .digestiveIssue,
+        "Special Interest Engagement": .specialInterest,
+        "Difficulty Disengaging": .disengagementDifficulty
+    ]
+
+    /// Get PatternType from AI response string
+    static func patternType(from string: String) -> PatternType? {
+        return patternTypeMapping[string]
+    }
+
+    /// All valid pattern type names for validation
+    static var validPatternNames: Set<String> {
+        Set(patternTypeMapping.keys)
+    }
+}

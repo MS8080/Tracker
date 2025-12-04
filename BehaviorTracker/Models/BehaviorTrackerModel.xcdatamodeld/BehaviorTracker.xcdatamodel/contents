@@ -1,5 +1,28 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="22758" systemVersion="23F79" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
+    <entity name="ExtractedPattern" representedClassName="ExtractedPattern" syncable="YES">
+        <attribute name="category" attributeType="String"/>
+        <attribute name="confidence" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="copingUsed" optional="YES" attributeType="String"/>
+        <attribute name="details" optional="YES" attributeType="String"/>
+        <attribute name="id" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="intensity" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="patternType" attributeType="String"/>
+        <attribute name="timeOfDay" optional="YES" attributeType="String"/>
+        <attribute name="timestamp" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="triggersData" optional="YES" attributeType="String"/>
+        <relationship name="cascadesFrom" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="PatternCascade" inverseName="fromPattern" inverseEntity="PatternCascade"/>
+        <relationship name="cascadesTo" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="PatternCascade" inverseName="toPattern" inverseEntity="PatternCascade"/>
+        <relationship name="journalEntry" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="JournalEntry" inverseName="extractedPatterns" inverseEntity="JournalEntry"/>
+    </entity>
+    <entity name="PatternCascade" representedClassName="PatternCascade" syncable="YES">
+        <attribute name="confidence" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="descriptionText" optional="YES" attributeType="String"/>
+        <attribute name="id" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="timestamp" attributeType="Date" usesScalarValueType="NO"/>
+        <relationship name="fromPattern" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="ExtractedPattern" inverseName="cascadesFrom" inverseEntity="ExtractedPattern"/>
+        <relationship name="toPattern" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="ExtractedPattern" inverseName="cascadesTo" inverseEntity="ExtractedPattern"/>
+    </entity>
     <entity name="Medication" representedClassName="Medication" syncable="YES">
         <attribute name="dosage" optional="YES" attributeType="String"/>
         <attribute name="frequency" attributeType="String"/>
@@ -45,13 +68,18 @@
         <relationship name="journalEntries" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="JournalEntry" inverseName="tags" inverseEntity="JournalEntry"/>
     </entity>
     <entity name="JournalEntry" representedClassName="JournalEntry" syncable="YES">
+        <attribute name="analysisConfidence" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="analysisSummary" optional="YES" attributeType="String"/>
         <attribute name="audioFileName" optional="YES" attributeType="String"/>
         <attribute name="content" attributeType="String"/>
         <attribute name="id" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="isAnalyzed" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
         <attribute name="isFavorite" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
         <attribute name="mood" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="overallIntensity" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="timestamp" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="title" optional="YES" attributeType="String"/>
+        <relationship name="extractedPatterns" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="ExtractedPattern" inverseName="journalEntry" inverseEntity="ExtractedPattern"/>
         <relationship name="relatedMedicationLog" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="MedicationLog" inverseName="journalEntries" inverseEntity="MedicationLog"/>
         <relationship name="relatedPatternEntry" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="PatternEntry" inverseName="journalEntries" inverseEntity="PatternEntry"/>
         <relationship name="tags" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Tag" inverseName="journalEntries" inverseEntity="Tag"/>

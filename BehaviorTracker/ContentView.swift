@@ -46,12 +46,19 @@ struct ContentView: View {
                 }
                 .tag(2)
 
+            PatternsView(showingProfile: $showingProfile)
+                .themedBackground()
+                .tabItem {
+                    Label("Patterns", systemImage: "point.topleft.down.to.point.bottomright.curvepath.fill")
+                }
+                .tag(3)
+
             ReportsView(showingProfile: $showingProfile)
                 .themedBackground()
                 .tabItem {
                     Label(NSLocalizedString("tab.reports", comment: ""), systemImage: "chart.bar.doc.horizontal")
                 }
-                .tag(3)
+                .tag(4)
         }
         .onAppear {
             configureTabBarAppearance()

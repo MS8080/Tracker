@@ -14,6 +14,13 @@ public class JournalEntry: NSManagedObject, Identifiable {
     @NSManaged public var relatedPatternEntry: PatternEntry?
     @NSManaged public var relatedMedicationLog: MedicationLog?
 
+    // AI Analysis fields
+    @NSManaged public var isAnalyzed: Bool
+    @NSManaged public var analysisConfidence: Double
+    @NSManaged public var analysisSummary: String?
+    @NSManaged public var overallIntensity: Int16
+    @NSManaged public var extractedPatterns: NSSet?
+
     var hasVoiceNote: Bool {
         guard let fileName = audioFileName, !fileName.isEmpty else { return false }
         return FileManager.default.fileExists(atPath: audioFileURL?.path ?? "")
@@ -82,4 +89,30 @@ extension JournalEntry {
 
     @objc(removeTags:)
     @NSManaged public func removeFromTags(_ values: NSSet)
+
+    // Extracted patterns accessors
+    @objc(addExtractedPatternsObject:)
+    @NSManaged public func addToExtractedPatterns(_ value: ExtractedPattern)
+
+    @objc(removeExtractedPatternsObject:)
+    @NSManaged public func removeFromExtractedPatterns(_ value: ExtractedPattern)
+
+    @objc(addExtractedPatterns:)
+    @NSManaged public func addToExtractedPatterns(_ values: NSSet)
+
+    @objc(removeExtractedPatterns:)
+    @NSManaged public func removeFromExtractedPatterns(_ values: NSSet)
+
+    /// Get extracted patterns as array
+    var patternsArray: [ExtractedPattern] {
+        let set = extractedPatterns as? Set<ExtractedPattern> ?? []
+        return Array(set).sorted { $0.timestamp < $1.timestamp }
+    }
+
+    /// Check if entry has any cascades
+    var hasCascades: Bool {
+        return patternsArray.contains { pattern in
+            !(pattern.cascadesFrom?.isEmpty ?? true) || !(pattern.cascadesTo?.isEmpty ?? true)
+        }
+    }
 }
