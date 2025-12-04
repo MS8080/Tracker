@@ -95,7 +95,7 @@ struct LoggingView: View {
             }
         }
         .padding(Spacing.md)
-        .glassEffect(.regular.tint(theme.primaryColor.opacity(0.15)))
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12))
     }
 
     private var favoritesSection: some View {

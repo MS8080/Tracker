@@ -115,7 +115,9 @@ struct SettingsRow: View {
     let action: () -> Void
 
     var body: some View {
-        Button(action: action) {
+        Button {
+            action()
+        } label: {
             HStack(spacing: 14) {
                 ThemedIcon(
                     systemName: icon,
@@ -138,11 +140,7 @@ struct SettingsRow: View {
             }
             .padding(.vertical, Spacing.md)
             .padding(.horizontal, Spacing.lg)
-            .background(
-                RoundedRectangle(cornerRadius: CornerRadius.sm)
-                    .fill(theme.cardBackground)
-            )
-            .shadow(color: theme.cardShadowColor, radius: 4, y: 2)
+            .compactCardStyle(theme: theme)
         }
         .buttonStyle(.plain)
     }
@@ -285,11 +283,7 @@ struct LoadingView: View {
             }
         }
         .padding(32)
-        .background(
-            RoundedRectangle(cornerRadius: CornerRadius.lg)
-                .fill(theme.cardBackground)
-                .shadow(color: theme.cardShadowColor, radius: 20, y: 10)
-        )
+        .cardStyle(theme: theme, cornerRadius: CornerRadius.lg)
     }
 }
 

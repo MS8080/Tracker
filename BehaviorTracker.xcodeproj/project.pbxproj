@@ -97,25 +97,9 @@
 		4EC1D7272ED904BC003F9272 /* ImportMedicationsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EC1D7262ED904BC003F9272 /* ImportMedicationsView.swift */; };
 		4EC1D7282ED904BC003F9272 /* ImportMedicationsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EC1D7262ED904BC003F9272 /* ImportMedicationsView.swift */; };
 		4EC1D72B2ED90B9B003F9272 /* DesignSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EC1D7292ED90B9B003F9272 /* DesignSystem.swift */; };
-		4EC826912EE07A870075BCAD /* LIQUID_GLASS_GUIDE.md in Resources */ = {isa = PBXBuildFile; fileRef = 4EC826902EE07A870075BCAD /* LIQUID_GLASS_GUIDE.md */; };
-		4EC826922EE07A870075BCAD /* LIQUID_GLASS_GUIDE.md in Resources */ = {isa = PBXBuildFile; fileRef = 4EC826902EE07A870075BCAD /* LIQUID_GLASS_GUIDE.md */; };
-		4EC826962EE081070075BCAD /* LiquidGlassEffect.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EC826952EE081070075BCAD /* LiquidGlassEffect.swift */; };
-		4EC826972EE081070075BCAD /* LiquidGlassEffect.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EC826952EE081070075BCAD /* LiquidGlassEffect.swift */; };
-		4EC826992EE081440075BCAD /* LiquidGlassDemo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EC826982EE081440075BCAD /* LiquidGlassDemo.swift */; };
-		4EC8269A2EE081440075BCAD /* LiquidGlassDemo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EC826982EE081440075BCAD /* LiquidGlassDemo.swift */; };
-		4EC8269C2EE082110075BCAD /* LIQUID_GLASS_APPLIED.md in Resources */ = {isa = PBXBuildFile; fileRef = 4EC8269B2EE082110075BCAD /* LIQUID_GLASS_APPLIED.md */; };
-		4EC8269D2EE082110075BCAD /* LIQUID_GLASS_APPLIED.md in Resources */ = {isa = PBXBuildFile; fileRef = 4EC8269B2EE082110075BCAD /* LIQUID_GLASS_APPLIED.md */; };
 		4ECAA0222ED4F22B002970C9 /* Validator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ECAA0212ED4F22B002970C9 /* Validator.swift */; };
 		4ECAA0232ED4F22B002970C9 /* Validator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ECAA0212ED4F22B002970C9 /* Validator.swift */; };
 		4ECALSUP012EE0000000001 /* CalendarSupportingViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ECALSUP012EE0000000002 /* CalendarSupportingViews.swift */; };
-		4ECBB54D2EE095530057447B /* TrueLiquidGlassShowcase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ECBB54C2EE095530057447B /* TrueLiquidGlassShowcase.swift */; };
-		4ECBB54E2EE095530057447B /* TrueLiquidGlassShowcase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ECBB54C2EE095530057447B /* TrueLiquidGlassShowcase.swift */; };
-		4ECBB5502EE0957B0057447B /* TRUE_LIQUID_GLASS_SUMMARY.md in Resources */ = {isa = PBXBuildFile; fileRef = 4ECBB54F2EE0957B0057447B /* TRUE_LIQUID_GLASS_SUMMARY.md */; };
-		4ECBB5512EE0957B0057447B /* TRUE_LIQUID_GLASS_SUMMARY.md in Resources */ = {isa = PBXBuildFile; fileRef = 4ECBB54F2EE0957B0057447B /* TRUE_LIQUID_GLASS_SUMMARY.md */; };
-		4ECBB5532EE095B00057447B /* LiquidGlassComparison.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ECBB5522EE095B00057447B /* LiquidGlassComparison.swift */; };
-		4ECBB5542EE095B00057447B /* LiquidGlassComparison.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ECBB5522EE095B00057447B /* LiquidGlassComparison.swift */; };
-		4ECBB5562EE096CE0057447B /* PERFORMANCE_OPTIMIZATION.md in Resources */ = {isa = PBXBuildFile; fileRef = 4ECBB5552EE096CE0057447B /* PERFORMANCE_OPTIMIZATION.md */; };
-		4ECBB5572EE096CE0057447B /* PERFORMANCE_OPTIMIZATION.md in Resources */ = {isa = PBXBuildFile; fileRef = 4ECBB5552EE096CE0057447B /* PERFORMANCE_OPTIMIZATION.md */; };
 		4EDAYANAV0012EE0000000001 /* DayAnalysisView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EDAYANAV0012EE0000000002 /* DayAnalysisView.swift */; };
 		4EEDITPROF012EE000000001 /* EditProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EEDITPROF012EE000000002 /* EditProfileView.swift */; };
 		4EF642062ECBA50F0055E3FB /* MedicationViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EF642052ECBA50F0055E3FB /* MedicationViewModel.swift */; };
@@ -325,16 +309,8 @@
 		4EC1D71D2ED8FF99003F9272 /* ThemeWrapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThemeWrapper.swift; sourceTree = "<group>"; };
 		4EC1D7262ED904BC003F9272 /* ImportMedicationsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImportMedicationsView.swift; sourceTree = "<group>"; };
 		4EC1D7292ED90B9B003F9272 /* DesignSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem.swift; sourceTree = "<group>"; };
-		4EC826902EE07A870075BCAD /* LIQUID_GLASS_GUIDE.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = LIQUID_GLASS_GUIDE.md; sourceTree = "<group>"; };
-		4EC826952EE081070075BCAD /* LiquidGlassEffect.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiquidGlassEffect.swift; sourceTree = "<group>"; };
-		4EC826982EE081440075BCAD /* LiquidGlassDemo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiquidGlassDemo.swift; sourceTree = "<group>"; };
-		4EC8269B2EE082110075BCAD /* LIQUID_GLASS_APPLIED.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = LIQUID_GLASS_APPLIED.md; sourceTree = "<group>"; };
 		4ECAA0212ED4F22B002970C9 /* Validator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Validator.swift; sourceTree = "<group>"; };
 		4ECALSUP012EE0000000002 /* CalendarSupportingViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarSupportingViews.swift; sourceTree = "<group>"; };
-		4ECBB54C2EE095530057447B /* TrueLiquidGlassShowcase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrueLiquidGlassShowcase.swift; sourceTree = "<group>"; };
-		4ECBB54F2EE0957B0057447B /* TRUE_LIQUID_GLASS_SUMMARY.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = TRUE_LIQUID_GLASS_SUMMARY.md; sourceTree = "<group>"; };
-		4ECBB5522EE095B00057447B /* LiquidGlassComparison.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiquidGlassComparison.swift; sourceTree = "<group>"; };
-		4ECBB5552EE096CE0057447B /* PERFORMANCE_OPTIMIZATION.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = PERFORMANCE_OPTIMIZATION.md; sourceTree = "<group>"; };
 		4EDAYANAV0012EE0000000002 /* DayAnalysisView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DayAnalysisView.swift; sourceTree = "<group>"; };
 		4EEDITPROF012EE000000002 /* EditProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditProfileView.swift; sourceTree = "<group>"; };
 		4EF642052ECBA50F0055E3FB /* MedicationViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MedicationViewModel.swift; sourceTree = "<group>"; };
@@ -506,14 +482,6 @@
 				4ESETUPCARD012EE000002 /* CurrentSetupCard.swift */,
 				4ESETUPMGR012EE0000002 /* SetupManagerView.swift */,
 				4ESETUPITM012EE0000002 /* SetupItemViews.swift */,
-				4EC826902EE07A870075BCAD /* LIQUID_GLASS_GUIDE.md */,
-				4EC826952EE081070075BCAD /* LiquidGlassEffect.swift */,
-				4EC826982EE081440075BCAD /* LiquidGlassDemo.swift */,
-				4EC8269B2EE082110075BCAD /* LIQUID_GLASS_APPLIED.md */,
-				4ECBB54C2EE095530057447B /* TrueLiquidGlassShowcase.swift */,
-				4ECBB54F2EE0957B0057447B /* TRUE_LIQUID_GLASS_SUMMARY.md */,
-				4ECBB5522EE095B00057447B /* LiquidGlassComparison.swift */,
-				4ECBB5552EE096CE0057447B /* PERFORMANCE_OPTIMIZATION.md */,
 			);
 			path = Dashboard;
 			sourceTree = "<group>";
@@ -824,14 +792,10 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				4ECBB5512EE0957B0057447B /* TRUE_LIQUID_GLASS_SUMMARY.md in Resources */,
 				4E3591B82ED62BE3000A5E74 /* Localizable.strings in Resources */,
-				4EC8269D2EE082110075BCAD /* LIQUID_GLASS_APPLIED.md in Resources */,
 				A3B6464C00000007 /* Preview Assets.xcassets in Resources */,
 				4E3591B62ED62BD1000A5E74 /* Localizable.strings in Resources */,
 				4E3591B02ED62BC0000A5E74 /* Localizable.strings in Resources */,
-				4EC826912EE07A870075BCAD /* LIQUID_GLASS_GUIDE.md in Resources */,
-				4ECBB5572EE096CE0057447B /* PERFORMANCE_OPTIMIZATION.md in Resources */,
 				A3B6464C00000005 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -840,14 +804,10 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				4ECBB5502EE0957B0057447B /* TRUE_LIQUID_GLASS_SUMMARY.md in Resources */,
 				4E3591B92ED62BE3000A5E74 /* Localizable.strings in Resources */,
-				4EC8269C2EE082110075BCAD /* LIQUID_GLASS_APPLIED.md in Resources */,
 				MAC0001000000004 /* Preview Assets.xcassets in Resources */,
 				4E3591B52ED62BD1000A5E74 /* Localizable.strings in Resources */,
 				4E3591B12ED62BC0000A5E74 /* Localizable.strings in Resources */,
-				4EC826922EE07A870075BCAD /* LIQUID_GLASS_GUIDE.md in Resources */,
-				4ECBB5562EE096CE0057447B /* PERFORMANCE_OPTIMIZATION.md in Resources */,
 				MAC0001000000003 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -887,7 +847,6 @@
 				4EMEDLOG0012EE00000001 /* MedicationQuickLogView.swift in Sources */,
 				4EFEEL0012EE0000000001 /* FeelingFinderView.swift in Sources */,
 				4EFEEL0012EE0000000005 /* FeelingFinderStepViews.swift in Sources */,
-				4ECBB54E2EE095530057447B /* TrueLiquidGlassShowcase.swift in Sources */,
 				4EFEEL0012EE0000000006 /* FeelingFinderResultView.swift in Sources */,
 				4E4295F32ECE39AF006C6B00 /* UserProfile+CoreDataClass.swift in Sources */,
 				4E86BDC42ECD0C9F00AD04F7 /* HealthKitManager.swift in Sources */,
@@ -921,7 +880,6 @@
 				4EAUD00012EE0000000000001 /* AudioRecordingService.swift in Sources */,
 				4EWHISPER00012EE000000001 /* WhisperTranscriptionService.swift in Sources */,
 				4EASD00012EE0000000000001 /* ASDPatternAnalysisService.swift in Sources */,
-				4ECBB5532EE095B00057447B /* LiquidGlassComparison.swift in Sources */,
 				4EASD00012EE0000000000003 /* ASDInsightsView.swift in Sources */,
 				4EAI00012EE0000000000003 /* AIAnalysisService.swift in Sources */,
 				4EAI00012EE0000000000005 /* AIInsightsView.swift in Sources */,
@@ -953,7 +911,6 @@
 				4E3008572EDBCFD90061A03F /* AIInsightsSettingsView.swift in Sources */,
 				4ENEW00012EE0000000000005 /* WeeklyReportView.swift in Sources */,
 				4ENEW00012EE0000000000006 /* MonthlyReportView.swift in Sources */,
-				4EC826962EE081070075BCAD /* LiquidGlassEffect.swift in Sources */,
 				4E3008582EDBCFD90061A03F /* InsightTileViews.swift in Sources */,
 				4E3008592EDBCFD90061A03F /* FullReportView.swift in Sources */,
 				4E16DE6B2ECE7F8900FEFBD8 /* PatternType.swift in Sources */,
@@ -961,7 +918,6 @@
 				4E00913E2EC1372900D8A0D1 /* HapticFeedback.swift in Sources */,
 				4E00913F2EC1372900D8A0D1 /* UserPreferences+CoreDataClass.swift in Sources */,
 				A3B6464C00000003 /* ContentView.swift in Sources */,
-				4EC826992EE081440075BCAD /* LiquidGlassDemo.swift in Sources */,
 				4E3591BF2ED62FA7000A5E74 /* CorrelationInsightsView.swift in Sources */,
 				4E3591D02ED63823000A5E74 /* Color+Extensions.swift in Sources */,
 				4E3591C22ED633C6000A5E74 /* CalendarViewModel.swift in Sources */,
@@ -997,7 +953,6 @@
 				4E3008652EDBD2D80061A03F /* DesignSystem.swift in Sources */,
 				MAC0001000000017 /* PatternType.swift in Sources */,
 				4EC1D7272ED904BC003F9272 /* ImportMedicationsView.swift in Sources */,
-				4ECBB5542EE095B00057447B /* LiquidGlassComparison.swift in Sources */,
 				MAC0001000000018 /* MedicationFrequency.swift in Sources */,
 				4E295ED32EDF76FB0055750E /* DynamicJournalView.swift in Sources */,
 				4E295ED42EDF76FB0055750E /* DynamicDayCard.swift in Sources */,
@@ -1026,15 +981,12 @@
 				MAC0001000000030 /* LoggingView.swift in Sources */,
 				MAC0001000000031 /* CategoryLoggingView.swift in Sources */,
 				4ECAA0222ED4F22B002970C9 /* Validator.swift in Sources */,
-				4ECBB54D2EE095530057447B /* TrueLiquidGlassShowcase.swift in Sources */,
 				4E3591D12ED63823000A5E74 /* Color+Extensions.swift in Sources */,
 				4E30084A2EDBCF2D0061A03F /* FeelingFinderModels.swift in Sources */,
 				4E30084B2EDBCF2D0061A03F /* AIInsightsModels.swift in Sources */,
 				4EFEEL0012EE0000000007 /* FeelingFinderStepViews.swift in Sources */,
 				4EFEEL0012EE0000000008 /* FeelingFinderResultView.swift in Sources */,
 				MAC0001000000032 /* PatternEntryFormView.swift in Sources */,
-				4EC8269A2EE081440075BCAD /* LiquidGlassDemo.swift in Sources */,
-				4EC826972EE081070075BCAD /* LiquidGlassEffect.swift in Sources */,
 				MAC0001000000033 /* HealthKitManager.swift in Sources */,
 				MAC0001000000034 /* ReportsView.swift in Sources */,
 				MAC0001000000035 /* AIInsightsView.swift in Sources */,

@@ -77,23 +77,40 @@ class HomeViewModel: ObservableObject {
     }
 
     func loadData() {
+        // Skip if data was loaded recently (within 30 seconds)
+        if let lastLoad = lastLoadDate,
+           Date().timeIntervalSince(lastLoad) < 30 {
+            return
+        }
+
         // Load lightweight data first for instant UI
         loadUserName()
         loadStreak()
         loadTodaySlides()
-        
+
         // Defer heavy queries to background
         Task.detached(priority: .utility) {
             await self.loadHeavyData()
         }
     }
-    
+
+    /// Force reload ignoring cache (e.g., after new entry)
+    func forceReload() {
+        lastLoadDate = nil
+        memoriesCache = []
+        recentContextCache = nil
+        loadData()
+    }
+
     @MainActor
     private func loadHeavyData() async {
         // Load expensive queries on background thread
         await Task.yield() // Allow UI to render first
         loadRecentContext()
         loadMemories()
+
+        // Mark load time after all data is loaded
+        lastLoadDate = Date()
     }
 
     private func loadStreak() {
@@ -192,21 +209,25 @@ class HomeViewModel: ObservableObject {
 
     private func loadMemories() {
         // Use cache if valid
-        if let lastLoad = lastLoadDate,
-           Date().timeIntervalSince(lastLoad) < cacheValidityInterval,
-           !memoriesCache.isEmpty {
+        if !memoriesCache.isEmpty {
             memories = memoriesCache
             return
         }
-        
+
         var foundMemories: [Memory] = []
         let calendar = Calendar.current
 
-        // Check last week same day - more personal
+        // Single fetch for last 2 weeks - reuse for multiple analyses
+        guard let twoWeeksAgo = calendar.date(byAdding: .day, value: -14, to: Date()) else {
+            return
+        }
+        let recentEntries = dataController.fetchPatternEntries(startDate: twoWeeksAgo, endDate: Date())
+
+        // Check last week same day
         if let lastWeek = calendar.date(byAdding: .weekOfYear, value: -1, to: Date()) {
-            let entries = fetchEntriesForDay(lastWeek)
-            if !entries.isEmpty {
-                let description = describeDay(entries, prefix: "Last week")
+            let lastWeekEntries = filterEntriesForDay(recentEntries, date: lastWeek)
+            if !lastWeekEntries.isEmpty {
+                let description = describeDay(lastWeekEntries, prefix: "Last week")
                 foundMemories.append(Memory(
                     timeframe: "This time last week",
                     description: description
@@ -214,16 +235,19 @@ class HomeViewModel: ObservableObject {
             }
         }
 
-        // Find a time you overcame something difficult
-        if let overcameMemory = findOvercomeMemory() {
+        // Find overcome memory using already-fetched data
+        if let overcameMemory = findOvercomeMemory(from: recentEntries) {
             foundMemories.append(overcameMemory)
         }
 
-        // Check last month same day
+        // Check last month (needs separate fetch since it's outside 2-week window)
         if let lastMonth = calendar.date(byAdding: .month, value: -1, to: Date()) {
-            let entries = fetchEntriesForDay(lastMonth)
-            if !entries.isEmpty {
-                let description = describeDay(entries, prefix: "Last month")
+            let lastMonthEntries = dataController.fetchPatternEntries(
+                startDate: calendar.startOfDay(for: lastMonth),
+                endDate: calendar.date(byAdding: .day, value: 1, to: calendar.startOfDay(for: lastMonth)) ?? lastMonth
+            )
+            if !lastMonthEntries.isEmpty {
+                let description = describeDay(lastMonthEntries, prefix: "Last month")
                 foundMemories.append(Memory(
                     timeframe: "This time last month",
                     description: description
@@ -231,10 +255,9 @@ class HomeViewModel: ObservableObject {
             }
         }
 
-        // Check if there's a pattern at this time of day
+        // Check time-of-day pattern using already-fetched data
         let currentHour = calendar.component(.hour, from: Date())
-        let timeOfDayPattern = findTimeOfDayPattern(hour: currentHour)
-        if let pattern = timeOfDayPattern {
+        if let pattern = findTimeOfDayPattern(from: recentEntries, hour: currentHour) {
             foundMemories.append(Memory(
                 timeframe: "Around this time",
                 description: pattern
@@ -242,29 +265,17 @@ class HomeViewModel: ObservableObject {
         }
 
         memories = foundMemories
-        
-        // Update cache
         memoriesCache = foundMemories
-        lastLoadDate = Date()
     }
 
-    private func findOvercomeMemory() -> Memory? {
-        // Look for high-intensity entries followed by recovery or self-care
-        let calendar = Calendar.current
-        guard let twoWeeksAgo = calendar.date(byAdding: .day, value: -14, to: Date()) else {
-            return nil
-        }
-
-        let entries = dataController.fetchPatternEntries(startDate: twoWeeksAgo, endDate: Date())
-
+    private func findOvercomeMemory(from entries: [PatternEntry]) -> Memory? {
         for (index, entry) in entries.enumerated() where entry.intensity >= 4 {
             if index > 0 {
-                let laterEntry = entries[index - 1] // entries are sorted newest first
+                let laterEntry = entries[index - 1]
                 let category = laterEntry.patternCategoryEnum
 
                 if category == .physicalWellbeing || laterEntry.intensity <= 2 {
                     let timeAgo = Self.relativeDateFormatter.localizedString(for: entry.timestamp, relativeTo: Date())
-
                     return Memory(
                         timeframe: "You got through it",
                         description: "\(timeAgo), you felt overwhelmed by \(entry.patternType.lowercased()) — and you made it through."
@@ -272,12 +283,10 @@ class HomeViewModel: ObservableObject {
                 }
             }
         }
-
         return nil
     }
 
     private func describeDay(_ entries: [PatternEntry], prefix: String) -> String {
-        // Get the most significant entry (highest intensity or most logged)
         if let significant = entries.max(by: { $0.intensity < $1.intensity }) {
             let pattern = significant.patternType.lowercased()
             if significant.intensity >= 4 {
@@ -291,25 +300,17 @@ class HomeViewModel: ObservableObject {
         return "\(prefix), you logged \(entries.count) things."
     }
 
-    private func fetchEntriesForDay(_ date: Date) -> [PatternEntry] {
+    private func filterEntriesForDay(_ entries: [PatternEntry], date: Date) -> [PatternEntry] {
         let calendar = Calendar.current
         let startOfDay = calendar.startOfDay(for: date)
         guard let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay) else {
             return []
         }
-        return dataController.fetchPatternEntries(startDate: startOfDay, endDate: endOfDay)
+        return entries.filter { $0.timestamp >= startOfDay && $0.timestamp < endOfDay }
     }
 
-    private func findTimeOfDayPattern(hour: Int) -> String? {
-        // Look at the last 2 weeks of entries around this hour
+    private func findTimeOfDayPattern(from entries: [PatternEntry], hour: Int) -> String? {
         let calendar = Calendar.current
-        guard let twoWeeksAgo = calendar.date(byAdding: .day, value: -14, to: Date()) else {
-            return nil
-        }
-
-        let entries = dataController.fetchPatternEntries(startDate: twoWeeksAgo, endDate: Date())
-
-        // Filter to entries within 2 hours of current time
         let relevantEntries = entries.filter { entry in
             let entryHour = calendar.component(.hour, from: entry.timestamp)
             return abs(entryHour - hour) <= 2
@@ -317,7 +318,6 @@ class HomeViewModel: ObservableObject {
 
         guard relevantEntries.count >= 3 else { return nil }
 
-        // Find most common pattern at this time
         var patterns: [String: Int] = [:]
         for entry in relevantEntries {
             patterns[entry.patternType, default: 0] += 1
@@ -326,7 +326,6 @@ class HomeViewModel: ObservableObject {
         if let mostCommon = patterns.max(by: { $0.value < $1.value }), mostCommon.value >= 3 {
             return "You often log \"\(mostCommon.key)\" around now"
         }
-
         return nil
     }
 

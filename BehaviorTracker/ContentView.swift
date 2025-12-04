@@ -3,7 +3,6 @@ import SwiftUI
 struct ContentView: View {
     @State private var selectedTab = 0
     @State private var showingProfile = false
-    @State private var showingLiquidGlassDemo = false // NEW: For demo access
     @AppStorage("appearance") private var appearance: AppAppearance = .dark
     @AppStorage("selectedTheme") private var selectedThemeRaw: String = AppTheme.purple.rawValue
     @AppStorage("fontSizeScale") private var fontSizeScale: Double = 1.0
@@ -65,13 +64,6 @@ struct ContentView: View {
             // Lazy wrapper to defer ProfileContainerView construction
             LazyProfileSheet()
         }
-        // NEW: Add Liquid Glass Demo access (triple-tap on tab bar)
-        .onTapGesture(count: 3) {
-            showingLiquidGlassDemo = true
-        }
-        .sheet(isPresented: $showingLiquidGlassDemo) {
-            LiquidGlassDemo()
-        }
     }
 
     private func configureTabBarAppearance() {
@@ -93,28 +85,13 @@ struct ContentView: View {
 
 // MARK: - Lazy Profile Sheet Wrapper
 
-/// Wrapper that defers ProfileContainerView construction until after sheet animation starts
+/// Wrapper for ProfileContainerView
 private struct LazyProfileSheet: View {
-    @State private var shouldLoadContent = false
-
     var body: some View {
-        Group {
-            if shouldLoadContent {
-                ProfileContainerView()
-                    .presentationDragIndicator(.visible)
-                    .presentationDetents([.large])
-                    .presentationContentInteraction(.scrolls)
-            } else {
-                Color.clear
-                    .background(.ultraThinMaterial)
-                    .onAppear {
-                        // Load content after a tiny delay to let animation start
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-                            shouldLoadContent = true
-                        }
-                    }
-            }
-        }
+        ProfileContainerView()
+            .presentationDragIndicator(.visible)
+            .presentationDetents([.large])
+            .presentationContentInteraction(.scrolls)
     }
 }
 

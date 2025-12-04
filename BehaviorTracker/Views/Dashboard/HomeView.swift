@@ -272,40 +272,10 @@ struct HomeView: View {
                 }
             }
             .padding(Spacing.lg)
-            .background(
-                ZStack {
-                    RoundedRectangle(cornerRadius: CornerRadius.lg)
-                        .fill(.ultraThinMaterial)
-                    
-                    RoundedRectangle(cornerRadius: CornerRadius.lg)
-                        .fill(
-                            LinearGradient(
-                                colors: [
-                                    theme.primaryColor.opacity(0.5),
-                                    theme.primaryColor.opacity(0.3)
-                                ],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
-                        .blendMode(.plusLighter)
-                }
-                .overlay(
-                    RoundedRectangle(cornerRadius: CornerRadius.lg)
-                        .strokeBorder(
-                            LinearGradient(
-                                colors: [
-                                    Color.white.opacity(0.5),
-                                    Color.white.opacity(0.2),
-                                    theme.primaryColor.opacity(0.3)
-                                ],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            ),
-                            lineWidth: 1
-                        )
-                )
-                .shadow(color: theme.primaryColor.opacity(0.4), radius: 20, x: 0, y: 8)
+            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: CornerRadius.lg))
+            .overlay(
+                RoundedRectangle(cornerRadius: CornerRadius.lg)
+                    .stroke(theme.primaryColor.opacity(0.3), lineWidth: 1)
             )
         }
         .padding(.horizontal, Spacing.lg)

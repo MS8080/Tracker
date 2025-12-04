@@ -103,15 +103,7 @@ struct DayAnalysisView: View {
         }
         .padding(Spacing.xl)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(
-            RoundedRectangle(cornerRadius: 20)
-                .fill(theme.cardBackground)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 20)
-                .stroke(theme.cardBorderColor, lineWidth: 0.5)
-        )
-        .shadow(color: theme.cardShadowColor, radius: 8, y: 4)
+        .cardStyle(theme: theme, cornerRadius: 20)
     }
 
     // MARK: - Analysis Results Section
@@ -137,15 +129,7 @@ struct DayAnalysisView: View {
         }
         .frame(maxWidth: .infinity)
         .padding(40)
-        .background(
-            RoundedRectangle(cornerRadius: 20)
-                .fill(theme.cardBackground)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 20)
-                .stroke(theme.cardBorderColor, lineWidth: 0.5)
-        )
-        .shadow(color: theme.cardShadowColor, radius: 8, y: 4)
+        .cardStyle(theme: theme, cornerRadius: 20)
     }
 
     private func analysisResultCard(_ analysis: String) -> some View {
@@ -162,15 +146,7 @@ struct DayAnalysisView: View {
         }
         .padding(20)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(
-            RoundedRectangle(cornerRadius: 20)
-                .fill(theme.cardBackground)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 20)
-                .stroke(theme.cardBorderColor, lineWidth: 0.5)
-        )
-        .shadow(color: theme.cardShadowColor, radius: 8, y: 4)
+        .cardStyle(theme: theme, cornerRadius: 20)
     }
 
     private func errorCard(_ error: String) -> some View {
@@ -192,15 +168,7 @@ struct DayAnalysisView: View {
         }
         .padding(30)
         .frame(maxWidth: .infinity)
-        .background(
-            RoundedRectangle(cornerRadius: 20)
-                .fill(theme.cardBackground)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 20)
-                .stroke(theme.cardBorderColor, lineWidth: 0.5)
-        )
-        .shadow(color: theme.cardShadowColor, radius: 8, y: 4)
+        .cardStyle(theme: theme, cornerRadius: 20)
     }
 }
 

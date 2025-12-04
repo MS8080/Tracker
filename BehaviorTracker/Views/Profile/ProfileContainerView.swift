@@ -76,7 +76,8 @@ struct ProfileContainerView: View {
                                 )
                             }
                         }
-                        .padding()
+                        .padding(.horizontal)
+                        .padding(.top, 8)
                     }
                     .scrollContentBackground(.hidden)
                 }
@@ -99,10 +100,7 @@ struct ProfileContainerView: View {
                 }
             }
             .task {
-                // Defer initialization slightly to let sheet settle
-                try? await Task.sleep(nanoseconds: 50_000_000) // 50ms delay
-
-                // Initialize ViewModels asynchronously
+                // Initialize ViewModels immediately
                 healthKitManager = HealthKitManager.shared
                 settingsViewModel = SettingsViewModel()
                 medicationViewModel = MedicationViewModel()

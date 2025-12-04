@@ -40,8 +40,7 @@ struct ProfileToolbarControls: View {
                 }
                 .disabled(fontSizeScale >= 1.4)
             }
-            .glassEffect(.regular.tint(.white.opacity(0.1)))
-            .clipShape(Capsule())
+            .background(.ultraThinMaterial, in: Capsule())
 
             // Blue light filter circle
             Button {
@@ -54,8 +53,11 @@ struct ProfileToolbarControls: View {
                     .font(.system(size: 13, weight: .medium))
                     .foregroundStyle(.white)
                     .frame(width: 32, height: 32)
-                    .glassEffect(.regular.tint(blueLightFilterEnabled ? Color.orange.opacity(0.5) : .white.opacity(0.1)))
-                    .clipShape(Circle())
+                    .background(
+                        blueLightFilterEnabled ? Color.orange.opacity(0.5) : Color.white.opacity(0.1),
+                        in: Circle()
+                    )
+                    .background(.ultraThinMaterial, in: Circle())
             }
         }
     }
@@ -577,7 +579,7 @@ struct ModernSettingsRow: View {
 
     var body: some View {
         HStack(spacing: 14) {
-            // Icon with simple tinted background (no blur - lightweight)
+            // Icon with simple tinted background
             Image(systemName: icon)
                 .foregroundStyle(iconColor)
                 .font(.system(size: 18, weight: .semibold))
@@ -606,7 +608,7 @@ struct ModernSettingsRow: View {
                 .foregroundColor(.white.opacity(0.4))
         }
         .padding(14)
-        .glassEffect(.regular.tint(.white.opacity(0.08)).interactive())
+        .background(Color.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 12))
     }
 }
 

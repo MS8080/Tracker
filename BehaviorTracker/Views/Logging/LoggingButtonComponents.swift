@@ -54,7 +54,8 @@ struct CategoryButton: View {
             }
             .padding(.horizontal, Spacing.lg)
             .padding(.vertical, Spacing.lg)
-            .glassEffect(.regular.tint(category.color.opacity(0.2)).interactive())
+            .background(category.color.opacity(0.2), in: RoundedRectangle(cornerRadius: 16))
+            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16))
         }
         .buttonStyle(.plain)
         .scaleEffect(isPressed ? 0.98 : 1.0)
@@ -113,7 +114,8 @@ struct FeelingFinderCategoryButton: View {
             }
             .padding(.horizontal, Spacing.lg)
             .padding(.vertical, Spacing.lg)
-            .glassEffect(.regular.tint(Color.mint.opacity(0.2)).interactive())
+            .background(Color.mint.opacity(0.2), in: RoundedRectangle(cornerRadius: 16))
+            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16))
         }
         .buttonStyle(.plain)
         .scaleEffect(isPressed ? 0.98 : 1.0)

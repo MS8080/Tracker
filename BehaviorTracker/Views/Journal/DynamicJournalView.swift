@@ -179,8 +179,8 @@ struct DynamicJournalView: View {
                                 .foregroundStyle(.white.opacity(0.9))
                                 .padding(.horizontal, Spacing.lg)
                                 .padding(.vertical, Spacing.md)
-                                .glassEffect(.regular.tint(theme.primaryColor.opacity(0.2)).interactive())
-                                .clipShape(Capsule())
+                                .background(theme.primaryColor.opacity(0.2), in: Capsule())
+                                .background(.ultraThinMaterial, in: Capsule())
                             }
                             .padding(.bottom, Spacing.xxl)
                         }
@@ -302,8 +302,8 @@ struct DynamicJournalView: View {
                         .font(.system(size: 22, weight: .medium))
                         .foregroundStyle(.white)
                         .frame(width: 56, height: 56)
-                        .glassEffect(.regular.tint(theme.primaryColor.opacity(0.5)).interactive())
-                        .clipShape(Circle())
+                        .background(theme.primaryColor.opacity(0.5), in: Circle())
+                        .background(.ultraThinMaterial, in: Circle())
                         .shadow(color: theme.primaryColor.opacity(0.2), radius: 6, y: 4)
                 }
                 .padding(.trailing, 20)
