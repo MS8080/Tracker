@@ -2,23 +2,14 @@
 import Foundation
 import WidgetKit
 
+/// Core Data stack manager. Delegates entity-specific operations to repositories.
 class DataController: ObservableObject, @unchecked Sendable {
     static let shared = DataController()
 
     // MARK: - iCloud Sync Configuration
-    // Set this to true when you have an Apple Developer Program membership ($99/year)
-    // Then enable iCloud capability in Xcode for both iOS and macOS targets
     static let iCloudSyncEnabled = false
 
     let container: NSPersistentContainer
-
-    /// Background context for async fetch operations to avoid blocking main thread
-    private lazy var backgroundContext: NSManagedObjectContext = {
-        let context = container.newBackgroundContext()
-        context.automaticallyMergesChangesFromParent = true
-        context.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
-        return context
-    }()
 
     @Published var hasCriticalError = false
     @Published var errorMessage: String?
@@ -33,67 +24,6 @@ class DataController: ObservableObject, @unchecked Sendable {
 
     var isSyncEnabled: Bool {
         DataController.iCloudSyncEnabled
-    }
-
-    init(inMemory: Bool = false) {
-        // Use CloudKit container only if sync is enabled
-        if DataController.iCloudSyncEnabled {
-            container = NSPersistentCloudKitContainer(name: "BehaviorTrackerModel")
-        } else {
-            container = NSPersistentContainer(name: "BehaviorTrackerModel")
-        }
-
-        if inMemory {
-            container.persistentStoreDescriptions.first?.url = URL(fileURLWithPath: "/dev/null")
-        } else {
-            if let description = container.persistentStoreDescriptions.first {
-                // Enable lightweight migration
-                description.shouldMigrateStoreAutomatically = true
-                description.shouldInferMappingModelAutomatically = true
-
-                // Configure CloudKit sync only if enabled
-                if DataController.iCloudSyncEnabled {
-                    description.cloudKitContainerOptions = NSPersistentCloudKitContainerOptions(
-                        containerIdentifier: "iCloud.com.behaviortracker.BehaviorTracker"
-                    )
-                    description.setOption(true as NSNumber, forKey: NSPersistentStoreRemoteChangeNotificationPostOptionKey)
-                    description.setOption(true as NSNumber, forKey: NSPersistentHistoryTrackingKey)
-                }
-            }
-        }
-
-        container.loadPersistentStores { [weak self] storeDescription, error in
-            if let error = error as NSError? {
-                DispatchQueue.main.async {
-                    self?.hasCriticalError = true
-                    self?.errorMessage = "Failed to load data storage: \(error.localizedDescription)"
-                    self?.syncStatus = .error(error.localizedDescription)
-                }
-            } else {
-                DispatchQueue.main.async {
-                    self?.syncStatus = DataController.iCloudSyncEnabled ? .synced : .localOnly
-                }
-            }
-        }
-
-        container.viewContext.automaticallyMergesChangesFromParent = true
-        container.viewContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
-
-        // Listen for remote changes only if sync is enabled
-        if DataController.iCloudSyncEnabled {
-            NotificationCenter.default.addObserver(
-                self,
-                selector: #selector(handleRemoteChange),
-                name: .NSPersistentStoreRemoteChange,
-                object: container.persistentStoreCoordinator
-            )
-        }
-    }
-
-    @objc private func handleRemoteChange(_ notification: Notification) {
-        DispatchQueue.main.async { [weak self] in
-            self?.syncStatus = .synced
-        }
     }
 
     // MARK: - Error Types
@@ -115,10 +45,69 @@ class DataController: ObservableObject, @unchecked Sendable {
         }
     }
 
-    /// Save with error propagation - use when caller needs to know about failures
+    // MARK: - Initialization
+
+    init(inMemory: Bool = false) {
+        if DataController.iCloudSyncEnabled {
+            container = NSPersistentCloudKitContainer(name: "BehaviorTrackerModel")
+        } else {
+            container = NSPersistentContainer(name: "BehaviorTrackerModel")
+        }
+
+        if inMemory {
+            container.persistentStoreDescriptions.first?.url = URL(fileURLWithPath: "/dev/null")
+        } else {
+            if let description = container.persistentStoreDescriptions.first {
+                description.shouldMigrateStoreAutomatically = true
+                description.shouldInferMappingModelAutomatically = true
+
+                if DataController.iCloudSyncEnabled {
+                    description.cloudKitContainerOptions = NSPersistentCloudKitContainerOptions(
+                        containerIdentifier: "iCloud.com.behaviortracker.BehaviorTracker"
+                    )
+                    description.setOption(true as NSNumber, forKey: NSPersistentStoreRemoteChangeNotificationPostOptionKey)
+                    description.setOption(true as NSNumber, forKey: NSPersistentHistoryTrackingKey)
+                }
+            }
+        }
+
+        container.loadPersistentStores { [weak self] _, error in
+            if let error = error as NSError? {
+                DispatchQueue.main.async {
+                    self?.hasCriticalError = true
+                    self?.errorMessage = "Failed to load data storage: \(error.localizedDescription)"
+                    self?.syncStatus = .error(error.localizedDescription)
+                }
+            } else {
+                DispatchQueue.main.async {
+                    self?.syncStatus = DataController.iCloudSyncEnabled ? .synced : .localOnly
+                }
+            }
+        }
+
+        container.viewContext.automaticallyMergesChangesFromParent = true
+        container.viewContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
+
+        if DataController.iCloudSyncEnabled {
+            NotificationCenter.default.addObserver(
+                self,
+                selector: #selector(handleRemoteChange),
+                name: .NSPersistentStoreRemoteChange,
+                object: container.persistentStoreCoordinator
+            )
+        }
+    }
+
+    @objc private func handleRemoteChange(_ notification: Notification) {
+        DispatchQueue.main.async { [weak self] in
+            self?.syncStatus = .synced
+        }
+    }
+
+    // MARK: - Save
+
     func saveOrThrow() throws {
         let context = container.viewContext
-
         if context.hasChanges {
             do {
                 try context.save()
@@ -128,15 +117,12 @@ class DataController: ObservableObject, @unchecked Sendable {
         }
     }
 
-    /// Save silently - logs error but doesn't throw (for non-critical updates)
     func save() {
         let context = container.viewContext
-
         if context.hasChanges {
             do {
                 try context.save()
             } catch {
-                // Log error for debugging but don't crash
                 print("DataController save error: \(error.localizedDescription)")
                 DispatchQueue.main.async { [weak self] in
                     self?.errorMessage = "Failed to save: \(error.localizedDescription)"
@@ -145,6 +131,7 @@ class DataController: ObservableObject, @unchecked Sendable {
         }
     }
 
+    // MARK: - Pattern Entry (delegates to PatternRepository)
 
     func createPatternEntry(
         patternType: PatternType,
@@ -154,50 +141,18 @@ class DataController: ObservableObject, @unchecked Sendable {
         specificDetails: String? = nil,
         contributingFactors: [ContributingFactor] = []
     ) throws -> PatternEntry {
-        // Validate intensity
-        try Validator(intensity, fieldName: "Intensity")
-            .inRange(0...5)
-
-        // Validate duration (in minutes, reasonable max is 24 hours = 1440 minutes)
-        try Validator(duration, fieldName: "Duration")
-            .inRange(0...1440)
-
-        // Validate context notes if provided
-        try Validator(contextNotes, fieldName: "Context notes")
-            .ifPresent { validator in
-                try validator.maxLength(1000)
-            }
-
-        // Validate specific details if provided
-        try Validator(specificDetails, fieldName: "Specific details")
-            .ifPresent { validator in
-                try validator.maxLength(1000)
-            }
-
-        // Validate contributing factors count
-        try Validator(contributingFactors, fieldName: "Contributing factors")
-            .maxCount(20, message: "You can select up to 20 contributing factors")
-
-        let entry = NSEntityDescription.insertNewObject(forEntityName: "PatternEntry", into: container.viewContext) as! PatternEntry
-        entry.configure(
+        try PatternRepository.shared.create(
             patternType: patternType,
             intensity: intensity,
             duration: duration,
-            contextNotes: contextNotes?.trimmingCharacters(in: .whitespacesAndNewlines),
-            specificDetails: specificDetails?.trimmingCharacters(in: .whitespacesAndNewlines),
+            contextNotes: contextNotes,
+            specificDetails: specificDetails,
             contributingFactors: contributingFactors
         )
-        save()
-
-        // Update widget data after logging
-        syncWidgetData()
-
-        return entry
     }
 
     func deletePatternEntry(_ entry: PatternEntry) {
-        container.viewContext.delete(entry)
-        save()
+        PatternRepository.shared.delete(entry)
     }
 
     func fetchPatternEntries(
@@ -206,12 +161,7 @@ class DataController: ObservableObject, @unchecked Sendable {
         category: PatternCategory? = nil,
         limit: Int? = nil
     ) -> [PatternEntry] {
-        do {
-            return try fetchPatternEntriesOrThrow(startDate: startDate, endDate: endDate, category: category, limit: limit)
-        } catch {
-            print("Failed to fetch pattern entries: \(error.localizedDescription)")
-            return []
-        }
+        PatternRepository.shared.fetch(startDate: startDate, endDate: endDate, category: category, limit: limit)
     }
 
     func fetchPatternEntriesOrThrow(
@@ -220,91 +170,20 @@ class DataController: ObservableObject, @unchecked Sendable {
         category: PatternCategory? = nil,
         limit: Int? = nil
     ) throws -> [PatternEntry] {
-        let request = NSFetchRequest<PatternEntry>(entityName: "PatternEntry")
-        var predicates: [NSPredicate] = []
-
-        if let startDate = startDate {
-            predicates.append(NSPredicate(format: "timestamp >= %@", startDate as NSDate))
-        }
-
-        if let endDate = endDate {
-            predicates.append(NSPredicate(format: "timestamp <= %@", endDate as NSDate))
-        }
-
-        if let category = category {
-            predicates.append(NSPredicate(format: "category == %@", category.rawValue))
-        }
-
-        if !predicates.isEmpty {
-            request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: predicates)
-        }
-
-        if let limit = limit {
-            request.fetchLimit = limit
-        }
-
-        request.sortDescriptors = [NSSortDescriptor(keyPath: \PatternEntry.timestamp, ascending: false)]
-
-        do {
-            return try container.viewContext.fetch(request)
-        } catch {
-            throw DataError.fetchFailed(error)
-        }
+        try PatternRepository.shared.fetchOrThrow(startDate: startDate, endDate: endDate, category: category, limit: limit)
     }
 
-    func getUserPreferences() -> UserPreferences {
-        let request = NSFetchRequest<UserPreferences>(entityName: "UserPreferences")
-        request.fetchLimit = 1
+    // MARK: - User Preferences (delegates to UserProfileRepository)
 
-        do {
-            let results = try container.viewContext.fetch(request)
-            if let preferences = results.first {
-                return preferences
-            } else {
-                let newPreferences = NSEntityDescription.insertNewObject(forEntityName: "UserPreferences", into: container.viewContext) as! UserPreferences
-                save()
-                return newPreferences
-            }
-        } catch {
-            print("Failed to fetch preferences: \(error.localizedDescription)")
-            let newPreferences = NSEntityDescription.insertNewObject(forEntityName: "UserPreferences", into: container.viewContext) as! UserPreferences
-            save()
-            return newPreferences
-        }
+    func getUserPreferences() -> UserPreferences {
+        UserProfileRepository.shared.getPreferences()
     }
 
     func updateStreak() {
-        let preferences = getUserPreferences()
-        let calendar = Calendar.current
-        let today = calendar.startOfDay(for: Date())
-
-        let request = NSFetchRequest<PatternEntry>(entityName: "PatternEntry")
-        request.sortDescriptors = [NSSortDescriptor(keyPath: \PatternEntry.timestamp, ascending: false)]
-        request.fetchLimit = 1
-
-        do {
-            let results = try container.viewContext.fetch(request)
-            if let lastEntry = results.first {
-                let lastEntryDate = calendar.startOfDay(for: lastEntry.timestamp)
-                let daysDifference = calendar.dateComponents([.day], from: lastEntryDate, to: today).day ?? 0
-
-                if daysDifference == 0 {
-                    return
-                } else if daysDifference == 1 {
-                    preferences.streakCount += 1
-                } else {
-                    preferences.streakCount = 1
-                }
-            } else {
-                preferences.streakCount = 1
-            }
-            save()
-        } catch {
-            print("Failed to update streak: \(error.localizedDescription)")
-        }
+        UserProfileRepository.shared.updateStreak()
     }
 
-    // MARK: - Medication Management
+    // MARK: - Medication (delegates to MedicationRepository)
 
     func createMedication(
         name: String,
@@ -312,74 +191,26 @@ class DataController: ObservableObject, @unchecked Sendable {
         frequency: String,
         notes: String? = nil
     ) throws -> Medication {
-        // Validate medication name
-        try Validator(name, fieldName: "Medication name")
-            .notEmpty()
-            .maxLength(100)
-
-        // Validate dosage if provided
-        try Validator(dosage, fieldName: "Dosage")
-            .ifPresent { validator in
-                try validator.maxLength(50)
-            }
-
-        // Validate frequency
-        try Validator(frequency, fieldName: "Frequency")
-            .notEmpty()
-            .maxLength(50)
-
-        // Validate notes if provided
-        try Validator(notes, fieldName: "Notes")
-            .ifPresent { validator in
-                try validator.maxLength(500)
-            }
-
-        let medication = NSEntityDescription.insertNewObject(forEntityName: "Medication", into: container.viewContext) as! Medication
-        medication.configure(
-            name: name.trimmingCharacters(in: .whitespacesAndNewlines),
-            dosage: dosage?.trimmingCharacters(in: .whitespacesAndNewlines),
-            frequency: frequency.trimmingCharacters(in: .whitespacesAndNewlines),
-            notes: notes?.trimmingCharacters(in: .whitespacesAndNewlines)
-        )
-        save()
-        return medication
+        try MedicationRepository.shared.createMedication(name: name, dosage: dosage, frequency: frequency, notes: notes)
     }
 
     func fetchMedications(activeOnly: Bool = true) -> [Medication] {
-        do {
-            return try fetchMedicationsOrThrow(activeOnly: activeOnly)
-        } catch {
-            print("Failed to fetch medications: \(error.localizedDescription)")
-            return []
-        }
+        MedicationRepository.shared.fetchMedications(activeOnly: activeOnly)
     }
 
     func fetchMedicationsOrThrow(activeOnly: Bool = true) throws -> [Medication] {
-        let request = NSFetchRequest<Medication>(entityName: "Medication")
-
-        if activeOnly {
-            request.predicate = NSPredicate(format: "isActive == true")
-        }
-
-        request.sortDescriptors = [NSSortDescriptor(keyPath: \Medication.name, ascending: true)]
-
-        do {
-            return try container.viewContext.fetch(request)
-        } catch {
-            throw DataError.fetchFailed(error)
-        }
+        try MedicationRepository.shared.fetchMedicationsOrThrow(activeOnly: activeOnly)
     }
 
     func updateMedication(_ medication: Medication) {
-        save()
+        MedicationRepository.shared.updateMedication(medication)
     }
 
     func deleteMedication(_ medication: Medication) {
-        container.viewContext.delete(medication)
-        save()
+        MedicationRepository.shared.deleteMedication(medication)
     }
 
-    // MARK: - Medication Log Management
+    // MARK: - Medication Log (delegates to MedicationRepository)
 
     func createMedicationLog(
         medication: Medication,
@@ -391,41 +222,16 @@ class DataController: ObservableObject, @unchecked Sendable {
         energyLevel: Int16 = 0,
         notes: String? = nil
     ) throws -> MedicationLog {
-        // Validate effectiveness
-        try Validator(effectiveness, fieldName: "Effectiveness")
-            .inRange(0...5)
-
-        // Validate mood
-        try Validator(mood, fieldName: "Mood")
-            .inRange(0...5)
-
-        // Validate energy level
-        try Validator(energyLevel, fieldName: "Energy level")
-            .inRange(0...5)
-
-        // Validate optional fields
-        try Validator(skippedReason, fieldName: "Skipped reason")
-            .ifPresent { try $0.maxLength(200) }
-
-        try Validator(sideEffects, fieldName: "Side effects")
-            .ifPresent { try $0.maxLength(500) }
-
-        try Validator(notes, fieldName: "Notes")
-            .ifPresent { try $0.maxLength(500) }
-
-        let log = NSEntityDescription.insertNewObject(forEntityName: "MedicationLog", into: container.viewContext) as! MedicationLog
-        log.configure(
+        try MedicationRepository.shared.createLog(
             medication: medication,
             taken: taken,
-            skippedReason: skippedReason?.trimmingCharacters(in: .whitespacesAndNewlines),
-            sideEffects: sideEffects?.trimmingCharacters(in: .whitespacesAndNewlines),
+            skippedReason: skippedReason,
+            sideEffects: sideEffects,
             effectiveness: effectiveness,
             mood: mood,
             energyLevel: energyLevel,
-            notes: notes?.trimmingCharacters(in: .whitespacesAndNewlines)
+            notes: notes
         )
-        save()
-        return log
     }
 
     func fetchMedicationLogs(
@@ -433,12 +239,7 @@ class DataController: ObservableObject, @unchecked Sendable {
         endDate: Date? = nil,
         medication: Medication? = nil
     ) -> [MedicationLog] {
-        do {
-            return try fetchMedicationLogsOrThrow(startDate: startDate, endDate: endDate, medication: medication)
-        } catch {
-            print("Failed to fetch medication logs: \(error.localizedDescription)")
-            return []
-        }
+        MedicationRepository.shared.fetchLogs(startDate: startDate, endDate: endDate, medication: medication)
     }
 
     func fetchMedicationLogsOrThrow(
@@ -446,51 +247,18 @@ class DataController: ObservableObject, @unchecked Sendable {
         endDate: Date? = nil,
         medication: Medication? = nil
     ) throws -> [MedicationLog] {
-        let request = NSFetchRequest<MedicationLog>(entityName: "MedicationLog")
-        var predicates: [NSPredicate] = []
-
-        if let startDate = startDate {
-            predicates.append(NSPredicate(format: "timestamp >= %@", startDate as NSDate))
-        }
-
-        if let endDate = endDate {
-            predicates.append(NSPredicate(format: "timestamp <= %@", endDate as NSDate))
-        }
-
-        if let medication = medication {
-            predicates.append(NSPredicate(format: "medication == %@", medication))
-        }
-
-        if !predicates.isEmpty {
-            request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: predicates)
-        }
-
-        request.sortDescriptors = [NSSortDescriptor(keyPath: \MedicationLog.timestamp, ascending: false)]
-
-        // Prefetch the medication relationship to avoid faulting issues
-        request.relationshipKeyPathsForPrefetching = ["medication"]
-
-        do {
-            return try container.viewContext.fetch(request)
-        } catch {
-            throw DataError.fetchFailed(error)
-        }
+        try MedicationRepository.shared.fetchLogsOrThrow(startDate: startDate, endDate: endDate, medication: medication)
     }
 
     func deleteMedicationLog(_ log: MedicationLog) {
-        container.viewContext.delete(log)
-        save()
+        MedicationRepository.shared.deleteLog(log)
     }
 
     func getTodaysMedicationLogs() -> [MedicationLog] {
-        let calendar = Calendar.current
-        let startOfDay = calendar.startOfDay(for: Date())
-        let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay)!
-
-        return fetchMedicationLogs(startDate: startOfDay, endDate: endOfDay)
+        MedicationRepository.shared.getTodaysLogs()
     }
 
-    // MARK: - Journal Entry Management
+    // MARK: - Journal Entry (delegates to JournalRepository)
 
     func createJournalEntry(
         title: String? = nil,
@@ -500,304 +268,159 @@ class DataController: ObservableObject, @unchecked Sendable {
         relatedPatternEntry: PatternEntry? = nil,
         relatedMedicationLog: MedicationLog? = nil
     ) throws -> JournalEntry {
-        // Validate content
-        try Validator(content, fieldName: "Journal content")
-            .notEmpty()
-            .maxLength(50000)
-
-        // Validate title if provided
-        try Validator(title, fieldName: "Journal title")
-            .ifPresent { validator in
-                try validator.maxLength(200)
-                try validator.noSpecialCharacters()
-            }
-
-        // Validate mood
-        try Validator(mood, fieldName: "Mood")
-            .inRange(0...5)
-
-        // Validate audio file name if provided
-        try Validator(audioFileName, fieldName: "Audio file name")
-            .ifPresent { validator in
-                try validator.maxLength(255)
-                try validator.matches(pattern: "^[a-zA-Z0-9_.-]+$", message: "Audio file name contains invalid characters")
-            }
-
-        let entry = NSEntityDescription.insertNewObject(forEntityName: "JournalEntry", into: container.viewContext) as! JournalEntry
-        entry.configure(
-            title: title?.trimmingCharacters(in: .whitespacesAndNewlines),
-            content: content.trimmingCharacters(in: .whitespacesAndNewlines),
+        try JournalRepository.shared.create(
+            title: title,
+            content: content,
             mood: mood,
+            audioFileName: audioFileName,
             relatedPatternEntry: relatedPatternEntry,
             relatedMedicationLog: relatedMedicationLog
         )
-        entry.audioFileName = audioFileName
-        save()
-        return entry
     }
 
-    /// Builds a fetch request for journal entries with the given filters
-    private func buildJournalEntriesFetchRequest(
-        startDate: Date? = nil,
-        endDate: Date? = nil,
-        favoritesOnly: Bool = false
-    ) -> NSFetchRequest<JournalEntry> {
-        let request = NSFetchRequest<JournalEntry>(entityName: "JournalEntry")
-        var predicates: [NSPredicate] = []
-
-        if let startDate = startDate {
-            predicates.append(NSPredicate(format: "timestamp >= %@", startDate as NSDate))
-        }
-
-        if let endDate = endDate {
-            predicates.append(NSPredicate(format: "timestamp <= %@", endDate as NSDate))
-        }
-
-        if favoritesOnly {
-            predicates.append(NSPredicate(format: "isFavorite == true"))
-        }
-
-        if !predicates.isEmpty {
-            request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: predicates)
-        }
-
-        request.sortDescriptors = [NSSortDescriptor(keyPath: \JournalEntry.timestamp, ascending: false)]
-        return request
-    }
-
-    /// Fetches journal entries asynchronously on a background context, then returns objects on main context.
-    /// This prevents blocking the main thread during database I/O.
     @MainActor
     func fetchJournalEntries(
         startDate: Date? = nil,
         endDate: Date? = nil,
         favoritesOnly: Bool = false
     ) async -> [JournalEntry] {
-        // Capture parameters for the closure
-        let request = buildJournalEntriesFetchRequest(
-            startDate: startDate,
-            endDate: endDate,
-            favoritesOnly: favoritesOnly
-        )
-
-        // Fetch on background context and get permanent object IDs
-        let objectIDURIs: [URL] = await backgroundContext.perform { [backgroundContext] in
-            do {
-                let entries = try backgroundContext.fetch(request)
-                // Convert to URIs which are Sendable
-                return entries.compactMap { entry -> URL? in
-                    // Ensure we have permanent IDs
-                    if entry.objectID.isTemporaryID {
-                        try? backgroundContext.obtainPermanentIDs(for: [entry])
-                    }
-                    return entry.objectID.uriRepresentation()
-                }
-            } catch {
-                print("Failed to fetch journal entries: \(error.localizedDescription)")
-                return []
-            }
-        }
-
-        // Convert URIs back to objects on main context
-        // Since we're @MainActor, we can safely access viewContext directly
-        let viewContext = container.viewContext
-        let coordinator = container.persistentStoreCoordinator
-
-        return objectIDURIs.compactMap { uri -> JournalEntry? in
-            guard let objectID = coordinator.managedObjectID(forURIRepresentation: uri) else { return nil }
-            return viewContext.object(with: objectID) as? JournalEntry
-        }
+        await JournalRepository.shared.fetch(startDate: startDate, endDate: endDate, favoritesOnly: favoritesOnly)
     }
 
-    /// Synchronous fetch for cases where async is not possible (e.g., SwiftUI property wrappers).
-    /// Prefer the async version when possible.
     @MainActor
     func fetchJournalEntriesSync(
         startDate: Date? = nil,
         endDate: Date? = nil,
         favoritesOnly: Bool = false
     ) -> [JournalEntry] {
-        let request = buildJournalEntriesFetchRequest(
-            startDate: startDate,
-            endDate: endDate,
-            favoritesOnly: favoritesOnly
-        )
-
-        do {
-            return try container.viewContext.fetch(request)
-        } catch {
-            print("Failed to fetch journal entries: \(error.localizedDescription)")
-            return []
-        }
+        JournalRepository.shared.fetchSync(startDate: startDate, endDate: endDate, favoritesOnly: favoritesOnly)
     }
 
     func updateJournalEntry(_ entry: JournalEntry) {
-        save()
+        JournalRepository.shared.update(entry)
     }
 
     func deleteJournalEntry(_ entry: JournalEntry) {
-        container.viewContext.delete(entry)
-        save()
+        JournalRepository.shared.delete(entry)
     }
 
-    /// Builds a search fetch request for journal entries
-    private func buildSearchJournalEntriesFetchRequest(query: String) -> NSFetchRequest<JournalEntry> {
-        let request = NSFetchRequest<JournalEntry>(entityName: "JournalEntry")
-
-        let titlePredicate = NSPredicate(format: "title CONTAINS[cd] %@", query)
-        let contentPredicate = NSPredicate(format: "content CONTAINS[cd] %@", query)
-
-        request.predicate = NSCompoundPredicate(orPredicateWithSubpredicates: [titlePredicate, contentPredicate])
-        request.sortDescriptors = [NSSortDescriptor(keyPath: \JournalEntry.timestamp, ascending: false)]
-        return request
-    }
-
-    /// Searches journal entries asynchronously on a background context.
     @MainActor
     func searchJournalEntries(query: String) async -> [JournalEntry] {
-        let request = buildSearchJournalEntriesFetchRequest(query: query)
-
-        // Fetch on background context and get permanent object IDs as URIs
-        let objectIDURIs: [URL] = await backgroundContext.perform { [backgroundContext] in
-            do {
-                let entries = try backgroundContext.fetch(request)
-                return entries.compactMap { entry -> URL? in
-                    if entry.objectID.isTemporaryID {
-                        try? backgroundContext.obtainPermanentIDs(for: [entry])
-                    }
-                    return entry.objectID.uriRepresentation()
-                }
-            } catch {
-                print("Failed to search journal entries: \(error.localizedDescription)")
-                return []
-            }
-        }
-
-        // Convert URIs back to objects on main context (already on MainActor)
-        let coordinator = container.persistentStoreCoordinator
-        return objectIDURIs.compactMap { uri -> JournalEntry? in
-            guard let objectID = coordinator.managedObjectID(forURIRepresentation: uri) else { return nil }
-            return container.viewContext.object(with: objectID) as? JournalEntry
-        }
+        await JournalRepository.shared.search(query: query)
     }
 
-    /// Synchronous search for cases where async is not possible.
     @MainActor
     func searchJournalEntriesSync(query: String) -> [JournalEntry] {
-        let request = buildSearchJournalEntriesFetchRequest(query: query)
-
-        do {
-            return try container.viewContext.fetch(request)
-        } catch {
-            print("Failed to search journal entries: \(error.localizedDescription)")
-            return []
-        }
+        JournalRepository.shared.searchSync(query: query)
     }
 
-    // MARK: - User Profile Management
+    // MARK: - User Profile (delegates to UserProfileRepository)
 
     func createUserProfile(
         name: String,
         email: String? = nil,
         dateOfBirth: Date? = nil
     ) -> UserProfile {
-        let profile = NSEntityDescription.insertNewObject(forEntityName: "UserProfile", into: container.viewContext) as! UserProfile
-        profile.name = name
-        profile.email = email
-        profile.dateOfBirth = dateOfBirth
-        save()
-        return profile
+        UserProfileRepository.shared.createProfile(name: name, email: email, dateOfBirth: dateOfBirth)
     }
 
     func fetchUserProfiles() -> [UserProfile] {
-        do {
-            return try fetchUserProfilesOrThrow()
-        } catch {
-            print("Failed to fetch user profiles: \(error.localizedDescription)")
-            return []
-        }
+        UserProfileRepository.shared.fetchProfiles()
     }
 
     func fetchUserProfilesOrThrow() throws -> [UserProfile] {
-        let request = NSFetchRequest<UserProfile>(entityName: "UserProfile")
-        request.sortDescriptors = [NSSortDescriptor(keyPath: \UserProfile.name, ascending: true)]
-
-        do {
-            return try container.viewContext.fetch(request)
-        } catch {
-            throw DataError.fetchFailed(error)
-        }
+        try UserProfileRepository.shared.fetchProfilesOrThrow()
     }
 
     func getCurrentUserProfile() -> UserProfile? {
-        do {
-            return try getCurrentUserProfileOrThrow()
-        } catch {
-            print("Failed to fetch current user profile: \(error.localizedDescription)")
-            return nil
-        }
+        UserProfileRepository.shared.getCurrentProfile()
     }
 
     func getCurrentUserProfileOrThrow() throws -> UserProfile? {
-        let request = NSFetchRequest<UserProfile>(entityName: "UserProfile")
-        request.fetchLimit = 1
-        request.sortDescriptors = [NSSortDescriptor(keyPath: \UserProfile.createdAt, ascending: true)]
-
-        do {
-            return try container.viewContext.fetch(request).first
-        } catch {
-            throw DataError.fetchFailed(error)
-        }
+        try UserProfileRepository.shared.getCurrentProfileOrThrow()
     }
 
     func getOrCreateUserProfile() -> UserProfile {
-        if let existing = getCurrentUserProfile() {
-            return existing
-        }
-        return createUserProfile(name: "User")
+        UserProfileRepository.shared.getOrCreateProfile()
     }
 
     func updateUserProfile(_ profile: UserProfile) {
-        profile.updatedAt = Date()
-        save()
+        UserProfileRepository.shared.updateProfile(profile)
     }
 
     func deleteUserProfile(_ profile: UserProfile) {
-        container.viewContext.delete(profile)
-        save()
+        UserProfileRepository.shared.deleteProfile(profile)
+    }
+
+    // MARK: - Setup Items (delegates to SetupItemRepository)
+
+    func createSetupItem(
+        name: String,
+        category: SetupItemCategory,
+        effectTags: [String] = [],
+        icon: String? = nil,
+        notes: String? = nil,
+        startDate: Date? = nil
+    ) throws -> SetupItem {
+        try SetupItemRepository.shared.create(
+            name: name,
+            category: category,
+            effectTags: effectTags,
+            icon: icon,
+            notes: notes,
+            startDate: startDate
+        )
+    }
+
+    func fetchSetupItems(activeOnly: Bool = true, category: SetupItemCategory? = nil) -> [SetupItem] {
+        SetupItemRepository.shared.fetch(activeOnly: activeOnly, category: category)
+    }
+
+    func fetchSetupItemsOrThrow(activeOnly: Bool = true, category: SetupItemCategory? = nil) throws -> [SetupItem] {
+        try SetupItemRepository.shared.fetchOrThrow(activeOnly: activeOnly, category: category)
+    }
+
+    func updateSetupItem(_ item: SetupItem) {
+        SetupItemRepository.shared.update(item)
+    }
+
+    func deleteSetupItem(_ item: SetupItem) {
+        SetupItemRepository.shared.delete(item)
+    }
+
+    func toggleSetupItemActive(_ item: SetupItem) {
+        SetupItemRepository.shared.toggleActive(item)
+    }
+
+    func fetchSetupItemsGrouped(activeOnly: Bool = true) -> [SetupItemCategory: [SetupItem]] {
+        SetupItemRepository.shared.fetchGrouped(activeOnly: activeOnly)
     }
 
     // MARK: - Widget Integration
 
-    /// App Group identifier for sharing data with widgets
     private let appGroupIdentifier = "group.com.behaviortracker.shared"
 
     private var sharedDefaults: UserDefaults? {
         UserDefaults(suiteName: appGroupIdentifier)
     }
 
-    /// Sync data to widget after any changes
     func syncWidgetData() {
         let calendar = Calendar.current
         let today = calendar.startOfDay(for: Date())
         let tomorrow = calendar.date(byAdding: .day, value: 1, to: today)!
 
-        // Get today's entry count
         let todayEntries = fetchPatternEntries(startDate: today, endDate: tomorrow)
         let todayCount = todayEntries.count
 
-        // Get streak
         let preferences = getUserPreferences()
         let streakCount = Int(preferences.streakCount)
 
-        // Get favorite patterns (most logged in last 30 days)
         let thirtyDaysAgo = calendar.date(byAdding: .day, value: -30, to: Date())!
         let recentEntries = fetchPatternEntries(startDate: thirtyDaysAgo)
         let patternCounts = Dictionary(grouping: recentEntries) { $0.patternType }
             .mapValues { $0.count }
             .sorted { $0.value > $1.value }
 
-        // Create QuickLogPattern array for top patterns
         var quickPatterns: [[String: String]] = []
         for (patternType, _) in patternCounts.prefix(6) {
             if let patternTypeEnum = PatternType(rawValue: patternType) {
@@ -812,7 +435,6 @@ class DataController: ObservableObject, @unchecked Sendable {
             }
         }
 
-        // If no recent patterns, use defaults
         if quickPatterns.isEmpty {
             quickPatterns = [
                 ["name": "Sensory Overload", "patternType": "Sensory Overload", "category": "Sensory", "icon": "eye.circle", "colorHex": "AF52DE"],
@@ -822,23 +444,18 @@ class DataController: ObservableObject, @unchecked Sendable {
             ]
         }
 
-        // Save to shared UserDefaults
         sharedDefaults?.set(todayCount, forKey: "todayLogCount")
         sharedDefaults?.set(today, forKey: "todayLogDate")
         sharedDefaults?.set(streakCount, forKey: "streakCount")
 
-        // Save quick log patterns as JSON
         if let patternsData = try? JSONSerialization.data(withJSONObject: quickPatterns) {
             sharedDefaults?.set(patternsData, forKey: "quickLogPatterns")
         }
 
         sharedDefaults?.set(Date(), forKey: "lastUpdateDate")
-
-        // Reload widgets
         WidgetCenter.shared.reloadAllTimelines()
     }
 
-    /// Process any pending pattern logs from widget
     func processPendingWidgetLogs() {
         guard let data = sharedDefaults?.data(forKey: "pendingPatternLogs"),
               let logs = try? JSONDecoder().decode([PendingPatternLog].self, from: data),
@@ -847,12 +464,11 @@ class DataController: ObservableObject, @unchecked Sendable {
         }
 
         for log in logs {
-            // Try to find matching PatternType
             if let patternType = PatternType(rawValue: log.patternType) {
                 do {
                     _ = try createPatternEntry(
                         patternType: patternType,
-                        intensity: 3, // Default moderate intensity for quick logs
+                        intensity: 3,
                         contextNotes: "Logged from widget"
                     )
                 } catch {
@@ -861,109 +477,16 @@ class DataController: ObservableObject, @unchecked Sendable {
             }
         }
 
-        // Clear pending logs
         sharedDefaults?.removeObject(forKey: "pendingPatternLogs")
-
-        // Update streak
         updateStreak()
-
-        // Sync updated data back to widget
         syncWidgetData()
     }
 
-    /// Pending pattern log structure (matches SharedDataManager)
     private struct PendingPatternLog: Codable {
         let id: String
         let patternName: String
         let patternType: String
         let category: String
         let timestamp: Date
-    }
-
-    // MARK: - Setup Item Management
-
-    func createSetupItem(
-        name: String,
-        category: SetupItemCategory,
-        effectTags: [String] = [],
-        icon: String? = nil,
-        notes: String? = nil,
-        startDate: Date? = nil
-    ) throws -> SetupItem {
-        try Validator(name, fieldName: "Item name")
-            .notEmpty()
-            .maxLength(100)
-
-        let item = SetupItem(context: container.viewContext)
-        item.id = UUID()
-        item.name = name
-        item.category = category.rawValue
-        item.setEffectTags(effectTags)
-        item.icon = icon
-        item.notes = notes
-        item.isActive = true
-        item.startDate = startDate ?? Date()
-        item.sortOrder = Int16(fetchSetupItems(category: category).count)
-
-        save()
-        return item
-    }
-
-    func fetchSetupItems(activeOnly: Bool = true, category: SetupItemCategory? = nil) -> [SetupItem] {
-        do {
-            return try fetchSetupItemsOrThrow(activeOnly: activeOnly, category: category)
-        } catch {
-            print("Failed to fetch setup items: \(error)")
-            return []
-        }
-    }
-
-    func fetchSetupItemsOrThrow(activeOnly: Bool = true, category: SetupItemCategory? = nil) throws -> [SetupItem] {
-        let request = NSFetchRequest<SetupItem>(entityName: "SetupItem")
-
-        var predicates: [NSPredicate] = []
-        if activeOnly {
-            predicates.append(NSPredicate(format: "isActive == YES"))
-        }
-        if let category = category {
-            predicates.append(NSPredicate(format: "category == %@", category.rawValue))
-        }
-
-        if !predicates.isEmpty {
-            request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: predicates)
-        }
-
-        request.sortDescriptors = [
-            NSSortDescriptor(keyPath: \SetupItem.category, ascending: true),
-            NSSortDescriptor(keyPath: \SetupItem.sortOrder, ascending: true)
-        ]
-
-        do {
-            return try container.viewContext.fetch(request)
-        } catch {
-            throw DataError.fetchFailed(error)
-        }
-    }
-
-    func updateSetupItem(_ item: SetupItem) {
-        save()
-    }
-
-    func deleteSetupItem(_ item: SetupItem) {
-        container.viewContext.delete(item)
-        save()
-    }
-
-    func toggleSetupItemActive(_ item: SetupItem) {
-        item.isActive.toggle()
-        save()
-    }
-
-    /// Get setup items grouped by category
-    func fetchSetupItemsGrouped(activeOnly: Bool = true) -> [SetupItemCategory: [SetupItem]] {
-        let items = fetchSetupItems(activeOnly: activeOnly)
-        return Dictionary(grouping: items) { item in
-            item.categoryEnum ?? .medication
-        }
     }
 }
