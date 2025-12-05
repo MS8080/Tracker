@@ -41,15 +41,16 @@ struct ProfileButton: View {
                     .shadow(color: .black.opacity(0.3), radius: 4, x: 0, y: 2)
                 #endif
             } else {
-                Image(systemName: "person.circle.fill")
-                    .font(.system(size: 36))
+                Image(systemName: "person.fill")
+                    .font(.system(size: 18))
                     .foregroundStyle(.white.opacity(0.9))
+                    .frame(width: 36, height: 36)
+                    .background(Color.white.opacity(0.15))
+                    .clipShape(Circle())
                     .shadow(color: .black.opacity(0.3), radius: 4, x: 0, y: 2)
             }
         }
         .buttonStyle(.plain)
-        .buttonBorderShape(.circle)
-        .clipShape(Circle())
         .task {
             await loadProfileImageAsync()
         }
@@ -77,7 +78,24 @@ struct DaySlideshowView: View {
     @Environment(\.dismiss) private var dismiss
     @ObservedObject var viewModel: HomeViewModel
 
+    @State private var headerOpacity: Double = 0
+    @State private var visibleSlides: Set<Int> = []
+    @State private var footerOpacity: Double = 0
+
     @ThemeWrapper var theme
+
+    // Softer, warmer pastel colors
+    private func warmColor(for color: Color) -> Color {
+        switch color {
+        case .blue: return Color(red: 0.55, green: 0.70, blue: 0.85)
+        case .purple: return Color(red: 0.72, green: 0.60, blue: 0.82)
+        case .orange: return Color(red: 0.92, green: 0.72, blue: 0.55)
+        case .green: return Color(red: 0.60, green: 0.78, blue: 0.65)
+        case .cyan: return Color(red: 0.55, green: 0.78, blue: 0.82)
+        case .gray: return Color(red: 0.70, green: 0.70, blue: 0.72)
+        default: return color.opacity(0.85)
+        }
+    }
 
     var body: some View {
         ZStack {
@@ -85,13 +103,9 @@ struct DaySlideshowView: View {
                 .ignoresSafeArea()
 
             VStack(spacing: 0) {
+                // Close button row
                 HStack {
-                    Text("Day Summary")
-                        .font(.headline)
-                        .foregroundStyle(.white.opacity(0.8))
-
                     Spacer()
-
                     Button {
                         dismiss()
                     } label: {
@@ -100,7 +114,8 @@ struct DaySlideshowView: View {
                             .foregroundStyle(.white.opacity(0.6))
                     }
                 }
-                .padding()
+                .padding(.horizontal)
+                .padding(.top)
 
                 if viewModel.isGeneratingSlides {
                     Spacer()
@@ -109,15 +124,15 @@ struct DaySlideshowView: View {
                             .scaleEffect(1.2)
                             .tint(.white)
 
-                        Text("Generating summary...")
+                        Text("Taking a moment to reflect on your day...")
                             .font(.subheadline)
-                            .foregroundStyle(.white.opacity(0.6))
+                            .foregroundStyle(.white.opacity(0.7))
                     }
                     Spacer()
                 } else if let error = viewModel.slidesError {
                     Spacer()
                     VStack(spacing: Spacing.md) {
-                        Image(systemName: "exclamationmark.circle")
+                        Image(systemName: "heart.circle")
                             .font(.system(size: 40))
                             .foregroundStyle(.white.opacity(0.5))
 
@@ -131,7 +146,7 @@ struct DaySlideshowView: View {
                                 await viewModel.generateAISlides()
                             }
                         } label: {
-                            Text("Retry")
+                            Text("Try Again")
                                 .font(.subheadline)
                                 .foregroundStyle(.white)
                                 .padding(.horizontal, 20)
@@ -146,68 +161,134 @@ struct DaySlideshowView: View {
                     Spacer()
                 } else if !viewModel.todaySlides.isEmpty {
                     ScrollView {
-                        VStack(spacing: Spacing.lg) {
-                            ForEach(Array(viewModel.todaySlides.enumerated()), id: \.element.id) { index, slide in
-                                insightRow(slide, index: index)
-                                    .transition(.asymmetric(
-                                        insertion: .opacity.combined(with: .move(edge: .bottom)),
-                                        removal: .opacity
-                                    ))
+                        VStack(spacing: Spacing.xxl) {
+                            // Warm, personal header
+                            VStack(spacing: Spacing.sm) {
+                                Text("I've been with you today\(viewModel.userFirstName.map { ", \($0)" } ?? "").")
+                                    .font(.title2)
+                                    .fontWeight(.medium)
+                                    .foregroundStyle(.white.opacity(0.95))
+
+                                Text("Here's what I noticed:")
+                                    .font(.title3)
+                                    .foregroundStyle(.white.opacity(0.7))
                             }
+                            .multilineTextAlignment(.center)
+                            .padding(.top, Spacing.lg)
+                            .opacity(headerOpacity)
+
+                            // Insight cards with more breathing room
+                            VStack(spacing: Spacing.xxl) {
+                                ForEach(Array(viewModel.todaySlides.enumerated()), id: \.element.id) { index, slide in
+                                    insightRow(slide, index: index)
+                                        .opacity(visibleSlides.contains(index) ? 1 : 0)
+                                        .offset(y: visibleSlides.contains(index) ? 0 : 20)
+                                }
+                            }
+
+                            // Supportive footer
+                            VStack(spacing: Spacing.md) {
+                                Divider()
+                                    .background(.white.opacity(0.2))
+                                    .padding(.horizontal, Spacing.xxl)
+
+                                VStack(spacing: Spacing.sm) {
+                                    Text("Everything's recorded and safe here.")
+                                        .font(.subheadline)
+                                        .foregroundStyle(.white.opacity(0.7))
+
+                                    Text("You don't have to hold it all anymore.")
+                                        .font(.subheadline)
+                                        .foregroundStyle(.white.opacity(0.6))
+
+                                    Text("I've got you covered.")
+                                        .font(.headline)
+                                        .fontWeight(.semibold)
+                                        .foregroundStyle(.white.opacity(0.85))
+                                        .padding(.top, Spacing.xs)
+                                }
+                                .multilineTextAlignment(.center)
+                                .padding(.vertical, Spacing.xl)
+                            }
+                            .opacity(footerOpacity)
                         }
                         .padding(.horizontal, Spacing.xl)
-                        .padding(.bottom, 40)
+                        .padding(.bottom, 60)
                     }
                 }
             }
         }
         .task {
+            // Trigger haptic on open
+            #if os(iOS)
+            let generator = UIImpactFeedbackGenerator(style: .soft)
+            generator.impactOccurred()
+            #endif
+
             if viewModel.todaySlides.isEmpty && !viewModel.isGeneratingSlides {
                 await viewModel.generateAISlides()
+            }
+        }
+        .onChange(of: viewModel.todaySlides) { _, slides in
+            animateContentAppearance(slideCount: slides.count)
+        }
+        .onAppear {
+            if !viewModel.todaySlides.isEmpty {
+                animateContentAppearance(slideCount: viewModel.todaySlides.count)
+            }
+        }
+    }
+
+    private func animateContentAppearance(slideCount: Int) {
+        // Fade in header first
+        withAnimation(.easeOut(duration: 0.5)) {
+            headerOpacity = 1
+        }
+
+        // Stagger slide appearances
+        for index in 0..<slideCount {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3 + Double(index) * 0.15) {
+                withAnimation(.easeOut(duration: 0.4)) {
+                    _ = visibleSlides.insert(index)
+                }
+            }
+        }
+
+        // Fade in footer after all slides
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3 + Double(slideCount) * 0.15 + 0.3) {
+            withAnimation(.easeOut(duration: 0.5)) {
+                footerOpacity = 1
             }
         }
     }
 
     private func insightRow(_ slide: DaySummarySlide, index: Int) -> some View {
-        HStack(alignment: .top, spacing: Spacing.md) {
-            // Icon with number badge
-            ZStack(alignment: .topTrailing) {
-                Image(systemName: slide.icon)
-                    .font(.system(size: 24, weight: .medium))
-                    .foregroundStyle(slide.color)
-                    .frame(width: 44, height: 44)
-                    .background(
-                        Circle()
-                            .fill(slide.color.opacity(0.15))
-                    )
-
-                // Number badge
-                Text("\(index + 1)")
-                    .font(.system(size: 10, weight: .bold))
-                    .foregroundStyle(.white)
-                    .frame(width: 16, height: 16)
-                    .background(
-                        Circle()
-                            .fill(slide.color)
-                    )
-                    .offset(x: 4, y: -4)
-            }
+        HStack(alignment: .top, spacing: Spacing.lg) {
+            // Icon with softer, warmer colors
+            Image(systemName: slide.icon)
+                .font(.system(size: 26, weight: .medium))
+                .foregroundStyle(warmColor(for: slide.color))
+                .frame(width: 52, height: 52)
+                .background(
+                    Circle()
+                        .fill(warmColor(for: slide.color).opacity(0.12))
+                )
 
             VStack(alignment: .leading, spacing: Spacing.sm) {
                 Text(slide.title)
                     .font(.headline)
-                    .fontWeight(.bold)
+                    .fontWeight(.semibold)
                     .foregroundStyle(.white.opacity(0.95))
 
                 Text(slide.detail)
-                    .font(.callout)
-                    .foregroundStyle(.white.opacity(0.75))
-                    .lineSpacing(3)
+                    .font(.body)
+                    .foregroundStyle(.white.opacity(0.8))
+                    .lineSpacing(6)
                     .fixedSize(horizontal: false, vertical: true)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .padding(Spacing.lg)
+        .padding(.vertical, Spacing.md)
     }
 }
 

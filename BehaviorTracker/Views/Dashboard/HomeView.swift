@@ -68,6 +68,7 @@ struct HomeView: View {
                 ToolbarItem(placement: .primaryAction) {
                     ProfileButton(showingProfile: $showingProfile)
                 }
+                .hideSharedBackground()
             }
             .onAppear {
                 viewModel.loadData()
@@ -123,40 +124,85 @@ struct HomeView: View {
             showingSlideshow = true
             HapticFeedback.medium.trigger()
         } label: {
-            HStack(spacing: Spacing.md) {
-                ZStack {
-                    Circle()
-                        .fill(Color.cyan.opacity(0.2))
-                        .frame(width: TouchTarget.recommended, height: TouchTarget.recommended)
-                    
-                    Image(systemName: "play.circle.fill")
-                        .font(.title2)
-                        .foregroundStyle(.cyan)
-                }
+            VStack(spacing: Spacing.md) {
+                HStack(spacing: Spacing.md) {
+                    ZStack {
+                        Circle()
+                            .fill(
+                                LinearGradient(
+                                    colors: [Color.cyan.opacity(0.3), Color.blue.opacity(0.2)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                            .frame(width: TouchTarget.recommended, height: TouchTarget.recommended)
 
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Your Day So Far")
+                        Image(systemName: "sparkles")
+                            .font(.title2)
+                            .foregroundStyle(.cyan)
+                    }
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Your Day So Far")
+                            .font(.title3)
+                            .fontWeight(.bold)
+                            .foregroundStyle(.white)
+
+                        Text(daySummarySubtitle)
+                            .font(.subheadline)
+                            .foregroundStyle(.white.opacity(0.75))
+                    }
+
+                    Spacer()
+
+                    Image(systemName: "chevron.right.circle.fill")
                         .font(.title3)
-                        .fontWeight(.bold)
-                        .foregroundStyle(.white)
-
-                    Text("Tap to see a summary")
-                        .font(.caption)
-                        .foregroundStyle(.white.opacity(0.7))
+                        .foregroundStyle(.white.opacity(0.4))
                 }
 
-                Spacer()
+                // Preview hint
+                HStack(spacing: Spacing.sm) {
+                    Image(systemName: "hand.tap.fill")
+                        .font(.caption2)
+                        .foregroundStyle(.cyan.opacity(0.6))
 
-                Image(systemName: "chevron.right")
-                    .font(.caption)
-                    .foregroundStyle(.white.opacity(0.5))
-                    .padding(.trailing, 4)
+                    Text("Tap for insights")
+                        .font(.caption)
+                        .foregroundStyle(.white.opacity(0.5))
+
+                    Spacer()
+                }
+                .padding(.leading, TouchTarget.recommended + Spacing.md)
             }
             .padding(Spacing.lg)
             .frame(minHeight: TouchTarget.recommended)
-            .cardStyle(theme: theme, interactive: false)
+            .background(
+                RoundedRectangle(cornerRadius: CornerRadius.lg)
+                    .fill(.ultraThinMaterial)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: CornerRadius.lg)
+                            .stroke(
+                                LinearGradient(
+                                    colors: [.cyan.opacity(0.3), .blue.opacity(0.1)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                ),
+                                lineWidth: 1
+                            )
+                    )
+                    .shadow(color: .cyan.opacity(0.15), radius: 8, x: 0, y: 4)
+            )
         }
         .buttonStyle(.plain)
+    }
+
+    private var daySummarySubtitle: String {
+        let count = viewModel.todayEntryCount
+        if count == 1 {
+            return "1 moment captured"
+        } else {
+            return "\(count) moments captured"
+        }
     }
 
     // MARK: - Greeting

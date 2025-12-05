@@ -9,6 +9,12 @@ struct WeeklyReportView: View {
         VStack(spacing: Spacing.md) {
             summaryCard
             categoryDistributionCard
+            if !report.commonTriggers.isEmpty {
+                triggersCard
+            }
+            if !report.topCascades.isEmpty {
+                cascadesCard
+            }
             patternFrequencyCard
         }
     }
@@ -18,9 +24,10 @@ struct WeeklyReportView: View {
     private var summaryCard: some View {
         ReportCard(title: "Weekly Summary", subtitle: "Last 7 days", theme: theme) {
             VStack(spacing: Spacing.lg) {
-                StatRow(label: "Total Entries", value: "\(report.totalEntries)")
+                StatRow(label: "Journal Entries", value: "\(report.totalEntries)")
+                StatRow(label: "Patterns Detected", value: "\(report.totalPatterns)")
                 StatRow(label: "Most Active Day", value: report.mostActiveDay)
-                StatRow(label: "Average Per Day", value: String(format: "%.1f", report.averagePerDay))
+                StatRow(label: "Avg Patterns/Day", value: String(format: "%.1f", report.averagePerDay))
             }
         }
     }
@@ -35,7 +42,7 @@ struct WeeklyReportView: View {
             minHeight: 280
         ) {
             if report.categoryBreakdown.isEmpty {
-                ReportEmptyState(message: "No data available")
+                ReportEmptyState(message: "No patterns extracted yet")
             } else {
                 VStack(spacing: Spacing.md) {
                     Chart {
@@ -45,7 +52,7 @@ struct WeeklyReportView: View {
                                 innerRadius: .ratio(0.5),
                                 angularInset: 2
                             )
-                            .foregroundStyle(category.color)
+                            .foregroundStyle(colorForCategory(category))
                             .opacity(0.8)
                         }
                     }
@@ -63,10 +70,10 @@ struct WeeklyReportView: View {
             ForEach(Array(report.categoryBreakdown.sorted(by: { $0.value > $1.value })), id: \.key) { category, count in
                 HStack(spacing: Spacing.sm) {
                     Circle()
-                        .fill(category.color)
+                        .fill(colorForCategory(category))
                         .frame(width: 10, height: 10)
 
-                    Text(category.rawValue)
+                    Text(category)
                         .font(.subheadline)
                         .foregroundStyle(CardText.body)
                         .lineLimit(1)
@@ -82,6 +89,64 @@ struct WeeklyReportView: View {
         }
     }
 
+    // MARK: - Triggers Card
+
+    private var triggersCard: some View {
+        ReportCard(
+            title: "Common Triggers",
+            subtitle: "What's been affecting you",
+            theme: theme
+        ) {
+            VStack(alignment: .leading, spacing: Spacing.sm) {
+                ForEach(report.commonTriggers, id: \.self) { trigger in
+                    HStack(spacing: Spacing.sm) {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .font(.caption)
+                            .foregroundStyle(.orange)
+
+                        Text(trigger)
+                            .font(.subheadline)
+                            .foregroundStyle(CardText.body)
+                    }
+                }
+            }
+        }
+    }
+
+    // MARK: - Cascades Card
+
+    private var cascadesCard: some View {
+        ReportCard(
+            title: "Pattern Connections",
+            subtitle: "What led to what",
+            theme: theme
+        ) {
+            VStack(alignment: .leading, spacing: Spacing.sm) {
+                ForEach(report.topCascades, id: \.from) { cascade in
+                    HStack(spacing: Spacing.sm) {
+                        Text(cascade.from)
+                            .font(.caption)
+                            .foregroundStyle(CardText.body)
+
+                        Image(systemName: "arrow.right")
+                            .font(.caption2)
+                            .foregroundStyle(CardText.caption)
+
+                        Text(cascade.to)
+                            .font(.caption)
+                            .foregroundStyle(CardText.body)
+
+                        Spacer()
+
+                        Text("×\(cascade.count)")
+                            .font(.caption)
+                            .foregroundStyle(CardText.caption)
+                    }
+                }
+            }
+        }
+    }
+
     // MARK: - Pattern Frequency Card
 
     private var patternFrequencyCard: some View {
@@ -92,7 +157,7 @@ struct WeeklyReportView: View {
             minHeight: 280
         ) {
             if report.patternFrequency.isEmpty {
-                ReportEmptyState(message: "No data available")
+                ReportEmptyState(message: "No patterns extracted yet")
             } else {
                 SimpleBarChart(
                     data: report.patternFrequency.prefix(5).map { pattern, count in
@@ -107,6 +172,22 @@ struct WeeklyReportView: View {
                 )
                 .frame(maxWidth: .infinity, minHeight: 200)
             }
+        }
+    }
+
+    // MARK: - Helpers
+
+    private func colorForCategory(_ category: String) -> Color {
+        switch category {
+        case "Sensory": return .red
+        case "Executive Function": return .orange
+        case "Energy & Regulation": return .purple
+        case "Social & Communication": return .blue
+        case "Routine & Change": return .yellow
+        case "Demand Avoidance": return .pink
+        case "Physical & Sleep": return .green
+        case "Special Interests": return .cyan
+        default: return .gray
         }
     }
 }

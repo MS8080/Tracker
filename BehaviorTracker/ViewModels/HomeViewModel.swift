@@ -8,6 +8,7 @@ struct RecentContext {
     let color: Color
     let message: String
     let timeAgo: String?
+    let journalPreview: String?
 }
 
 struct Memory: Identifiable {
@@ -16,12 +17,16 @@ struct Memory: Identifiable {
     let description: String
 }
 
-struct DaySummarySlide: Identifiable {
+struct DaySummarySlide: Identifiable, Equatable {
     let id = UUID()
     let icon: String
     let color: Color
     let title: String
     let detail: String
+
+    static func == (lhs: DaySummarySlide, rhs: DaySummarySlide) -> Bool {
+        lhs.id == rhs.id
+    }
 }
 
 struct AIGeneratedSlide: Codable {
@@ -40,13 +45,14 @@ class HomeViewModel: ObservableObject {
     @Published var memories: [Memory] = []
     @Published var todaySlides: [DaySummarySlide] = []
     @Published var hasTodayEntries: Bool = false
+    @Published var todayEntryCount: Int = 0
     @Published var isGeneratingSlides: Bool = false
     @Published var slidesError: String?
     @Published var currentStreak: Int = 0
 
     private let dataController = DataController.shared
     private let geminiService = GeminiService.shared
-    
+
     // PERFORMANCE: Cache to avoid redundant queries
     private var lastLoadDate: Date?
     private var memoriesCache: [Memory] = []
@@ -106,8 +112,8 @@ class HomeViewModel: ObservableObject {
     private func loadHeavyData() async {
         // Load expensive queries on background thread
         await Task.yield() // Allow UI to render first
-        loadRecentContext()
-        loadMemories()
+        await loadRecentContext()
+        await loadMemories()
 
         // Mark load time after all data is loaded
         lastLoadDate = Date()
@@ -145,7 +151,9 @@ class HomeViewModel: ObservableObject {
         }
     }
 
-    private func loadRecentContext() {
+    // MARK: - Recent Context (now uses ExtractedPattern + JournalEntry)
+
+    private func loadRecentContext() async {
         // Use cache if valid
         if let lastLoad = lastLoadDate,
            Date().timeIntervalSince(lastLoad) < cacheValidityInterval,
@@ -153,61 +161,111 @@ class HomeViewModel: ObservableObject {
             recentContext = cached
             return
         }
-        
-        let recentEntries = dataController.fetchPatternEntries(limit: 5)
 
-        guard let mostRecent = recentEntries.first else {
-            recentContext = nil
-            return
+        // Fetch recent journal entries with their extracted patterns
+        let recentJournals = await dataController.fetchJournalEntries(startDate: nil, endDate: nil, favoritesOnly: false)
+        let sortedJournals = recentJournals.sorted { $0.timestamp > $1.timestamp }
+
+        // Find most recent journal with extracted patterns
+        for journal in sortedJournals.prefix(5) {
+            let patterns = journal.patternsArray
+            if !patterns.isEmpty {
+                // Use the highest intensity pattern from this journal
+                if let mostSignificant = patterns.max(by: { $0.intensity < $1.intensity }) {
+                    let timeAgo = Self.relativeDateFormatter.localizedString(for: journal.timestamp, relativeTo: Date())
+                    let context = buildRecentContext(from: mostSignificant, journal: journal, timeAgo: timeAgo)
+                    recentContext = context
+                    recentContextCache = context
+                    return
+                }
+            } else if journal.isAnalyzed, let summary = journal.analysisSummary {
+                // Journal was analyzed but no patterns - use the summary
+                let timeAgo = Self.relativeDateFormatter.localizedString(for: journal.timestamp, relativeTo: Date())
+                recentContext = RecentContext(
+                    icon: "doc.text.fill",
+                    color: .blue,
+                    message: summary,
+                    timeAgo: timeAgo,
+                    journalPreview: nil
+                )
+                recentContextCache = recentContext
+                return
+            }
         }
 
-        let timeAgo = Self.relativeDateFormatter.localizedString(for: mostRecent.timestamp, relativeTo: Date())
-        let patternType = mostRecent.patternType
-        let category = mostRecent.patternCategoryEnum
+        // Fallback: show most recent journal even if not analyzed
+        if let mostRecent = sortedJournals.first {
+            let timeAgo = Self.relativeDateFormatter.localizedString(for: mostRecent.timestamp, relativeTo: Date())
+            recentContext = RecentContext(
+                icon: "square.and.pencil",
+                color: .gray,
+                message: "You wrote in your journal",
+                timeAgo: timeAgo,
+                journalPreview: mostRecent.preview
+            )
+            recentContextCache = recentContext
+        } else {
+            recentContext = nil
+        }
+    }
 
-        let message: String
+    private func buildRecentContext(from pattern: ExtractedPattern, journal: JournalEntry, timeAgo: String) -> RecentContext {
+        let category = pattern.category
         let icon: String
         let color: Color
+        let message: String
 
-        if let category = category {
-            icon = category.icon
-            color = category.color
-
-            switch category {
-            case .sensory:
-                message = "You noted some sensory experiences"
-            case .executiveFunction:
-                message = "You were managing tasks and focus"
-            case .social:
-                message = "You had some social interactions"
-            case .energyRegulation:
-                message = "You logged how your energy was feeling"
-            case .routineChange:
-                message = "Something happened with your routine"
-            case .demandAvoidance:
-                message = "You noticed some demand-related feelings"
-            case .physicalWellbeing:
-                message = "You took care of yourself"
-            }
-        } else {
+        switch category {
+        case "Sensory":
+            icon = "waveform.path"
+            color = .red
+            message = "You experienced some sensory moments"
+        case "Executive Function":
+            icon = "brain.head.profile"
+            color = .orange
+            message = "You were navigating focus and tasks"
+        case "Social & Communication":
+            icon = "person.2.fill"
+            color = .blue
+            message = "You had some social experiences"
+        case "Energy & Regulation":
+            icon = "battery.75"
+            color = .purple
+            message = "You were managing your energy"
+        case "Routine & Change":
+            icon = "arrow.triangle.2.circlepath"
+            color = .yellow
+            message = "Something shifted in your routine"
+        case "Demand Avoidance":
+            icon = "hand.raised.fill"
+            color = .pink
+            message = "You noticed some demand-related feelings"
+        case "Physical & Sleep":
+            icon = "heart.fill"
+            color = .green
+            message = "You were tuning into your body"
+        case "Special Interests":
+            icon = "star.fill"
+            color = .cyan
+            message = "You engaged with something you love"
+        default:
             icon = "circle.fill"
             color = .gray
-            message = "You logged: \(patternType)"
+            message = "You reflected on: \(pattern.patternType.lowercased())"
         }
 
-        recentContext = RecentContext(
+        return RecentContext(
             icon: icon,
             color: color,
             message: message,
-            timeAgo: timeAgo
+            timeAgo: timeAgo,
+            journalPreview: pattern.details
         )
-        
-        // Update cache
-        recentContextCache = recentContext
-        lastLoadDate = Date()
     }
 
-    private func loadMemories() {
+    // MARK: - Memories (now uses ExtractedPattern + JournalEntry)
+
+    private func loadMemories() async {
         // Use cache if valid
         if !memoriesCache.isEmpty {
             memories = memoriesCache
@@ -217,17 +275,15 @@ class HomeViewModel: ObservableObject {
         var foundMemories: [Memory] = []
         let calendar = Calendar.current
 
-        // Single fetch for last 2 weeks - reuse for multiple analyses
-        guard let twoWeeksAgo = calendar.date(byAdding: .day, value: -14, to: Date()) else {
-            return
-        }
-        let recentEntries = dataController.fetchPatternEntries(startDate: twoWeeksAgo, endDate: Date())
+        // Fetch recent patterns for analysis
+        let recentPatterns = await fetchExtractedPatterns(daysBack: 14)
+        let lastMonthPatterns = await fetchExtractedPatterns(forDate: calendar.date(byAdding: .month, value: -1, to: Date()))
 
         // Check last week same day
         if let lastWeek = calendar.date(byAdding: .weekOfYear, value: -1, to: Date()) {
-            let lastWeekEntries = filterEntriesForDay(recentEntries, date: lastWeek)
-            if !lastWeekEntries.isEmpty {
-                let description = describeDay(lastWeekEntries, prefix: "Last week")
+            let lastWeekPatterns = filterPatternsForDay(recentPatterns, date: lastWeek)
+            if !lastWeekPatterns.isEmpty {
+                let description = describeDay(lastWeekPatterns, prefix: "Last week")
                 foundMemories.append(Memory(
                     timeframe: "This time last week",
                     description: description
@@ -235,29 +291,23 @@ class HomeViewModel: ObservableObject {
             }
         }
 
-        // Find overcome memory using already-fetched data
-        if let overcameMemory = findOvercomeMemory(from: recentEntries) {
+        // Find overcome memory using extracted patterns
+        if let overcameMemory = findOvercomeMemory(from: recentPatterns) {
             foundMemories.append(overcameMemory)
         }
 
-        // Check last month (needs separate fetch since it's outside 2-week window)
-        if let lastMonth = calendar.date(byAdding: .month, value: -1, to: Date()) {
-            let lastMonthEntries = dataController.fetchPatternEntries(
-                startDate: calendar.startOfDay(for: lastMonth),
-                endDate: calendar.date(byAdding: .day, value: 1, to: calendar.startOfDay(for: lastMonth)) ?? lastMonth
-            )
-            if !lastMonthEntries.isEmpty {
-                let description = describeDay(lastMonthEntries, prefix: "Last month")
-                foundMemories.append(Memory(
-                    timeframe: "This time last month",
-                    description: description
-                ))
-            }
+        // Check last month
+        if !lastMonthPatterns.isEmpty {
+            let description = describeDay(lastMonthPatterns, prefix: "Last month")
+            foundMemories.append(Memory(
+                timeframe: "This time last month",
+                description: description
+            ))
         }
 
-        // Check time-of-day pattern using already-fetched data
+        // Check time-of-day pattern
         let currentHour = calendar.component(.hour, from: Date())
-        if let pattern = findTimeOfDayPattern(from: recentEntries, hour: currentHour) {
+        if let pattern = findTimeOfDayPattern(from: recentPatterns, hour: currentHour) {
             foundMemories.append(Memory(
                 timeframe: "Around this time",
                 description: pattern
@@ -268,17 +318,79 @@ class HomeViewModel: ObservableObject {
         memoriesCache = foundMemories
     }
 
-    private func findOvercomeMemory(from entries: [PatternEntry]) -> Memory? {
-        for (index, entry) in entries.enumerated() where entry.intensity >= 4 {
-            if index > 0 {
-                let laterEntry = entries[index - 1]
-                let category = laterEntry.patternCategoryEnum
+    private func fetchExtractedPatterns(daysBack: Int) async -> [ExtractedPattern] {
+        let calendar = Calendar.current
+        guard let startDate = calendar.date(byAdding: .day, value: -daysBack, to: Date()) else {
+            return []
+        }
 
-                if category == .physicalWellbeing || laterEntry.intensity <= 2 {
-                    let timeAgo = Self.relativeDateFormatter.localizedString(for: entry.timestamp, relativeTo: Date())
+        let fetchRequest: NSFetchRequest<ExtractedPattern> = ExtractedPattern.fetchRequest()
+        fetchRequest.predicate = NSPredicate(
+            format: "timestamp >= %@ AND timestamp <= %@",
+            startDate as NSDate,
+            Date() as NSDate
+        )
+        fetchRequest.sortDescriptors = [NSSortDescriptor(keyPath: \ExtractedPattern.timestamp, ascending: false)]
+
+        do {
+            return try dataController.container.viewContext.fetch(fetchRequest)
+        } catch {
+            return []
+        }
+    }
+
+    private func fetchExtractedPatterns(forDate date: Date?) async -> [ExtractedPattern] {
+        guard let date = date else { return [] }
+
+        let calendar = Calendar.current
+        let startOfDay = calendar.startOfDay(for: date)
+        guard let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay) else {
+            return []
+        }
+
+        let fetchRequest: NSFetchRequest<ExtractedPattern> = ExtractedPattern.fetchRequest()
+        fetchRequest.predicate = NSPredicate(
+            format: "timestamp >= %@ AND timestamp < %@",
+            startOfDay as NSDate,
+            endOfDay as NSDate
+        )
+        fetchRequest.sortDescriptors = [NSSortDescriptor(keyPath: \ExtractedPattern.timestamp, ascending: false)]
+
+        do {
+            return try dataController.container.viewContext.fetch(fetchRequest)
+        } catch {
+            return []
+        }
+    }
+
+    private func filterPatternsForDay(_ patterns: [ExtractedPattern], date: Date) -> [ExtractedPattern] {
+        let calendar = Calendar.current
+        let startOfDay = calendar.startOfDay(for: date)
+        guard let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay) else {
+            return []
+        }
+        return patterns.filter { $0.timestamp >= startOfDay && $0.timestamp < endOfDay }
+    }
+
+    private func findOvercomeMemory(from patterns: [ExtractedPattern]) -> Memory? {
+        // Sort by timestamp descending (most recent first)
+        let sorted = patterns.sorted { $0.timestamp > $1.timestamp }
+
+        for (index, pattern) in sorted.enumerated() where pattern.intensity >= 7 {
+            // Look for a later pattern (earlier in array) with lower intensity
+            if index > 0 {
+                let laterPattern = sorted[index - 1]
+
+                // Check if they recovered (low intensity or positive pattern)
+                let positivePatterns = ["Flow State Achieved", "Authenticity Moment", "Special Interest Engagement"]
+                let isPositive = positivePatterns.contains(laterPattern.patternType)
+
+                if laterPattern.intensity <= 3 || isPositive {
+                    let timeAgo = Self.relativeDateFormatter.localizedString(for: pattern.timestamp, relativeTo: Date())
+                    let patternName = pattern.patternType.lowercased()
                     return Memory(
                         timeframe: "You got through it",
-                        description: "\(timeAgo), you felt overwhelmed by \(entry.patternType.lowercased()) — and you made it through."
+                        description: "\(timeAgo), you felt overwhelmed by \(patternName) — and you made it through."
                     )
                 }
             }
@@ -286,48 +398,41 @@ class HomeViewModel: ObservableObject {
         return nil
     }
 
-    private func describeDay(_ entries: [PatternEntry], prefix: String) -> String {
-        if let significant = entries.max(by: { $0.intensity < $1.intensity }) {
-            let pattern = significant.patternType.lowercased()
-            if significant.intensity >= 4 {
-                return "\(prefix), you were dealing with \(pattern). You got through it."
-            } else if significant.intensity <= 2 {
-                return "\(prefix) was a calmer day. You logged \(pattern)."
+    private func describeDay(_ patterns: [ExtractedPattern], prefix: String) -> String {
+        if let significant = patterns.max(by: { $0.intensity < $1.intensity }) {
+            let patternName = significant.patternType.lowercased()
+            if significant.intensity >= 7 {
+                return "\(prefix), you were dealing with \(patternName). You got through it."
+            } else if significant.intensity <= 3 {
+                return "\(prefix) was a calmer day. You noticed \(patternName)."
             } else {
-                return "\(prefix), you noticed \(pattern)."
+                return "\(prefix), you experienced \(patternName)."
             }
         }
-        return "\(prefix), you logged \(entries.count) things."
+        return "\(prefix), you had \(patterns.count) moments recorded."
     }
 
-    private func filterEntriesForDay(_ entries: [PatternEntry], date: Date) -> [PatternEntry] {
+    private func findTimeOfDayPattern(from patterns: [ExtractedPattern], hour: Int) -> String? {
         let calendar = Calendar.current
-        let startOfDay = calendar.startOfDay(for: date)
-        guard let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay) else {
-            return []
-        }
-        return entries.filter { $0.timestamp >= startOfDay && $0.timestamp < endOfDay }
-    }
-
-    private func findTimeOfDayPattern(from entries: [PatternEntry], hour: Int) -> String? {
-        let calendar = Calendar.current
-        let relevantEntries = entries.filter { entry in
-            let entryHour = calendar.component(.hour, from: entry.timestamp)
-            return abs(entryHour - hour) <= 2
+        let relevantPatterns = patterns.filter { pattern in
+            let patternHour = calendar.component(.hour, from: pattern.timestamp)
+            return abs(patternHour - hour) <= 2
         }
 
-        guard relevantEntries.count >= 3 else { return nil }
+        guard relevantPatterns.count >= 3 else { return nil }
 
-        var patterns: [String: Int] = [:]
-        for entry in relevantEntries {
-            patterns[entry.patternType, default: 0] += 1
+        var patternCounts: [String: Int] = [:]
+        for pattern in relevantPatterns {
+            patternCounts[pattern.patternType, default: 0] += 1
         }
 
-        if let mostCommon = patterns.max(by: { $0.value < $1.value }), mostCommon.value >= 3 {
-            return "You often log \"\(mostCommon.key)\" around now"
+        if let mostCommon = patternCounts.max(by: { $0.value < $1.value }), mostCommon.value >= 3 {
+            return "You often experience \"\(mostCommon.key.lowercased())\" around now"
         }
         return nil
     }
+
+    // MARK: - Today Slides (now uses ExtractedPattern)
 
     private func loadTodaySlides() {
         Task {
@@ -338,12 +443,23 @@ class HomeViewModel: ObservableObject {
                 return
             }
 
-            let todayPatterns = dataController.fetchPatternEntries(startDate: startOfDay, endDate: endOfDay)
+            // Fetch today's journals and their extracted patterns
             let todayJournals = await dataController.fetchJournalEntries(startDate: startOfDay, endDate: endOfDay)
 
-            hasTodayEntries = !todayPatterns.isEmpty || !todayJournals.isEmpty
+            // Count patterns from journals
+            var patternCount = 0
+            for journal in todayJournals {
+                patternCount += journal.patternsArray.count
+            }
+
+            // Use journal count if no patterns extracted yet
+            let totalCount = max(patternCount, todayJournals.count)
+            hasTodayEntries = totalCount > 0 || !todayJournals.isEmpty
+            todayEntryCount = todayJournals.count
         }
     }
+
+    // MARK: - Generate AI Slides (now uses ExtractedPattern data)
 
     func generateAISlides() async {
         isGeneratingSlides = true
@@ -357,70 +473,120 @@ class HomeViewModel: ObservableObject {
             return
         }
 
-        let todayPatterns = dataController.fetchPatternEntries(startDate: startOfDay, endDate: endOfDay)
+        // Fetch today's journals with their extracted patterns
         let todayJournals = await dataController.fetchJournalEntries(startDate: startOfDay, endDate: endOfDay)
 
-        guard !todayPatterns.isEmpty || !todayJournals.isEmpty else {
+        guard !todayJournals.isEmpty else {
             isGeneratingSlides = false
             slidesError = "No entries today to summarize"
             return
         }
 
-        // Build data summary for AI
-        var dataSummary = "Today's data:\n\n"
+        // Collect all extracted patterns from today's journals
+        var allPatterns: [ExtractedPattern] = []
+        var allCascades: [PatternCascade] = []
 
-        if !todayPatterns.isEmpty {
-            dataSummary += "LOGGED PATTERNS:\n"
-            for entry in todayPatterns {
-                let time = Self.timeFormatter.string(from: entry.timestamp)
-                dataSummary += "- [\(time)] \(entry.patternType) (intensity: \(entry.intensity)/5)"
-                if let notes = entry.contextNotes, !notes.isEmpty {
-                    dataSummary += " - \"\(notes)\""
+        for journal in todayJournals {
+            let patterns = journal.patternsArray
+            allPatterns.append(contentsOf: patterns)
+
+            for pattern in patterns {
+                if let cascades = pattern.cascadesFrom {
+                    allCascades.append(contentsOf: cascades)
+                }
+            }
+        }
+
+        // Build structured data summary from already-extracted patterns
+        var dataSummary = "Today's patterns (already analyzed from journal entries):\n\n"
+
+        if !allPatterns.isEmpty {
+            dataSummary += "EXTRACTED PATTERNS:\n"
+            for pattern in allPatterns.sorted(by: { $0.timestamp < $1.timestamp }) {
+                let time = Self.timeFormatter.string(from: pattern.timestamp)
+                dataSummary += "- [\(time)] \(pattern.patternType) (\(pattern.category), intensity: \(pattern.intensity)/10)"
+                if let details = pattern.details, !details.isEmpty {
+                    dataSummary += "\n  Details: \"\(details)\""
+                }
+                if !pattern.triggers.isEmpty {
+                    dataSummary += "\n  Triggers: \(pattern.triggers.joined(separator: ", "))"
                 }
                 dataSummary += "\n"
             }
             dataSummary += "\n"
         }
 
-        if !todayJournals.isEmpty {
-            dataSummary += "JOURNAL ENTRIES:\n"
-            for entry in todayJournals {
-                let time = Self.timeFormatter.string(from: entry.timestamp)
-                let moodText = entry.mood > 0 ? " (mood: \(entry.mood)/5)" : ""
-                let title = entry.title ?? ""
-                dataSummary += "- [\(time)]\(title.isEmpty ? "" : " \(title)")\(moodText): \"\(entry.content)\"\n"
+        if !allCascades.isEmpty {
+            dataSummary += "PATTERN CASCADES (what led to what):\n"
+            for cascade in allCascades {
+                let from = cascade.fromPattern?.patternType ?? "Unknown"
+                let to = cascade.toPattern?.patternType ?? "Unknown"
+                dataSummary += "- \(from) → \(to)"
+                if let desc = cascade.descriptionText {
+                    dataSummary += ": \(desc)"
+                }
+                dataSummary += " (confidence: \(Int(cascade.confidence * 100))%)\n"
+            }
+            dataSummary += "\n"
+        }
+
+        // Add journal summaries for context
+        dataSummary += "JOURNAL CONTEXT:\n"
+        for journal in todayJournals.sorted(by: { $0.timestamp < $1.timestamp }) {
+            let time = Self.timeFormatter.string(from: journal.timestamp)
+            if let summary = journal.analysisSummary {
+                dataSummary += "- [\(time)] \(summary)\n"
+            } else {
+                dataSummary += "- [\(time)] \(journal.preview)\n"
+            }
+        }
+
+        // If no patterns were extracted, fall back to raw journal content
+        if allPatterns.isEmpty {
+            dataSummary = "Today's journal entries (not yet analyzed for patterns):\n\n"
+            for journal in todayJournals {
+                let time = Self.timeFormatter.string(from: journal.timestamp)
+                let moodText = journal.mood > 0 ? " (mood: \(journal.mood)/5)" : ""
+                dataSummary += "- [\(time)]\(moodText): \"\(journal.content)\"\n"
             }
         }
 
         let prompt = """
-        You are analyzing behavioral tracking data for someone with autism/ADHD. Provide a MEANINGFUL, INSIGHTFUL narrative summary - NOT a list of what was logged.
+        You are a warm, caring companion who has been with someone throughout their day, witnessing their experiences. You're now gently reflecting back what you noticed - like a supportive friend who truly sees them.
 
         \(dataSummary)
 
-        CRITICAL RULES:
-        1. DO NOT say "You logged X" or "You noted X" - that's just repeating data
-        2. DO NOT list individual entries - find what they MEAN together
-        3. DO find cause-effect relationships and correlations (e.g., "Sensory overload preceded the energy crash by 90 minutes - the brain may have been compensating")
-        4. DO notice temporal patterns and transitions (e.g., "The day started calm but degraded after lunch - likely related to accumulated cognitive load")
-        5. DO identify triggers, cycles, and environmental factors
-        6. DO provide actionable observations for future days
-        7. Be neutral, analytical, and specific - avoid vague platitudes
-        8. Each insight should be 100-200 characters for depth
+        YOUR VOICE & TONE:
+        - Speak as "I" - you are an active witness ("I noticed...", "I saw that...")
+        - Be warm, validating, and gently supportive - NOT clinical or analytical
+        - Acknowledge difficulty with phrases like "that's hard", "that makes sense", "this is a lot"
+        - Focus on witnessing and understanding, not instructing or advising
+        - Use everyday language, not clinical terminology
+        - Show you understand the weight of what they're carrying
 
-        GOOD examples:
-        - "Sensory sensitivity spiked 60-90min before focus deteriorated. Your nervous system may benefit from sensory breaks before tasks."
-        - "Morning clarity was consistent until 2pm when multiple stressors converged. Consider protecting afternoon executive function time."
-        - "Lighting and sound sensitivities clustered together - possible shared underlying factor like arousal state or inflammation."
+        LANGUAGE EXAMPLES:
+        GOOD (warm, witnessing):
+        - "I noticed your energy shifted after lunch. That transition can be really hard, and it makes sense you felt drained."
+        - "There was a lot coming at you this morning with the noise and the brightness. That's a lot for anyone's system to handle."
+        - "I saw you pushing through even when things got overwhelming. That takes so much strength, even when it doesn't feel like it."
 
-        BAD examples (NEVER do this):
-        - "You logged bright lights at 10am" ❌
-        - "Today you noted 3 sensory experiences" ❌
-        - "You experienced task initiation difficulty" ❌
+        BAD (clinical, instructing):
+        - "Sensory sensitivity preceded executive dysfunction" ❌
+        - "Consider implementing sensory breaks" ❌
+        - "Monitor your triggers" ❌
+        - "You logged..." or "You noted..." ❌
 
-        Generate 3-5 deep analytical insights that help understand patterns. Return ONLY valid JSON array:
-        [{"icon": "SF Symbol", "colorName": "gray/blue/purple/orange/green/cyan", "title": "Pattern title (3-5 words)", "message": "Detailed insight explaining the pattern, connection, or implication (100-200 chars)"}]
+        WHAT TO NOTICE:
+        - Moments that were hard (and validate them)
+        - Pattern cascades (explain the connections simply and warmly)
+        - The effort they put in (acknowledge it)
+        - High-intensity moments (acknowledge how hard those were)
 
-        Icons: brain.head.profile, arrow.triangle.branch, clock.fill, bolt.fill, eye.fill, ear.fill, figure.walk, moon.fill, sun.max.fill, leaf.fill, link, arrow.up.arrow.down, waveform.path.ecg, chart.line.uptrend.xyaxis, chart.xyaxis.line
+        Generate 3-4 warm, supportive observations. Each message should be 100-180 characters.
+        Return ONLY valid JSON array:
+        [{"icon": "SF Symbol", "colorName": "gray/blue/purple/orange/green/cyan", "title": "Short gentle title (2-4 words)", "message": "Warm observation starting with 'I noticed...' or similar witnessing language"}]
+
+        Icons: heart.fill, hand.raised.fill, sparkles, leaf.fill, sun.max.fill, moon.fill, cloud.fill, brain.head.profile, figure.mind.and.body, eyes, ear.fill, bolt.heart.fill, arrow.up.heart.fill, hands.sparkles.fill
         """
 
         do {
@@ -463,6 +629,9 @@ class HomeViewModel: ObservableObject {
         case "orange": return .orange
         case "green": return .green
         case "cyan": return .cyan
+        case "red": return .red
+        case "pink": return .pink
+        case "yellow": return .yellow
         default: return .gray
         }
     }

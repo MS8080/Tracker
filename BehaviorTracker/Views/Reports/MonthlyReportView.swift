@@ -8,6 +8,9 @@ struct MonthlyReportView: View {
         VStack(spacing: Spacing.md) {
             summaryCard
             topPatternsCard
+            if !report.cascadeInsights.isEmpty {
+                cascadeInsightsCard
+            }
             correlationsCard
             performanceCard
         }
@@ -18,9 +21,10 @@ struct MonthlyReportView: View {
     private var summaryCard: some View {
         ReportCard(title: "Monthly Summary", subtitle: "Last 30 days", theme: theme) {
             VStack(spacing: Spacing.lg) {
-                StatRow(label: "Total Entries", value: "\(report.totalEntries)")
+                StatRow(label: "Journal Entries", value: "\(report.totalEntries)")
+                StatRow(label: "Patterns Detected", value: "\(report.totalPatterns)")
                 StatRow(label: "Most Active Week", value: report.mostActiveWeek)
-                StatRow(label: "Average Per Day", value: String(format: "%.1f", report.averagePerDay))
+                StatRow(label: "Avg Patterns/Day", value: String(format: "%.1f", report.averagePerDay))
             }
         }
     }
@@ -28,12 +32,12 @@ struct MonthlyReportView: View {
     // MARK: - Top Patterns Card
 
     private var topPatternsCard: some View {
-        ReportCard(title: "Top Patterns", subtitle: "Most frequently logged", theme: theme) {
+        ReportCard(title: "Top Patterns", subtitle: "Most frequently detected", theme: theme) {
             if report.topPatterns.isEmpty {
                 EmptyStateView(
                     icon: "chart.bar.xaxis",
                     title: "No Patterns Yet",
-                    message: "Start logging to see your top patterns"
+                    message: "Write in your journal to see extracted patterns"
                 )
                 .frame(height: 150)
             } else {
@@ -63,17 +67,41 @@ struct MonthlyReportView: View {
         }
     }
 
+    // MARK: - Cascade Insights Card
+
+    private var cascadeInsightsCard: some View {
+        ReportCard(
+            title: "Pattern Chains",
+            subtitle: "How patterns connect",
+            theme: theme
+        ) {
+            VStack(alignment: .leading, spacing: Spacing.md) {
+                ForEach(report.cascadeInsights, id: \.self) { insight in
+                    HStack(alignment: .top, spacing: 8) {
+                        Image(systemName: "arrow.triangle.branch")
+                            .foregroundStyle(.purple)
+                            .font(.subheadline)
+
+                        Text(insight)
+                            .font(.subheadline)
+                            .foregroundStyle(CardText.secondary)
+                    }
+                }
+            }
+        }
+    }
+
     // MARK: - Correlations Card
 
     private var correlationsCard: some View {
         ReportCard(
-            title: "Correlation Insights",
-            subtitle: "Pattern relationships",
+            title: "Insights",
+            subtitle: "What we noticed",
             theme: theme,
             minHeight: 280
         ) {
             if report.correlations.isEmpty {
-                ReportEmptyState(message: "Not enough data for correlation analysis")
+                ReportEmptyState(message: "Not enough data for insights yet")
             } else {
                 VStack(alignment: .leading, spacing: Spacing.md) {
                     ForEach(report.correlations, id: \.self) { correlation in
@@ -96,7 +124,7 @@ struct MonthlyReportView: View {
     // MARK: - Performance Card
 
     private var performanceCard: some View {
-        ReportCard(title: "Best vs Challenging Days", subtitle: "Performance analysis", theme: theme) {
+        ReportCard(title: "Best vs Challenging Days", subtitle: "Based on pattern intensity", theme: theme) {
             VStack(alignment: .leading, spacing: Spacing.lg) {
                 bestDaysSection
                 Divider()
@@ -107,30 +135,42 @@ struct MonthlyReportView: View {
 
     private var bestDaysSection: some View {
         VStack(alignment: .leading, spacing: Spacing.sm) {
-            Label("Best Performing Days", systemImage: "checkmark.circle.fill")
+            Label("Calmer Days", systemImage: "leaf.fill")
                 .font(.subheadline)
                 .fontWeight(.medium)
                 .foregroundStyle(SemanticColor.success)
 
-            ForEach(report.bestDays.prefix(3), id: \.self) { day in
-                Text(day)
+            if report.bestDays.isEmpty {
+                Text("Not enough data yet")
                     .font(.caption)
                     .foregroundStyle(CardText.caption)
+            } else {
+                ForEach(report.bestDays.prefix(3), id: \.self) { day in
+                    Text(day)
+                        .font(.caption)
+                        .foregroundStyle(CardText.caption)
+                }
             }
         }
     }
 
     private var challengingDaysSection: some View {
         VStack(alignment: .leading, spacing: Spacing.sm) {
-            Label("Challenging Days", systemImage: "exclamationmark.triangle.fill")
+            Label("Harder Days", systemImage: "cloud.rain.fill")
                 .font(.subheadline)
                 .fontWeight(.medium)
                 .foregroundStyle(SemanticColor.warning)
 
-            ForEach(report.challengingDays.prefix(3), id: \.self) { day in
-                Text(day)
+            if report.challengingDays.isEmpty {
+                Text("Not enough data yet")
                     .font(.caption)
                     .foregroundStyle(CardText.caption)
+            } else {
+                ForEach(report.challengingDays.prefix(3), id: \.self) { day in
+                    Text(day)
+                        .font(.caption)
+                        .foregroundStyle(CardText.caption)
+                }
             }
         }
     }

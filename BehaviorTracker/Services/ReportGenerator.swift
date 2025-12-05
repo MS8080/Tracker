@@ -13,25 +13,29 @@ struct MedicationInsight {
 
 struct WeeklyReport {
     var totalEntries: Int = 0
+    var totalPatterns: Int = 0
     var mostActiveDay: String = "N/A"
     var averagePerDay: Double = 0.0
     var patternFrequency: [(key: String, value: Int)] = []
-    var categoryBreakdown: [PatternCategory: Int] = [:]
-    var energyTrend: [DataPoint] = []
+    var categoryBreakdown: [String: Int] = [:]
+    var intensityTrend: [DataPoint] = []
     var commonTriggers: [String] = []
+    var topCascades: [(from: String, to: String, count: Int)] = []
     var medicationInsights: [MedicationInsight] = []
 }
 
 struct MonthlyReport {
     var totalEntries: Int = 0
+    var totalPatterns: Int = 0
     var mostActiveWeek: String = "N/A"
     var averagePerDay: Double = 0.0
     var topPatterns: [(key: String, value: Int)] = []
-    var categoryTrends: [PatternCategory: [DataPoint]] = [:]
+    var categoryTrends: [String: [DataPoint]] = [:]
     var correlations: [String] = []
     var bestDays: [String] = []
     var challengingDays: [String] = []
     var behaviorChanges: [String] = []
+    var cascadeInsights: [String] = []
     var medicationInsights: [MedicationInsight] = []
 }
 
@@ -44,37 +48,45 @@ struct DataPoint: Identifiable {
 class ReportGenerator {
     private let dataController = DataController.shared
 
+    // MARK: - Weekly Report (uses ExtractedPattern)
+
     func generateWeeklyReport() -> WeeklyReport {
         var report = WeeklyReport()
 
         let calendar = Calendar.current
         let weekAgo = calendar.date(byAdding: .day, value: -7, to: Date())!
-        let entries = dataController.fetchPatternEntries(startDate: weekAgo, endDate: Date())
 
-        report.totalEntries = entries.count
-        report.averagePerDay = Double(entries.count) / 7.0
+        // Fetch ExtractedPatterns instead of PatternEntry
+        let patterns = fetchExtractedPatterns(startDate: weekAgo, endDate: Date())
+        let journals = fetchJournalEntries(startDate: weekAgo, endDate: Date())
+
+        report.totalEntries = journals.count
+        report.totalPatterns = patterns.count
+        report.averagePerDay = Double(patterns.count) / 7.0
 
         var dailyCounts: [String: Int] = [:]
         var patternCounts: [String: Int] = [:]
-        var categoryCounts: [PatternCategory: Int] = [:]
-        var energyByDay: [Date: [Int16]] = [:]
+        var categoryCounts: [String: Int] = [:]
+        var intensityByDay: [Date: [Int16]] = [:]
+        var allTriggers: [String: Int] = [:]
 
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "EEEE"
 
-        for entry in entries {
-            let dayName = dateFormatter.string(from: entry.timestamp)
+        for pattern in patterns {
+            let dayName = dateFormatter.string(from: pattern.timestamp)
             dailyCounts[dayName, default: 0] += 1
 
-            patternCounts[entry.patternType, default: 0] += 1
+            patternCounts[pattern.patternType, default: 0] += 1
+            categoryCounts[pattern.category, default: 0] += 1
 
-            if let category = entry.patternCategoryEnum {
-                categoryCounts[category, default: 0] += 1
-            }
+            // Track intensity trend
+            let startOfDay = calendar.startOfDay(for: pattern.timestamp)
+            intensityByDay[startOfDay, default: []].append(pattern.intensity)
 
-            if entry.patternType == PatternType.energyLevel.rawValue && entry.intensity > 0 {
-                let startOfDay = calendar.startOfDay(for: entry.timestamp)
-                energyByDay[startOfDay, default: []].append(entry.intensity)
+            // Collect triggers
+            for trigger in pattern.triggers {
+                allTriggers[trigger, default: 0] += 1
             }
         }
 
@@ -85,38 +97,60 @@ class ReportGenerator {
         report.patternFrequency = patternCounts.sorted { $0.value > $1.value }
         report.categoryBreakdown = categoryCounts
 
-        report.energyTrend = energyByDay.map { date, intensities in
+        report.intensityTrend = intensityByDay.map { date, intensities in
             let average = Double(intensities.reduce(0, +)) / Double(intensities.count)
             return DataPoint(date: date, value: average)
         }.sorted { $0.date < $1.date }
 
-        report.medicationInsights = generateMedicationInsights(days: 7)
+        // Top triggers
+        report.commonTriggers = allTriggers
+            .sorted { $0.value > $1.value }
+            .prefix(5)
+            .map { $0.key }
+
+        // Analyze cascades
+        report.topCascades = analyzeCascades(from: patterns)
+
+        report.medicationInsights = generateMedicationInsights(days: 7, patterns: patterns)
 
         return report
     }
+
+    // MARK: - Monthly Report (uses ExtractedPattern)
 
     func generateMonthlyReport() -> MonthlyReport {
         var report = MonthlyReport()
 
         let calendar = Calendar.current
         let monthAgo = calendar.date(byAdding: .month, value: -1, to: Date())!
-        let entries = dataController.fetchPatternEntries(startDate: monthAgo, endDate: Date())
 
-        report.totalEntries = entries.count
-        report.averagePerDay = Double(entries.count) / 30.0
+        // Fetch ExtractedPatterns instead of PatternEntry
+        let patterns = fetchExtractedPatterns(startDate: monthAgo, endDate: Date())
+        let journals = fetchJournalEntries(startDate: monthAgo, endDate: Date())
+
+        report.totalEntries = journals.count
+        report.totalPatterns = patterns.count
+        report.averagePerDay = Double(patterns.count) / 30.0
 
         var weekCounts: [Int: Int] = [:]
         var patternCounts: [String: Int] = [:]
-        var dailyEntries: [Date: [PatternEntry]] = [:]
+        var dailyPatterns: [Date: [ExtractedPattern]] = [:]
+        var categoryByDay: [String: [Date: [Int16]]] = [:]
 
-        for entry in entries {
-            let weekOfYear = calendar.component(.weekOfYear, from: entry.timestamp)
+        for pattern in patterns {
+            let weekOfYear = calendar.component(.weekOfYear, from: pattern.timestamp)
             weekCounts[weekOfYear, default: 0] += 1
 
-            patternCounts[entry.patternType, default: 0] += 1
+            patternCounts[pattern.patternType, default: 0] += 1
 
-            let startOfDay = calendar.startOfDay(for: entry.timestamp)
-            dailyEntries[startOfDay, default: []].append(entry)
+            let startOfDay = calendar.startOfDay(for: pattern.timestamp)
+            dailyPatterns[startOfDay, default: []].append(pattern)
+
+            // Track category trends over time
+            if categoryByDay[pattern.category] == nil {
+                categoryByDay[pattern.category] = [:]
+            }
+            categoryByDay[pattern.category]![startOfDay, default: []].append(pattern.intensity)
         }
 
         if let mostActiveWeek = weekCounts.max(by: { $0.value < $1.value }) {
@@ -125,40 +159,158 @@ class ReportGenerator {
 
         report.topPatterns = patternCounts.sorted { $0.value > $1.value }
 
-        report.correlations = findCorrelations(entries: entries)
+        // Build category trends
+        for (category, dayData) in categoryByDay {
+            report.categoryTrends[category] = dayData.map { date, intensities in
+                let avg = Double(intensities.reduce(0, +)) / Double(intensities.count)
+                return DataPoint(date: date, value: avg)
+            }.sorted { $0.date < $1.date }
+        }
 
-        let (best, challenging) = analyzeDays(dailyEntries: dailyEntries)
+        report.correlations = findCorrelations(patterns: patterns)
+        report.cascadeInsights = findCascadeInsights(patterns: patterns)
+
+        let (best, challenging) = analyzeDays(dailyPatterns: dailyPatterns)
         report.bestDays = best
         report.challengingDays = challenging
 
-        report.medicationInsights = generateMedicationInsights(days: 30)
+        report.medicationInsights = generateMedicationInsights(days: 30, patterns: patterns)
 
         return report
     }
 
-    private func findCorrelations(entries: [PatternEntry]) -> [String] {
+    // MARK: - Fetch ExtractedPatterns
+
+    private func fetchExtractedPatterns(startDate: Date, endDate: Date) -> [ExtractedPattern] {
+        let fetchRequest: NSFetchRequest<ExtractedPattern> = ExtractedPattern.fetchRequest()
+        fetchRequest.predicate = NSPredicate(
+            format: "timestamp >= %@ AND timestamp <= %@",
+            startDate as NSDate,
+            endDate as NSDate
+        )
+        fetchRequest.sortDescriptors = [NSSortDescriptor(keyPath: \ExtractedPattern.timestamp, ascending: true)]
+
+        do {
+            return try dataController.container.viewContext.fetch(fetchRequest)
+        } catch {
+            return []
+        }
+    }
+
+    private func fetchJournalEntries(startDate: Date, endDate: Date) -> [JournalEntry] {
+        let fetchRequest: NSFetchRequest<JournalEntry> = NSFetchRequest(entityName: "JournalEntry")
+        fetchRequest.predicate = NSPredicate(
+            format: "timestamp >= %@ AND timestamp <= %@",
+            startDate as NSDate,
+            endDate as NSDate
+        )
+        fetchRequest.sortDescriptors = [NSSortDescriptor(keyPath: \JournalEntry.timestamp, ascending: true)]
+
+        do {
+            return try dataController.container.viewContext.fetch(fetchRequest)
+        } catch {
+            return []
+        }
+    }
+
+    // MARK: - Cascade Analysis
+
+    private func analyzeCascades(from patterns: [ExtractedPattern]) -> [(from: String, to: String, count: Int)] {
+        var cascadeCounts: [String: Int] = [:]
+
+        for pattern in patterns {
+            if let cascades = pattern.cascadesFrom {
+                for cascade in cascades {
+                    if let from = cascade.fromPattern?.patternType,
+                       let to = cascade.toPattern?.patternType {
+                        let key = "\(from) → \(to)"
+                        cascadeCounts[key, default: 0] += 1
+                    }
+                }
+            }
+        }
+
+        return cascadeCounts
+            .sorted { $0.value > $1.value }
+            .prefix(5)
+            .map { key, count in
+                let parts = key.components(separatedBy: " → ")
+                return (from: parts.first ?? "", to: parts.last ?? "", count: count)
+            }
+    }
+
+    private func findCascadeInsights(patterns: [ExtractedPattern]) -> [String] {
+        var insights: [String] = []
+        var cascadeCounts: [String: Int] = [:]
+
+        for pattern in patterns {
+            if let cascades = pattern.cascadesFrom {
+                for cascade in cascades {
+                    if let from = cascade.fromPattern?.patternType,
+                       let to = cascade.toPattern?.patternType {
+                        let key = "\(from) → \(to)"
+                        cascadeCounts[key, default: 0] += 1
+                    }
+                }
+            }
+        }
+
+        // Find most common cascades
+        let sorted = cascadeCounts.sorted { $0.value > $1.value }
+        if let top = sorted.first, top.value >= 3 {
+            insights.append("\"\(top.key)\" happened \(top.value) times this month")
+        }
+
+        // Check for concerning cascades
+        let concerningPatterns = ["Meltdown", "Shutdown", "Burnout Indicator"]
+        for (cascade, count) in cascadeCounts where count >= 2 {
+            let parts = cascade.components(separatedBy: " → ")
+            if let to = parts.last, concerningPatterns.contains(to) {
+                if let from = parts.first {
+                    insights.append("\(from) often led to \(to.lowercased()) (\(count) times)")
+                }
+            }
+        }
+
+        return insights
+    }
+
+    // MARK: - Correlations (using ExtractedPattern)
+
+    private func findCorrelations(patterns: [ExtractedPattern]) -> [String] {
         var correlations: [String] = []
         let calendar = Calendar.current
 
         var sleepQualityByDay: [Date: Int16] = [:]
         var nextDayOverload: [Date: Int] = [:]
+        var maskingByDay: [Date: Int16] = [:]
+        var burnoutByDay: [Date: Bool] = [:]
 
-        for entry in entries {
-            let startOfDay = calendar.startOfDay(for: entry.timestamp)
+        for pattern in patterns {
+            let startOfDay = calendar.startOfDay(for: pattern.timestamp)
 
-            if entry.patternType == PatternType.sleepQuality.rawValue {
-                sleepQualityByDay[startOfDay] = entry.intensity
+            if pattern.patternType == "Sleep Quality" {
+                sleepQualityByDay[startOfDay] = pattern.intensity
             }
 
-            if entry.patternType == PatternType.sensoryOverload.rawValue {
+            if pattern.patternType == "Sensory Overload" {
                 nextDayOverload[startOfDay, default: 0] += 1
+            }
+
+            if pattern.patternType == "Masking Intensity" {
+                maskingByDay[startOfDay] = max(maskingByDay[startOfDay] ?? 0, pattern.intensity)
+            }
+
+            if pattern.patternType == "Burnout Indicator" {
+                burnoutByDay[startOfDay] = true
             }
         }
 
+        // Sleep → Sensory Overload correlation
         var poorSleepToOverload = 0
         var totalPoorSleep = 0
 
-        for (sleepDate, quality) in sleepQualityByDay where quality <= 2 {
+        for (sleepDate, quality) in sleepQualityByDay where quality <= 3 {
             totalPoorSleep += 1
             if let nextDay = calendar.date(byAdding: .day, value: 1, to: sleepDate),
                let overloadCount = nextDayOverload[nextDay], overloadCount > 0 {
@@ -166,34 +318,85 @@ class ReportGenerator {
             }
         }
 
-        if totalPoorSleep > 3 && Double(poorSleepToOverload) / Double(totalPoorSleep) > 0.6 {
-            correlations.append("Poor sleep quality often correlates with sensory overload the next day")
+        if totalPoorSleep >= 3 && Double(poorSleepToOverload) / Double(totalPoorSleep) > 0.5 {
+            correlations.append("Poor sleep often precedes sensory overload the next day")
+        }
+
+        // High masking → Burnout correlation
+        var highMaskingToBurnout = 0
+        var totalHighMasking = 0
+
+        for (maskDate, intensity) in maskingByDay where intensity >= 7 {
+            totalHighMasking += 1
+            // Check next 1-2 days for burnout
+            for dayOffset in 1...2 {
+                if let checkDay = calendar.date(byAdding: .day, value: dayOffset, to: maskDate),
+                   burnoutByDay[checkDay] == true {
+                    highMaskingToBurnout += 1
+                    break
+                }
+            }
+        }
+
+        if totalHighMasking >= 3 && Double(highMaskingToBurnout) / Double(totalHighMasking) > 0.4 {
+            correlations.append("High masking intensity often precedes burnout within 1-2 days")
+        }
+
+        // Intensity patterns
+        let highIntensityPatterns = patterns.filter { $0.intensity >= 7 }
+        let lowIntensityPatterns = patterns.filter { $0.intensity <= 3 }
+
+        if highIntensityPatterns.count > lowIntensityPatterns.count * 2 {
+            correlations.append("This period had significantly more high-intensity experiences")
+        } else if lowIntensityPatterns.count > highIntensityPatterns.count * 2 {
+            correlations.append("This period was relatively calmer with lower intensity experiences")
         }
 
         return correlations
     }
 
-    private func analyzeDays(dailyEntries: [Date: [PatternEntry]]) -> ([String], [String]) {
+    // MARK: - Day Analysis (using ExtractedPattern)
+
+    private func analyzeDays(dailyPatterns: [Date: [ExtractedPattern]]) -> ([String], [String]) {
         let dateFormatter = DateFormatter()
         dateFormatter.dateStyle = .medium
 
         var dayScores: [(Date, Double)] = []
 
-        for (date, entries) in dailyEntries {
+        let positivePatternTypes = [
+            "Flow State Achieved",
+            "Authenticity Moment",
+            "Special Interest Engagement",
+            "Hyperfocus Session"
+        ]
+
+        let challengingPatternTypes = [
+            "Sensory Overload",
+            "Meltdown",
+            "Shutdown",
+            "Burnout Indicator",
+            "Emotional Overwhelm"
+        ]
+
+        for (date, patterns) in dailyPatterns {
             var score: Double = 0.0
 
-            let overloadCount = entries.filter {
-                $0.patternType == PatternType.sensoryOverload.rawValue ||
-                $0.patternType == PatternType.meltdown.rawValue ||
-                $0.patternType == PatternType.shutdown.rawValue
+            let challengingCount = patterns.filter {
+                challengingPatternTypes.contains($0.patternType)
             }.count
 
-            let positiveCount = entries.filter {
-                $0.patternType == PatternType.hyperfocus.rawValue ||
-                $0.patternType == PatternType.specialInterest.rawValue
+            let positiveCount = patterns.filter {
+                positivePatternTypes.contains($0.patternType)
             }.count
 
-            score = Double(positiveCount) - Double(overloadCount)
+            // Also factor in intensity
+            let avgIntensity = patterns.isEmpty ? 0 :
+                Double(patterns.map { Int($0.intensity) }.reduce(0, +)) / Double(patterns.count)
+
+            // Higher intensity = more challenging (unless positive patterns)
+            let intensityFactor = positiveCount > challengingCount ? (10 - avgIntensity) / 10 : -avgIntensity / 10
+
+            score = Double(positiveCount) - Double(challengingCount) + intensityFactor
 
             dayScores.append((date, score))
         }
@@ -206,7 +409,9 @@ class ReportGenerator {
         return (bestDays, challengingDays)
     }
 
-    private func generateMedicationInsights(days: Int) -> [MedicationInsight] {
+    // MARK: - Medication Insights (using ExtractedPattern)
+
+    private func generateMedicationInsights(days: Int, patterns: [ExtractedPattern]) -> [MedicationInsight] {
         let calendar = Calendar.current
         let startDate = calendar.date(byAdding: .day, value: -days, to: Date())!
         let medications = dataController.fetchMedications(activeOnly: true)
@@ -249,11 +454,10 @@ class ReportGenerator {
 
             var correlationNotes: [String] = []
 
-            // Analyze medication-behavior correlations
-            let patternEntries = dataController.fetchPatternEntries(startDate: startDate, endDate: Date())
+            // Analyze medication-behavior correlations using ExtractedPattern
             correlationNotes.append(contentsOf: analyzeMedicationBehaviorCorrelations(
                 medicationLogs: takenLogs,
-                patternEntries: patternEntries
+                patterns: patterns
             ))
 
             let insight = MedicationInsight(
@@ -274,16 +478,31 @@ class ReportGenerator {
 
     private func analyzeMedicationBehaviorCorrelations(
         medicationLogs: [MedicationLog],
-        patternEntries: [PatternEntry]
+        patterns: [ExtractedPattern]
     ) -> [String] {
         var correlations: [String] = []
         let calendar = Calendar.current
 
+        let positivePatternTypes = [
+            "Flow State Achieved",
+            "Authenticity Moment",
+            "Special Interest Engagement",
+            "Hyperfocus Session"
+        ]
+
+        let challengingPatternTypes = [
+            "Sensory Overload",
+            "Meltdown",
+            "Shutdown",
+            "Burnout Indicator",
+            "Emotional Overwhelm"
+        ]
+
         // Group patterns by day
-        var patternsByDay: [Date: [PatternEntry]] = [:]
-        for entry in patternEntries {
-            let startOfDay = calendar.startOfDay(for: entry.timestamp)
-            patternsByDay[startOfDay, default: []].append(entry)
+        var patternsByDay: [Date: [ExtractedPattern]] = [:]
+        for pattern in patterns {
+            let startOfDay = calendar.startOfDay(for: pattern.timestamp)
+            patternsByDay[startOfDay, default: []].append(pattern)
         }
 
         // Group medication logs by day
@@ -307,16 +526,13 @@ class ReportGenerator {
         var negativePatternCount = 0
 
         for day in highEffectivenessDays {
-            if let patterns = patternsByDay[day] {
-                let positives = patterns.filter {
-                    $0.patternType == PatternType.hyperfocus.rawValue ||
-                    $0.patternType == PatternType.specialInterest.rawValue
+            if let dayPatterns = patternsByDay[day] {
+                let positives = dayPatterns.filter {
+                    positivePatternTypes.contains($0.patternType)
                 }.count
 
-                let negatives = patterns.filter {
-                    $0.patternType == PatternType.sensoryOverload.rawValue ||
-                    $0.patternType == PatternType.meltdown.rawValue ||
-                    $0.patternType == PatternType.shutdown.rawValue
+                let negatives = dayPatterns.filter {
+                    challengingPatternTypes.contains($0.patternType)
                 }.count
 
                 positivePatternCount += positives
@@ -326,10 +542,10 @@ class ReportGenerator {
 
         if !highEffectivenessDays.isEmpty {
             if positivePatternCount > negativePatternCount * 2 {
-                correlations.append("High medication effectiveness correlates with increased positive behavioral patterns")
+                correlations.append("High medication effectiveness correlates with more positive experiences")
             }
             if negativePatternCount < highEffectivenessDays.count {
-                correlations.append("Fewer challenging behaviors on days with high medication effectiveness")
+                correlations.append("Fewer challenging patterns on days with high medication effectiveness")
             }
         }
 
@@ -347,6 +563,24 @@ class ReportGenerator {
             let highMoodRatio = Double(highMoodDays) / Double(totalDays)
             if highMoodRatio > 0.6 {
                 correlations.append("Medication appears to support improved mood regulation")
+            }
+        }
+
+        // Check average intensity on medication days vs overall
+        var medDayIntensities: [Int16] = []
+        for day in medLogsByDay.keys {
+            if let dayPatterns = patternsByDay[day] {
+                medDayIntensities.append(contentsOf: dayPatterns.map { $0.intensity })
+            }
+        }
+
+        if !medDayIntensities.isEmpty {
+            let avgMedDayIntensity = Double(medDayIntensities.reduce(0, +)) / Double(medDayIntensities.count)
+            let overallAvg = patterns.isEmpty ? 0 :
+                Double(patterns.map { Int($0.intensity) }.reduce(0, +)) / Double(patterns.count)
+
+            if avgMedDayIntensity < overallAvg - 1 {
+                correlations.append("Pattern intensity tends to be lower on medication days")
             }
         }
 
