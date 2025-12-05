@@ -198,10 +198,10 @@ struct CorrelationInsightsView: View {
     private func loadInsights() {
         isLoading = true
 
-        DispatchQueue.global(qos: .userInitiated).async {
-            let generatedInsights = CorrelationAnalysisService.shared.generateInsights(days: selectedDays)
+        Task {
+            let generatedInsights = await CorrelationAnalysisService.shared.generateInsights(days: selectedDays)
 
-            DispatchQueue.main.async {
+            await MainActor.run {
                 withAnimation {
                     self.insights = generatedInsights
                     self.isLoading = false

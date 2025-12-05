@@ -172,15 +172,16 @@ class CalendarViewModel: ObservableObject {
     }
 
     private func loadJournalEntries(from startDate: Date, to endDate: Date) {
-        let entries = dataController.fetchJournalEntries()
-            .filter { $0.timestamp >= startDate && $0.timestamp < endDate }
+        Task {
+            let entries = await dataController.fetchJournalEntries(startDate: startDate, endDate: endDate)
 
-        var grouped: [Date: [JournalEntry]] = [:]
-        for entry in entries {
-            let day = calendar.startOfDay(for: entry.timestamp)
-            grouped[day, default: []].append(entry)
+            var grouped: [Date: [JournalEntry]] = [:]
+            for entry in entries {
+                let day = calendar.startOfDay(for: entry.timestamp)
+                grouped[day, default: []].append(entry)
+            }
+            journalEntriesByDate = grouped
         }
-        journalEntriesByDate = grouped
     }
 
     // MARK: - Day Summary

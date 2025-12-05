@@ -134,7 +134,7 @@ class ASDPatternAnalysisService: ObservableObject {
         }
 
         let patterns = dataController.fetchPatternEntries(startDate: startDate, endDate: Date())
-        let journalEntries = dataController.fetchJournalEntries(startDate: startDate, endDate: Date())
+        let journalEntries = await dataController.fetchJournalEntries(startDate: startDate, endDate: Date())
 
         var insights: [ASDInsight] = []
 

@@ -44,7 +44,7 @@ struct PatternsView: View {
                     Button {
                         showingFlowMap = true
                     } label: {
-                        Image(systemName: "point.topleft.down.to.point.bottomright.curvepath.fill")
+                        Image(systemName: "arrow.triangle.branch")
                             .font(.body)
                             .foregroundStyle(.white.opacity(0.9))
                     }

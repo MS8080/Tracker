@@ -1,8 +1,10 @@
 import SwiftUI
 import CoreData
 
+@MainActor
 class JournalViewModel: ObservableObject {
     @Published var journalEntries: [JournalEntry] = []
+    @Published var isLoading = false
     @Published var searchQuery: String = "" {
         didSet {
             if searchQuery.isEmpty {
@@ -27,11 +29,19 @@ class JournalViewModel: ObservableObject {
     }
 
     func loadJournalEntries() {
-        journalEntries = dataController.fetchJournalEntries(favoritesOnly: showFavoritesOnly)
+        Task {
+            isLoading = true
+            journalEntries = await dataController.fetchJournalEntries(favoritesOnly: showFavoritesOnly)
+            isLoading = false
+        }
     }
 
     func searchEntries() {
-        journalEntries = dataController.searchJournalEntries(query: searchQuery)
+        Task {
+            isLoading = true
+            journalEntries = await dataController.searchJournalEntries(query: searchQuery)
+            isLoading = false
+        }
     }
 
     func createEntry(
@@ -80,8 +90,8 @@ class JournalViewModel: ObservableObject {
         loadJournalEntries()
     }
 
-    func getEntriesByDateRange(startDate: Date, endDate: Date) -> [JournalEntry] {
-        return dataController.fetchJournalEntries(startDate: startDate, endDate: endDate)
+    func getEntriesByDateRange(startDate: Date, endDate: Date) async -> [JournalEntry] {
+        return await dataController.fetchJournalEntries(startDate: startDate, endDate: endDate)
     }
 
     func getEntriesGroupedByDate() -> [Date: [JournalEntry]] {

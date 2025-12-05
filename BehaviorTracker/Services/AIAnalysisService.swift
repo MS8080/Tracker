@@ -20,7 +20,7 @@ class AIAnalysisService {
     // MARK: - Main Analysis Function
 
     func analyzeData(preferences: AnalysisPreferences = AnalysisPreferences()) async throws -> AIInsights {
-        let prompt = buildPrompt(preferences: preferences)
+        let prompt = await buildPrompt(preferences: preferences)
         let response = try await geminiService.generateContent(prompt: prompt)
 
         return AIInsights(
@@ -37,7 +37,7 @@ class AIAnalysisService {
 
     // MARK: - Build Prompt
 
-    private func buildPrompt(preferences: AnalysisPreferences) -> String {
+    private func buildPrompt(preferences: AnalysisPreferences) async -> String {
         var sections: [String] = []
 
         // System instruction
@@ -68,7 +68,7 @@ class AIAnalysisService {
 
         // Journal data
         if preferences.includeJournals {
-            let journalSummary = gatherJournalData(startDate: startDate, endDate: endDate)
+            let journalSummary = await gatherJournalData(startDate: startDate, endDate: endDate)
             if !journalSummary.isEmpty {
                 sections.append("JOURNAL ENTRIES (Last \(preferences.timeframeDays) days):\n\(journalSummary)")
             }
@@ -180,8 +180,8 @@ class AIAnalysisService {
         return lines.joined(separator: "\n")
     }
 
-    private func gatherJournalData(startDate: Date, endDate: Date) -> String {
-        let entries = dataController.fetchJournalEntries(startDate: startDate, endDate: endDate)
+    private func gatherJournalData(startDate: Date, endDate: Date) async -> String {
+        let entries = await dataController.fetchJournalEntries(startDate: startDate, endDate: endDate)
 
         guard !entries.isEmpty else {
             return "No journal entries in this period."

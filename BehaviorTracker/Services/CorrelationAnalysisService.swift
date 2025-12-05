@@ -52,7 +52,7 @@ class CorrelationAnalysisService {
 
     // MARK: - Main Analysis Function
 
-    func generateInsights(days: Int = 30) -> [CorrelationInsight] {
+    func generateInsights(days: Int = 30) async -> [CorrelationInsight] {
         var insights: [CorrelationInsight] = []
 
         // Fetch data from the last N days
@@ -64,7 +64,7 @@ class CorrelationAnalysisService {
         insights.append(contentsOf: analyzeMedicationPatternCorrelations(patterns: patterns, medicationLogs: medicationLogs))
         insights.append(contentsOf: analyzeTimePatternCorrelations(patterns: patterns))
         insights.append(contentsOf: analyzeFactorPatternCorrelations(patterns: patterns))
-        insights.append(contentsOf: analyzeMoodPatternCorrelations(patterns: patterns))
+        insights.append(contentsOf: await analyzeMoodPatternCorrelations(patterns: patterns))
 
         // Sort by strength (strongest correlations first)
         return insights.sorted { $0.strength > $1.strength }
@@ -239,11 +239,11 @@ class CorrelationAnalysisService {
 
     // MARK: - Mood-Pattern Correlations
 
-    private func analyzeMoodPatternCorrelations(patterns: [PatternEntry]) -> [CorrelationInsight] {
+    private func analyzeMoodPatternCorrelations(patterns: [PatternEntry]) async -> [CorrelationInsight] {
         var insights: [CorrelationInsight] = []
 
         // Get journal entries to correlate mood with patterns
-        let journalEntries = dataController.fetchJournalEntries()
+        let journalEntries = await dataController.fetchJournalEntries()
 
         // Group patterns by type
         let patternGroups = Dictionary(grouping: patterns) { $0.patternType }

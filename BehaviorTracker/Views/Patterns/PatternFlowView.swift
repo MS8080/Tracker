@@ -146,7 +146,7 @@ struct PatternFlowView: View {
         let cascadeTargets = Set(cascades.compactMap { $0.toPattern?.id })
 
         // Find patterns that are cascade sources (have outgoing connections)
-        let cascadeSources = Set(cascades.compactMap { $0.fromPattern?.id })
+        _ = Set(cascades.compactMap { $0.fromPattern?.id })
 
         // Calculate columns based on cascade relationships
         var columns: [[ExtractedPattern]] = []

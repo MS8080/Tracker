@@ -1,4 +1,5 @@
 import SwiftUI
+import CoreData
 
 struct JournalEntryDetailView: View {
     let entry: JournalEntry
@@ -12,6 +13,7 @@ struct JournalEntryDetailView: View {
     @State private var content: String
     @State private var hasChanges = false
     @State private var showingAnalysis = false
+    @State private var dayAnalysisData: DayAnalysisData?
     @FocusState private var isContentFocused: Bool
 
     @AppStorage("selectedTheme") private var selectedThemeRaw: String = AppTheme.purple.rawValue
@@ -19,11 +21,27 @@ struct JournalEntryDetailView: View {
         AppTheme(rawValue: selectedThemeRaw) ?? .purple
     }
 
+    private let dataController = DataController.shared
+
     init(entry: JournalEntry, onDelete: @escaping () -> Void) {
         self.entry = entry
         self.onDelete = onDelete
         _title = State(initialValue: entry.title ?? "")
         _content = State(initialValue: entry.content)
+    }
+
+    /// Load all entries from the same day as this entry asynchronously
+    private func loadDayAnalysis() {
+        Task {
+            let calendar = Calendar.current
+            let startOfDay = calendar.startOfDay(for: entry.timestamp)
+            let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay) ?? startOfDay
+
+            let entries = await dataController.fetchJournalEntries(startDate: startOfDay, endDate: endOfDay)
+            await MainActor.run {
+                dayAnalysisData = DayAnalysisData(entries: entries, date: startOfDay)
+            }
+        }
     }
 
     var body: some View {
@@ -140,7 +158,13 @@ struct JournalEntryDetailView: View {
                             Button {
                                 showingAnalysis = true
                             } label: {
-                                Label("Analyze", systemImage: "sparkles")
+                                Label("Analyze Entry", systemImage: "sparkles")
+                            }
+
+                            Button {
+                                loadDayAnalysis()
+                            } label: {
+                                Label("Analyze Day", systemImage: "calendar.badge.sparkles")
                             }
 
                             Button {
@@ -173,6 +197,9 @@ struct JournalEntryDetailView: View {
             }
             .sheet(isPresented: $showingAnalysis) {
                 JournalEntryAnalysisView(entry: entry)
+            }
+            .sheet(item: $dayAnalysisData) { data in
+                DayAnalysisView(entries: data.entries, date: data.date)
             }
         }
     }

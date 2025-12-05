@@ -330,17 +330,19 @@ class HomeViewModel: ObservableObject {
     }
 
     private func loadTodaySlides() {
-        let calendar = Calendar.current
-        let startOfDay = calendar.startOfDay(for: Date())
-        guard let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay) else {
-            hasTodayEntries = false
-            return
+        Task {
+            let calendar = Calendar.current
+            let startOfDay = calendar.startOfDay(for: Date())
+            guard let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay) else {
+                hasTodayEntries = false
+                return
+            }
+
+            let todayPatterns = dataController.fetchPatternEntries(startDate: startOfDay, endDate: endOfDay)
+            let todayJournals = await dataController.fetchJournalEntries(startDate: startOfDay, endDate: endOfDay)
+
+            hasTodayEntries = !todayPatterns.isEmpty || !todayJournals.isEmpty
         }
-
-        let todayPatterns = dataController.fetchPatternEntries(startDate: startOfDay, endDate: endOfDay)
-        let todayJournals = dataController.fetchJournalEntries(startDate: startOfDay, endDate: endOfDay)
-
-        hasTodayEntries = !todayPatterns.isEmpty || !todayJournals.isEmpty
     }
 
     func generateAISlides() async {
@@ -356,7 +358,7 @@ class HomeViewModel: ObservableObject {
         }
 
         let todayPatterns = dataController.fetchPatternEntries(startDate: startOfDay, endDate: endOfDay)
-        let todayJournals = dataController.fetchJournalEntries(startDate: startOfDay, endDate: endOfDay)
+        let todayJournals = await dataController.fetchJournalEntries(startDate: startOfDay, endDate: endOfDay)
 
         guard !todayPatterns.isEmpty || !todayJournals.isEmpty else {
             isGeneratingSlides = false

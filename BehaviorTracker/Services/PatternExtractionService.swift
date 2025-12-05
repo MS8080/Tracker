@@ -136,7 +136,7 @@ class PatternExtractionService {
         let response = try await geminiService.generateContent(prompt: cascadePrompt)
 
         // Parse cascades only
-        guard let data = response.data(using: .utf8) else {
+        guard response.data(using: .utf8) != nil else {
             throw ExtractionError.invalidResponse
         }
 

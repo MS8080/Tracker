@@ -1,8 +1,8 @@
-import CoreData
+@preconcurrency import CoreData
 import Foundation
 import WidgetKit
 
-class DataController: ObservableObject {
+class DataController: ObservableObject, @unchecked Sendable {
     static let shared = DataController()
 
     // MARK: - iCloud Sync Configuration
@@ -11,6 +11,15 @@ class DataController: ObservableObject {
     static let iCloudSyncEnabled = false
 
     let container: NSPersistentContainer
+
+    /// Background context for async fetch operations to avoid blocking main thread
+    private lazy var backgroundContext: NSManagedObjectContext = {
+        let context = container.newBackgroundContext()
+        context.automaticallyMergesChangesFromParent = true
+        context.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
+        return context
+    }()
+
     @Published var hasCriticalError = false
     @Published var errorMessage: String?
     @Published var syncStatus: SyncStatus = .localOnly
@@ -527,24 +536,12 @@ class DataController: ObservableObject {
         return entry
     }
 
-    func fetchJournalEntries(
+    /// Builds a fetch request for journal entries with the given filters
+    private func buildJournalEntriesFetchRequest(
         startDate: Date? = nil,
         endDate: Date? = nil,
         favoritesOnly: Bool = false
-    ) -> [JournalEntry] {
-        do {
-            return try fetchJournalEntriesOrThrow(startDate: startDate, endDate: endDate, favoritesOnly: favoritesOnly)
-        } catch {
-            print("Failed to fetch journal entries: \(error.localizedDescription)")
-            return []
-        }
-    }
-
-    func fetchJournalEntriesOrThrow(
-        startDate: Date? = nil,
-        endDate: Date? = nil,
-        favoritesOnly: Bool = false
-    ) throws -> [JournalEntry] {
+    ) -> NSFetchRequest<JournalEntry> {
         let request = NSFetchRequest<JournalEntry>(entityName: "JournalEntry")
         var predicates: [NSPredicate] = []
 
@@ -565,11 +562,72 @@ class DataController: ObservableObject {
         }
 
         request.sortDescriptors = [NSSortDescriptor(keyPath: \JournalEntry.timestamp, ascending: false)]
+        return request
+    }
+
+    /// Fetches journal entries asynchronously on a background context, then returns objects on main context.
+    /// This prevents blocking the main thread during database I/O.
+    @MainActor
+    func fetchJournalEntries(
+        startDate: Date? = nil,
+        endDate: Date? = nil,
+        favoritesOnly: Bool = false
+    ) async -> [JournalEntry] {
+        // Capture parameters for the closure
+        let request = buildJournalEntriesFetchRequest(
+            startDate: startDate,
+            endDate: endDate,
+            favoritesOnly: favoritesOnly
+        )
+
+        // Fetch on background context and get permanent object IDs
+        let objectIDURIs: [URL] = await backgroundContext.perform { [backgroundContext] in
+            do {
+                let entries = try backgroundContext.fetch(request)
+                // Convert to URIs which are Sendable
+                return entries.compactMap { entry -> URL? in
+                    // Ensure we have permanent IDs
+                    if entry.objectID.isTemporaryID {
+                        try? backgroundContext.obtainPermanentIDs(for: [entry])
+                    }
+                    return entry.objectID.uriRepresentation()
+                }
+            } catch {
+                print("Failed to fetch journal entries: \(error.localizedDescription)")
+                return []
+            }
+        }
+
+        // Convert URIs back to objects on main context
+        // Since we're @MainActor, we can safely access viewContext directly
+        let viewContext = container.viewContext
+        let coordinator = container.persistentStoreCoordinator
+
+        return objectIDURIs.compactMap { uri -> JournalEntry? in
+            guard let objectID = coordinator.managedObjectID(forURIRepresentation: uri) else { return nil }
+            return viewContext.object(with: objectID) as? JournalEntry
+        }
+    }
+
+    /// Synchronous fetch for cases where async is not possible (e.g., SwiftUI property wrappers).
+    /// Prefer the async version when possible.
+    @MainActor
+    func fetchJournalEntriesSync(
+        startDate: Date? = nil,
+        endDate: Date? = nil,
+        favoritesOnly: Bool = false
+    ) -> [JournalEntry] {
+        let request = buildJournalEntriesFetchRequest(
+            startDate: startDate,
+            endDate: endDate,
+            favoritesOnly: favoritesOnly
+        )
 
         do {
             return try container.viewContext.fetch(request)
         } catch {
-            throw DataError.fetchFailed(error)
+            print("Failed to fetch journal entries: \(error.localizedDescription)")
+            return []
         }
     }
 
@@ -582,16 +640,8 @@ class DataController: ObservableObject {
         save()
     }
 
-    func searchJournalEntries(query: String) -> [JournalEntry] {
-        do {
-            return try searchJournalEntriesOrThrow(query: query)
-        } catch {
-            print("Failed to search journal entries: \(error.localizedDescription)")
-            return []
-        }
-    }
-
-    func searchJournalEntriesOrThrow(query: String) throws -> [JournalEntry] {
+    /// Builds a search fetch request for journal entries
+    private func buildSearchJournalEntriesFetchRequest(query: String) -> NSFetchRequest<JournalEntry> {
         let request = NSFetchRequest<JournalEntry>(entityName: "JournalEntry")
 
         let titlePredicate = NSPredicate(format: "title CONTAINS[cd] %@", query)
@@ -599,11 +649,48 @@ class DataController: ObservableObject {
 
         request.predicate = NSCompoundPredicate(orPredicateWithSubpredicates: [titlePredicate, contentPredicate])
         request.sortDescriptors = [NSSortDescriptor(keyPath: \JournalEntry.timestamp, ascending: false)]
+        return request
+    }
+
+    /// Searches journal entries asynchronously on a background context.
+    @MainActor
+    func searchJournalEntries(query: String) async -> [JournalEntry] {
+        let request = buildSearchJournalEntriesFetchRequest(query: query)
+
+        // Fetch on background context and get permanent object IDs as URIs
+        let objectIDURIs: [URL] = await backgroundContext.perform { [backgroundContext] in
+            do {
+                let entries = try backgroundContext.fetch(request)
+                return entries.compactMap { entry -> URL? in
+                    if entry.objectID.isTemporaryID {
+                        try? backgroundContext.obtainPermanentIDs(for: [entry])
+                    }
+                    return entry.objectID.uriRepresentation()
+                }
+            } catch {
+                print("Failed to search journal entries: \(error.localizedDescription)")
+                return []
+            }
+        }
+
+        // Convert URIs back to objects on main context (already on MainActor)
+        let coordinator = container.persistentStoreCoordinator
+        return objectIDURIs.compactMap { uri -> JournalEntry? in
+            guard let objectID = coordinator.managedObjectID(forURIRepresentation: uri) else { return nil }
+            return container.viewContext.object(with: objectID) as? JournalEntry
+        }
+    }
+
+    /// Synchronous search for cases where async is not possible.
+    @MainActor
+    func searchJournalEntriesSync(query: String) -> [JournalEntry] {
+        let request = buildSearchJournalEntriesFetchRequest(query: query)
 
         do {
             return try container.viewContext.fetch(request)
         } catch {
-            throw DataError.fetchFailed(error)
+            print("Failed to search journal entries: \(error.localizedDescription)")
+            return []
         }
     }
 

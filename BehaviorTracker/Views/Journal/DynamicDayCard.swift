@@ -125,29 +125,10 @@ struct DynamicDayCard: View {
                 }
             }
 
-            // Quick actions footer (in expanded mode)
+            // Entry count footer (in expanded mode)
             if isExpanded {
                 HStack {
-                    Button {
-                        onAnalyzeDay(entries, date)
-                    } label: {
-                        HStack(spacing: Spacing.xs) {
-                            Image(systemName: "sparkles")
-                            Text("Analyze Day")
-                        }
-                        .font(.subheadline)
-                        .fontWeight(.medium)
-                        .foregroundStyle(theme.primaryColor)
-                        .padding(.horizontal, Spacing.md)
-                        .padding(.vertical, Spacing.sm)
-                        .background(
-                            Capsule()
-                                .fill(theme.primaryColor.opacity(0.15))
-                        )
-                    }
-
                     Spacer()
-
                     Text("\(entries.count) entries")
                         .font(.caption)
                         .foregroundStyle(.secondary)
