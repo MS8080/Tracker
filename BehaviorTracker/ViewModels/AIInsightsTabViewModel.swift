@@ -1,5 +1,33 @@
 import SwiftUI
 
+// MARK: - Analysis Mode
+
+enum AnalysisMode: String, CaseIterable {
+    case local = "local"
+    case ai = "ai"
+
+    var displayName: String {
+        switch self {
+        case .local: return NSLocalizedString("insights.mode.local", comment: "Local Analysis")
+        case .ai: return NSLocalizedString("insights.mode.ai", comment: "AI Analysis")
+        }
+    }
+
+    var icon: String {
+        switch self {
+        case .local: return "cpu"
+        case .ai: return "sparkles"
+        }
+    }
+
+    var description: String {
+        switch self {
+        case .local: return NSLocalizedString("insights.mode.local.description", comment: "Analyze patterns locally on your device. No internet required, completely private.")
+        case .ai: return NSLocalizedString("insights.mode.ai.description", comment: "Get personalized insights using Google Gemini AI. Requires internet and API key.")
+        }
+    }
+}
+
 // MARK: - ViewModel
 
 @MainActor
@@ -11,6 +39,7 @@ class AIInsightsTabViewModel: ObservableObject {
 
     @Published var isAnalyzing = false
     @Published var insights: AIInsights?
+    @Published var localInsights: LocalInsights?
     @Published var summaryInsights: SummaryInsights?
     @Published var errorMessage: String?
 
@@ -18,8 +47,16 @@ class AIInsightsTabViewModel: ObservableObject {
     @Published var showingSettings = false
     @Published var showCopiedFeedback = false
 
+    // Analysis mode preference - stored in UserDefaults
+    @Published var analysisMode: AnalysisMode {
+        didSet {
+            UserDefaults.standard.set(analysisMode.rawValue, forKey: "preferred_analysis_mode")
+        }
+    }
+
     private let geminiService = GeminiService.shared
-    private let analysisService = AIAnalysisService.shared
+    private let aiAnalysisService = AIAnalysisService.shared
+    private let localAnalysisService = LocalAnalysisService.shared
 
     var hasAcknowledgedPrivacy: Bool {
         UserDefaults.standard.bool(forKey: "ai_privacy_acknowledged")
@@ -29,7 +66,30 @@ class AIInsightsTabViewModel: ObservableObject {
         geminiService.isConfigured
     }
 
+    /// Returns true if the current mode can be used
+    var canUseCurrentMode: Bool {
+        switch analysisMode {
+        case .local:
+            return true // Local mode always available
+        case .ai:
+            return hasAcknowledgedPrivacy && isAPIKeyConfigured
+        }
+    }
+
+    /// Returns true if AI mode is fully configured
+    var isAIModeReady: Bool {
+        hasAcknowledgedPrivacy && isAPIKeyConfigured
+    }
+
     init() {
+        // Load saved analysis mode preference
+        if let savedMode = UserDefaults.standard.string(forKey: "preferred_analysis_mode"),
+           let mode = AnalysisMode(rawValue: savedMode) {
+            self.analysisMode = mode
+        } else {
+            // Default to local mode for privacy-first approach
+            self.analysisMode = .local
+        }
         apiKeyInput = geminiService.apiKey ?? ""
     }
 
@@ -58,8 +118,35 @@ class AIInsightsTabViewModel: ObservableObject {
         isAnalyzing = true
         errorMessage = nil
         insights = nil
+        localInsights = nil
         summaryInsights = nil
 
+        switch analysisMode {
+        case .local:
+            await analyzeLocally()
+        case .ai:
+            await analyzeWithAI()
+        }
+
+        isAnalyzing = false
+    }
+
+    private func analyzeLocally() async {
+        let preferences = LocalAnalysisService.AnalysisPreferences(
+            includePatterns: includePatterns,
+            includeJournals: includeJournals,
+            includeMedications: includeMedications,
+            timeframeDays: timeframeDays
+        )
+
+        let result = await localAnalysisService.analyzeData(preferences: preferences)
+        localInsights = result
+
+        // Extract summary from local insights
+        summaryInsights = extractLocalSummary(from: result)
+    }
+
+    private func analyzeWithAI() async {
         let preferences = AIAnalysisService.AnalysisPreferences(
             includePatterns: includePatterns,
             includeJournals: includeJournals,
@@ -68,7 +155,7 @@ class AIInsightsTabViewModel: ObservableObject {
         )
 
         do {
-            let result = try await analysisService.analyzeData(preferences: preferences)
+            let result = try await aiAnalysisService.analyzeData(preferences: preferences)
             insights = result
 
             // Parse summary from the full report
@@ -76,8 +163,31 @@ class AIInsightsTabViewModel: ObservableObject {
         } catch {
             errorMessage = error.localizedDescription
         }
+    }
 
-        isAnalyzing = false
+    private func extractLocalSummary(from insights: LocalInsights) -> SummaryInsights {
+        var keyPattern = "Your data has been analyzed locally."
+        var topRecommendation = "Continue tracking for more insights."
+
+        // Find first pattern insight
+        for section in insights.sections {
+            for insight in section.insights {
+                if insight.type == .pattern || insight.type == .statistic || insight.type == .category {
+                    keyPattern = insight.description
+                    break
+                }
+            }
+            if keyPattern != "Your data has been analyzed locally." { break }
+        }
+
+        // Find first suggestion
+        for section in insights.sections where section.title == "Suggestions" {
+            if let firstSuggestion = section.insights.first {
+                topRecommendation = firstSuggestion.description
+            }
+        }
+
+        return SummaryInsights(keyPatterns: keyPattern, topRecommendation: topRecommendation)
     }
 
     private func extractSummary(from content: String) -> SummaryInsights {
