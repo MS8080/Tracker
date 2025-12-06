@@ -219,9 +219,10 @@ class LocalAnalysisService {
     // MARK: - Journal Analysis
 
     private func analyzeJournals(_ journals: [JournalEntry]) -> [LocalInsightSection] {
-        var insights: [LocalInsightItem] = []
+        var sections: [LocalInsightSection] = []
+        var basicInsights: [LocalInsightItem] = []
 
-        insights.append(LocalInsightItem(
+        basicInsights.append(LocalInsightItem(
             type: .statistic,
             title: "Journal Entries",
             description: "\(journals.count) entries in this period",
@@ -234,7 +235,7 @@ class LocalAnalysisService {
         if !entriesWithMood.isEmpty {
             let avgMood = Double(entriesWithMood.reduce(0) { $0 + Int($1.mood) }) / Double(entriesWithMood.count)
 
-            insights.append(LocalInsightItem(
+            basicInsights.append(LocalInsightItem(
                 type: .mood,
                 title: "Average Mood",
                 description: moodDescription(avgMood),
@@ -254,7 +255,7 @@ class LocalAnalysisService {
 
                 let change = secondAvg - firstAvg
                 if abs(change) >= 0.5 {
-                    insights.append(LocalInsightItem(
+                    basicInsights.append(LocalInsightItem(
                         type: .trend,
                         title: "Mood Trend",
                         description: change > 0 ? "Your mood has been improving" : "Your mood has been declining",
@@ -270,7 +271,7 @@ class LocalAnalysisService {
         let uniqueDays = Set(journals.map { calendar.startOfDay(for: $0.timestamp) })
         let daysCovered = uniqueDays.count
 
-        insights.append(LocalInsightItem(
+        basicInsights.append(LocalInsightItem(
             type: .streak,
             title: "Days Journaled",
             description: "\(daysCovered) unique days with journal entries",
@@ -278,11 +279,272 @@ class LocalAnalysisService {
             trend: nil
         ))
 
-        return [LocalInsightSection(
-            title: "Journal Insights",
+        sections.append(LocalInsightSection(
+            title: "Journal Overview",
             icon: "book.fill",
-            insights: insights
-        )]
+            insights: basicInsights
+        ))
+
+        // Analyze journal content for themes and patterns
+        let contentAnalysis = analyzeJournalContent(journals)
+        if !contentAnalysis.isEmpty {
+            sections.append(LocalInsightSection(
+                title: "Journal Themes",
+                icon: "text.magnifyingglass",
+                insights: contentAnalysis
+            ))
+        }
+
+        // Analyze emotions detected in journals
+        let emotionAnalysis = analyzeJournalEmotions(journals)
+        if !emotionAnalysis.isEmpty {
+            sections.append(LocalInsightSection(
+                title: "Emotional Patterns",
+                icon: "heart.text.square",
+                insights: emotionAnalysis
+            ))
+        }
+
+        // Analyze challenges and triggers from journals
+        let challengeAnalysis = analyzeJournalChallenges(journals)
+        if !challengeAnalysis.isEmpty {
+            sections.append(LocalInsightSection(
+                title: "Challenges Identified",
+                icon: "exclamationmark.bubble",
+                insights: challengeAnalysis
+            ))
+        }
+
+        // Analyze positive aspects and coping from journals
+        let positiveAnalysis = analyzeJournalPositives(journals)
+        if !positiveAnalysis.isEmpty {
+            sections.append(LocalInsightSection(
+                title: "Positive Patterns",
+                icon: "sun.max.fill",
+                insights: positiveAnalysis
+            ))
+        }
+
+        return sections
+    }
+
+    // MARK: - Journal Content Analysis
+
+    private func analyzeJournalContent(_ journals: [JournalEntry]) -> [LocalInsightItem] {
+        var insights: [LocalInsightItem] = []
+
+        // Combine all journal content
+        let allContent = journals.map { $0.content.lowercased() }.joined(separator: " ")
+        let words = allContent.components(separatedBy: CharacterSet.alphanumerics.inverted).filter { $0.count > 3 }
+
+        // Theme keywords to look for
+        let themes: [String: [String]] = [
+            "Work/School": ["work", "job", "meeting", "deadline", "project", "school", "class", "homework", "study", "exam", "boss", "colleague", "coworker"],
+            "Social": ["friend", "family", "people", "social", "party", "gathering", "conversation", "talk", "meet", "visit", "relationship"],
+            "Health": ["tired", "exhausted", "sleep", "energy", "sick", "pain", "headache", "doctor", "medication", "exercise", "rest"],
+            "Sensory": ["loud", "noise", "bright", "light", "crowded", "overwhelming", "texture", "smell", "sound", "touch", "sensitive"],
+            "Routine": ["routine", "schedule", "plan", "change", "unexpected", "surprise", "different", "usual", "normal"],
+            "Self-care": ["relax", "calm", "quiet", "alone", "break", "rest", "hobby", "enjoy", "happy", "peaceful"]
+        ]
+
+        var themeCounts: [String: Int] = [:]
+
+        for (theme, keywords) in themes {
+            let count = keywords.reduce(0) { count, keyword in
+                count + words.filter { $0.contains(keyword) }.count
+            }
+            if count > 0 {
+                themeCounts[theme] = count
+            }
+        }
+
+        // Report top themes
+        let sortedThemes = themeCounts.sorted { $0.value > $1.value }.prefix(4)
+        for (theme, count) in sortedThemes {
+            insights.append(LocalInsightItem(
+                type: .category,
+                title: theme,
+                description: "Mentioned \(count) times in your journals",
+                value: "\(count)x",
+                trend: nil
+            ))
+        }
+
+        // Word frequency analysis (excluding common words)
+        let stopWords = Set(["that", "this", "with", "have", "from", "they", "been", "were", "being", "would", "could", "should", "about", "which", "their", "there", "when", "what", "some", "into", "than", "then", "just", "very", "really", "today", "feeling", "felt"])
+        let meaningfulWords = words.filter { !stopWords.contains($0) && $0.count > 4 }
+
+        var wordFreq: [String: Int] = [:]
+        for word in meaningfulWords {
+            wordFreq[word, default: 0] += 1
+        }
+
+        let topWords = wordFreq.sorted { $0.value > $1.value }.prefix(5).filter { $0.value >= 2 }
+        if !topWords.isEmpty {
+            let wordList = topWords.map { "\($0.key) (\($0.value)x)" }.joined(separator: ", ")
+            insights.append(LocalInsightItem(
+                type: .pattern,
+                title: "Recurring Topics",
+                description: wordList,
+                value: nil,
+                trend: nil
+            ))
+        }
+
+        return insights
+    }
+
+    private func analyzeJournalEmotions(_ journals: [JournalEntry]) -> [LocalInsightItem] {
+        var insights: [LocalInsightItem] = []
+
+        let allContent = journals.map { $0.content.lowercased() }.joined(separator: " ")
+
+        // Emotion keywords
+        let emotions: [String: (keywords: [String], trend: LocalInsightTrend)] = [
+            "Anxiety/Worry": (["anxious", "anxiety", "worried", "worry", "nervous", "stress", "stressed", "panic", "fear", "scared", "overwhelmed", "dread"], .negative),
+            "Sadness": (["sad", "depressed", "down", "upset", "cry", "crying", "tears", "hopeless", "empty", "lonely", "alone"], .negative),
+            "Frustration": (["frustrated", "frustrating", "angry", "annoyed", "irritated", "mad", "furious", "rage"], .negative),
+            "Happiness": (["happy", "joy", "joyful", "excited", "great", "wonderful", "amazing", "good", "pleased", "delighted", "content"], .positive),
+            "Calm": (["calm", "peaceful", "relaxed", "serene", "tranquil", "centered", "balanced", "okay"], .positive),
+            "Fatigue": (["tired", "exhausted", "drained", "fatigue", "worn", "sleepy", "burnout", "spent"], .negative),
+            "Overwhelm": (["overwhelmed", "overload", "shutdown", "meltdown", "too much", "cant cope", "breaking"], .negative)
+        ]
+
+        var emotionCounts: [String: (count: Int, trend: LocalInsightTrend)] = [:]
+
+        for (emotion, data) in emotions {
+            let count = data.keywords.reduce(0) { count, keyword in
+                count + (allContent.components(separatedBy: keyword).count - 1)
+            }
+            if count > 0 {
+                emotionCounts[emotion] = (count, data.trend)
+            }
+        }
+
+        // Report emotions found
+        let sortedEmotions = emotionCounts.sorted { $0.value.count > $1.value.count }.prefix(4)
+        for (emotion, data) in sortedEmotions {
+            insights.append(LocalInsightItem(
+                type: .mood,
+                title: emotion,
+                description: "Expressed \(data.count) times in journals",
+                value: "\(data.count)x",
+                trend: data.trend
+            ))
+        }
+
+        // Calculate emotional balance
+        let positiveCount = emotionCounts.filter { $0.value.trend == .positive }.reduce(0) { $0 + $1.value.count }
+        let negativeCount = emotionCounts.filter { $0.value.trend == .negative }.reduce(0) { $0 + $1.value.count }
+
+        if positiveCount + negativeCount > 0 {
+            let balance = Double(positiveCount) / Double(positiveCount + negativeCount) * 100
+            let balanceDescription: String
+            let balanceTrend: LocalInsightTrend
+
+            if balance >= 60 {
+                balanceDescription = "Your journals show mostly positive emotions"
+                balanceTrend = .positive
+            } else if balance >= 40 {
+                balanceDescription = "Your journals show a mix of emotions"
+                balanceTrend = .neutral
+            } else {
+                balanceDescription = "Your journals show you may be struggling - consider reaching out for support"
+                balanceTrend = .negative
+            }
+
+            insights.append(LocalInsightItem(
+                type: .trend,
+                title: "Emotional Balance",
+                description: balanceDescription,
+                value: String(format: "%.0f%% positive", balance),
+                trend: balanceTrend
+            ))
+        }
+
+        return insights
+    }
+
+    private func analyzeJournalChallenges(_ journals: [JournalEntry]) -> [LocalInsightItem] {
+        var insights: [LocalInsightItem] = []
+
+        let allContent = journals.map { $0.content.lowercased() }.joined(separator: " ")
+
+        // Challenge/trigger patterns specific to autism
+        let challenges: [String: [String]] = [
+            "Sensory Overload": ["sensory", "overload", "too loud", "too bright", "overwhelmed", "overstimulated", "noise", "lights", "crowded"],
+            "Social Exhaustion": ["social", "exhausted", "masking", "pretending", "small talk", "eye contact", "conversation", "people", "draining"],
+            "Routine Disruption": ["routine", "change", "unexpected", "different", "cancelled", "delayed", "surprise", "plan"],
+            "Executive Function": ["focus", "concentrate", "organize", "start", "finish", "procrastinate", "forget", "remember", "decision"],
+            "Communication": ["misunderstood", "explain", "words", "express", "understand", "confusing", "interpret"],
+            "Demand Avoidance": ["have to", "must", "should", "demand", "pressure", "expectation", "refuse", "avoid"],
+            "Transition Difficulty": ["transition", "switch", "change", "moving", "next", "stop", "ending"]
+        ]
+
+        var challengeCounts: [String: Int] = [:]
+
+        for (challenge, keywords) in challenges {
+            let count = keywords.reduce(0) { count, keyword in
+                count + (allContent.components(separatedBy: keyword).count - 1)
+            }
+            if count > 0 {
+                challengeCounts[challenge] = count
+            }
+        }
+
+        let sortedChallenges = challengeCounts.sorted { $0.value > $1.value }.prefix(4)
+        for (challenge, count) in sortedChallenges {
+            insights.append(LocalInsightItem(
+                type: .trigger,
+                title: challenge,
+                description: "Mentioned \(count) times - this may be a recurring challenge",
+                value: "\(count)x",
+                trend: .negative
+            ))
+        }
+
+        return insights
+    }
+
+    private func analyzeJournalPositives(_ journals: [JournalEntry]) -> [LocalInsightItem] {
+        var insights: [LocalInsightItem] = []
+
+        let allContent = journals.map { $0.content.lowercased() }.joined(separator: " ")
+
+        // Positive patterns and coping strategies
+        let positives: [String: [String]] = [
+            "Special Interests": ["interest", "hobby", "love", "passion", "favorite", "enjoy", "gaming", "reading", "music", "art", "coding", "collecting"],
+            "Self-Regulation": ["calm", "breathe", "break", "quiet", "alone time", "decompress", "stim", "regulate"],
+            "Support System": ["friend", "family", "support", "help", "understand", "accept", "love"],
+            "Achievements": ["accomplished", "finished", "completed", "proud", "success", "managed", "did it", "achieved"],
+            "Comfort Strategies": ["comfort", "safe", "cozy", "routine", "familiar", "home", "pet", "weighted"],
+            "Nature/Outdoors": ["nature", "outside", "walk", "garden", "trees", "fresh air", "park"],
+            "Creative Outlets": ["create", "draw", "write", "build", "make", "design", "craft"]
+        ]
+
+        var positiveCounts: [String: Int] = [:]
+
+        for (positive, keywords) in positives {
+            let count = keywords.reduce(0) { count, keyword in
+                count + (allContent.components(separatedBy: keyword).count - 1)
+            }
+            if count > 0 {
+                positiveCounts[positive] = count
+            }
+        }
+
+        let sortedPositives = positiveCounts.sorted { $0.value > $1.value }.prefix(4)
+        for (positive, count) in sortedPositives {
+            insights.append(LocalInsightItem(
+                type: .coping,
+                title: positive,
+                description: "This appears \(count) times - could be a strength or coping strategy",
+                value: "\(count)x",
+                trend: .positive
+            ))
+        }
+
+        return insights
     }
 
     private func moodDescription(_ mood: Double) -> String {
