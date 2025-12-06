@@ -10,7 +10,9 @@ public class WishlistItem: NSManagedObject, Identifiable {
     @NSManaged public var icon: String?
     @NSManaged public var priority: Int16
     @NSManaged public var isAcquired: Bool
+    @NSManaged public var isPinned: Bool
     @NSManaged public var createdAt: Date
+    @NSManaged public var acquiredAt: Date?
 
     // MARK: - Priority Level
 
@@ -55,17 +57,26 @@ public class WishlistItem: NSManagedObject, Identifiable {
         self.title = ""
         self.priority = Priority.medium.rawValue
         self.isAcquired = false
+        self.isPinned = false
         self.createdAt = Date()
+    }
+
+    // MARK: - Pin Methods
+
+    public func togglePin() {
+        isPinned.toggle()
     }
 
     // MARK: - Methods
 
     public func markAcquired() {
         isAcquired = true
+        acquiredAt = Date()
     }
 
     public func markNotAcquired() {
         isAcquired = false
+        acquiredAt = nil
     }
 }
 

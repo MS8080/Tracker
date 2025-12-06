@@ -6,6 +6,7 @@ struct MonthlyReportView: View {
 
     var body: some View {
         VStack(spacing: Spacing.md) {
+            heroStatsRow
             summaryCard
             topPatternsCard
             if !report.cascadeInsights.isEmpty {
@@ -15,16 +16,38 @@ struct MonthlyReportView: View {
             performanceCard
         }
     }
+    
+    // MARK: - Hero Stats Row
+    
+    private var heroStatsRow: some View {
+        HStack(spacing: Spacing.md) {
+            HeroStatCard(
+                value: "\(report.totalPatterns)",
+                label: "Patterns",
+                sublabel: "This Month",
+                iconName: "sparkles",
+                color: theme.primaryColor,
+                theme: theme
+            )
+            
+            HeroStatCard(
+                value: String(format: "%.1f", report.averagePerDay),
+                label: "Daily Avg",
+                sublabel: "Patterns",
+                iconName: "chart.line.uptrend.xyaxis",
+                color: Color(red: 0.9, green: 0.6, blue: 0.3), // Soft orange
+                theme: theme
+            )
+        }
+    }
 
     // MARK: - Summary Card
 
     private var summaryCard: some View {
-        ReportCard(title: "Monthly Summary", subtitle: "Last 30 days", theme: theme, icon: "calendar", iconColor: theme.primaryColor) {
+        ReportCard(title: "Monthly Overview", subtitle: "Last 30 days", theme: theme, icon: "calendar", iconColor: theme.primaryColor) {
             VStack(spacing: Spacing.lg) {
-                StatRow(label: "Journal Entries", value: "\(report.totalEntries)")
-                StatRow(label: "Patterns Detected", value: "\(report.totalPatterns)")
-                StatRow(label: "Most Active Week", value: report.mostActiveWeek)
-                StatRow(label: "Avg Patterns/Day", value: String(format: "%.1f", report.averagePerDay))
+                EnhancedStatRow(label: "Journal Entries", value: "\(report.totalEntries)", icon: "book.fill")
+                EnhancedStatRow(label: "Most Active Week", value: report.mostActiveWeek, icon: "star.fill")
             }
         }
     }
@@ -32,7 +55,7 @@ struct MonthlyReportView: View {
     // MARK: - Top Patterns Card
 
     private var topPatternsCard: some View {
-        ReportCard(title: "Top Patterns", subtitle: "Most frequently detected", theme: theme, icon: "star.fill", iconColor: .yellow) {
+        ReportCard(title: "Top Patterns", subtitle: "Most frequently detected", theme: theme, icon: "star.fill", iconColor: Color(red: 0.9, green: 0.8, blue: 0.4)) { // Soft yellow
             if report.topPatterns.isEmpty {
                 EmptyStateView(
                     icon: "chart.bar.xaxis",
@@ -75,13 +98,13 @@ struct MonthlyReportView: View {
             subtitle: "How patterns connect",
             theme: theme,
             icon: "arrow.triangle.branch",
-            iconColor: .purple
+            iconColor: Color(red: 0.7, green: 0.5, blue: 0.9) // Soft purple
         ) {
             VStack(alignment: .leading, spacing: Spacing.md) {
                 ForEach(report.cascadeInsights, id: \.self) { insight in
                     HStack(alignment: .top, spacing: 8) {
                         Image(systemName: "arrow.triangle.branch")
-                            .foregroundStyle(.purple)
+                            .foregroundStyle(Color(red: 0.7, green: 0.5, blue: 0.9)) // Soft purple
                             .font(.subheadline)
 
                         Text(insight)
@@ -101,7 +124,7 @@ struct MonthlyReportView: View {
             subtitle: "What we noticed",
             theme: theme,
             icon: "lightbulb.fill",
-            iconColor: .yellow,
+            iconColor: Color(red: 0.9, green: 0.8, blue: 0.4), // Soft yellow
             minHeight: 280
         ) {
             if report.correlations.isEmpty {
@@ -111,7 +134,7 @@ struct MonthlyReportView: View {
                     ForEach(report.correlations, id: \.self) { correlation in
                         HStack(alignment: .top, spacing: 8) {
                             Image(systemName: "lightbulb.fill")
-                                .foregroundStyle(.yellow)
+                                .foregroundStyle(Color(red: 0.9, green: 0.8, blue: 0.4)) // Soft yellow
                                 .font(.subheadline)
 
                             Text(correlation)
@@ -128,7 +151,7 @@ struct MonthlyReportView: View {
     // MARK: - Performance Card
 
     private var performanceCard: some View {
-        ReportCard(title: "Best vs Challenging Days", subtitle: "Based on pattern intensity", theme: theme, icon: "scale.3d", iconColor: .green) {
+        ReportCard(title: "Best vs Challenging Days", subtitle: "Based on pattern intensity", theme: theme, icon: "scale.3d", iconColor: Color(red: 0.5, green: 0.8, blue: 0.6)) { // Soft green
             VStack(alignment: .leading, spacing: Spacing.lg) {
                 bestDaysSection
                 Divider()

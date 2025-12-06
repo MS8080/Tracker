@@ -60,6 +60,7 @@ final class GoalRepository {
         }
 
         request.sortDescriptors = [
+            NSSortDescriptor(keyPath: \Goal.isPinned, ascending: false),
             NSSortDescriptor(keyPath: \Goal.priority, ascending: false),
             NSSortDescriptor(keyPath: \Goal.dueDate, ascending: true),
             NSSortDescriptor(keyPath: \Goal.createdAt, ascending: false)
@@ -138,6 +139,11 @@ final class GoalRepository {
 
     func markIncomplete(_ goal: Goal) {
         goal.markIncomplete()
+        DataController.shared.save()
+    }
+
+    func togglePin(_ goal: Goal) {
+        goal.togglePin()
         DataController.shared.save()
     }
 

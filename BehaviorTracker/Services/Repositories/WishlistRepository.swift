@@ -57,6 +57,7 @@ final class WishlistRepository {
         }
 
         request.sortDescriptors = [
+            NSSortDescriptor(keyPath: \WishlistItem.isPinned, ascending: false),
             NSSortDescriptor(keyPath: \WishlistItem.priority, ascending: false),
             NSSortDescriptor(keyPath: \WishlistItem.createdAt, ascending: false)
         ]
@@ -111,6 +112,11 @@ final class WishlistRepository {
 
     func markNotAcquired(_ item: WishlistItem) {
         item.markNotAcquired()
+        DataController.shared.save()
+    }
+
+    func togglePin(_ item: WishlistItem) {
+        item.togglePin()
         DataController.shared.save()
     }
 

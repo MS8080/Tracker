@@ -31,42 +31,44 @@ private struct HSLColor {
 // MARK: - Theme Color Definitions
 
 /// Semantic color tokens for consistent theming
+/// Inspired by iPhone Pro colors - darker, more sophisticated, muted tones
 private enum ThemeColorToken {
     /// Base hue values for each theme (in degrees)
     static func baseHue(for theme: AppTheme) -> Double {
         switch theme {
-        case .purple:   return 270
-        case .blue:     return 220
-        case .green:    return 155  // Warmer green, less teal
-        case .amber:    return 40
-        case .burgundy: return 350  // More red, less purple
-        case .grey:     return 240
+        case .purple:   return 270  // Deep purple like iPhone 14 Pro
+        case .blue:     return 215  // Titanium blue undertone
+        case .green:    return 160  // Dark titanium green
+        case .amber:    return 35   // Natural titanium warm
+        case .burgundy: return 350  // Deep wine, almost black-cherry
+        case .grey:     return 220  // Space black with blue undertone
         }
     }
 
-    /// Base saturation (grey is desaturated)
+    /// Base saturation - refined, professional but visible
     static func baseSaturation(for theme: AppTheme) -> Double {
-        theme == .grey ? 0.15 : 0.85
+        switch theme {
+        case .grey:     return 0.08  // Nearly neutral
+        case .amber:    return 0.45  // Warm but not loud
+        default:        return 0.50  // Visible but refined
+        }
     }
 
-    /// Primary color - consistent luminance at 0.55
+    /// Primary color - balanced between dark and visible
     static func primary(for theme: AppTheme) -> HSLColor {
         HSLColor(
             hue: baseHue(for: theme),
             saturation: baseSaturation(for: theme),
-            lightness: 0.55
+            lightness: 0.48  // Visible but not bright
         )
     }
 
-    /// Timeline/accent color - brighter variant
+    /// Timeline/accent color - slightly lifted
     static func timeline(for theme: AppTheme) -> HSLColor {
-        if theme == .blue {
-            return HSLColor(hue: 200, saturation: 0.85, lightness: 0.65)
-        }
-        return HSLColor(
+        HSLColor(
             hue: baseHue(for: theme),
-            saturation: min(1.0, baseSaturation(for: theme) + 0.15),
-            lightness: 0.65
+            saturation: min(0.60, baseSaturation(for: theme) + 0.10),
+            lightness: 0.55
         )
     }
 }
@@ -93,24 +95,20 @@ enum AppTheme: String, CaseIterable, Identifiable {
         ThemeColorToken.timeline(for: self).toColor()
     }
 
-    /// Subtle, calm gradient - minimal lightness difference with ease-out curve
-    /// Creates a sophisticated, receding background that lets content stand out
+    /// Professional gradient - visible but refined
     var gradient: LinearGradient {
-        // Ease-out curve: fast change at start, slow change at end
-        // This mimics natural light falloff and feels less mechanical
         LinearGradient(
             stops: [
-                // Start: slightly lighter
+                // Top: visible color presence
                 .init(color: primaryColor.opacity(0.38), location: 0.0),
-                // Ease-out: most change happens early
-                .init(color: primaryColor.opacity(0.32), location: 0.08),
-                .init(color: primaryColor.opacity(0.27), location: 0.18),
-                .init(color: primaryColor.opacity(0.24), location: 0.30),
-                // Gradual settle to base
-                .init(color: primaryColor.opacity(0.22), location: 0.50),
+                .init(color: primaryColor.opacity(0.32), location: 0.15),
+                .init(color: primaryColor.opacity(0.27), location: 0.35),
+                // Middle: steady tone
+                .init(color: primaryColor.opacity(0.24), location: 0.55),
                 .init(color: primaryColor.opacity(0.21), location: 0.75),
-                // End: only slightly darker than middle
-                .init(color: primaryColor.opacity(0.20), location: 1.0)
+                // Bottom: grounded
+                .init(color: primaryColor.opacity(0.18), location: 0.90),
+                .init(color: primaryColor.opacity(0.15), location: 1.0)
             ],
             startPoint: .top,
             endPoint: .bottom
@@ -119,27 +117,27 @@ enum AppTheme: String, CaseIterable, Identifiable {
 
     /// Light accent color for backgrounds
     var accentLight: Color {
-        primaryColor.opacity(0.15)
+        primaryColor.opacity(0.12)
     }
 
     /// Medium accent color for borders and overlays
     var accentMedium: Color {
-        primaryColor.opacity(0.40)
+        primaryColor.opacity(0.30)
     }
 
-    /// Card/tile background - transparent for integrated look
+    /// Card/tile background - visible but subtle
     var cardBackground: Color {
-        return Color.white.opacity(0.06)
+        return Color.white.opacity(0.08)
     }
 
-    /// Border color for card edges (theme-colored outer border)
+    /// Border color for card edges
     var cardBorderColor: Color {
-        return primaryColor.opacity(0.35)
+        return primaryColor.opacity(0.25)
     }
 
     /// Shadow color for cards
     var cardShadowColor: Color {
-        return Color.black.opacity(0.3)
+        return Color.black.opacity(0.25)
     }
 
 }
@@ -196,7 +194,7 @@ struct TrueLiquidGlassCardModifier: ViewModifier {
             content
                 .background {
                     RoundedRectangle(cornerRadius: cornerRadius)
-                        .fill(theme.primaryColor.opacity(0.05))
+                        .fill(theme.primaryColor.opacity(0.07))
                 }
                 .glassEffect(
                     isInteractive ? .regular.interactive() : .regular,
@@ -206,7 +204,7 @@ struct TrueLiquidGlassCardModifier: ViewModifier {
             content
                 .background(
                     ZStack {
-                        theme.primaryColor.opacity(0.08)
+                        theme.primaryColor.opacity(0.10)
                         RoundedRectangle(cornerRadius: cornerRadius)
                             .fill(.ultraThinMaterial)
                     }
@@ -214,7 +212,7 @@ struct TrueLiquidGlassCardModifier: ViewModifier {
                 )
                 .overlay(
                     RoundedRectangle(cornerRadius: cornerRadius)
-                        .stroke(theme.primaryColor.opacity(0.15), lineWidth: 0.5)
+                        .stroke(theme.primaryColor.opacity(0.20), lineWidth: 0.5)
                 )
         }
     }
@@ -228,14 +226,14 @@ struct TrueLiquidGlassCompactModifier: ViewModifier {
             content
                 .background {
                     RoundedRectangle(cornerRadius: CornerRadius.md)
-                        .fill(theme.primaryColor.opacity(0.04))
+                        .fill(theme.primaryColor.opacity(0.06))
                 }
                 .glassEffect(.regular, in: RoundedRectangle(cornerRadius: CornerRadius.md))
         } else {
             content
                 .background(
                     ZStack {
-                        theme.primaryColor.opacity(0.06)
+                        theme.primaryColor.opacity(0.08)
                         RoundedRectangle(cornerRadius: CornerRadius.md)
                             .fill(.ultraThinMaterial)
                     }
@@ -243,7 +241,7 @@ struct TrueLiquidGlassCompactModifier: ViewModifier {
                 )
                 .overlay(
                     RoundedRectangle(cornerRadius: CornerRadius.md)
-                        .stroke(theme.primaryColor.opacity(0.12), lineWidth: 0.5)
+                        .stroke(theme.primaryColor.opacity(0.18), lineWidth: 0.5)
                 )
         }
     }

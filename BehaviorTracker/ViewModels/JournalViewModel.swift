@@ -85,8 +85,17 @@ class JournalViewModel: ObservableObject {
         guard !entry.isAnalyzed else { return }
         guard extractionService.isConfigured else { return }
 
+        // Debounce: skip if this entry was recently analyzed
+        if GeminiService.shared.wasRecentlyAnalyzed(entryID: entry.id) {
+            print("[JournalViewModel] Skipping analysis - entry \(entry.id) was recently analyzed")
+            return
+        }
+
         isAnalyzing = true
         defer { isAnalyzing = false }
+
+        // Mark as being analyzed to prevent duplicates
+        GeminiService.shared.markAsAnalyzed(entryID: entry.id)
 
         do {
             let result = try await extractionService.extractPatterns(from: entry.content)

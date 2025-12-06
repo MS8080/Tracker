@@ -61,6 +61,7 @@ final class StruggleRepository {
         }
 
         request.sortDescriptors = [
+            NSSortDescriptor(keyPath: \Struggle.isPinned, ascending: false),
             NSSortDescriptor(keyPath: \Struggle.intensity, ascending: false),
             NSSortDescriptor(keyPath: \Struggle.createdAt, ascending: false)
         ]
@@ -160,6 +161,11 @@ final class StruggleRepository {
 
     func addCopingStrategy(_ struggle: Struggle, strategy: String) {
         struggle.addCopingStrategy(strategy)
+        DataController.shared.save()
+    }
+
+    func togglePin(_ struggle: Struggle) {
+        struggle.togglePin()
         DataController.shared.save()
     }
 

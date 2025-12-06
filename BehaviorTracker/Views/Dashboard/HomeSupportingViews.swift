@@ -132,18 +132,62 @@ struct DaySlideshowView: View {
                 } else if let error = viewModel.slidesError {
                     Spacer()
                     VStack(spacing: Spacing.lg) {
-                        Image(systemName: "heart.circle")
+                        Image(systemName: viewModel.showLocalAnalysisFallback ? "wifi.slash" : "heart.circle")
                             .font(.system(size: 50))
                             .foregroundStyle(.white.opacity(0.4))
 
-                        Text(error)
+                        Text(viewModel.showLocalAnalysisFallback ? "Couldn't reach AI service" : error)
                             .font(.title3)
                             .fontWeight(.medium)
                             .foregroundStyle(.white.opacity(0.8))
                             .multilineTextAlignment(.center)
 
-                        // Only show retry if it's a real error, not empty state
-                        if error.contains("error") || error.contains("Error") || error.contains("failed") {
+                        if viewModel.showLocalAnalysisFallback {
+                            // Show local analysis option
+                            Text("No worries - I can analyze on your device instead.")
+                                .font(.subheadline)
+                                .foregroundStyle(.white.opacity(0.6))
+                                .multilineTextAlignment(.center)
+
+                            HStack(spacing: Spacing.md) {
+                                Button {
+                                    Task {
+                                        await viewModel.generateLocalSlides()
+                                    }
+                                } label: {
+                                    HStack(spacing: Spacing.sm) {
+                                        Image(systemName: "iphone")
+                                        Text("Analyze Locally")
+                                    }
+                                    .font(.subheadline)
+                                    .fontWeight(.medium)
+                                    .foregroundStyle(.white)
+                                    .padding(.horizontal, 20)
+                                    .padding(.vertical, 12)
+                                    .background(
+                                        Capsule()
+                                            .fill(theme.primaryColor.opacity(0.6))
+                                    )
+                                }
+
+                                Button {
+                                    Task {
+                                        await viewModel.generateAISlides()
+                                    }
+                                } label: {
+                                    Text("Retry AI")
+                                        .font(.subheadline)
+                                        .foregroundStyle(.white.opacity(0.8))
+                                        .padding(.horizontal, 20)
+                                        .padding(.vertical, 12)
+                                        .background(
+                                            Capsule()
+                                                .stroke(.white.opacity(0.3), lineWidth: 1)
+                                        )
+                                }
+                            }
+                        } else if error.contains("error") || error.contains("Error") || error.contains("failed") {
+                            // Generic retry for other errors
                             Button {
                                 Task {
                                     await viewModel.generateAISlides()

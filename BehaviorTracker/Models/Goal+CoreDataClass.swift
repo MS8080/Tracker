@@ -11,6 +11,7 @@ public class Goal: NSManagedObject, Identifiable {
     @NSManaged public var priority: Int16
     @NSManaged public var progress: Double
     @NSManaged public var isCompleted: Bool
+    @NSManaged public var isPinned: Bool
     @NSManaged public var dueDate: Date?
     @NSManaged public var createdAt: Date
     @NSManaged public var completedAt: Date?
@@ -81,7 +82,14 @@ public class Goal: NSManagedObject, Identifiable {
         self.priority = Priority.medium.rawValue
         self.progress = 0.0
         self.isCompleted = false
+        self.isPinned = false
         self.createdAt = Date()
+    }
+
+    // MARK: - Pin Methods
+
+    public func togglePin() {
+        isPinned.toggle()
     }
 
     // MARK: - Methods

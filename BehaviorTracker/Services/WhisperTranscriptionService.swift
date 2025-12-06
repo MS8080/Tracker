@@ -282,8 +282,14 @@ class WhisperTranscriptionService: ObservableObject {
     /// Check if the model is already downloaded locally
     private func isModelDownloaded() -> Bool {
         // Check if model folder contains expected files
-        let modelPath = modelDirectory.appendingPathComponent("openai_whisper-base")
-        return FileManager.default.fileExists(atPath: modelPath.path)
+        // WhisperKit stores models with different naming conventions
+        let possiblePaths = [
+            modelDirectory.appendingPathComponent("openai_whisper-base.en"),
+            modelDirectory.appendingPathComponent("openai_whisper-base"),
+            modelDirectory.appendingPathComponent("base.en"),
+            modelDirectory.appendingPathComponent("base")
+        ]
+        return possiblePaths.contains { FileManager.default.fileExists(atPath: $0.path) }
     }
 
     func loadModel() async {
@@ -321,12 +327,15 @@ class WhisperTranscriptionService: ObservableObject {
                 }
             }
 
-            // Use WhisperKitConfig to specify model folder for caching
+            // Use WhisperKitConfig with updated API
+            // Using "base.en" for faster English-only transcription
             let config = WhisperKitConfig(
-                model: "base",
+                model: "base.en",
                 modelFolder: modelDirectory.path,
-                load: true,      // Load models after download
-                download: true   // Download if not available
+                verbose: false,
+                logLevel: .error,
+                load: true,
+                download: true
             )
             whisperKit = try await WhisperKit(config)
             progressTask.cancel()
@@ -336,6 +345,8 @@ class WhisperTranscriptionService: ObservableObject {
             isLoadingModel = false
             isModelLoaded = true
         } catch {
+            // Log the full error for debugging
+            print("[WhisperKit] Model load error: \(error)")
             errorMessage = "Failed to load model: \(error.localizedDescription)"
             transcriptionProgress = ""
             isLoadingModel = false

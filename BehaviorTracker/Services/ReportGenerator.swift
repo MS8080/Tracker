@@ -11,6 +11,20 @@ struct MedicationInsight {
     var correlationNotes: [String] = []
 }
 
+struct LifeGoalsSummary {
+    var activeGoals: Int = 0
+    var completedGoals: Int = 0
+    var overdueGoals: Int = 0
+    var activeStruggles: Int = 0
+    var resolvedStruggles: Int = 0
+    var severeStruggles: Int = 0
+    var wishlistPending: Int = 0
+    var wishlistAcquired: Int = 0
+    var topGoals: [String] = []
+    var topStruggles: [(name: String, intensity: String)] = []
+    var recentlyAcquired: [String] = []
+}
+
 struct WeeklyReport {
     var totalEntries: Int = 0
     var totalPatterns: Int = 0
@@ -22,6 +36,7 @@ struct WeeklyReport {
     var commonTriggers: [String] = []
     var topCascades: [(from: String, to: String, count: Int)] = []
     var medicationInsights: [MedicationInsight] = []
+    var lifeGoalsSummary: LifeGoalsSummary = LifeGoalsSummary()
 }
 
 struct MonthlyReport {
@@ -37,6 +52,7 @@ struct MonthlyReport {
     var behaviorChanges: [String] = []
     var cascadeInsights: [String] = []
     var medicationInsights: [MedicationInsight] = []
+    var lifeGoalsSummary: LifeGoalsSummary = LifeGoalsSummary()
 }
 
 struct DataPoint: Identifiable {
@@ -113,6 +129,9 @@ class ReportGenerator {
 
         report.medicationInsights = generateMedicationInsights(days: 7, patterns: patterns)
 
+        // Add life goals summary
+        report.lifeGoalsSummary = generateLifeGoalsSummary()
+
         return report
     }
 
@@ -176,7 +195,57 @@ class ReportGenerator {
 
         report.medicationInsights = generateMedicationInsights(days: 30, patterns: patterns)
 
+        // Add life goals summary
+        report.lifeGoalsSummary = generateLifeGoalsSummary()
+
         return report
+    }
+
+    // MARK: - Life Goals Summary
+
+    private func generateLifeGoalsSummary() -> LifeGoalsSummary {
+        var summary = LifeGoalsSummary()
+
+        // Fetch data from repositories
+        let allGoals = GoalRepository.shared.fetch(includeCompleted: true)
+        let allStruggles = StruggleRepository.shared.fetch(activeOnly: false)
+        let allWishlistItems = WishlistRepository.shared.fetch(includeAcquired: true)
+
+        // Goals stats
+        let activeGoals = allGoals.filter { !$0.isCompleted }
+        let completedGoals = allGoals.filter { $0.isCompleted }
+        let overdueGoals = allGoals.filter { $0.isOverdue }
+
+        summary.activeGoals = activeGoals.count
+        summary.completedGoals = completedGoals.count
+        summary.overdueGoals = overdueGoals.count
+        summary.topGoals = activeGoals.sorted { $0.priority > $1.priority }.prefix(3).map { $0.title }
+
+        // Struggles stats
+        let activeStruggles = allStruggles.filter { $0.isActive }
+        let resolvedStruggles = allStruggles.filter { !$0.isActive }
+        let severeStruggles = activeStruggles.filter { $0.intensityLevel.rawValue >= Struggle.Intensity.severe.rawValue }
+
+        summary.activeStruggles = activeStruggles.count
+        summary.resolvedStruggles = resolvedStruggles.count
+        summary.severeStruggles = severeStruggles.count
+        summary.topStruggles = activeStruggles
+            .sorted { $0.intensity > $1.intensity }
+            .prefix(3)
+            .map { (name: $0.title, intensity: $0.intensityLevel.displayName) }
+
+        // Wishlist stats
+        let pendingWishlist = allWishlistItems.filter { !$0.isAcquired }
+        let acquiredWishlist = allWishlistItems.filter { $0.isAcquired }
+
+        summary.wishlistPending = pendingWishlist.count
+        summary.wishlistAcquired = acquiredWishlist.count
+        summary.recentlyAcquired = acquiredWishlist
+            .sorted { ($0.acquiredAt ?? .distantPast) > ($1.acquiredAt ?? .distantPast) }
+            .prefix(3)
+            .map { $0.title }
+
+        return summary
     }
 
     // MARK: - Fetch ExtractedPatterns

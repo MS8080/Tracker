@@ -17,6 +17,10 @@ class LifeGoalsViewModel: ObservableObject {
     @Published var selectedWishlistItem: WishlistItem?
     @Published var selectedStruggle: Struggle?
 
+    // Celebration state for wishlist
+    @Published var celebratingItem: WishlistItem?
+    @Published var showCelebration = false
+
     // MARK: - Repositories
 
     private let goalRepository = GoalRepository.shared
@@ -103,6 +107,11 @@ class LifeGoalsViewModel: ObservableObject {
         loadData()
     }
 
+    func toggleGoalPin(_ goal: Goal) {
+        goalRepository.togglePin(goal)
+        loadData()
+    }
+
     // MARK: - Wishlist Methods
 
     func createWishlistItem(
@@ -127,14 +136,31 @@ class LifeGoalsViewModel: ObservableObject {
     func toggleWishlistAcquired(_ item: WishlistItem) {
         if item.isAcquired {
             wishlistRepository.markNotAcquired(item)
+            showCelebration = false
+            celebratingItem = nil
         } else {
             wishlistRepository.markAcquired(item)
+            // Trigger celebration!
+            celebratingItem = item
+            showCelebration = true
+
+            // Auto-hide celebration after delay
+            Task {
+                try? await Task.sleep(nanoseconds: 3_000_000_000)
+                showCelebration = false
+                celebratingItem = nil
+            }
         }
         loadData()
     }
 
     func deleteWishlistItem(_ item: WishlistItem) {
         wishlistRepository.delete(item)
+        loadData()
+    }
+
+    func toggleWishlistPin(_ item: WishlistItem) {
+        wishlistRepository.togglePin(item)
         loadData()
     }
 
@@ -190,6 +216,11 @@ class LifeGoalsViewModel: ObservableObject {
 
     func addCopingStrategyToStruggle(_ struggle: Struggle, strategy: String) {
         struggleRepository.addCopingStrategy(struggle, strategy: strategy)
+        loadData()
+    }
+
+    func toggleStrugglePin(_ struggle: Struggle) {
+        struggleRepository.togglePin(struggle)
         loadData()
     }
 }

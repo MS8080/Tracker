@@ -52,6 +52,10 @@ class HomeViewModel: ObservableObject {
 
     private let dataController = DataController.shared
     private let geminiService = GeminiService.shared
+    private let localAnalysisService = LocalAnalysisService.shared
+
+    // Track if we should offer local analysis fallback
+    @Published var showLocalAnalysisFallback: Bool = false
 
     // PERFORMANCE: Cache to avoid redundant queries
     private var lastLoadDate: Date?
@@ -580,6 +584,12 @@ class HomeViewModel: ObservableObject {
             }
         }
 
+        // Add Life Goals context (Goals, Struggles, Wishlist)
+        let lifeGoalsContext = buildLifeGoalsContext()
+        if !lifeGoalsContext.isEmpty {
+            dataSummary += "\nLIFE CONTEXT:\n\(lifeGoalsContext)"
+        }
+
         // If no patterns were extracted, fall back to raw journal content
         if allPatterns.isEmpty {
             dataSummary = "Today's journal entries (not yet analyzed for patterns):\n\n"
@@ -660,11 +670,52 @@ class HomeViewModel: ObservableObject {
             if todaySlides.isEmpty {
                 slidesError = "I'm here when you're ready to share"
             }
+            showLocalAnalysisFallback = false
         } catch {
+            // API failed - offer local analysis as fallback
             slidesError = error.localizedDescription
+            showLocalAnalysisFallback = true
         }
 
         isGeneratingSlides = false
+    }
+
+    /// Generate slides using on-device analysis (no API required)
+    func generateLocalSlides() async {
+        isGeneratingSlides = true
+        slidesError = nil
+        showLocalAnalysisFallback = false
+
+        let todayStart = Calendar.current.startOfDay(for: Date())
+        let todayJournals = await dataController.fetchJournalEntries(startDate: todayStart, endDate: Date())
+
+        // Fetch today's extracted patterns
+        let patterns = fetchTodayPatterns()
+
+        // Generate slides using local analysis
+        todaySlides = localAnalysisService.generateDaySummarySlides(from: todayJournals, patterns: patterns)
+
+        if todaySlides.isEmpty {
+            slidesError = "I'm here when you're ready to share"
+        }
+
+        isGeneratingSlides = false
+    }
+
+    private func fetchTodayPatterns() -> [ExtractedPattern] {
+        let todayStart = Calendar.current.startOfDay(for: Date())
+        let request: NSFetchRequest<ExtractedPattern> = ExtractedPattern.fetchRequest()
+        request.predicate = NSPredicate(
+            format: "timestamp >= %@ AND timestamp <= %@",
+            todayStart as NSDate,
+            Date() as NSDate
+        )
+
+        do {
+            return try dataController.container.viewContext.fetch(request)
+        } catch {
+            return []
+        }
     }
 
     private func colorFromName(_ name: String) -> Color {
@@ -680,5 +731,64 @@ class HomeViewModel: ObservableObject {
         case "yellow": return .yellow
         default: return .gray
         }
+    }
+
+    // MARK: - Life Goals Context for Day Summary
+
+    private func buildLifeGoalsContext() -> String {
+        var lines: [String] = []
+
+        // Fetch data from repositories
+        let goals = GoalRepository.shared.fetch(includeCompleted: false)
+        let struggles = StruggleRepository.shared.fetch(activeOnly: true)
+        let wishlistItems = WishlistRepository.shared.fetch(includeAcquired: false)
+
+        // Active goals summary
+        if !goals.isEmpty {
+            let overdueGoals = goals.filter { $0.isOverdue }
+            let dueSoonGoals = goals.filter { $0.isDueSoon }
+            let pinnedGoals = goals.filter { $0.isPinned }
+
+            lines.append("Active goals: \(goals.count)")
+            if !overdueGoals.isEmpty {
+                lines.append("- \(overdueGoals.count) overdue: \(overdueGoals.prefix(2).map { $0.title }.joined(separator: ", "))")
+            }
+            if !dueSoonGoals.isEmpty {
+                lines.append("- \(dueSoonGoals.count) due soon: \(dueSoonGoals.prefix(2).map { $0.title }.joined(separator: ", "))")
+            }
+            if !pinnedGoals.isEmpty {
+                lines.append("- Priority/pinned: \(pinnedGoals.prefix(3).map { $0.title }.joined(separator: ", "))")
+            }
+        }
+
+        // Current struggles summary
+        if !struggles.isEmpty {
+            let severeStruggles = struggles.filter { $0.intensityLevel.rawValue >= Struggle.Intensity.severe.rawValue }
+
+            lines.append("\nOngoing struggles: \(struggles.count)")
+            if !severeStruggles.isEmpty {
+                lines.append("- Severe/overwhelming: \(severeStruggles.prefix(2).map { "\($0.title) (\($0.intensityLevel.displayName))" }.joined(separator: ", "))")
+            }
+            // List top struggles by intensity
+            let topStruggles = struggles.sorted { $0.intensity > $1.intensity }.prefix(3)
+            for struggle in topStruggles {
+                var line = "- \(struggle.title) [\(struggle.intensityLevel.displayName)]"
+                if !struggle.triggersList.isEmpty {
+                    line += " triggers: \(struggle.triggersList.prefix(2).joined(separator: ", "))"
+                }
+                lines.append(line)
+            }
+        }
+
+        // Wishlist context (for positive reinforcement opportunities)
+        if !wishlistItems.isEmpty {
+            let highPriority = wishlistItems.filter { $0.priorityLevel == .high }
+            lines.append("\nWishlist items: \(wishlistItems.count)")
+            if !highPriority.isEmpty {
+                lines.append("- High priority wishes: \(highPriority.prefix(2).map { $0.title }.joined(separator: ", "))")
+            }
+        }
+
+        return lines.joined(separator: "\n")
     }
 }

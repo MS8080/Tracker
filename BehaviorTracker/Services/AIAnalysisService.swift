@@ -17,6 +17,7 @@ class AIAnalysisService {
         var includeMedications: Bool = true
         var includeExtractedPatterns: Bool = true  // AI-extracted patterns from journals
         var includeCascades: Bool = true           // Pattern cascade connections
+        var includeLifeGoals: Bool = true          // Goals, Struggles, Wishlist
         var timeframeDays: Int = 30
     }
 
@@ -98,6 +99,14 @@ class AIAnalysisService {
             let cascadeSummary = gatherCascadeData(startDate: startDate, endDate: endDate)
             if !cascadeSummary.isEmpty {
                 sections.append("PATTERN CASCADES & CONNECTIONS (Last \(preferences.timeframeDays) days):\n\(cascadeSummary)")
+            }
+        }
+
+        // Life Goals (Goals, Struggles, Wishlist)
+        if preferences.includeLifeGoals {
+            let lifeGoalsSummary = gatherLifeGoalsData()
+            if !lifeGoalsSummary.isEmpty {
+                sections.append("LIFE GOALS, STRUGGLES & WISHLIST:\n\(lifeGoalsSummary)")
             }
         }
 
@@ -482,6 +491,175 @@ class AIAnalysisService {
         } catch {
             return "Error fetching cascade data: \(error.localizedDescription)"
         }
+    }
+
+    // MARK: - Life Goals Data (Goals, Struggles, Wishlist)
+
+    private func gatherLifeGoalsData() -> String {
+        var lines: [String] = []
+
+        // Fetch data from repositories
+        let goals = GoalRepository.shared.fetch(includeCompleted: true)
+        let struggles = StruggleRepository.shared.fetch(activeOnly: false)
+        let wishlistItems = WishlistRepository.shared.fetch(includeAcquired: true)
+
+        // Goals Summary
+        if !goals.isEmpty {
+            let activeGoals = goals.filter { !$0.isCompleted }
+            let completedGoals = goals.filter { $0.isCompleted }
+            let overdueGoals = goals.filter { $0.isOverdue }
+            let pinnedGoals = goals.filter { $0.isPinned }
+
+            lines.append("GOALS:")
+            lines.append("- Total: \(goals.count) (\(activeGoals.count) active, \(completedGoals.count) completed)")
+
+            if !overdueGoals.isEmpty {
+                lines.append("- Overdue goals: \(overdueGoals.count)")
+            }
+
+            if !pinnedGoals.isEmpty {
+                lines.append("- Pinned/priority goals: \(pinnedGoals.count)")
+            }
+
+            // Goal categories
+            let categoryCounts = Dictionary(grouping: goals, by: { $0.categoryType?.rawValue ?? "Uncategorized" })
+                .mapValues { $0.count }
+                .sorted { $0.value > $1.value }
+
+            if categoryCounts.count > 1 {
+                lines.append("- By category: \(categoryCounts.map { "\($0.key) (\($0.value))" }.joined(separator: ", "))")
+            }
+
+            // List active goals
+            if !activeGoals.isEmpty {
+                lines.append("\nActive goals:")
+                for goal in activeGoals.prefix(5) {
+                    var goalLine = "  - \(goal.title)"
+                    if goal.progress > 0 {
+                        goalLine += " (\(goal.progressPercentage)% complete)"
+                    }
+                    if goal.isOverdue {
+                        goalLine += " [OVERDUE]"
+                    } else if goal.isDueSoon {
+                        goalLine += " [Due soon]"
+                    }
+                    if goal.isPinned {
+                        goalLine += " [Pinned]"
+                    }
+                    lines.append(goalLine)
+                }
+            }
+        }
+
+        // Struggles Summary
+        if !struggles.isEmpty {
+            let activeStruggles = struggles.filter { $0.isActive }
+            let resolvedStruggles = struggles.filter { !$0.isActive }
+            let severeStruggles = struggles.filter { $0.intensityLevel.rawValue >= Struggle.Intensity.severe.rawValue }
+            let pinnedStruggles = struggles.filter { $0.isPinned }
+
+            lines.append("\nSTRUGGLES:")
+            lines.append("- Total: \(struggles.count) (\(activeStruggles.count) active, \(resolvedStruggles.count) resolved)")
+
+            if !severeStruggles.isEmpty {
+                lines.append("- Severe/overwhelming struggles: \(severeStruggles.count)")
+            }
+
+            if !pinnedStruggles.isEmpty {
+                lines.append("- Pinned struggles: \(pinnedStruggles.count)")
+            }
+
+            // Struggle categories
+            let categoryCounts = Dictionary(grouping: activeStruggles, by: { $0.categoryType?.rawValue ?? "Uncategorized" })
+                .mapValues { $0.count }
+                .sorted { $0.value > $1.value }
+
+            if categoryCounts.count > 1 {
+                lines.append("- By category: \(categoryCounts.map { "\($0.key) (\($0.value))" }.joined(separator: ", "))")
+            }
+
+            // Intensity distribution
+            let intensityCounts = Dictionary(grouping: activeStruggles, by: { $0.intensityLevel.displayName })
+                .mapValues { $0.count }
+                .sorted { $0.value > $1.value }
+
+            if !intensityCounts.isEmpty {
+                lines.append("- Intensity breakdown: \(intensityCounts.map { "\($0.key) (\($0.value))" }.joined(separator: ", "))")
+            }
+
+            // List active struggles
+            if !activeStruggles.isEmpty {
+                lines.append("\nActive struggles:")
+                for struggle in activeStruggles.prefix(5) {
+                    var struggleLine = "  - \(struggle.title) [\(struggle.intensityLevel.displayName)]"
+                    if !struggle.triggersList.isEmpty {
+                        struggleLine += " Triggers: \(struggle.triggersList.prefix(2).joined(separator: ", "))"
+                    }
+                    if !struggle.copingStrategiesList.isEmpty {
+                        struggleLine += " Coping: \(struggle.copingStrategiesList.prefix(2).joined(separator: ", "))"
+                    }
+                    if struggle.isPinned {
+                        struggleLine += " [Pinned]"
+                    }
+                    lines.append(struggleLine)
+                }
+            }
+        }
+
+        // Wishlist Summary
+        if !wishlistItems.isEmpty {
+            let pendingItems = wishlistItems.filter { !$0.isAcquired }
+            let acquiredItems = wishlistItems.filter { $0.isAcquired }
+            let highPriorityItems = wishlistItems.filter { $0.priorityLevel == .high && !$0.isAcquired }
+            let pinnedItems = wishlistItems.filter { $0.isPinned }
+
+            lines.append("\nWISHLIST:")
+            lines.append("- Total: \(wishlistItems.count) (\(pendingItems.count) wanted, \(acquiredItems.count) acquired)")
+
+            if !highPriorityItems.isEmpty {
+                lines.append("- High priority wishes: \(highPriorityItems.count)")
+            }
+
+            if !pinnedItems.isEmpty {
+                lines.append("- Pinned wishes: \(pinnedItems.count)")
+            }
+
+            // Wishlist categories
+            let categoryCounts = Dictionary(grouping: pendingItems, by: { $0.categoryType?.rawValue ?? "Other" })
+                .mapValues { $0.count }
+                .sorted { $0.value > $1.value }
+
+            if categoryCounts.count > 1 {
+                lines.append("- By category: \(categoryCounts.map { "\($0.key) (\($0.value))" }.joined(separator: ", "))")
+            }
+
+            // List pending wishlist items
+            if !pendingItems.isEmpty {
+                lines.append("\nWishlist items:")
+                for item in pendingItems.prefix(5) {
+                    var itemLine = "  - \(item.title)"
+                    if let category = item.categoryType {
+                        itemLine += " (\(category.rawValue))"
+                    }
+                    itemLine += " [\(item.priorityLevel.displayName)]"
+                    if item.isPinned {
+                        itemLine += " [Pinned]"
+                    }
+                    lines.append(itemLine)
+                }
+            }
+
+            // Recently acquired
+            if !acquiredItems.isEmpty {
+                let recent = acquiredItems.sorted { ($0.acquiredAt ?? .distantPast) > ($1.acquiredAt ?? .distantPast) }.prefix(3)
+                lines.append("\nRecently acquired:")
+                for item in recent {
+                    lines.append("  - \(item.title)")
+                }
+            }
+        }
+
+        return lines.isEmpty ? "" : lines.joined(separator: "\n")
     }
 
     @MainActor

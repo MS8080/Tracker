@@ -498,6 +498,15 @@ struct JournalEntryEditorView: View {
     private func analyzeEntry(_ entry: JournalEntry) async {
         guard extractionService.isConfigured else { return }
 
+        // Debounce: skip if this entry was recently analyzed
+        if GeminiService.shared.wasRecentlyAnalyzed(entryID: entry.id) {
+            print("[JournalEntryEditorView] Skipping analysis - entry \(entry.id) was recently analyzed")
+            return
+        }
+
+        // Mark as being analyzed to prevent duplicates
+        GeminiService.shared.markAsAnalyzed(entryID: entry.id)
+
         do {
             let result = try await extractionService.extractPatterns(from: entry.content)
             let context = dataController.container.viewContext

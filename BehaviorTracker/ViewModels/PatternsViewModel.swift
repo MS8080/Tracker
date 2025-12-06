@@ -200,6 +200,15 @@ class PatternsViewModel: ObservableObject {
     }
 
     private func analyzeEntry(_ entry: JournalEntry, context: NSManagedObjectContext) async {
+        // Debounce: skip if this entry was recently analyzed
+        if GeminiService.shared.wasRecentlyAnalyzed(entryID: entry.id) {
+            print("[PatternsViewModel] Skipping analysis - entry \(entry.id) was recently analyzed")
+            return
+        }
+
+        // Mark as being analyzed to prevent duplicates
+        GeminiService.shared.markAsAnalyzed(entryID: entry.id)
+
         do {
             print("[PatternsViewModel] Calling extractPatterns for entry...")
             let result = try await extractionService.extractPatterns(from: entry.content)

@@ -12,6 +12,7 @@ public class Struggle: NSManagedObject, Identifiable {
     @NSManaged public var triggers: String?
     @NSManaged public var copingStrategies: String?
     @NSManaged public var isActive: Bool
+    @NSManaged public var isPinned: Bool
     @NSManaged public var createdAt: Date
     @NSManaged public var resolvedAt: Date?
 
@@ -94,7 +95,14 @@ public class Struggle: NSManagedObject, Identifiable {
         self.title = ""
         self.intensity = Intensity.moderate.rawValue
         self.isActive = true
+        self.isPinned = false
         self.createdAt = Date()
+    }
+
+    // MARK: - Pin Methods
+
+    public func togglePin() {
+        isPinned.toggle()
     }
 
     // MARK: - Methods
