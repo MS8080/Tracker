@@ -52,7 +52,7 @@ struct MedicationDetailView: View {
                 }
                 .buttonStyle(.plain)
             }
-            .hideSharedBackground()
+
         }
         .sheet(isPresented: $showingLogSheet) {
             LogMedicationView(medication: medication, viewModel: viewModel)

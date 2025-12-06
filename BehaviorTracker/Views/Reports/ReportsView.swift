@@ -3,9 +3,11 @@ import Charts
 
 struct ReportsView: View {
     @StateObject private var viewModel = ReportsViewModel()
+    @StateObject private var settingsViewModel = SettingsViewModel()
     @State private var selectedTimeframe: ReportTimeframe = .weekly
     @State private var showingCorrelations = false
     @State private var showingAIInsights = false
+    @State private var showingExport = false
     @Binding var showingProfile: Bool
 
     @AppStorage("selectedTheme") private var selectedThemeRaw: String = AppTheme.purple.rawValue
@@ -48,7 +50,7 @@ struct ReportsView: View {
                 ToolbarItem(placement: .primaryAction) {
                     ProfileButton(showingProfile: $showingProfile)
                 }
-                .hideSharedBackground()
+
             }
             .onAppear {
                 viewModel.generateReports()
@@ -58,6 +60,9 @@ struct ReportsView: View {
             }
             .sheet(isPresented: $showingAIInsights) {
                 AIInsightsView()
+            }
+            .sheet(isPresented: $showingExport) {
+                ExportDataView(viewModel: settingsViewModel)
             }
         }
     }
@@ -101,8 +106,7 @@ struct ReportsView: View {
                     subtitle: "Share data",
                     theme: theme
                 ) {
-                    // TODO: Implement export functionality
-                    HapticFeedback.medium.trigger()
+                    showingExport = true
                 }
             }
         }

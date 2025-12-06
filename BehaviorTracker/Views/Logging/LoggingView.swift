@@ -57,7 +57,7 @@ struct LoggingView: View {
                 ToolbarItem(placement: .primaryAction) {
                     ProfileButton(showingProfile: $showingProfile)
                 }
-                .hideSharedBackground()
+
             }
             .onAppear {
                 viewModel.loadFavorites()

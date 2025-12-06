@@ -54,7 +54,7 @@ struct DynamicJournalView: View {
                 ToolbarItem(placement: .primaryAction) {
                     ProfileButton(showingProfile: $showingProfile)
                 }
-                .hideSharedBackground()
+
             }
             .sheet(isPresented: $showingNewEntry) {
                 JournalEntryEditorView()

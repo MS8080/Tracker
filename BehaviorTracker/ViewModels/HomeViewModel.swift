@@ -659,7 +659,7 @@ class HomeViewModel: ObservableObject {
                     todaySlides = aiSlides.map { slide in
                         DaySummarySlide(
                             icon: slide.icon,
-                            color: colorFromName(slide.colorName),
+                            color: Color.fromName(slide.colorName),
                             title: slide.title,
                             detail: slide.message
                         )
@@ -715,21 +715,6 @@ class HomeViewModel: ObservableObject {
             return try dataController.container.viewContext.fetch(request)
         } catch {
             return []
-        }
-    }
-
-    private func colorFromName(_ name: String) -> Color {
-        switch name.lowercased() {
-        case "gray": return .gray
-        case "blue": return .blue
-        case "purple": return .purple
-        case "orange": return .orange
-        case "green": return .green
-        case "cyan": return .cyan
-        case "red": return .red
-        case "pink": return .pink
-        case "yellow": return .yellow
-        default: return .gray
         }
     }
 

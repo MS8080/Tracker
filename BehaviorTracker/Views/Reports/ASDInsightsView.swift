@@ -47,7 +47,7 @@ struct ASDInsightsView: View {
                         .foregroundStyle(theme.primaryColor)
                 }
             }
-            .hideSharedBackground()
+
         }
         .task {
             await analysisService.analyzePatterns(days: selectedTimeRange)

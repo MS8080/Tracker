@@ -66,7 +66,7 @@ struct EditProfileView: View {
                     }
                     .foregroundStyle(.white)
                 }
-                .hideSharedBackground()
+
 
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Save") {
@@ -76,7 +76,7 @@ struct EditProfileView: View {
                     .foregroundStyle(.white)
                     .disabled(name.isEmpty)
                 }
-                .hideSharedBackground()
+
             }
             .onAppear {
                 loadProfile()

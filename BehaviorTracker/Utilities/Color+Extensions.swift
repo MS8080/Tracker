@@ -64,4 +64,25 @@ extension Color {
             opacity: Double(a) / 255
         )
     }
+
+    /// Convert a color name string to a SwiftUI Color
+    /// Supports common color names: gray, blue, purple, orange, green, cyan, red, pink, yellow
+    static func fromName(_ name: String) -> Color {
+        switch name.lowercased() {
+        case "gray", "grey": return .gray
+        case "blue": return .blue
+        case "purple": return .purple
+        case "orange": return .orange
+        case "green": return .green
+        case "cyan": return .cyan
+        case "red": return .red
+        case "pink": return .pink
+        case "yellow": return .yellow
+        case "indigo": return .indigo
+        case "mint": return .mint
+        case "teal": return .teal
+        case "brown": return .brown
+        default: return .gray
+        }
+    }
 }

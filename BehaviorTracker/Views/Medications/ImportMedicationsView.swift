@@ -44,7 +44,6 @@ struct ImportMedicationsView: View {
                             .fontWeight(.medium)
                     }
                 }
-                .hideSharedBackground()
 
                 if !importedMedications.isEmpty {
                     ToolbarItem(placement: .confirmationAction) {
@@ -61,7 +60,7 @@ struct ImportMedicationsView: View {
                         .disabled(selectedMedications.isEmpty)
                         .opacity(selectedMedications.isEmpty ? 0.5 : 1.0)
                     }
-                    .hideSharedBackground()
+
                 }
             }
             .onAppear {

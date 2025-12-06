@@ -40,7 +40,7 @@ struct PatternsView: View {
                 ToolbarItem(placement: .primaryAction) {
                     ProfileButton(showingProfile: $showingProfile)
                 }
-                .hideSharedBackground()
+
 
                 ToolbarItem(placement: .topBarLeading) {
                     Button {
@@ -55,7 +55,7 @@ struct PatternsView: View {
                     .modifier(CircularGlassModifier())
                     .disabled(viewModel.todayPatterns.isEmpty)
                 }
-                .hideSharedBackground()
+
             }
             .task {
                 // Load patterns - this will also check for unanalyzed entries

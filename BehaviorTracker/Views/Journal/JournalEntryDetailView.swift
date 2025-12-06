@@ -131,7 +131,7 @@ struct JournalEntryDetailView: View {
                         .buttonStyle(.plain)
                         .modifier(CircularGlassModifier())
                     }
-                    .hideSharedBackground()
+
                 }
 
                 ToolbarItem(placement: .primaryAction) {
@@ -179,7 +179,7 @@ struct JournalEntryDetailView: View {
                     .buttonStyle(.plain)
                     .modifier(CircularGlassModifier())
                 }
-                .hideSharedBackground()
+
             }
             .onDisappear {
                 // Auto-save on dismiss if there are changes

@@ -50,7 +50,7 @@ struct CalendarView: View {
                 ToolbarItem(placement: .primaryAction) {
                     ProfileButton(showingProfile: $showingProfile)
                 }
-                .hideSharedBackground()
+
 
                 ToolbarItem(placement: .topBarLeading) {
                     Button {
@@ -60,7 +60,7 @@ struct CalendarView: View {
                             .font(.subheadline)
                     }
                 }
-                .hideSharedBackground()
+
             }
             .task {
                 viewModel.checkCalendarAuthorization()

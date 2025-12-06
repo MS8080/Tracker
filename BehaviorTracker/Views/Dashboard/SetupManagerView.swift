@@ -43,7 +43,7 @@ struct SetupManagerView: View {
                             .foregroundStyle(.white)
                     }
                 }
-                .hideSharedBackground()
+
             }
             .onAppear {
                 loadItems()

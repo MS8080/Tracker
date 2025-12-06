@@ -94,7 +94,7 @@ struct JournalEntryEditorView: View {
                     ToolbarItem(placement: .confirmationAction) {
                         saveButton
                     }
-                    .hideSharedBackground()
+
                 }
             }
 

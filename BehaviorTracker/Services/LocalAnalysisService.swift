@@ -435,7 +435,7 @@ class LocalAnalysisService {
         for insight in analysis.insights {
             slides.append(DaySummarySlide(
                 icon: insight.icon,
-                color: colorFromName(insight.colorName),
+                color: Color.fromName(insight.colorName),
                 title: insight.title,
                 detail: insight.message
             ))
@@ -457,20 +457,6 @@ class LocalAnalysisService {
         return Array(slides.prefix(4))
     }
 
-    private func colorFromName(_ name: String) -> Color {
-        switch name.lowercased() {
-        case "gray": return .gray
-        case "blue": return .blue
-        case "purple": return .purple
-        case "orange": return .orange
-        case "green": return .green
-        case "cyan": return .cyan
-        case "red": return .red
-        case "pink": return .pink
-        case "yellow": return .yellow
-        default: return .gray
-        }
-    }
 }
 
 // Need to import SwiftUI for Color

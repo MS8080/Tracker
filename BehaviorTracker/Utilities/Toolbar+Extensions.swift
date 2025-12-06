@@ -13,6 +13,17 @@ extension ToolbarContent {
     }
 }
 
+extension ToolbarItem where ID == () {
+    @ToolbarContentBuilder
+    func hideSharedBackground() -> some ToolbarContent {
+        if #available(iOS 26.0, macOS 26.0, *) {
+            self.sharedBackgroundVisibility(.hidden)
+        } else {
+            self
+        }
+    }
+}
+
 // MARK: - Glass Button Style
 
 extension View {

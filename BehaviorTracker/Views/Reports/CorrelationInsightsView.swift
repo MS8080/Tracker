@@ -57,7 +57,7 @@ struct CorrelationInsightsView: View {
                             .foregroundStyle(.white.opacity(0.7))
                     }
                 }
-                .hideSharedBackground()
+
             }
             .onAppear {
                 loadInsights()
