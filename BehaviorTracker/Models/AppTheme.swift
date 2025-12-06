@@ -46,7 +46,7 @@ private enum ThemeColorToken {
 
     /// Base saturation (grey is desaturated)
     static func baseSaturation(for theme: AppTheme) -> Double {
-        theme == .grey ? 0.15 : 0.65
+        theme == .grey ? 0.15 : 0.85
     }
 
     /// Primary color - consistent luminance at 0.55

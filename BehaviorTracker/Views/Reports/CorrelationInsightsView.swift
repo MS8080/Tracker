@@ -69,9 +69,15 @@ struct CorrelationInsightsView: View {
 
     private var timeRangePicker: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Analysis Period")
-                .font(.headline)
-                .foregroundStyle(.white)
+            HStack(spacing: Spacing.sm) {
+                Image(systemName: "clock.fill")
+                    .font(.headline)
+                    .foregroundStyle(theme.primaryColor)
+                Text("Analysis Period")
+                    .font(.headline)
+                    .foregroundStyle(.white)
+            }
+            .capsuleLabel(theme: theme, style: .header)
 
             HStack(spacing: 12) {
                 ForEach([7, 30, 90], id: \.self) { days in
@@ -276,6 +282,7 @@ struct InsightCard: View {
                         .font(.headline)
                         .fontWeight(.semibold)
                         .foregroundStyle(CardText.title)
+                        .capsuleLabel(theme: theme, style: .title)
                 }
 
                 Spacer()

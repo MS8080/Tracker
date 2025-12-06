@@ -22,7 +22,7 @@ struct WeeklyReportView: View {
     // MARK: - Summary Card
 
     private var summaryCard: some View {
-        ReportCard(title: "Weekly Summary", subtitle: "Last 7 days", theme: theme) {
+        ReportCard(title: "Weekly Summary", subtitle: "Last 7 days", theme: theme, icon: "calendar", iconColor: theme.primaryColor) {
             VStack(spacing: Spacing.lg) {
                 StatRow(label: "Journal Entries", value: "\(report.totalEntries)")
                 StatRow(label: "Patterns Detected", value: "\(report.totalPatterns)")
@@ -39,6 +39,8 @@ struct WeeklyReportView: View {
             title: "Category Distribution",
             subtitle: "Breakdown by category",
             theme: theme,
+            icon: "chart.pie.fill",
+            iconColor: .purple,
             minHeight: 280
         ) {
             if report.categoryBreakdown.isEmpty {
@@ -95,7 +97,9 @@ struct WeeklyReportView: View {
         ReportCard(
             title: "Common Triggers",
             subtitle: "What's been affecting you",
-            theme: theme
+            theme: theme,
+            icon: "exclamationmark.triangle.fill",
+            iconColor: .orange
         ) {
             VStack(alignment: .leading, spacing: Spacing.sm) {
                 ForEach(report.commonTriggers, id: \.self) { trigger in
@@ -119,7 +123,9 @@ struct WeeklyReportView: View {
         ReportCard(
             title: "Pattern Connections",
             subtitle: "What led to what",
-            theme: theme
+            theme: theme,
+            icon: "arrow.triangle.branch",
+            iconColor: .blue
         ) {
             VStack(alignment: .leading, spacing: Spacing.sm) {
                 ForEach(report.topCascades, id: \.from) { cascade in
@@ -154,6 +160,8 @@ struct WeeklyReportView: View {
             title: "Pattern Frequency",
             subtitle: "Top patterns this week",
             theme: theme,
+            icon: "chart.bar.fill",
+            iconColor: .cyan,
             minHeight: 280
         ) {
             if report.patternFrequency.isEmpty {
@@ -208,15 +216,25 @@ struct ReportCard<Content: View>: View {
     let title: String
     let subtitle: String
     let theme: AppTheme
+    var icon: String? = nil
+    var iconColor: Color? = nil
     var minHeight: CGFloat? = nil
     @ViewBuilder let content: () -> Content
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.lg) {
             VStack(alignment: .leading, spacing: Spacing.xs) {
-                Text(title)
-                    .font(.headline)
-                    .foregroundStyle(CardText.title)
+                HStack(spacing: Spacing.sm) {
+                    if let icon = icon {
+                        Image(systemName: icon)
+                            .font(.headline)
+                            .foregroundStyle(iconColor ?? theme.primaryColor)
+                    }
+                    Text(title)
+                        .font(.headline)
+                        .foregroundStyle(CardText.title)
+                }
+                .capsuleLabel(theme: theme, style: .header)
                 Text(subtitle)
                     .font(.caption)
                     .foregroundStyle(CardText.caption)

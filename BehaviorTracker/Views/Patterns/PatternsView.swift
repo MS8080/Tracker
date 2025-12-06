@@ -58,12 +58,8 @@ struct PatternsView: View {
                 .hideSharedBackground()
             }
             .task {
-                // Load patterns first
+                // Load patterns - this will also check for unanalyzed entries
                 await viewModel.loadTodayPatterns()
-                // Only analyze if there are unanalyzed entries
-                if viewModel.hasUnanalyzedEntries {
-                    await viewModel.analyzeUnanalyzedEntries()
-                }
             }
             .fullScreenCover(isPresented: $showingFlowMap) {
                 FullScreenFlowView(
@@ -136,12 +132,15 @@ struct PatternsView: View {
     private var summaryCard: some View {
         VStack(alignment: .leading, spacing: Spacing.md) {
             HStack {
-                Image(systemName: "chart.bar.fill")
-                    .font(.title3)
-                    .foregroundStyle(theme.primaryColor)
-                Text("Today's Summary")
-                    .font(.title3)
-                    .fontWeight(.semibold)
+                HStack(spacing: Spacing.sm) {
+                    Image(systemName: "chart.bar.fill")
+                        .font(.title3)
+                        .foregroundStyle(theme.primaryColor)
+                    Text("Today's Summary")
+                        .font(.title3)
+                        .fontWeight(.semibold)
+                }
+                .capsuleLabel(theme: theme, style: .title)
                 Spacer()
                 Text(viewModel.todayDateString)
                     .font(.subheadline)
@@ -238,12 +237,15 @@ struct PatternsView: View {
     private var patternDetailsList: some View {
         VStack(alignment: .leading, spacing: Spacing.md) {
             HStack {
-                Image(systemName: "list.bullet")
-                    .font(.title3)
-                    .foregroundStyle(theme.primaryColor)
-                Text("Pattern Details")
-                    .font(.title3)
-                    .fontWeight(.semibold)
+                HStack(spacing: Spacing.sm) {
+                    Image(systemName: "list.bullet")
+                        .font(.title3)
+                        .foregroundStyle(theme.primaryColor)
+                    Text("Pattern Details")
+                        .font(.title3)
+                        .fontWeight(.semibold)
+                }
+                .capsuleLabel(theme: theme, style: .title)
                 Spacer()
 
                 // Toggle triggers visibility
@@ -285,6 +287,7 @@ struct PatternDetailRow: View {
                 Text(pattern.patternType)
                     .font(.body)
                     .fontWeight(.semibold)
+                    .capsuleLabel(theme: theme, style: .title)
 
                 Spacer()
 

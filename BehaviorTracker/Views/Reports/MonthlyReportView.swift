@@ -19,7 +19,7 @@ struct MonthlyReportView: View {
     // MARK: - Summary Card
 
     private var summaryCard: some View {
-        ReportCard(title: "Monthly Summary", subtitle: "Last 30 days", theme: theme) {
+        ReportCard(title: "Monthly Summary", subtitle: "Last 30 days", theme: theme, icon: "calendar", iconColor: theme.primaryColor) {
             VStack(spacing: Spacing.lg) {
                 StatRow(label: "Journal Entries", value: "\(report.totalEntries)")
                 StatRow(label: "Patterns Detected", value: "\(report.totalPatterns)")
@@ -32,7 +32,7 @@ struct MonthlyReportView: View {
     // MARK: - Top Patterns Card
 
     private var topPatternsCard: some View {
-        ReportCard(title: "Top Patterns", subtitle: "Most frequently detected", theme: theme) {
+        ReportCard(title: "Top Patterns", subtitle: "Most frequently detected", theme: theme, icon: "star.fill", iconColor: .yellow) {
             if report.topPatterns.isEmpty {
                 EmptyStateView(
                     icon: "chart.bar.xaxis",
@@ -73,7 +73,9 @@ struct MonthlyReportView: View {
         ReportCard(
             title: "Pattern Chains",
             subtitle: "How patterns connect",
-            theme: theme
+            theme: theme,
+            icon: "arrow.triangle.branch",
+            iconColor: .purple
         ) {
             VStack(alignment: .leading, spacing: Spacing.md) {
                 ForEach(report.cascadeInsights, id: \.self) { insight in
@@ -98,6 +100,8 @@ struct MonthlyReportView: View {
             title: "Insights",
             subtitle: "What we noticed",
             theme: theme,
+            icon: "lightbulb.fill",
+            iconColor: .yellow,
             minHeight: 280
         ) {
             if report.correlations.isEmpty {
@@ -124,7 +128,7 @@ struct MonthlyReportView: View {
     // MARK: - Performance Card
 
     private var performanceCard: some View {
-        ReportCard(title: "Best vs Challenging Days", subtitle: "Based on pattern intensity", theme: theme) {
+        ReportCard(title: "Best vs Challenging Days", subtitle: "Based on pattern intensity", theme: theme, icon: "scale.3d", iconColor: .green) {
             VStack(alignment: .leading, spacing: Spacing.lg) {
                 bestDaysSection
                 Divider()

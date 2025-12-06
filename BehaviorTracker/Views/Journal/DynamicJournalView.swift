@@ -90,7 +90,7 @@ struct DynamicJournalView: View {
     private var timelineView: some View {
         ScrollViewReader { proxy in
             ScrollView {
-                VStack(alignment: .leading, spacing: Spacing.xl) {
+                VStack(alignment: .leading, spacing: Spacing.lg) {
                     // Today's entries
                     if let today = todayGroup {
                         SimpleDaySection(
@@ -122,8 +122,8 @@ struct DynamicJournalView: View {
                     }
                 }
                 .padding(.horizontal, Spacing.lg)
-                .padding(.top, Spacing.sm)
-                .padding(.bottom, 100)
+                .padding(.vertical, Spacing.lg)
+                .padding(.bottom, 80)
             }
 
         }
@@ -206,6 +206,7 @@ struct SimpleDaySection: View {
                 .font(.headline)
                 .fontWeight(.bold)
                 .foregroundStyle(.white.opacity(0.9))
+                .capsuleLabel(theme: theme, style: .title)
                 .padding(.leading, Spacing.xs)
 
             // Entries with timeline inside a card
@@ -223,7 +224,7 @@ struct SimpleDaySection: View {
                     )
                 }
             }
-            .padding(Spacing.md)
+            .padding(Spacing.lg)
             .cardStyle(theme: theme)
         }
     }
@@ -274,6 +275,7 @@ struct SimpleTimelineEntry: View {
                         .font(.caption)
                         .fontWeight(.medium)
                         .foregroundStyle(theme.timelineColor)
+                        .capsuleLabel(theme: theme, style: .time)
 
                     // Content - show full text
                     Text(entry.content)

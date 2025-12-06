@@ -61,10 +61,16 @@ struct ASDInsightsView: View {
 
     private var insightsSection: some View {
         VStack(alignment: .leading, spacing: Spacing.md) {
-            Text("Insights")
-                .font(.headline)
-                .foregroundStyle(.secondary)
-                .padding(.horizontal, Spacing.xs)
+            HStack(spacing: Spacing.sm) {
+                Image(systemName: "lightbulb.fill")
+                    .font(.headline)
+                    .foregroundStyle(.yellow)
+                Text("Insights")
+                    .font(.headline)
+                    .foregroundStyle(.secondary)
+            }
+            .capsuleLabel(theme: theme, style: .header)
+            .padding(.horizontal, Spacing.xs)
 
             ForEach(analysisService.currentInsights) { insight in
                 ASDInsightCard(insight: insight, theme: theme)
@@ -74,10 +80,16 @@ struct ASDInsightsView: View {
 
     private var triggerChainsSection: some View {
         VStack(alignment: .leading, spacing: Spacing.md) {
-            Text("Trigger Patterns")
-                .font(.headline)
-                .foregroundStyle(.secondary)
-                .padding(.horizontal, Spacing.xs)
+            HStack(spacing: Spacing.sm) {
+                Image(systemName: "arrow.triangle.branch")
+                    .font(.headline)
+                    .foregroundStyle(.purple)
+                Text("Trigger Patterns")
+                    .font(.headline)
+                    .foregroundStyle(.secondary)
+            }
+            .capsuleLabel(theme: theme, style: .header)
+            .padding(.horizontal, Spacing.xs)
 
             ForEach(analysisService.triggerChains) { chain in
                 TriggerChainCard(chain: chain, theme: theme)
@@ -87,10 +99,16 @@ struct ASDInsightsView: View {
 
     private var dailyLoadSection: some View {
         VStack(alignment: .leading, spacing: Spacing.md) {
-            Text("Daily Load History")
-                .font(.headline)
-                .foregroundStyle(.secondary)
-                .padding(.horizontal, Spacing.xs)
+            HStack(spacing: Spacing.sm) {
+                Image(systemName: "chart.line.uptrend.xyaxis")
+                    .font(.headline)
+                    .foregroundStyle(.cyan)
+                Text("Daily Load History")
+                    .font(.headline)
+                    .foregroundStyle(.secondary)
+            }
+            .capsuleLabel(theme: theme, style: .header)
+            .padding(.horizontal, Spacing.xs)
 
             if !analysisService.dailyLoads.isEmpty {
                 DailyLoadChart(loads: analysisService.dailyLoads, theme: theme)

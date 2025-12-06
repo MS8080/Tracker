@@ -41,6 +41,9 @@ struct HomeView: View {
                         if !viewModel.memories.isEmpty {
                             memoriesSection
                         }
+
+                        // Current Setup card
+                        CurrentSetupCard()
                     }
                     .padding(.horizontal, Spacing.lg)
                     .padding(.vertical, Spacing.lg)
@@ -92,6 +95,7 @@ struct HomeView: View {
                     .font(.title3)
                     .fontWeight(.bold)
                     .foregroundStyle(.white)
+                    .capsuleLabel(theme: theme, style: .title)
 
                 Text("Keep it up! You've been tracking for \(viewModel.currentStreak) days in a row.")
                     .font(.subheadline)
@@ -141,7 +145,7 @@ struct HomeView: View {
                     }
 
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("I've been with you today")
+                        Text("Your day so far")
                             .font(.title3)
                             .fontWeight(.bold)
                             .foregroundStyle(.white)
@@ -157,20 +161,6 @@ struct HomeView: View {
                         .font(.title3)
                         .foregroundStyle(.white.opacity(0.4))
                 }
-
-                // Preview hint
-                HStack(spacing: Spacing.sm) {
-                    Image(systemName: "hand.tap.fill")
-                        .font(.caption2)
-                        .foregroundStyle(.cyan.opacity(0.6))
-
-                    Text("Tap to see what I noticed")
-                        .font(.caption)
-                        .foregroundStyle(.white.opacity(0.5))
-
-                    Spacer()
-                }
-                .padding(.leading, TouchTarget.recommended + Spacing.md)
             }
             .padding(Spacing.lg)
             .frame(minHeight: TouchTarget.recommended)
@@ -331,21 +321,15 @@ struct HomeView: View {
     private func recentContextCard(_ context: RecentContext) -> some View {
         VStack(alignment: .leading, spacing: Spacing.md) {
             HStack(spacing: Spacing.sm) {
-                ZStack {
-                    Circle()
-                        .fill(Color.yellow.opacity(0.2))
-                        .frame(width: 36, height: 36)
-
-                    Image(systemName: context.icon)
-                        .font(.title3)
-                        .foregroundStyle(.yellow)
-                }
-
+                Image(systemName: context.icon)
+                    .font(.title3)
+                    .foregroundStyle(.yellow)
                 Text("Earlier Today")
                     .font(.title3)
                     .fontWeight(.bold)
                     .foregroundStyle(.white)
             }
+            .capsuleLabel(theme: theme, style: .title)
 
             // Time reference as header
             if let timeAgo = context.timeAgo {
@@ -384,21 +368,15 @@ struct HomeView: View {
     private func memoryCard(_ memory: Memory) -> some View {
         VStack(alignment: .leading, spacing: Spacing.sm) {
             HStack(spacing: Spacing.sm) {
-                ZStack {
-                    Circle()
-                        .fill(Color.mint.opacity(0.2))
-                        .frame(width: 36, height: 36)
-                    
-                    Image(systemName: "clock.arrow.circlepath")
-                        .font(.title3)
-                        .foregroundStyle(.mint)
-                }
-                
+                Image(systemName: "clock.arrow.circlepath")
+                    .font(.title3)
+                    .foregroundStyle(.mint)
                 Text(memory.timeframe)
                     .font(.title3)
                     .fontWeight(.bold)
                     .foregroundStyle(.white)
             }
+            .capsuleLabel(theme: theme, style: .title)
 
             Text(memory.description)
                 .font(.body)

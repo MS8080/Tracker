@@ -17,14 +17,16 @@ struct CurrentSetupCard: View {
         VStack(alignment: .leading, spacing: Spacing.md) {
             // Header
             HStack(spacing: Spacing.xs) {
-                Image(systemName: "gearshape.2.fill")
-                    .font(.title2)
-                    .foregroundStyle(.orange)
-
-                Text("Current Setup")
-                    .font(.title3)
-                    .fontWeight(.semibold)
-                    .foregroundStyle(CardText.title)
+                HStack(spacing: Spacing.sm) {
+                    Image(systemName: "gearshape.2.fill")
+                        .font(.title2)
+                        .foregroundStyle(.orange)
+                    Text("Current Setup")
+                        .font(.title3)
+                        .fontWeight(.semibold)
+                        .foregroundStyle(CardText.title)
+                }
+                .capsuleLabel(theme: theme, style: .title)
 
                 Spacer()
 

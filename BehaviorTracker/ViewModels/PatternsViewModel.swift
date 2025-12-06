@@ -148,11 +148,6 @@ class PatternsViewModel: ObservableObject {
             return
         }
 
-        guard hasUnanalyzedEntries else {
-            print("[PatternsViewModel] No unanalyzed entries, skipping")
-            return
-        }
-
         guard extractionService.isConfigured else {
             print("[PatternsViewModel] Extraction service not configured (no API key)")
             return
@@ -165,7 +160,7 @@ class PatternsViewModel: ObservableObject {
         let startOfDay = calendar.startOfDay(for: Date())
         let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay)!
 
-        // Fetch unanalyzed entries
+        // Fetch unanalyzed entries - always check fresh from database
         let fetchRequest = NSFetchRequest<JournalEntry>(entityName: "JournalEntry")
         fetchRequest.predicate = NSPredicate(
             format: "timestamp >= %@ AND timestamp < %@ AND isAnalyzed == NO",

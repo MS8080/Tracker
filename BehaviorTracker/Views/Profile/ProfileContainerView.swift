@@ -54,8 +54,6 @@ struct ProfileContainerView: View {
                                 )
                             }
 
-                            CurrentSetupCard()
-
                             if let settingsViewModel = settingsViewModel {
                                 ProfileSettingsSection(
                                     isExpanded: $isSettingsExpanded,

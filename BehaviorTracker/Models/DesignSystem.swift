@@ -386,6 +386,63 @@ struct SimpleBarChart: View {
     }
 }
 
+// MARK: - Capsule Label Style (Accessibility Feature)
+
+/// A view modifier that optionally wraps text in a capsule for better visibility
+struct CapsuleLabelModifier: ViewModifier {
+    @AppStorage("useCapsuleLabels") private var useCapsuleLabels: Bool = false
+    let theme: AppTheme
+    let style: CapsuleLabelStyle
+
+    enum CapsuleLabelStyle {
+        case time       // For timestamps (smaller, subtle)
+        case title      // For section titles (medium, prominent)
+        case header     // For main headers (larger)
+    }
+
+    func body(content: Content) -> some View {
+        if useCapsuleLabels {
+            content
+                .padding(.horizontal, horizontalPadding)
+                .padding(.vertical, verticalPadding)
+                .background(backgroundColor, in: Capsule())
+        } else {
+            content
+        }
+    }
+
+    private var horizontalPadding: CGFloat {
+        switch style {
+        case .time: return Spacing.sm
+        case .title: return Spacing.md
+        case .header: return Spacing.lg
+        }
+    }
+
+    private var verticalPadding: CGFloat {
+        switch style {
+        case .time: return Spacing.xs
+        case .title: return Spacing.sm
+        case .header: return Spacing.sm
+        }
+    }
+
+    private var backgroundColor: Color {
+        switch style {
+        case .time: return theme.primaryColor.opacity(0.15)
+        case .title: return theme.primaryColor.opacity(0.2)
+        case .header: return theme.primaryColor.opacity(0.25)
+        }
+    }
+}
+
+extension View {
+    /// Apply capsule styling if the accessibility setting is enabled
+    func capsuleLabel(theme: AppTheme, style: CapsuleLabelModifier.CapsuleLabelStyle = .title) -> some View {
+        modifier(CapsuleLabelModifier(theme: theme, style: style))
+    }
+}
+
 // MARK: - Flow Layout
 
 /// A layout that arranges views in a flowing, wrapping manner (like tags/chips)

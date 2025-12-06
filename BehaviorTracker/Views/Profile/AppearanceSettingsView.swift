@@ -4,6 +4,7 @@ struct AppearanceSettingsView: View {
     @ObservedObject var viewModel: SettingsViewModel
     @AppStorage("appearance") private var appearance: AppAppearance = .dark
     @AppStorage("selectedTheme") private var selectedThemeRaw: String = AppTheme.purple.rawValue
+    @AppStorage("useCapsuleLabels") private var useCapsuleLabels: Bool = false
 
     @ThemeWrapper var theme
 
@@ -12,6 +13,7 @@ struct AppearanceSettingsView: View {
             VStack(spacing: 24) {
                 themeColorsSection
                 appearanceModeSection
+                accessibilitySection
                 previewSection
             }
             .padding()
@@ -90,6 +92,58 @@ struct AppearanceSettingsView: View {
                         appearance = .dark
                     }
                 }
+            }
+        }
+        .padding(20)
+        .cardStyle(theme: theme)
+    }
+
+    // MARK: - Accessibility Section
+
+    private var accessibilitySection: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            HStack {
+                Image(systemName: "accessibility")
+                    .foregroundStyle(.blue)
+                    .font(.title3)
+                Text("Accessibility")
+                    .font(.headline)
+            }
+
+            Toggle(isOn: $useCapsuleLabels) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Capsule Labels")
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                    Text("Add capsule backgrounds to timestamps and section titles for better visibility")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .tint(theme.primaryColor)
+
+            // Preview of capsule labels
+            if useCapsuleLabels {
+                VStack(alignment: .leading, spacing: Spacing.sm) {
+                    Text("Preview:")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+
+                    HStack(spacing: Spacing.md) {
+                        Text("7:30 PM")
+                            .font(.caption)
+                            .fontWeight(.medium)
+                            .foregroundStyle(theme.primaryColor)
+                            .capsuleLabel(theme: theme, style: .time)
+
+                        Text("Weekly Summary")
+                            .font(.subheadline)
+                            .fontWeight(.semibold)
+                            .foregroundStyle(.white)
+                            .capsuleLabel(theme: theme, style: .title)
+                    }
+                }
+                .padding(.top, Spacing.xs)
             }
         }
         .padding(20)

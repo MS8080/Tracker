@@ -1,4 +1,5 @@
 import Foundation
+import CoreData
 
 class AIAnalysisService {
     static let shared = AIAnalysisService()
@@ -14,6 +15,8 @@ class AIAnalysisService {
         var includePatterns: Bool = true
         var includeJournals: Bool = true
         var includeMedications: Bool = true
+        var includeExtractedPatterns: Bool = true  // AI-extracted patterns from journals
+        var includeCascades: Bool = true           // Pattern cascade connections
         var timeframeDays: Int = 30
     }
 
@@ -79,6 +82,22 @@ class AIAnalysisService {
             let medicationSummary = gatherMedicationData(startDate: startDate, endDate: endDate)
             if !medicationSummary.isEmpty {
                 sections.append("MEDICATIONS & LOGS (Last \(preferences.timeframeDays) days):\n\(medicationSummary)")
+            }
+        }
+
+        // AI-extracted patterns from journal entries
+        if preferences.includeExtractedPatterns {
+            let extractedSummary = gatherExtractedPatternData(startDate: startDate, endDate: endDate)
+            if !extractedSummary.isEmpty {
+                sections.append("AI-EXTRACTED PATTERNS FROM JOURNALS (Last \(preferences.timeframeDays) days):\n\(extractedSummary)")
+            }
+        }
+
+        // Pattern cascades (connections between patterns)
+        if preferences.includeCascades {
+            let cascadeSummary = gatherCascadeData(startDate: startDate, endDate: endDate)
+            if !cascadeSummary.isEmpty {
+                sections.append("PATTERN CASCADES & CONNECTIONS (Last \(preferences.timeframeDays) days):\n\(cascadeSummary)")
             }
         }
 
@@ -275,6 +294,193 @@ class AIAnalysisService {
         }
 
         return lines.joined(separator: "\n")
+    }
+
+    // MARK: - Extracted Patterns (AI-extracted from journals)
+
+    private func gatherExtractedPatternData(startDate: Date, endDate: Date) -> String {
+        let context = dataController.container.viewContext
+
+        let fetchRequest: NSFetchRequest<ExtractedPattern> = ExtractedPattern.fetchRequest()
+        fetchRequest.predicate = NSPredicate(
+            format: "timestamp >= %@ AND timestamp < %@",
+            startDate as NSDate,
+            endDate as NSDate
+        )
+        fetchRequest.sortDescriptors = [NSSortDescriptor(keyPath: \ExtractedPattern.timestamp, ascending: false)]
+
+        do {
+            let patterns = try context.fetch(fetchRequest)
+
+            guard !patterns.isEmpty else {
+                return "No AI-extracted patterns in this period."
+            }
+
+            var lines: [String] = []
+            lines.append("Total extracted patterns: \(patterns.count)")
+
+            // Group by category
+            var categoryStats: [String: (count: Int, totalIntensity: Int, types: [String: Int], triggers: [String: Int])] = [:]
+
+            for pattern in patterns {
+                let category = pattern.category
+                let patternType = pattern.patternType
+                let intensity = Int(pattern.intensity)
+
+                if var stats = categoryStats[category] {
+                    stats.count += 1
+                    stats.totalIntensity += intensity
+                    stats.types[patternType, default: 0] += 1
+                    for trigger in pattern.triggers {
+                        stats.triggers[trigger, default: 0] += 1
+                    }
+                    categoryStats[category] = stats
+                } else {
+                    var triggerCounts: [String: Int] = [:]
+                    for trigger in pattern.triggers {
+                        triggerCounts[trigger, default: 0] += 1
+                    }
+                    categoryStats[category] = (1, intensity, [patternType: 1], triggerCounts)
+                }
+            }
+
+            // Category breakdown
+            lines.append("\nBy Category:")
+            for (category, stats) in categoryStats.sorted(by: { $0.value.count > $1.value.count }) {
+                let avgIntensity = stats.count > 0 ? Double(stats.totalIntensity) / Double(stats.count) : 0
+                lines.append("- \(category): \(stats.count) patterns, avg intensity \(String(format: "%.1f", avgIntensity))/10")
+
+                // Top types in this category
+                let topTypes = stats.types.sorted { $0.value > $1.value }.prefix(3)
+                if !topTypes.isEmpty {
+                    let typesStr = topTypes.map { "\($0.key) (\($0.value)x)" }.joined(separator: ", ")
+                    lines.append("  Top types: \(typesStr)")
+                }
+
+                // Top triggers in this category
+                let topTriggers = stats.triggers.sorted { $0.value > $1.value }.prefix(3)
+                if !topTriggers.isEmpty {
+                    let triggersStr = topTriggers.map { "\($0.key) (\($0.value)x)" }.joined(separator: ", ")
+                    lines.append("  Common triggers: \(triggersStr)")
+                }
+            }
+
+            // High intensity patterns (7+/10)
+            let highIntensity = patterns.filter { $0.intensity >= 7 }
+            if !highIntensity.isEmpty {
+                lines.append("\nHigh intensity patterns (7+/10): \(highIntensity.count)")
+                let highTypes = Dictionary(grouping: highIntensity, by: { $0.patternType })
+                    .mapValues { $0.count }
+                    .sorted { $0.value > $1.value }
+                    .prefix(5)
+                for (type, count) in highTypes {
+                    lines.append("  - \(type): \(count)x")
+                }
+            }
+
+            // Coping strategies used
+            var allCoping: [String: Int] = [:]
+            for pattern in patterns {
+                for strategy in pattern.copingStrategies {
+                    allCoping[strategy, default: 0] += 1
+                }
+            }
+            if !allCoping.isEmpty {
+                lines.append("\nCoping strategies observed:")
+                for (strategy, count) in allCoping.sorted(by: { $0.value > $1.value }).prefix(5) {
+                    lines.append("  - \(strategy): \(count)x")
+                }
+            }
+
+            // Time of day distribution
+            var timeOfDayCounts: [String: Int] = [:]
+            for pattern in patterns {
+                if let timeOfDay = pattern.timeOfDay, !timeOfDay.isEmpty, timeOfDay.lowercased() != "unknown" {
+                    timeOfDayCounts[timeOfDay, default: 0] += 1
+                }
+            }
+            if !timeOfDayCounts.isEmpty {
+                lines.append("\nTime of day distribution:")
+                for (time, count) in timeOfDayCounts.sorted(by: { $0.value > $1.value }) {
+                    lines.append("  - \(time.capitalized): \(count) patterns")
+                }
+            }
+
+            return lines.joined(separator: "\n")
+
+        } catch {
+            return "Error fetching extracted patterns: \(error.localizedDescription)"
+        }
+    }
+
+    // MARK: - Pattern Cascades
+
+    private func gatherCascadeData(startDate: Date, endDate: Date) -> String {
+        let context = dataController.container.viewContext
+
+        let fetchRequest: NSFetchRequest<PatternCascade> = PatternCascade.fetchRequest()
+        fetchRequest.predicate = NSPredicate(
+            format: "timestamp >= %@ AND timestamp < %@",
+            startDate as NSDate,
+            endDate as NSDate
+        )
+        fetchRequest.sortDescriptors = [NSSortDescriptor(keyPath: \PatternCascade.timestamp, ascending: false)]
+
+        do {
+            let cascades = try context.fetch(fetchRequest)
+
+            guard !cascades.isEmpty else {
+                return "No pattern cascades detected in this period."
+            }
+
+            var lines: [String] = []
+            lines.append("Total cascade connections: \(cascades.count)")
+
+            // Group cascades by from -> to
+            var cascadeFrequency: [String: (count: Int, avgConfidence: Double, descriptions: [String])] = [:]
+
+            for cascade in cascades {
+                guard let fromPattern = cascade.fromPattern,
+                      let toPattern = cascade.toPattern else { continue }
+
+                let key = "\(fromPattern.patternType) → \(toPattern.patternType)"
+
+                if var stats = cascadeFrequency[key] {
+                    stats.count += 1
+                    stats.avgConfidence = (stats.avgConfidence * Double(stats.count - 1) + cascade.confidence) / Double(stats.count)
+                    if let desc = cascade.descriptionText, !desc.isEmpty {
+                        stats.descriptions.append(desc)
+                    }
+                    cascadeFrequency[key] = stats
+                } else {
+                    var descriptions: [String] = []
+                    if let desc = cascade.descriptionText, !desc.isEmpty {
+                        descriptions.append(desc)
+                    }
+                    cascadeFrequency[key] = (1, cascade.confidence, descriptions)
+                }
+            }
+
+            // Most common cascades
+            lines.append("\nMost common pattern chains:")
+            for (cascade, stats) in cascadeFrequency.sorted(by: { $0.value.count > $1.value.count }).prefix(10) {
+                lines.append("- \(cascade): \(stats.count)x (confidence: \(String(format: "%.0f", stats.avgConfidence * 100))%)")
+                if let firstDesc = stats.descriptions.first {
+                    lines.append("  Example: \(firstDesc)")
+                }
+            }
+
+            // High-confidence cascades
+            let highConfidence = cascades.filter { $0.confidence >= 0.7 }
+            if !highConfidence.isEmpty && highConfidence.count != cascades.count {
+                lines.append("\nHigh-confidence connections (70%+): \(highConfidence.count)")
+            }
+
+            return lines.joined(separator: "\n")
+
+        } catch {
+            return "Error fetching cascade data: \(error.localizedDescription)"
+        }
     }
 
     private func gatherTrends(startDate: Date, endDate: Date) -> String {

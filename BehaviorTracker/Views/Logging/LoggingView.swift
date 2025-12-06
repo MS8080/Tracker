@@ -48,7 +48,7 @@ struct LoggingView: View {
                         allCategoriesView
                     }
                     .padding(.horizontal, Spacing.lg)
-                    .padding(.vertical, Spacing.md)
+                    .padding(.vertical, Spacing.lg)
                 }
                 .scrollContentBackground(.hidden)
             }
