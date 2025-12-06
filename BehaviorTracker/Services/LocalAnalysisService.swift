@@ -675,7 +675,7 @@ extension LocalAnalysisService {
 
     private func fetchJournals(from startDate: Date, to endDate: Date) async -> [JournalData] {
         await MainActor.run {
-            let journals = DataController.shared.fetchJournalEntries(startDate: startDate, endDate: endDate)
+            let journals = DataController.shared.fetchJournalEntriesSync(startDate: startDate, endDate: endDate)
             return journals.map { journal in
                 JournalData(
                     content: journal.content,
