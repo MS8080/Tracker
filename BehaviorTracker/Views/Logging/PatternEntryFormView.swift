@@ -377,15 +377,17 @@ struct PatternEntryFormView: View {
             }
         }
 
-        _ = viewModel.logPattern(
-            patternType: patternType,
-            intensity: Int16(intensity),
-            duration: Int32(totalMinutes),
-            contextNotes: finalContextNotes.isEmpty ? nil : finalContextNotes,
-            specificDetails: specificDetails.isEmpty ? nil : specificDetails,
-            isFavorite: isFavorite,
-            contributingFactors: Array(selectedContributingFactors)
-        )
+        Task {
+            _ = await viewModel.logPattern(
+                patternType: patternType,
+                intensity: Int16(intensity),
+                duration: Int32(totalMinutes),
+                contextNotes: finalContextNotes.isEmpty ? nil : finalContextNotes,
+                specificDetails: specificDetails.isEmpty ? nil : specificDetails,
+                isFavorite: isFavorite,
+                contributingFactors: Array(selectedContributingFactors)
+            )
+        }
 
         // Save to journal if enabled
         if saveToJournal {

@@ -57,7 +57,7 @@ class CorrelationAnalysisService {
 
         // Fetch data from the last N days
         let startDate = Calendar.current.date(byAdding: .day, value: -days, to: Date()) ?? Date()
-        let patterns = fetchPatterns(since: startDate)
+        let patterns = await fetchPatterns(since: startDate)
         let medicationLogs = fetchMedicationLogs(since: startDate)
 
         // Generate different types of correlations
@@ -299,8 +299,8 @@ class CorrelationAnalysisService {
 
     // MARK: - Helper Functions
 
-    private func fetchPatterns(since date: Date) -> [PatternEntry] {
-        return dataController.fetchPatternEntries(startDate: date, endDate: Date())
+    private func fetchPatterns(since date: Date) async -> [PatternEntry] {
+        return await dataController.fetchPatternEntriesAsync(startDate: date, endDate: Date())
     }
 
     private func fetchMedicationLogs(since date: Date) -> [MedicationLog] {

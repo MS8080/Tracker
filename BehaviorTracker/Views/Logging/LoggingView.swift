@@ -110,7 +110,9 @@ struct LoggingView: View {
                 ForEach(viewModel.favoritePatterns, id: \.self) { patternTypeString in
                     if let patternType = PatternType(rawValue: patternTypeString) {
                         QuickLogButton(patternType: patternType) {
-                            _ = viewModel.quickLog(patternType: patternType)
+                            Task {
+                                _ = await viewModel.quickLog(patternType: patternType)
+                            }
                         }
                     }
                 }

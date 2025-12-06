@@ -63,7 +63,7 @@ class AIAnalysisService {
 
         // Pattern data
         if preferences.includePatterns {
-            let patternSummary = gatherPatternData(startDate: startDate, endDate: endDate)
+            let patternSummary = await gatherPatternData(startDate: startDate, endDate: endDate)
             if !patternSummary.isEmpty {
                 sections.append("BEHAVIORAL PATTERNS (Last \(preferences.timeframeDays) days):\n\(patternSummary)")
             }
@@ -102,7 +102,7 @@ class AIAnalysisService {
         }
 
         // Trends
-        let trends = gatherTrends(startDate: startDate, endDate: endDate)
+        let trends = await gatherTrends(startDate: startDate, endDate: endDate)
         if !trends.isEmpty {
             sections.append("OBSERVED TRENDS:\n\(trends)")
         }
@@ -120,8 +120,9 @@ class AIAnalysisService {
 
     // MARK: - Data Gathering
 
-    private func gatherPatternData(startDate: Date, endDate: Date) -> String {
-        let entries = dataController.fetchPatternEntries(startDate: startDate, endDate: endDate)
+    @MainActor
+    private func gatherPatternData(startDate: Date, endDate: Date) async -> String {
+        let entries = await dataController.fetchPatternEntriesAsync(startDate: startDate, endDate: endDate)
 
         guard !entries.isEmpty else {
             return "No pattern entries logged in this period."
@@ -483,8 +484,9 @@ class AIAnalysisService {
         }
     }
 
-    private func gatherTrends(startDate: Date, endDate: Date) -> String {
-        let entries = dataController.fetchPatternEntries(startDate: startDate, endDate: endDate)
+    @MainActor
+    private func gatherTrends(startDate: Date, endDate: Date) async -> String {
+        let entries = await dataController.fetchPatternEntriesAsync(startDate: startDate, endDate: endDate)
 
         guard !entries.isEmpty else {
             return "Not enough data for trend analysis."

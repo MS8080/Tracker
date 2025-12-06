@@ -140,8 +140,8 @@ class DataController: ObservableObject, @unchecked Sendable {
         contextNotes: String? = nil,
         specificDetails: String? = nil,
         contributingFactors: [ContributingFactor] = []
-    ) throws -> PatternEntry {
-        try PatternRepository.shared.create(
+    ) async throws -> PatternEntry {
+        try await PatternRepository.shared.create(
             patternType: patternType,
             intensity: intensity,
             duration: duration,
@@ -155,13 +155,24 @@ class DataController: ObservableObject, @unchecked Sendable {
         PatternRepository.shared.delete(entry)
     }
 
+    @MainActor
     func fetchPatternEntries(
         startDate: Date? = nil,
         endDate: Date? = nil,
         category: PatternCategory? = nil,
         limit: Int? = nil
     ) -> [PatternEntry] {
-        PatternRepository.shared.fetch(startDate: startDate, endDate: endDate, category: category, limit: limit)
+        PatternRepository.shared.fetchSync(startDate: startDate, endDate: endDate, category: category, limit: limit)
+    }
+
+    @MainActor
+    func fetchPatternEntriesAsync(
+        startDate: Date? = nil,
+        endDate: Date? = nil,
+        category: PatternCategory? = nil,
+        limit: Int? = nil
+    ) async -> [PatternEntry] {
+        await PatternRepository.shared.fetch(startDate: startDate, endDate: endDate, category: category, limit: limit)
     }
 
     func fetchPatternEntriesOrThrow(
@@ -404,6 +415,7 @@ class DataController: ObservableObject, @unchecked Sendable {
         UserDefaults(suiteName: appGroupIdentifier)
     }
 
+    @MainActor
     func syncWidgetData() {
         let calendar = Calendar.current
         let today = calendar.startOfDay(for: Date())
@@ -456,7 +468,8 @@ class DataController: ObservableObject, @unchecked Sendable {
         WidgetCenter.shared.reloadAllTimelines()
     }
 
-    func processPendingWidgetLogs() {
+    @MainActor
+    func processPendingWidgetLogs() async {
         guard let data = sharedDefaults?.data(forKey: "pendingPatternLogs"),
               let logs = try? JSONDecoder().decode([PendingPatternLog].self, from: data),
               !logs.isEmpty else {
@@ -466,7 +479,7 @@ class DataController: ObservableObject, @unchecked Sendable {
         for log in logs {
             if let patternType = PatternType(rawValue: log.patternType) {
                 do {
-                    _ = try createPatternEntry(
+                    _ = try await createPatternEntry(
                         patternType: patternType,
                         intensity: 3,
                         contextNotes: "Logged from widget"

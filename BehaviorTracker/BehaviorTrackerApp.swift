@@ -13,22 +13,23 @@ struct BehaviorTrackerApp: App {
                     .environment(\.managedObjectContext, dataController.container.viewContext)
             } else {
                 SplashView()
-                    .onAppear {
+                    .task {
                         // Process any pending widget logs
-                        dataController.processPendingWidgetLogs()
+                        await dataController.processPendingWidgetLogs()
                         // Sync widget data
                         dataController.syncWidgetData()
 
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                            isReady = true
-                        }
+                        try? await Task.sleep(for: .milliseconds(500))
+                        isReady = true
                     }
             }
         }
         .onChange(of: scenePhase) { _, newPhase in
             if newPhase == .active {
                 // Process pending widget logs when app becomes active
-                dataController.processPendingWidgetLogs()
+                Task {
+                    await dataController.processPendingWidgetLogs()
+                }
             }
         }
     }

@@ -1,12 +1,19 @@
-import CoreData
+@preconcurrency import CoreData
 import Foundation
 
 /// Repository for PatternEntry CRUD operations
-final class PatternRepository {
+final class PatternRepository: @unchecked Sendable {
     static let shared = PatternRepository()
 
     private var viewContext: NSManagedObjectContext {
         DataController.shared.container.viewContext
+    }
+
+    private var backgroundContext: NSManagedObjectContext {
+        let context = DataController.shared.container.newBackgroundContext()
+        context.automaticallyMergesChangesFromParent = true
+        context.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
+        return context
     }
 
     private init() {}
@@ -20,7 +27,7 @@ final class PatternRepository {
         contextNotes: String? = nil,
         specificDetails: String? = nil,
         contributingFactors: [ContributingFactor] = []
-    ) throws -> PatternEntry {
+    ) async throws -> PatternEntry {
         // Validate intensity
         try Validator(intensity, fieldName: "Intensity")
             .inRange(0...5)
@@ -52,21 +59,58 @@ final class PatternRepository {
         )
 
         DataController.shared.save()
-        DataController.shared.syncWidgetData()
+        await DataController.shared.syncWidgetData()
 
         return entry
     }
 
-    // MARK: - Read
+    // MARK: - Read (Async)
 
+    @MainActor
     func fetch(
         startDate: Date? = nil,
         endDate: Date? = nil,
         category: PatternCategory? = nil,
         limit: Int? = nil
+    ) async -> [PatternEntry] {
+        let request = buildFetchRequest(startDate: startDate, endDate: endDate, category: category, limit: limit)
+        let bgContext = backgroundContext
+
+        // Fetch on background context and get permanent object IDs
+        let objectIDURIs: [URL] = await bgContext.perform {
+            do {
+                let entries = try bgContext.fetch(request)
+                return entries.compactMap { entry -> URL? in
+                    if entry.objectID.isTemporaryID {
+                        try? bgContext.obtainPermanentIDs(for: [entry])
+                    }
+                    return entry.objectID.uriRepresentation()
+                }
+            } catch {
+                print("Failed to fetch pattern entries: \(error.localizedDescription)")
+                return []
+            }
+        }
+
+        // Convert URIs back to objects on main context
+        let coordinator = DataController.shared.container.persistentStoreCoordinator
+        return objectIDURIs.compactMap { uri -> PatternEntry? in
+            guard let objectID = coordinator.managedObjectID(forURIRepresentation: uri) else { return nil }
+            return viewContext.object(with: objectID) as? PatternEntry
+        }
+    }
+
+    @MainActor
+    func fetchSync(
+        startDate: Date? = nil,
+        endDate: Date? = nil,
+        category: PatternCategory? = nil,
+        limit: Int? = nil
     ) -> [PatternEntry] {
+        let request = buildFetchRequest(startDate: startDate, endDate: endDate, category: category, limit: limit)
+
         do {
-            return try fetchOrThrow(startDate: startDate, endDate: endDate, category: category, limit: limit)
+            return try viewContext.fetch(request)
         } catch {
             print("Failed to fetch pattern entries: \(error.localizedDescription)")
             return []
@@ -79,6 +123,30 @@ final class PatternRepository {
         category: PatternCategory? = nil,
         limit: Int? = nil
     ) throws -> [PatternEntry] {
+        let request = buildFetchRequest(startDate: startDate, endDate: endDate, category: category, limit: limit)
+
+        do {
+            return try viewContext.fetch(request)
+        } catch {
+            throw DataController.DataError.fetchFailed(error)
+        }
+    }
+
+    // MARK: - Delete
+
+    func delete(_ entry: PatternEntry) {
+        viewContext.delete(entry)
+        DataController.shared.save()
+    }
+
+    // MARK: - Private Helpers
+
+    private func buildFetchRequest(
+        startDate: Date?,
+        endDate: Date?,
+        category: PatternCategory?,
+        limit: Int?
+    ) -> NSFetchRequest<PatternEntry> {
         let request = NSFetchRequest<PatternEntry>(entityName: "PatternEntry")
         var predicates: [NSPredicate] = []
 
@@ -103,18 +171,6 @@ final class PatternRepository {
         }
 
         request.sortDescriptors = [NSSortDescriptor(keyPath: \PatternEntry.timestamp, ascending: false)]
-
-        do {
-            return try viewContext.fetch(request)
-        } catch {
-            throw DataController.DataError.fetchFailed(error)
-        }
-    }
-
-    // MARK: - Delete
-
-    func delete(_ entry: PatternEntry) {
-        viewContext.delete(entry)
-        DataController.shared.save()
+        return request
     }
 }

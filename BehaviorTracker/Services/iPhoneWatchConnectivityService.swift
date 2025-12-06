@@ -84,18 +84,21 @@ class iPhoneWatchConnectivityService: NSObject, ObservableObject {
         let intensity = message["intensity"] as? Int16 ?? 3
         let notes = message["notes"] as? String
 
-        let _ = dataController.createPatternEntry(
-            patternType: patternType,
-            intensity: intensity,
-            duration: 0,
-            contextNotes: notes,
-            specificDetails: nil
-        )
-
-        dataController.updateStreak()
-
-        // Send updated data back
-        sendUpdateToWatch()
+        Task {
+            do {
+                _ = try await dataController.createPatternEntry(
+                    patternType: patternType,
+                    intensity: intensity,
+                    duration: 0,
+                    contextNotes: notes,
+                    specificDetails: nil
+                )
+                dataController.updateStreak()
+                sendUpdateToWatch()
+            } catch {
+                print("Failed to create pattern entry from watch: \(error)")
+            }
+        }
 
         return [
             "success": true,

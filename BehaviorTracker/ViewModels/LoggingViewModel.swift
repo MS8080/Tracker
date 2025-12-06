@@ -78,9 +78,9 @@ class LoggingViewModel: ObservableObject {
         favoritePatterns = preferences.favoritePatterns
     }
 
-    func quickLog(patternType: PatternType, intensity: Int16 = 3) -> Bool {
+    func quickLog(patternType: PatternType, intensity: Int16 = 3) async -> Bool {
         do {
-            let entry = try dataController.createPatternEntry(
+            let entry = try await dataController.createPatternEntry(
                 patternType: patternType,
                 intensity: intensity,
                 duration: 0,
@@ -126,9 +126,9 @@ class LoggingViewModel: ObservableObject {
         specificDetails: String?,
         isFavorite: Bool,
         contributingFactors: [ContributingFactor] = []
-    ) -> Bool {
+    ) async -> Bool {
         do {
-            let entry = try dataController.createPatternEntry(
+            let entry = try await dataController.createPatternEntry(
                 patternType: patternType,
                 intensity: intensity,
                 duration: duration,
