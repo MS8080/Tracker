@@ -124,37 +124,41 @@ struct DaySlideshowView: View {
                             .scaleEffect(1.2)
                             .tint(.white)
 
-                        Text("Taking a moment to reflect on your day...")
+                        Text("Taking a moment to gather my thoughts...")
                             .font(.subheadline)
                             .foregroundStyle(.white.opacity(0.7))
                     }
                     Spacer()
                 } else if let error = viewModel.slidesError {
                     Spacer()
-                    VStack(spacing: Spacing.md) {
+                    VStack(spacing: Spacing.lg) {
                         Image(systemName: "heart.circle")
-                            .font(.system(size: 40))
-                            .foregroundStyle(.white.opacity(0.5))
+                            .font(.system(size: 50))
+                            .foregroundStyle(.white.opacity(0.4))
 
                         Text(error)
-                            .font(.subheadline)
-                            .foregroundStyle(.white.opacity(0.6))
+                            .font(.title3)
+                            .fontWeight(.medium)
+                            .foregroundStyle(.white.opacity(0.8))
                             .multilineTextAlignment(.center)
 
-                        Button {
-                            Task {
-                                await viewModel.generateAISlides()
+                        // Only show retry if it's a real error, not empty state
+                        if error.contains("error") || error.contains("Error") || error.contains("failed") {
+                            Button {
+                                Task {
+                                    await viewModel.generateAISlides()
+                                }
+                            } label: {
+                                Text("Try Again")
+                                    .font(.subheadline)
+                                    .foregroundStyle(.white)
+                                    .padding(.horizontal, 20)
+                                    .padding(.vertical, 10)
+                                    .background(
+                                        Capsule()
+                                            .fill(.white.opacity(0.15))
+                                    )
                             }
-                        } label: {
-                            Text("Try Again")
-                                .font(.subheadline)
-                                .foregroundStyle(.white)
-                                .padding(.horizontal, 20)
-                                .padding(.vertical, 10)
-                                .background(
-                                    Capsule()
-                                        .fill(.white.opacity(0.15))
-                                )
                         }
                     }
                     .padding(.horizontal, 40)

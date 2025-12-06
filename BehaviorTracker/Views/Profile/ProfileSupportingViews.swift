@@ -2,63 +2,47 @@ import SwiftUI
 
 // MARK: - Profile Toolbar Controls
 
-struct ProfileToolbarControls: View {
+struct FontSizeToolbarControl: View {
     @Binding var fontSizeScale: Double
+
+    var body: some View {
+        ControlGroup {
+            Button {
+                if fontSizeScale > 0.8 {
+                    fontSizeScale -= 0.1
+                    HapticFeedback.light.trigger()
+                }
+            } label: {
+                Text("A")
+                    .font(.system(size: 14, weight: .medium))
+            }
+            .disabled(fontSizeScale <= 0.8)
+
+            Button {
+                if fontSizeScale < 1.4 {
+                    fontSizeScale += 0.1
+                    HapticFeedback.light.trigger()
+                }
+            } label: {
+                Text("A")
+                    .font(.system(size: 18, weight: .medium))
+            }
+            .disabled(fontSizeScale >= 1.4)
+        }
+    }
+}
+
+struct BlueLightFilterToolbarControl: View {
     @Binding var blueLightFilterEnabled: Bool
 
     var body: some View {
-        HStack(spacing: 8) {
-            // Font size controls pill
-            HStack(spacing: 0) {
-                Button {
-                    if fontSizeScale > 0.8 {
-                        fontSizeScale -= 0.1
-                        HapticFeedback.light.trigger()
-                    }
-                } label: {
-                    Image(systemName: "textformat.size.smaller")
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundStyle(fontSizeScale <= 0.8 ? .white.opacity(0.4) : .white)
-                        .frame(width: 32, height: 32)
-                }
-                .disabled(fontSizeScale <= 0.8)
-
-                Divider()
-                    .frame(height: 18)
-                    .opacity(0.5)
-
-                Button {
-                    if fontSizeScale < 1.4 {
-                        fontSizeScale += 0.1
-                        HapticFeedback.light.trigger()
-                    }
-                } label: {
-                    Image(systemName: "textformat.size.larger")
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundStyle(fontSizeScale >= 1.4 ? .white.opacity(0.4) : .white)
-                        .frame(width: 32, height: 32)
-                }
-                .disabled(fontSizeScale >= 1.4)
+        Button {
+            withAnimation(.easeInOut(duration: 0.3)) {
+                blueLightFilterEnabled.toggle()
             }
-            .background(.ultraThinMaterial, in: Capsule())
-
-            // Blue light filter circle
-            Button {
-                withAnimation(.easeInOut(duration: 0.3)) {
-                    blueLightFilterEnabled.toggle()
-                }
-                HapticFeedback.light.trigger()
-            } label: {
-                Image(systemName: blueLightFilterEnabled ? "sun.max.fill" : "moon.fill")
-                    .font(.system(size: 13, weight: .medium))
-                    .foregroundStyle(.white)
-                    .frame(width: 32, height: 32)
-                    .background(
-                        blueLightFilterEnabled ? Color.orange.opacity(0.5) : Color.white.opacity(0.1),
-                        in: Circle()
-                    )
-                    .background(.ultraThinMaterial, in: Circle())
-            }
+            HapticFeedback.light.trigger()
+        } label: {
+            Image(systemName: blueLightFilterEnabled ? "sun.max.fill" : "moon.fill")
         }
     }
 }

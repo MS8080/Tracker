@@ -5,6 +5,7 @@ struct PatternsView: View {
     @StateObject private var viewModel = PatternsViewModel()
     @ThemeWrapper var theme
     @State private var showingFlowMap = false
+    @AppStorage("showPatternTriggers") private var showTriggers = true
 
     var body: some View {
         NavigationStack {
@@ -39,20 +40,30 @@ struct PatternsView: View {
                 ToolbarItem(placement: .primaryAction) {
                     ProfileButton(showingProfile: $showingProfile)
                 }
+                .hideSharedBackground()
 
                 ToolbarItem(placement: .topBarLeading) {
                     Button {
                         showingFlowMap = true
                     } label: {
                         Image(systemName: "arrow.triangle.branch")
-                            .font(.body)
-                            .foregroundStyle(.white.opacity(0.9))
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundStyle(.white)
+                            .frame(width: 40, height: 40)
                     }
+                    .buttonStyle(.plain)
+                    .modifier(CircularGlassModifier())
                     .disabled(viewModel.todayPatterns.isEmpty)
                 }
+                .hideSharedBackground()
             }
             .task {
+                // Load patterns first
                 await viewModel.loadTodayPatterns()
+                // Only analyze if there are unanalyzed entries
+                if viewModel.hasUnanalyzedEntries {
+                    await viewModel.analyzeUnanalyzedEntries()
+                }
             }
             .fullScreenCover(isPresented: $showingFlowMap) {
                 FullScreenFlowView(
@@ -126,13 +137,14 @@ struct PatternsView: View {
         VStack(alignment: .leading, spacing: Spacing.md) {
             HStack {
                 Image(systemName: "chart.bar.fill")
+                    .font(.title3)
                     .foregroundStyle(theme.primaryColor)
                 Text("Today's Summary")
-                    .font(.headline)
+                    .font(.title3)
                     .fontWeight(.semibold)
                 Spacer()
                 Text(viewModel.todayDateString)
-                    .font(.caption)
+                    .font(.subheadline)
                     .foregroundStyle(.secondary)
             }
 
@@ -156,27 +168,66 @@ struct PatternsView: View {
                 )
             }
 
-            if let summary = viewModel.todaySummary {
+            // Daily summary section
+            if viewModel.isGeneratingSummary {
+                HStack(spacing: Spacing.sm) {
+                    ProgressView()
+                        .scaleEffect(0.8)
+                        .tint(.white)
+                    Text("Generating daily summary...")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+                .padding(.top, Spacing.sm)
+            } else if let summary = viewModel.todaySummary {
                 Text(summary)
                     .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.white.opacity(0.85))
                     .padding(.top, Spacing.sm)
+            }
+
+            // Show analyze button if there are unanalyzed entries
+            if viewModel.hasUnanalyzedEntries {
+                Button {
+                    Task {
+                        await viewModel.analyzeUnanalyzedEntries()
+                    }
+                } label: {
+                    HStack(spacing: Spacing.sm) {
+                        if viewModel.isAnalyzing {
+                            ProgressView()
+                                .scaleEffect(0.8)
+                                .tint(.white)
+                        } else {
+                            Image(systemName: "sparkles")
+                        }
+                        Text(viewModel.isAnalyzing ? "Analyzing..." : "Analyze New Entries")
+                    }
+                    .font(.subheadline)
+                    .fontWeight(.medium)
+                    .foregroundStyle(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, Spacing.sm)
+                    .background(theme.primaryColor.opacity(0.3), in: RoundedRectangle(cornerRadius: CornerRadius.md))
+                }
+                .disabled(viewModel.isAnalyzing)
+                .padding(.top, Spacing.sm)
             }
         }
         .padding()
-        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: CornerRadius.lg))
+        .cardStyle(theme: theme)
     }
 
     private func summaryItem(value: String, label: String, icon: String) -> some View {
-        VStack(spacing: Spacing.xs) {
+        VStack(spacing: Spacing.sm) {
             Image(systemName: icon)
-                .font(.title3)
+                .font(.title2)
                 .foregroundStyle(theme.primaryColor)
             Text(value)
-                .font(.title2)
+                .font(.title)
                 .fontWeight(.bold)
             Text(label)
-                .font(.caption)
+                .font(.subheadline)
                 .foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity)
@@ -188,19 +239,32 @@ struct PatternsView: View {
         VStack(alignment: .leading, spacing: Spacing.md) {
             HStack {
                 Image(systemName: "list.bullet")
+                    .font(.title3)
                     .foregroundStyle(theme.primaryColor)
                 Text("Pattern Details")
-                    .font(.headline)
+                    .font(.title3)
                     .fontWeight(.semibold)
                 Spacer()
+
+                // Toggle triggers visibility
+                Button {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        showTriggers.toggle()
+                    }
+                } label: {
+                    Image(systemName: showTriggers ? "tag.fill" : "tag.slash")
+                        .font(.subheadline)
+                        .foregroundStyle(showTriggers ? theme.primaryColor : .white.opacity(0.5))
+                }
+                .buttonStyle(.plain)
             }
 
             ForEach(viewModel.todayPatterns) { pattern in
-                PatternDetailRow(pattern: pattern, theme: theme)
+                PatternDetailRow(pattern: pattern, theme: theme, showTriggers: showTriggers)
             }
         }
         .padding()
-        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: CornerRadius.lg))
+        .cardStyle(theme: theme)
     }
 }
 
@@ -209,69 +273,71 @@ struct PatternsView: View {
 struct PatternDetailRow: View {
     let pattern: ExtractedPattern
     let theme: AppTheme
+    var showTriggers: Bool = true
 
     var body: some View {
-        VStack(alignment: .leading, spacing: Spacing.sm) {
+        VStack(alignment: .leading, spacing: Spacing.md) {
             HStack {
                 Circle()
                     .fill(categoryColor)
-                    .frame(width: 10, height: 10)
+                    .frame(width: 12, height: 12)
 
                 Text(pattern.patternType)
-                    .font(.subheadline)
-                    .fontWeight(.medium)
+                    .font(.body)
+                    .fontWeight(.semibold)
 
                 Spacer()
 
                 // Intensity indicator
-                HStack(spacing: 2) {
+                HStack(spacing: 3) {
                     ForEach(0..<5) { i in
                         Circle()
                             .fill(i < pattern.intensity / 2 ? theme.primaryColor : Color.white.opacity(0.2))
-                            .frame(width: 6, height: 6)
+                            .frame(width: 8, height: 8)
                     }
                 }
 
                 Text("\(pattern.intensity)/10")
-                    .font(.caption)
+                    .font(.subheadline)
                     .foregroundStyle(.secondary)
             }
 
             if let details = pattern.details, !details.isEmpty {
                 Text(details)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .font(.subheadline)
+                    .foregroundStyle(.white.opacity(0.8))
             }
 
-            // Triggers
-            if !pattern.triggers.isEmpty {
-                HStack {
+            // Triggers - using wrapping layout (conditionally shown)
+            if showTriggers && !pattern.triggers.isEmpty {
+                VStack(alignment: .leading, spacing: Spacing.sm) {
                     Text("Triggers:")
-                        .font(.caption2)
+                        .font(.caption)
                         .foregroundStyle(.secondary)
 
-                    ForEach(pattern.triggers, id: \.self) { trigger in
-                        Text(trigger)
-                            .font(.caption2)
-                            .padding(.horizontal, 6)
-                            .padding(.vertical, 2)
-                            .background(Color.white.opacity(0.1), in: Capsule())
+                    FlowLayout(spacing: Spacing.sm) {
+                        ForEach(pattern.triggers, id: \.self) { trigger in
+                            Text(trigger)
+                                .font(.caption)
+                                .lineLimit(1)
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 5)
+                                .background(Color.white.opacity(0.1), in: Capsule())
+                        }
                     }
                 }
             }
 
             // Time
-            if let timeOfDay = pattern.timeOfDay {
-                HStack {
-                    Image(systemName: "clock")
-                        .font(.caption2)
-                    Text(timeOfDay.capitalized)
-                        .font(.caption2)
-                }
-                .foregroundStyle(.secondary)
+            HStack {
+                Image(systemName: "clock")
+                    .font(.caption)
+                Text(formattedTime)
+                    .font(.caption)
             }
+            .foregroundStyle(.secondary)
         }
-        .padding()
+        .padding(Spacing.md)
         .background(Color.white.opacity(0.05), in: RoundedRectangle(cornerRadius: CornerRadius.md))
     }
 
@@ -284,8 +350,24 @@ struct PatternDetailRow: View {
         case "Routine & Change": return .yellow
         case "Demand Avoidance": return .pink
         case "Physical & Sleep": return .green
+        case "Positive & Coping": return .mint
         default: return .gray
         }
+    }
+
+    private var formattedTime: String {
+        let formatter = DateFormatter()
+        formatter.timeStyle = .short
+
+        let timeString = formatter.string(from: pattern.timestamp)
+
+        // Add time of day context if available and not "unknown"
+        if let timeOfDay = pattern.timeOfDay,
+           timeOfDay.lowercased() != "unknown" {
+            return "\(timeString) (\(timeOfDay.capitalized))"
+        }
+
+        return timeString
     }
 }
 

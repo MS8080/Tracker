@@ -269,7 +269,7 @@ struct PatternNodeView: View {
         case "Routine & Change": return "calendar"
         case "Demand Avoidance": return "xmark.shield.fill"
         case "Physical & Sleep": return "bed.double.fill"
-        case "Special Interests": return "star.fill"
+        case "Positive & Coping": return "sun.max.fill"
         default: return "circle.fill"
         }
     }
@@ -283,7 +283,7 @@ struct PatternNodeView: View {
         case "Routine & Change": return .yellow
         case "Demand Avoidance": return .pink
         case "Physical & Sleep": return .green
-        case "Special Interests": return .cyan
+        case "Positive & Coping": return .mint
         default: return .gray
         }
     }

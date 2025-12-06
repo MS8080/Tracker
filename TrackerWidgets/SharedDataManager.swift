@@ -5,14 +5,7 @@ import WidgetKit
 class SharedDataManager {
     static let shared = SharedDataManager()
 
-    // MARK: - App Group Configuration
-    // TODO: Replace with your actual App Group identifier
-    // To create an App Group:
-    // 1. In Xcode, select your target
-    // 2. Go to "Signing & Capabilities"
-    // 3. Click "+ Capability" and add "App Groups"
-    // 4. Create a new app group (e.g., group.com.yourcompany.behaviortracker)
-    // 5. Add the same app group to both the main app and widget extension targets
+
     private let appGroupIdentifier = "group.com.behaviortracker.shared"
 
     private var sharedDefaults: UserDefaults? {

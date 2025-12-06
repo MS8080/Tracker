@@ -67,7 +67,6 @@ struct CalendarDayDetailView: View {
                     Button("Done") {
                         dismiss()
                     }
-                    .foregroundStyle(.white)
                 }
             }
         }

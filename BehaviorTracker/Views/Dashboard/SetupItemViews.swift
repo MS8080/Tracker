@@ -72,11 +72,14 @@ struct AddSetupItemView: View {
                     Button("Cancel") { dismiss() }
                         .foregroundStyle(.white)
                 }
+                .hideSharedBackground()
+
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Add") { saveItem() }
                         .foregroundStyle(name.isEmpty ? .white.opacity(0.4) : .white)
                         .disabled(name.isEmpty)
                 }
+                .hideSharedBackground()
             }
             .alert("Error", isPresented: .constant(errorMessage != nil)) {
                 Button("OK") { errorMessage = nil }
@@ -190,11 +193,14 @@ struct EditSetupItemView: View {
                     Button("Cancel") { dismiss() }
                         .foregroundStyle(.white)
                 }
+                .hideSharedBackground()
+
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Save") { saveChanges() }
                         .foregroundStyle(name.isEmpty ? .white.opacity(0.4) : .white)
                         .disabled(name.isEmpty)
                 }
+                .hideSharedBackground()
             }
             .confirmationDialog("Delete Item", isPresented: $showingDeleteConfirm) {
                 Button("Delete", role: .destructive) {

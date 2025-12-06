@@ -7,13 +7,19 @@ class PatternsViewModel: ObservableObject {
     @Published var todayPatterns: [ExtractedPattern] = []
     @Published var todayCascades: [PatternCascade] = []
     @Published var todaySummary: String?
+    @Published var dominantPatterns: [String] = []
     @Published var isLoading = false
     @Published var isAnalyzing = false
+    @Published var isGeneratingSummary = false
     @Published var hasUnanalyzedEntries = false
     @Published var error: String?
 
     private let dataController = DataController.shared
     private let extractionService = PatternExtractionService.shared
+
+    // Cache key for daily summary to avoid regenerating
+    private var lastSummaryPatternCount: Int = 0
+    private var lastSummaryDate: Date?
 
     var todayDateString: String {
         let formatter = DateFormatter()
@@ -60,24 +66,54 @@ class PatternsViewModel: ObservableObject {
             }
             todayCascades = cascades
 
-            // Get summary from most recent analyzed journal entry
-            let journalFetch = NSFetchRequest<JournalEntry>(entityName: "JournalEntry")
-            journalFetch.predicate = NSPredicate(
-                format: "timestamp >= %@ AND timestamp < %@ AND isAnalyzed == YES",
-                startOfDay as NSDate,
-                endOfDay as NSDate
-            )
-            journalFetch.sortDescriptors = [NSSortDescriptor(keyPath: \JournalEntry.timestamp, ascending: false)]
-            journalFetch.fetchLimit = 1
-
-            let analyzedEntries = try context.fetch(journalFetch)
-            todaySummary = analyzedEntries.first?.analysisSummary
-
             // Check for unanalyzed entries
             await checkUnanalyzedEntries()
 
+            // Generate daily summary only if:
+            // 1. We have patterns
+            // 2. Either no summary exists, OR pattern count changed, OR it's a new day
+            let today = Calendar.current.startOfDay(for: Date())
+            let needsNewSummary = todaySummary == nil ||
+                                  lastSummaryPatternCount != todayPatterns.count ||
+                                  lastSummaryDate != today
+
+            if !todayPatterns.isEmpty && needsNewSummary {
+                await generateDailySummary()
+                lastSummaryPatternCount = todayPatterns.count
+                lastSummaryDate = today
+            }
+
         } catch {
             self.error = "Failed to load patterns: \(error.localizedDescription)"
+        }
+    }
+
+    // MARK: - Generate Daily Summary
+
+    func generateDailySummary() async {
+        guard !todayPatterns.isEmpty else {
+            todaySummary = nil
+            dominantPatterns = []
+            return
+        }
+
+        guard extractionService.isConfigured else {
+            print("[PatternsViewModel] Cannot generate summary - no API key")
+            return
+        }
+
+        isGeneratingSummary = true
+        defer { isGeneratingSummary = false }
+
+        do {
+            let result = try await extractionService.generateDailySummary(patterns: todayPatterns)
+            todaySummary = result.summary
+            dominantPatterns = result.dominantPatterns
+            print("[PatternsViewModel] Generated daily summary: \(result.summary)")
+        } catch {
+            print("[PatternsViewModel] Failed to generate daily summary: \(error.localizedDescription)")
+            // Fall back to no summary rather than showing error
+            todaySummary = nil
         }
     }
 
@@ -107,7 +143,20 @@ class PatternsViewModel: ObservableObject {
     // MARK: - Analyze Entries
 
     func analyzeUnanalyzedEntries() async {
-        guard !isAnalyzing else { return }
+        guard !isAnalyzing else {
+            print("[PatternsViewModel] Already analyzing, skipping")
+            return
+        }
+
+        guard hasUnanalyzedEntries else {
+            print("[PatternsViewModel] No unanalyzed entries, skipping")
+            return
+        }
+
+        guard extractionService.isConfigured else {
+            print("[PatternsViewModel] Extraction service not configured (no API key)")
+            return
+        }
 
         isAnalyzing = true
         defer { isAnalyzing = false }
@@ -129,23 +178,37 @@ class PatternsViewModel: ObservableObject {
             let context = dataController.container.viewContext
             let entries = try context.fetch(fetchRequest)
 
+            guard !entries.isEmpty else {
+                print("[PatternsViewModel] No entries to analyze")
+                hasUnanalyzedEntries = false
+                return
+            }
+
+            print("[PatternsViewModel] Found \(entries.count) unanalyzed entries")
+
             for entry in entries {
+                print("[PatternsViewModel] Analyzing entry: \(entry.timestamp)")
                 await analyzeEntry(entry, context: context)
             }
 
             try context.save()
+            print("[PatternsViewModel] Saved analyzed entries")
 
-            // Reload patterns
+            // Reload patterns and regenerate daily summary
+            todaySummary = nil  // Clear so it regenerates
             await loadTodayPatterns()
 
         } catch {
+            print("[PatternsViewModel] Error: \(error.localizedDescription)")
             self.error = "Failed to analyze entries: \(error.localizedDescription)"
         }
     }
 
     private func analyzeEntry(_ entry: JournalEntry, context: NSManagedObjectContext) async {
         do {
+            print("[PatternsViewModel] Calling extractPatterns for entry...")
             let result = try await extractionService.extractPatterns(from: entry.content)
+            print("[PatternsViewModel] Got \(result.patterns.count) patterns from extraction")
 
             // Create ExtractedPattern entities
             var createdPatterns: [String: ExtractedPattern] = [:]

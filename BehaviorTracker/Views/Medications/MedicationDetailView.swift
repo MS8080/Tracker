@@ -48,9 +48,11 @@ struct MedicationDetailView: View {
                         Label("Delete Medication", systemImage: "trash")
                     }
                 } label: {
-                    Image(systemName: "ellipsis.circle")
+                    Image(systemName: "ellipsis")
                 }
+                .buttonStyle(.plain)
             }
+            .hideSharedBackground()
         }
         .sheet(isPresented: $showingLogSheet) {
             LogMedicationView(medication: medication, viewModel: viewModel)

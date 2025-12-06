@@ -65,7 +65,6 @@ struct AIInsightsSettingsView: View {
                     Button("Done") {
                         dismiss()
                     }
-                    .foregroundStyle(.white)
                 }
             }
         }

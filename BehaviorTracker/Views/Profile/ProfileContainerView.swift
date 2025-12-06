@@ -6,16 +6,12 @@ struct ProfileContainerView: View {
     // Lazy initialization - only create when needed
     @State private var healthKitManager: HealthKitManager?
     @State private var settingsViewModel: SettingsViewModel?
-    @State private var medicationViewModel: MedicationViewModel?
     private let dataController = DataController.shared
 
     @State private var profile: UserProfile?
     @State private var healthSummary: HealthDataSummary?
     @State private var isLoadingHealth = false
     @State private var showingEditProfile = false
-    @State private var showingAddMedication = false
-    @State private var showingImportMedications = false
-    @State private var isMedicationsExpanded = false
     @State private var isSettingsExpanded = false
     @State private var isInitialized = false
 
@@ -58,16 +54,7 @@ struct ProfileContainerView: View {
                                 )
                             }
 
-                            if let medicationViewModel = medicationViewModel {
-                                ProfileMedicationsSection(
-                                    medications: medicationViewModel.medications,
-                                    isExpanded: $isMedicationsExpanded,
-                                    hasTakenToday: { medicationViewModel.hasTakenToday(medication: $0) },
-                                    onAddTapped: { showingAddMedication = true },
-                                    onImportTapped: { showingImportMedications = true },
-                                    medicationViewModel: medicationViewModel
-                                )
-                            }
+                            CurrentSetupCard()
 
                             if let settingsViewModel = settingsViewModel {
                                 ProfileSettingsSection(
@@ -86,33 +73,31 @@ struct ProfileContainerView: View {
             .navigationBarTitleDisplayModeInline()
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
-                    ProfileToolbarControls(
-                        fontSizeScale: $fontSizeScale,
-                        blueLightFilterEnabled: $blueLightFilterEnabled
-                    )
+                    FontSizeToolbarControl(fontSizeScale: $fontSizeScale)
+                }
+
+                ToolbarItem(placement: .topBarLeading) {
+                    BlueLightFilterToolbarControl(blueLightFilterEnabled: $blueLightFilterEnabled)
                 }
 
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Done") {
                         dismiss()
                     }
-                    .foregroundStyle(.white)
                 }
             }
             .task {
                 // Initialize ViewModels immediately
                 healthKitManager = HealthKitManager.shared
                 settingsViewModel = SettingsViewModel()
-                medicationViewModel = MedicationViewModel()
 
                 isInitialized = true
 
                 // Load data in parallel
                 async let profileTask: () = loadProfileAsync()
-                async let medicationsTask: () = loadMedicationsAsync()
                 async let healthTask: () = loadHealthDataAsync()
 
-                _ = await (profileTask, medicationsTask, healthTask)
+                _ = await (profileTask, healthTask)
             }
             .sheet(isPresented: $showingEditProfile) {
                 EditProfileView(dataController: dataController, profile: $profile)
@@ -120,16 +105,6 @@ struct ProfileContainerView: View {
             .onChange(of: showingEditProfile) { _, isShowing in
                 if !isShowing {
                     loadProfile()
-                }
-            }
-            .sheet(isPresented: $showingAddMedication) {
-                if let medicationViewModel = medicationViewModel {
-                    AddMedicationView(viewModel: medicationViewModel)
-                }
-            }
-            .sheet(isPresented: $showingImportMedications) {
-                if let medicationViewModel = medicationViewModel {
-                    ImportMedicationsView(medicationViewModel: medicationViewModel)
                 }
             }
         }
@@ -144,12 +119,6 @@ struct ProfileContainerView: View {
     private func loadProfileAsync() async {
         await Task.yield()
         profile = dataController.getOrCreateUserProfile()
-    }
-
-    private func loadMedicationsAsync() async {
-        guard let medicationViewModel = medicationViewModel else { return }
-        await Task.yield()
-        medicationViewModel.loadMedications()
     }
 
     private func loadHealthDataAsync() async {

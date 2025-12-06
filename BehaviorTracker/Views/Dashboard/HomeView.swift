@@ -41,8 +41,6 @@ struct HomeView: View {
                         if !viewModel.memories.isEmpty {
                             memoriesSection
                         }
-
-                        CurrentSetupCard()
                     }
                     .padding(.horizontal, Spacing.lg)
                     .padding(.vertical, Spacing.lg)
@@ -143,7 +141,7 @@ struct HomeView: View {
                     }
 
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("Your Day So Far")
+                        Text("I've been with you today")
                             .font(.title3)
                             .fontWeight(.bold)
                             .foregroundStyle(.white)
@@ -166,7 +164,7 @@ struct HomeView: View {
                         .font(.caption2)
                         .foregroundStyle(.cyan.opacity(0.6))
 
-                    Text("Tap for insights")
+                    Text("Tap to see what I noticed")
                         .font(.caption)
                         .foregroundStyle(.white.opacity(0.5))
 
@@ -199,9 +197,9 @@ struct HomeView: View {
     private var daySummarySubtitle: String {
         let count = viewModel.todayEntryCount
         if count == 1 {
-            return "1 moment captured"
+            return "1 moment witnessed"
         } else {
-            return "\(count) moments captured"
+            return "\(count) moments witnessed"
         }
     }
 
@@ -337,26 +335,37 @@ struct HomeView: View {
                     Circle()
                         .fill(Color.yellow.opacity(0.2))
                         .frame(width: 36, height: 36)
-                    
+
                     Image(systemName: context.icon)
                         .font(.title3)
                         .foregroundStyle(.yellow)
                 }
-                
-                Text("Recently")
+
+                Text("Earlier Today")
                     .font(.title3)
                     .fontWeight(.bold)
                     .foregroundStyle(.white)
             }
 
+            // Time reference as header
+            if let timeAgo = context.timeAgo {
+                Text(timeAgo.capitalized)
+                    .font(.subheadline)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(.white.opacity(0.9))
+            }
+
+            // Main message - what happened
             Text(context.message)
                 .font(.body)
                 .foregroundStyle(.white.opacity(0.85))
 
-            if let timeAgo = context.timeAgo {
-                Text(timeAgo)
-                    .font(.caption)
+            // Insight if available
+            if let preview = context.journalPreview, !preview.isEmpty {
+                Text(preview)
+                    .font(.subheadline)
                     .foregroundStyle(.white.opacity(0.6))
+                    .italic()
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)

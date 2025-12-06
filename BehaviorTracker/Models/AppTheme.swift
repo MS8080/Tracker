@@ -93,13 +93,23 @@ enum AppTheme: String, CaseIterable, Identifiable {
         ThemeColorToken.timeline(for: self).toColor()
     }
 
-    /// Simple soft gradient - theme color fading smoothly to dark
+    /// Subtle, calm gradient - minimal lightness difference with ease-out curve
+    /// Creates a sophisticated, receding background that lets content stand out
     var gradient: LinearGradient {
+        // Ease-out curve: fast change at start, slow change at end
+        // This mimics natural light falloff and feels less mechanical
         LinearGradient(
             stops: [
-                .init(color: primaryColor.opacity(0.55), location: 0.0),
-                .init(color: primaryColor.opacity(0.35), location: 0.10),
-                .init(color: primaryColor.opacity(0.20), location: 0.18),
+                // Start: slightly lighter
+                .init(color: primaryColor.opacity(0.38), location: 0.0),
+                // Ease-out: most change happens early
+                .init(color: primaryColor.opacity(0.32), location: 0.08),
+                .init(color: primaryColor.opacity(0.27), location: 0.18),
+                .init(color: primaryColor.opacity(0.24), location: 0.30),
+                // Gradual settle to base
+                .init(color: primaryColor.opacity(0.22), location: 0.50),
+                .init(color: primaryColor.opacity(0.21), location: 0.75),
+                // End: only slightly darker than middle
                 .init(color: primaryColor.opacity(0.20), location: 1.0)
             ],
             startPoint: .top,
@@ -159,21 +169,22 @@ struct BlueLightFilterModifier: ViewModifier {
     @AppStorage("blueLightFilterEnabled") private var blueLightFilterEnabled: Bool = false
 
     func body(content: Content) -> some View {
-        ZStack {
-            content
-            if blueLightFilterEnabled {
-                Color.orange
-                    .opacity(0.10)
-                    .ignoresSafeArea()
-                    .allowsHitTesting(false)
+        content
+            .overlay {
+                if blueLightFilterEnabled {
+                    Color.orange
+                        .opacity(0.15)
+                        .ignoresSafeArea(.all)
+                        .allowsHitTesting(false)
+                        .animation(.easeInOut(duration: 0.3), value: blueLightFilterEnabled)
+                }
             }
-        }
     }
 }
 
 
 
-// MARK: - Simplified Card Modifiers (Performance Optimized)
+// MARK: - Hybrid Card Modifiers (glassEffect on iOS 26+, ultraThinMaterial fallback)
 
 struct TrueLiquidGlassCardModifier: ViewModifier {
     let theme: AppTheme
@@ -181,12 +192,31 @@ struct TrueLiquidGlassCardModifier: ViewModifier {
     let isInteractive: Bool
 
     func body(content: Content) -> some View {
-        content
-            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: cornerRadius))
-            .overlay(
-                RoundedRectangle(cornerRadius: cornerRadius)
-                    .stroke(Color.white.opacity(0.1), lineWidth: 0.5)
-            )
+        if #available(iOS 26.0, *) {
+            content
+                .background {
+                    RoundedRectangle(cornerRadius: cornerRadius)
+                        .fill(theme.primaryColor.opacity(0.05))
+                }
+                .glassEffect(
+                    isInteractive ? .regular.interactive() : .regular,
+                    in: RoundedRectangle(cornerRadius: cornerRadius)
+                )
+        } else {
+            content
+                .background(
+                    ZStack {
+                        theme.primaryColor.opacity(0.08)
+                        RoundedRectangle(cornerRadius: cornerRadius)
+                            .fill(.ultraThinMaterial)
+                    }
+                    .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: cornerRadius)
+                        .stroke(theme.primaryColor.opacity(0.15), lineWidth: 0.5)
+                )
+        }
     }
 }
 
@@ -194,12 +224,28 @@ struct TrueLiquidGlassCompactModifier: ViewModifier {
     let theme: AppTheme
 
     func body(content: Content) -> some View {
-        content
-            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: CornerRadius.md))
-            .overlay(
-                RoundedRectangle(cornerRadius: CornerRadius.md)
-                    .stroke(Color.white.opacity(0.08), lineWidth: 0.5)
-            )
+        if #available(iOS 26.0, *) {
+            content
+                .background {
+                    RoundedRectangle(cornerRadius: CornerRadius.md)
+                        .fill(theme.primaryColor.opacity(0.04))
+                }
+                .glassEffect(.regular, in: RoundedRectangle(cornerRadius: CornerRadius.md))
+        } else {
+            content
+                .background(
+                    ZStack {
+                        theme.primaryColor.opacity(0.06)
+                        RoundedRectangle(cornerRadius: CornerRadius.md)
+                            .fill(.ultraThinMaterial)
+                    }
+                    .clipShape(RoundedRectangle(cornerRadius: CornerRadius.md))
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: CornerRadius.md)
+                        .stroke(theme.primaryColor.opacity(0.12), lineWidth: 0.5)
+                )
+        }
     }
 }
 
@@ -209,16 +255,39 @@ struct TrueLiquidGlassFocusableModifier: ViewModifier {
     let isFocused: Bool
 
     func body(content: Content) -> some View {
-        content
-            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: cornerRadius))
-            .overlay(
-                RoundedRectangle(cornerRadius: cornerRadius)
-                    .stroke(isFocused ? theme.primaryColor.opacity(0.4) : Color.white.opacity(0.1), lineWidth: isFocused ? 1.5 : 0.5)
-            )
+        if #available(iOS 26.0, *) {
+            content
+                .background {
+                    RoundedRectangle(cornerRadius: cornerRadius)
+                        .fill(theme.primaryColor.opacity(isFocused ? 0.08 : 0.05))
+                }
+                .glassEffect(
+                    isFocused ? .regular.interactive() : .regular,
+                    in: RoundedRectangle(cornerRadius: cornerRadius)
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: cornerRadius)
+                        .stroke(isFocused ? theme.primaryColor.opacity(0.3) : Color.clear, lineWidth: 1.5)
+                )
+        } else {
+            content
+                .background(
+                    ZStack {
+                        theme.primaryColor.opacity(isFocused ? 0.12 : 0.08)
+                        RoundedRectangle(cornerRadius: cornerRadius)
+                            .fill(.ultraThinMaterial)
+                    }
+                    .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: cornerRadius)
+                        .stroke(isFocused ? theme.primaryColor.opacity(0.4) : theme.primaryColor.opacity(0.15), lineWidth: isFocused ? 1.5 : 0.5)
+                )
+        }
     }
 }
 
-// MARK: - View Extensions
+// MARK: - View Extensions  
 
 extension View {
     func themedBackground() -> some View {

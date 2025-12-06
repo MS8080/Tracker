@@ -30,9 +30,11 @@ struct SetupManagerView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Done") { dismiss() }
-                        .foregroundStyle(.white)
+                    Button("Done") {
+                        dismiss()
+                    }
                 }
+
                 ToolbarItem(placement: .primaryAction) {
                     Button {
                         addingToCategory = .medication
@@ -41,6 +43,7 @@ struct SetupManagerView: View {
                             .foregroundStyle(.white)
                     }
                 }
+                .hideSharedBackground()
             }
             .onAppear {
                 loadItems()

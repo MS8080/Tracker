@@ -64,14 +64,19 @@ struct EditProfileView: View {
                     Button("Cancel") {
                         dismiss()
                     }
+                    .foregroundStyle(.white)
                 }
+                .hideSharedBackground()
+
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Save") {
                         saveProfile()
                         dismiss()
                     }
+                    .foregroundStyle(.white)
                     .disabled(name.isEmpty)
                 }
+                .hideSharedBackground()
             }
             .onAppear {
                 loadProfile()

@@ -33,6 +33,7 @@ class WhisperTranscriptionService: ObservableObject {
     private var preloadTask: Task<Void, Never>?
 
     private let recordingsDirectory: URL
+    private let modelDirectory: URL
 
     /// Common medication names for vocabulary enhancement
     private let commonMedications: Set<String> = [
@@ -57,21 +58,37 @@ class WhisperTranscriptionService: ObservableObject {
         // Common OTC
         "Tylenol", "Acetaminophen", "Ibuprofen", "Advil", "Motrin", "Aspirin", "Benadryl",
         "Diphenhydramine", "Zyrtec", "Cetirizine", "Claritin", "Loratadine", "Allegra",
-        // Supplements & Amino Acids
+        // Supplements & Amino Acids (with and without L- prefix)
         "Magnesium", "Vitamin D", "Vitamin B12", "Omega-3", "Fish Oil", "Probiotics", "Iron",
-        "Zinc", "L-Theanine", "Ashwagandha", "Rhodiola", "5-HTP", "SAM-e", "GABA",
-        "L-Tyrosine", "L-Tryptophan", "L-Carnitine", "L-Glutamine", "L-Arginine",
+        "Zinc", "L-Theanine", "Theanine", "Ashwagandha", "Rhodiola", "5-HTP", "SAM-e", "GABA",
+        "L-Tyrosine", "Tyrosine", "L-Tryptophan", "Tryptophan", "L-Carnitine", "Carnitine",
+        "L-Glutamine", "Glutamine", "L-Arginine", "Arginine",
         "CoQ10", "NAC", "Alpha-GPC", "Creatine", "Taurine", "Inositol",
         // Vertigo/Inner ear
         "Betahistine", "Betahistin", "Serc", "Meclizine", "Antivert", "Dramamine", "Dimenhydrinate"
+    ]
+
+    /// Whisper special tokens that should be removed from transcription
+    private let whisperSpecialTokens: [String] = [
+        "[BLANK_AUDIO]", "{blank_audio}", "(blank_audio)", "[NOISE]", "{noise}",
+        "[MUSIC]", "{music}", "[APPLAUSE]", "{applause}", "[LAUGHTER]", "{laughter}",
+        "[SILENCE]", "{silence}", "[INAUDIBLE]", "{inaudible}", "(inaudible)",
+        "[NO_SPEECH]", "{no_speech}", "<|nospeech|>", "<|endoftext|>"
     ]
 
     private init() {
         let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
         recordingsDirectory = documentsPath.appendingPathComponent("WhisperRecordings")
 
-        if !FileManager.default.fileExists(atPath: recordingsDirectory.path) {
-            try? FileManager.default.createDirectory(at: recordingsDirectory, withIntermediateDirectories: true)
+        // Use Application Support for model storage (persists across app updates)
+        let appSupportPath = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+        modelDirectory = appSupportPath.appendingPathComponent("WhisperKitModels")
+
+        // Create directories if needed
+        for directory in [recordingsDirectory, modelDirectory] {
+            if !FileManager.default.fileExists(atPath: directory.path) {
+                try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+            }
         }
     }
 
@@ -116,6 +133,35 @@ class WhisperTranscriptionService: ObservableObject {
         }
 
         return correctedWords.joined(separator: " ")
+    }
+
+    /// Remove Whisper special tokens from transcription (e.g., [BLANK_AUDIO], {blank_audio})
+    private func removeWhisperSpecialTokens(from text: String) -> String {
+        var result = text
+        for token in whisperSpecialTokens {
+            result = result.replacingOccurrences(of: token, with: "", options: .caseInsensitive)
+        }
+        // Also remove any remaining bracketed/braced tokens that look like Whisper artifacts
+        // Matches patterns like [SOMETHING], {something}, (something) where content is all caps or lowercase
+        let patterns = [
+            "\\[\\w+\\]",      // [WORD]
+            "\\{\\w+\\}",      // {word}
+            "<\\|\\w+\\|>"     // <|word|>
+        ]
+        for pattern in patterns {
+            if let regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive) {
+                result = regex.stringByReplacingMatches(
+                    in: result,
+                    range: NSRange(result.startIndex..., in: result),
+                    withTemplate: ""
+                )
+            }
+        }
+        // Clean up any double spaces left behind and trim
+        while result.contains("  ") {
+            result = result.replacingOccurrences(of: "  ", with: " ")
+        }
+        return result.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
     /// Common English words that should never be matched to medications
@@ -233,34 +279,56 @@ class WhisperTranscriptionService: ObservableObject {
         #endif
     }
 
+    /// Check if the model is already downloaded locally
+    private func isModelDownloaded() -> Bool {
+        // Check if model folder contains expected files
+        let modelPath = modelDirectory.appendingPathComponent("openai_whisper-base")
+        return FileManager.default.fileExists(atPath: modelPath.path)
+    }
+
     func loadModel() async {
         #if canImport(WhisperKit)
         guard !isModelLoaded && !isLoadingModel else { return }
 
         isLoadingModel = true
         loadingProgress = 0
-        transcriptionProgress = "Downloading model..."
         errorMessage = nil
+
+        let modelAlreadyDownloaded = isModelDownloaded()
+        transcriptionProgress = modelAlreadyDownloaded ? "Loading model..." : "Downloading model..."
 
         do {
             // Simulate progress updates for better UX
             let progressTask = Task {
                 for i in 1...8 {
-                    try? await Task.sleep(nanoseconds: 300_000_000)
+                    // Faster progress if model already downloaded
+                    let interval: UInt64 = modelAlreadyDownloaded ? 100_000_000 : 300_000_000
+                    try? await Task.sleep(nanoseconds: interval)
                     if !isModelLoaded {
                         loadingProgress = Double(i) / 10.0
-                        if i <= 3 {
-                            transcriptionProgress = "Downloading model..."
-                        } else if i <= 6 {
-                            transcriptionProgress = "Loading neural engine..."
+                        if modelAlreadyDownloaded {
+                            transcriptionProgress = i <= 5 ? "Loading model..." : "Preparing..."
                         } else {
-                            transcriptionProgress = "Preparing..."
+                            if i <= 3 {
+                                transcriptionProgress = "Downloading model..."
+                            } else if i <= 6 {
+                                transcriptionProgress = "Loading neural engine..."
+                            } else {
+                                transcriptionProgress = "Preparing..."
+                            }
                         }
                     }
                 }
             }
 
-            whisperKit = try await WhisperKit(model: "base")
+            // Use WhisperKitConfig to specify model folder for caching
+            let config = WhisperKitConfig(
+                model: "base",
+                modelFolder: modelDirectory.path,
+                load: true,      // Load models after download
+                download: true   // Download if not available
+            )
+            whisperKit = try await WhisperKit(config)
             progressTask.cancel()
 
             loadingProgress = 1.0
@@ -422,8 +490,11 @@ class WhisperTranscriptionService: ObservableObject {
             let results = try await whisper.transcribe(audioPath: audioURL.path, decodeOptions: options)
             var transcription = results.map { $0.text }.joined(separator: " ").trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
 
-            // Apply post-processing to correct medication names
+            // Apply post-processing
             if !transcription.isEmpty {
+                // First remove Whisper special tokens like [BLANK_AUDIO], {blank_audio}, etc.
+                transcription = removeWhisperSpecialTokens(from: transcription)
+                // Then correct medication names
                 transcription = correctMedicationNames(in: transcription)
             }
 

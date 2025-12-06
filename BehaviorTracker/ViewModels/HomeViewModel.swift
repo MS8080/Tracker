@@ -214,44 +214,83 @@ class HomeViewModel: ObservableObject {
         let icon: String
         let color: Color
         let message: String
+        let insight: String?
+
+        // Build specific message based on pattern details
+        let patternName = pattern.patternType.lowercased()
+        let intensity = pattern.intensity
 
         switch category {
         case "Sensory":
             icon = "waveform.path"
             color = .red
-            message = "You experienced some sensory moments"
+            if intensity >= 7 {
+                message = "The sensory world was intense - \(patternName) took a lot out of you"
+                insight = "Your system was working hard to process everything"
+            } else {
+                message = "You noticed some sensory moments - \(patternName)"
+                insight = "Tuning into what your senses need"
+            }
         case "Executive Function":
             icon = "brain.head.profile"
             color = .orange
-            message = "You were navigating focus and tasks"
+            if intensity >= 7 {
+                message = "Focus was really hard today - \(patternName) made things difficult"
+                insight = "When the brain struggles to organize, everything feels heavier"
+            } else {
+                message = "You were navigating how to focus and get things done"
+                insight = nil
+            }
         case "Social & Communication":
             icon = "person.2.fill"
             color = .blue
-            message = "You had some social experiences"
+            if intensity >= 7 {
+                message = "Social stuff took a lot of energy - \(patternName)"
+                insight = "People interactions can be exhausting, especially when you're already stretched"
+            } else {
+                message = "You had some people moments to process"
+                insight = nil
+            }
         case "Energy & Regulation":
             icon = "battery.75"
             color = .purple
-            message = "You were managing your energy"
+            if intensity >= 7 {
+                message = "Your energy was really depleted - \(patternName)"
+                insight = "Running on empty makes everything harder"
+            } else {
+                message = "You were managing your energy levels"
+                insight = "Noticing what fills and drains you"
+            }
         case "Routine & Change":
             icon = "arrow.triangle.2.circlepath"
             color = .yellow
-            message = "Something shifted in your routine"
+            message = "Something shifted in your routine or expectations"
+            insight = "Change can feel unsettling, even small changes"
         case "Demand Avoidance":
             icon = "hand.raised.fill"
             color = .pink
-            message = "You noticed some demand-related feelings"
+            if intensity >= 7 {
+                message = "Demands felt really overwhelming - \(patternName)"
+                insight = "When everything feels like a 'have to', the resistance makes sense"
+            } else {
+                message = "You noticed some resistance to demands today"
+                insight = nil
+            }
         case "Physical & Sleep":
             icon = "heart.fill"
             color = .green
-            message = "You were tuning into your body"
+            message = "Your body was telling you something"
+            insight = "Physical sensations and sleep affect everything else"
         case "Special Interests":
             icon = "star.fill"
             color = .cyan
-            message = "You engaged with something you love"
+            message = "You got to engage with something you love"
+            insight = "These moments refuel you"
         default:
             icon = "circle.fill"
             color = .gray
-            message = "You reflected on: \(pattern.patternType.lowercased())"
+            message = "You experienced \(patternName)"
+            insight = pattern.details
         }
 
         return RecentContext(
@@ -259,7 +298,7 @@ class HomeViewModel: ObservableObject {
             color: color,
             message: message,
             timeAgo: timeAgo,
-            journalPreview: pattern.details
+            journalPreview: insight ?? pattern.details
         )
     }
 
@@ -478,7 +517,7 @@ class HomeViewModel: ObservableObject {
 
         guard !todayJournals.isEmpty else {
             isGeneratingSlides = false
-            slidesError = "No entries today to summarize"
+            slidesError = "Your day is just beginning. I'll be here."
             return
         }
 
@@ -557,34 +596,41 @@ class HomeViewModel: ObservableObject {
         \(dataSummary)
 
         YOUR VOICE & TONE:
-        - Speak as "I" - you are an active witness ("I noticed...", "I saw that...")
+        - Speak as "I" - you are an active witness ("I noticed...", "I saw that...", "I see...")
         - Be warm, validating, and gently supportive - NOT clinical or analytical
-        - Acknowledge difficulty with phrases like "that's hard", "that makes sense", "this is a lot"
+        - Acknowledge difficulty with phrases like "that's real", "that makes sense", "I see it"
         - Focus on witnessing and understanding, not instructing or advising
         - Use everyday language, not clinical terminology
         - Show you understand the weight of what they're carrying
+        - End with reassurance like "I'm tracking this for you" or "That's real and it makes sense"
 
-        LANGUAGE EXAMPLES:
+        TITLE STYLE:
+        - Short, warm titles (2-4 words)
+        - Examples: "Time Pressure & Overwhelm", "Family & Emotional Weight", "Sensory Seeking & Regulation", "Emotional Load & Focus"
+        - NOT clinical titles like "Executive Dysfunction" or "Sensory Processing Issues"
+
+        MESSAGE STYLE EXAMPLES:
         GOOD (warm, witnessing):
-        - "I noticed your energy shifted after lunch. That transition can be really hard, and it makes sense you felt drained."
-        - "There was a lot coming at you this morning with the noise and the brightness. That's a lot for anyone's system to handle."
-        - "I saw you pushing through even when things got overwhelming. That takes so much strength, even when it doesn't feel like it."
+        - "I noticed you've been feeling pressure about past missed stops and upcoming family visits. Time felt heavy today. That's real and it makes sense."
+        - "The call with your mother brought up a lot. Family conversations can reactivate old feelings. I'm tracking this pattern for you."
+        - "You've been adjusting your glasses a lot today - seeking that just-right feeling. This often connects to anxiety underneath. I see it."
+        - "Family stress is taking up mental space. It's hard to focus on other things when emotions are this present. That's normal."
 
         BAD (clinical, instructing):
-        - "Sensory sensitivity preceded executive dysfunction" ❌
-        - "Consider implementing sensory breaks" ❌
-        - "Monitor your triggers" ❌
-        - "You logged..." or "You noted..." ❌
+        - "Concerns about past 'missed stops' trigger feelings of pressure" (too clinical)
+        - "Monitor communication triggers" (instructing)
+        - "Address time perception distortions directly" (advising)
+        - "Explore grounding techniques" (prescriptive)
 
         WHAT TO NOTICE:
-        - Moments that were hard (and validate them)
-        - Pattern cascades (explain the connections simply and warmly)
-        - The effort they put in (acknowledge it)
-        - High-intensity moments (acknowledge how hard those were)
+        - Be specific about WHAT happened (not abstract categories)
+        - Validate the difficulty - "that's hard", "that's a lot", "that makes sense"
+        - Show you see the connection - "this often connects to...", "when X happens, Y makes sense"
+        - End warmly - "I'm tracking this", "I see it", "That's real"
 
-        Generate 3-4 warm, supportive observations. Each message should be 100-180 characters.
+        Generate 3-4 warm, supportive observations. Each message should be 120-200 characters.
         Return ONLY valid JSON array:
-        [{"icon": "SF Symbol", "colorName": "gray/blue/purple/orange/green/cyan", "title": "Short gentle title (2-4 words)", "message": "Warm observation starting with 'I noticed...' or similar witnessing language"}]
+        [{"icon": "SF Symbol", "colorName": "gray/blue/purple/orange/green/cyan", "title": "Short gentle title (2-4 words)", "message": "Warm observation that acknowledges what happened, validates it, and reassures"}]
 
         Icons: heart.fill, hand.raised.fill, sparkles, leaf.fill, sun.max.fill, moon.fill, cloud.fill, brain.head.profile, figure.mind.and.body, eyes, ear.fill, bolt.heart.fill, arrow.up.heart.fill, hands.sparkles.fill
         """
@@ -612,7 +658,7 @@ class HomeViewModel: ObservableObject {
             }
 
             if todaySlides.isEmpty {
-                slidesError = "Couldn't create summary"
+                slidesError = "I'm here when you're ready to share"
             }
         } catch {
             slidesError = error.localizedDescription

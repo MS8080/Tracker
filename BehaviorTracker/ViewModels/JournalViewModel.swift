@@ -5,6 +5,7 @@ import CoreData
 class JournalViewModel: ObservableObject {
     @Published var journalEntries: [JournalEntry] = []
     @Published var isLoading = false
+    @Published var isAnalyzing = false
     @Published var searchQuery: String = "" {
         didSet {
             if searchQuery.isEmpty {
@@ -23,6 +24,7 @@ class JournalViewModel: ObservableObject {
     @Published var showError: Bool = false
 
     private let dataController = DataController.shared
+    private let extractionService = PatternExtractionService.shared
 
     init() {
         loadJournalEntries()
@@ -53,7 +55,7 @@ class JournalViewModel: ObservableObject {
         relatedMedicationLog: MedicationLog? = nil
     ) -> Bool {
         do {
-            _ = try dataController.createJournalEntry(
+            let entry = try dataController.createJournalEntry(
                 title: title,
                 content: content,
                 mood: mood,
@@ -62,6 +64,12 @@ class JournalViewModel: ObservableObject {
                 relatedMedicationLog: relatedMedicationLog
             )
             loadJournalEntries()
+
+            // Auto-analyze the new entry for patterns in background
+            Task {
+                await analyzeEntry(entry)
+            }
+
             return true
         } catch {
             errorMessage = error.localizedDescription
@@ -70,9 +78,102 @@ class JournalViewModel: ObservableObject {
         }
     }
 
-    func updateEntry(_ entry: JournalEntry) {
+    // MARK: - Pattern Extraction
+
+    /// Analyze a journal entry to extract patterns
+    func analyzeEntry(_ entry: JournalEntry) async {
+        guard !entry.isAnalyzed else { return }
+        guard extractionService.isConfigured else { return }
+
+        isAnalyzing = true
+        defer { isAnalyzing = false }
+
+        do {
+            let result = try await extractionService.extractPatterns(from: entry.content)
+            let context = dataController.container.viewContext
+
+            // Create ExtractedPattern entities
+            var createdPatterns: [String: ExtractedPattern] = [:]
+
+            for patternData in result.patterns {
+                let pattern = ExtractedPattern(context: context)
+                pattern.id = UUID()
+                pattern.patternType = patternData.type
+                pattern.category = patternData.category
+                pattern.intensity = Int16(patternData.intensity)
+                pattern.triggers = patternData.triggers ?? []
+                pattern.timeOfDay = patternData.timeOfDay ?? result.context.timeOfDay
+                pattern.copingStrategies = patternData.copingUsed ?? []
+                pattern.details = patternData.details
+                pattern.confidence = result.confidence
+                pattern.timestamp = entry.timestamp
+                pattern.journalEntry = entry
+
+                createdPatterns[patternData.type] = pattern
+            }
+
+            // Create cascade relationships
+            for cascadeData in result.cascades {
+                if let fromPattern = createdPatterns[cascadeData.from],
+                   let toPattern = createdPatterns[cascadeData.to] {
+                    let cascade = PatternCascade(context: context)
+                    cascade.id = UUID()
+                    cascade.confidence = cascadeData.confidence
+                    cascade.descriptionText = cascadeData.description
+                    cascade.timestamp = entry.timestamp
+                    cascade.fromPattern = fromPattern
+                    cascade.toPattern = toPattern
+                }
+            }
+
+            // Update journal entry
+            entry.isAnalyzed = true
+            entry.analysisConfidence = result.confidence
+            entry.analysisSummary = result.summary
+            entry.overallIntensity = Int16(result.overallIntensity)
+
+            try context.save()
+            loadJournalEntries()
+
+        } catch {
+            print("Failed to analyze entry: \(error.localizedDescription)")
+        }
+    }
+
+    func updateEntry(_ entry: JournalEntry, reanalyze: Bool = true) {
         dataController.updateJournalEntry(entry)
         loadJournalEntries()
+
+        // Re-analyze if content was changed
+        if reanalyze && entry.isAnalyzed {
+            // Clear old analysis to trigger re-analysis
+            Task {
+                await clearAndReanalyze(entry)
+            }
+        }
+    }
+
+    /// Clear existing patterns and re-analyze the entry
+    private func clearAndReanalyze(_ entry: JournalEntry) async {
+        let context = dataController.container.viewContext
+
+        // Delete existing patterns for this entry
+        if let existingPatterns = entry.extractedPatterns as? Set<ExtractedPattern> {
+            for pattern in existingPatterns {
+                context.delete(pattern)
+            }
+        }
+
+        // Mark as not analyzed
+        entry.isAnalyzed = false
+        entry.analysisSummary = nil
+        entry.analysisConfidence = 0
+        entry.overallIntensity = 0
+
+        try? context.save()
+
+        // Re-analyze
+        await analyzeEntry(entry)
     }
 
     func deleteEntry(_ entry: JournalEntry) {

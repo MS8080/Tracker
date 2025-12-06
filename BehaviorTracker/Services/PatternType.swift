@@ -55,9 +55,21 @@ enum PatternType: String, CaseIterable, Codable {
     case physicalTension = "Physical Tension/Pain"
     case digestiveIssue = "Digestive Issue"
     
-    // MARK: - Special Interests (bonus - fits with regulation)
+    // MARK: - Special Interests
     case specialInterest = "Special Interest Engagement"
     case disengagementDifficulty = "Difficulty Disengaging"
+
+    // MARK: - Positive & Coping
+    case successfulCoping = "Successful Coping"
+    case calmState = "Calm/Regulated State"
+    case connectionMoment = "Connection Moment"
+    case restSuccess = "Rest/Recovery Success"
+    case sensoryComfort = "Sensory Comfort"
+    case boundarySetting = "Boundary Setting"
+    case selfCompassion = "Self-Compassion"
+    case accommodationWin = "Accommodation Win"
+    case joyHappiness = "Joy/Happiness"
+    case achievementProgress = "Achievement/Progress"
 
     var category: PatternCategory {
         switch self {
@@ -77,6 +89,8 @@ enum PatternType: String, CaseIterable, Codable {
             return .physicalWellbeing
         case .specialInterest, .disengagementDifficulty:
             return .energyRegulation
+        case .successfulCoping, .calmState, .connectionMoment, .restSuccess, .sensoryComfort, .boundarySetting, .selfCompassion, .accommodationWin, .joyHappiness, .achievementProgress:
+            return .positiveCoping
         }
     }
 
@@ -188,6 +202,26 @@ enum PatternType: String, CaseIterable, Codable {
             return "What activity? What made it possible?"
         case .authenticityMoment:
             return "What felt authentic? Who were you with?"
+        case .successfulCoping:
+            return "What strategy worked? What situation did you manage?"
+        case .calmState:
+            return "What helped you feel calm? Where were you?"
+        case .connectionMoment:
+            return "Who did you connect with? What made it meaningful?"
+        case .restSuccess:
+            return "What kind of rest? How do you feel now?"
+        case .sensoryComfort:
+            return "What sensory input felt good? Where were you?"
+        case .boundarySetting:
+            return "What boundary did you set? How did it feel?"
+        case .selfCompassion:
+            return "What did you accept about yourself?"
+        case .accommodationWin:
+            return "What accommodation helped? Who provided it?"
+        case .joyHappiness:
+            return "What brought you joy? How did it feel?"
+        case .achievementProgress:
+            return "What did you accomplish? How do you feel about it?"
         }
     }
     

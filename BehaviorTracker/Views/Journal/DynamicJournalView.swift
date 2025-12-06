@@ -1,6 +1,6 @@
 import SwiftUI
 
-// MARK: - Dynamic Journal View with Advanced Animations
+// MARK: - Dynamic Journal View
 
 struct DynamicJournalView: View {
     @StateObject private var viewModel = JournalViewModel()
@@ -9,22 +9,8 @@ struct DynamicJournalView: View {
     @State private var selectedEntry: JournalEntry?
     @State private var entryToAnalyze: JournalEntry?
     @State private var dayToAnalyze: DayAnalysisData?
-    @State private var expandedDayDate: Date?
-    @State private var viewMode: ViewMode = .focused
-
     @Binding var showingProfile: Bool
     @ThemeWrapper var theme
-    @Namespace private var animation
-
-    enum ViewMode {
-        case focused    // Today is hero/expanded
-        case timeline   // All days visible in timeline
-        case expanded   // A day is fullscreen
-    }
-    
-    // MARK: - Animation Constants
-    
-    private static let standardSpring = Animation.spring(response: 0.3, dampingFraction: 0.75)
 
     init(showingProfile: Binding<Bool> = .constant(false)) {
         self._showingProfile = showingProfile
@@ -42,29 +28,9 @@ struct DynamicJournalView: View {
     private var todayGroup: (date: Date, entries: [JournalEntry])? {
         entriesGroupedByDay.first { Calendar.current.isDateInToday($0.date) }
     }
-    
-    // MARK: - Reusable Card Configuration
-    
-    private func dayCardView(
-        date: Date,
-        entries: [JournalEntry],
-        isExpanded: Bool,
-        onTapCard: @escaping () -> Void
-    ) -> some View {
-        DynamicDayCard(
-            date: date,
-            entries: entries,
-            theme: theme,
-            isExpanded: isExpanded,
-            namespace: animation,
-            onEntryTap: { selectedEntry = $0 },
-            onToggleFavorite: { viewModel.toggleFavorite($0) },
-            onSpeak: { ttsService.speakJournalEntry($0) },
-            onDelete: { entry in withAnimation { viewModel.deleteEntry(entry) } },
-            onAnalyze: { entryToAnalyze = $0 },
-            onAnalyzeDay: { dayToAnalyze = DayAnalysisData(entries: $0, date: $1) },
-            onTapCard: onTapCard
-        )
+
+    private var previousDays: [(date: Date, entries: [JournalEntry])] {
+        entriesGroupedByDay.filter { !Calendar.current.isDateInToday($0.date) }
     }
 
     var body: some View {
@@ -76,20 +42,19 @@ struct DynamicJournalView: View {
                 if viewModel.journalEntries.isEmpty {
                     emptyStateView
                 } else {
-                    mainContentView
+                    timelineView
                 }
 
                 // Floating Action Button
                 floatingActionButton
             }
-            .navigationTitle(viewMode == .expanded ? "" : NSLocalizedString("journal.title", comment: ""))
-            .navigationBarTitleDisplayMode(.large)
+            .navigationTitle(NSLocalizedString("journal.title", comment: ""))
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                if viewMode != .expanded {
-                    ToolbarItem(placement: .primaryAction) {
-                        ProfileButton(showingProfile: $showingProfile)
-                    }
+                ToolbarItem(placement: .primaryAction) {
+                    ProfileButton(showingProfile: $showingProfile)
                 }
+                .hideSharedBackground()
             }
             .sheet(isPresented: $showingNewEntry) {
                 JournalEntryEditorView()
@@ -118,172 +83,49 @@ struct DynamicJournalView: View {
                 DayAnalysisView(entries: dayData.entries, date: dayData.date)
             }
         }
-        .onAppear {
-            // Hero animation on appear - focus on today
-            withAnimation(Self.standardSpring) {
-                viewMode = .focused
-            }
-        }
     }
 
-    // MARK: - Main Content View
-
-    @ViewBuilder
-    private var mainContentView: some View {
-        switch viewMode {
-        case .focused:
-            focusedTodayView
-        case .timeline:
-            timelineView
-        case .expanded:
-            expandedDayView
-        }
-    }
-
-    // MARK: - Focused Today View (Hero Animation)
-
-    private var focusedTodayView: some View {
-        VStack(spacing: 0) {
-            if let todayGroup = todayGroup {
-                ScrollView {
-                    VStack(spacing: Spacing.xl) {
-                        // Hero today card - fills most of screen
-                        dayCardView(
-                            date: todayGroup.date,
-                            entries: todayGroup.entries,
-                            isExpanded: true,
-                            onTapCard: {
-                                withAnimation(Self.standardSpring) {
-                                    expandedDayDate = todayGroup.date
-                                    viewMode = .expanded
-                                }
-                            }
-                        )
-                        .padding(.horizontal, Spacing.lg)
-                        .padding(.top, Spacing.xl)
-
-                        // Subtle hint about other days
-                        if entriesGroupedByDay.count > 1 {
-                            Button {
-                                withAnimation(Self.standardSpring) {
-                                    viewMode = .timeline
-                                }
-                            } label: {
-                                HStack(spacing: Spacing.sm) {
-                                    Text("View All Days")
-                                        .font(.subheadline)
-                                        .fontWeight(.medium)
-                                    Image(systemName: "chevron.down")
-                                        .font(.caption)
-                                }
-                                .foregroundStyle(.white.opacity(0.9))
-                                .padding(.horizontal, Spacing.lg)
-                                .padding(.vertical, Spacing.md)
-                                .background(theme.primaryColor.opacity(0.2), in: Capsule())
-                                .background(.ultraThinMaterial, in: Capsule())
-                            }
-                            .padding(.bottom, Spacing.xxl)
-                        }
-                    }
-                }
-            } else {
-                // No entries today - show timeline
-                timelineView
-            }
-        }
-    }
-
-    // MARK: - Timeline View (All Days)
+    // MARK: - Timeline View
 
     private var timelineView: some View {
         ScrollViewReader { proxy in
             ScrollView {
-                LazyVStack(spacing: Spacing.md) {
-                    ForEach(entriesGroupedByDay, id: \.date) { dayGroup in
-                        dayCardView(
+                VStack(alignment: .leading, spacing: Spacing.xl) {
+                    // Today's entries
+                    if let today = todayGroup {
+                        SimpleDaySection(
+                            date: today.date,
+                            entries: today.entries,
+                            theme: theme,
+                            onEntryTap: { selectedEntry = $0 },
+                            onToggleFavorite: { viewModel.toggleFavorite($0) },
+                            onSpeak: { ttsService.speakJournalEntry($0) },
+                            onDelete: { entry in withAnimation { viewModel.deleteEntry(entry) } },
+                            onAnalyze: { entryToAnalyze = $0 }
+                        )
+                        .id(today.date)
+                    }
+
+                    // Previous days
+                    ForEach(previousDays, id: \.date) { dayGroup in
+                        SimpleDaySection(
                             date: dayGroup.date,
                             entries: dayGroup.entries,
-                            isExpanded: false,
-                            onTapCard: {
-                                withAnimation(Self.standardSpring) {
-                                    expandedDayDate = dayGroup.date
-                                    viewMode = .expanded
-                                }
-                            }
+                            theme: theme,
+                            onEntryTap: { selectedEntry = $0 },
+                            onToggleFavorite: { viewModel.toggleFavorite($0) },
+                            onSpeak: { ttsService.speakJournalEntry($0) },
+                            onDelete: { entry in withAnimation { viewModel.deleteEntry(entry) } },
+                            onAnalyze: { entryToAnalyze = $0 }
                         )
                         .id(dayGroup.date)
                     }
                 }
                 .padding(.horizontal, Spacing.lg)
-                .padding(.vertical)
+                .padding(.top, Spacing.sm)
+                .padding(.bottom, 100)
             }
-        }
-        .toolbar {
-            ToolbarItem(placement: .navigationBarLeading) {
-                if !entriesGroupedByDay.isEmpty && todayGroup != nil {
-                    Button {
-                        withAnimation(Self.standardSpring) {
-                            viewMode = .focused
-                        }
-                    } label: {
-                        HStack(spacing: 4) {
-                            Image(systemName: "arrow.up")
-                                .font(.caption)
-                            Text("Today")
-                                .font(.subheadline)
-                        }
-                        .foregroundStyle(.white.opacity(0.9))
-                    }
-                }
-            }
-        }
-    }
 
-    // MARK: - Expanded Day View (Fullscreen)
-
-    @ViewBuilder
-    private var expandedDayView: some View {
-        if let expandedDate = expandedDayDate,
-           let dayGroup = entriesGroupedByDay.first(where: { Calendar.current.isDate($0.date, inSameDayAs: expandedDate) }) {
-            ZStack(alignment: .topLeading) {
-                ScrollView {
-                    VStack(alignment: .leading, spacing: Spacing.lg) {
-                        // Expanded day content
-                        ExpandedDayContentView(
-                            date: dayGroup.date,
-                            entries: dayGroup.entries,
-                            theme: theme,
-                            onEntryTap: { entry in selectedEntry = entry },
-                            onToggleFavorite: { entry in viewModel.toggleFavorite(entry) },
-                            onSpeak: { entry in ttsService.speakJournalEntry(entry) },
-                            onDelete: { entry in
-                                withAnimation { viewModel.deleteEntry(entry) }
-                            },
-                            onAnalyze: { entry in entryToAnalyze = entry },
-                            onAnalyzeDay: { entries, date in
-                                dayToAnalyze = DayAnalysisData(entries: entries, date: date)
-                            }
-                        )
-                    }
-                    .padding(.horizontal, Spacing.lg)
-                    .padding(.vertical)
-                    .padding(.top, 60)
-                }
-
-                // Close button
-                Button {
-                    withAnimation(Self.standardSpring) {
-                        expandedDayDate = nil
-                        viewMode = todayGroup != nil ? .focused : .timeline
-                    }
-                } label: {
-                    Image(systemName: "xmark.circle.fill")
-                        .font(.title2)
-                        .foregroundStyle(.white.opacity(0.9))
-                        .padding()
-                }
-                .padding(.top, 8)
-            }
         }
     }
 
@@ -326,6 +168,162 @@ struct DynamicJournalView: View {
             }
         )
         .padding()
+    }
+}
+
+// MARK: - Simple Day Section
+
+struct SimpleDaySection: View {
+    let date: Date
+    let entries: [JournalEntry]
+    let theme: AppTheme
+    let onEntryTap: (JournalEntry) -> Void
+    let onToggleFavorite: (JournalEntry) -> Void
+    let onSpeak: (JournalEntry) -> Void
+    let onDelete: (JournalEntry) -> Void
+    let onAnalyze: (JournalEntry) -> Void
+
+    private var isToday: Bool {
+        Calendar.current.isDateInToday(date)
+    }
+
+    private var dateHeader: String {
+        if isToday {
+            return NSLocalizedString("time.today", comment: "")
+        } else if Calendar.current.isDateInYesterday(date) {
+            return NSLocalizedString("time.yesterday", comment: "")
+        } else {
+            let formatter = DateFormatter()
+            formatter.dateFormat = "EEEE, d MMMM yyyy"
+            return formatter.string(from: date)
+        }
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: Spacing.sm) {
+            // Date header
+            Text(dateHeader)
+                .font(.headline)
+                .fontWeight(.bold)
+                .foregroundStyle(.white.opacity(0.9))
+                .padding(.leading, Spacing.xs)
+
+            // Entries with timeline inside a card
+            VStack(alignment: .leading, spacing: 0) {
+                ForEach(Array(entries.enumerated()), id: \.element.id) { index, entry in
+                    SimpleTimelineEntry(
+                        entry: entry,
+                        isLast: index == entries.count - 1,
+                        theme: theme,
+                        onTap: { onEntryTap(entry) },
+                        onToggleFavorite: { onToggleFavorite(entry) },
+                        onSpeak: { onSpeak(entry) },
+                        onDelete: { onDelete(entry) },
+                        onAnalyze: { onAnalyze(entry) }
+                    )
+                }
+            }
+            .padding(Spacing.md)
+            .cardStyle(theme: theme)
+        }
+    }
+}
+
+// MARK: - Simple Timeline Entry
+
+struct SimpleTimelineEntry: View {
+    let entry: JournalEntry
+    let isLast: Bool
+    let theme: AppTheme
+    let onTap: () -> Void
+    let onToggleFavorite: () -> Void
+    let onSpeak: () -> Void
+    let onDelete: () -> Void
+    let onAnalyze: () -> Void
+
+    private var timeString: String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "h:mm a"
+        return formatter.string(from: entry.timestamp)
+    }
+
+    var body: some View {
+        if !entry.isDeleted {
+            HStack(alignment: .top, spacing: Spacing.md) {
+                // Timeline dot and line
+                VStack(spacing: 0) {
+                    Circle()
+                        .fill(theme.timelineColor)
+                        .frame(width: 10, height: 10)
+                        .shadow(color: theme.timelineColor.opacity(0.5), radius: 3)
+                        .padding(.top, 4)
+
+                    if !isLast {
+                        Rectangle()
+                            .fill(theme.timelineColor.opacity(0.3))
+                            .frame(width: 2)
+                            .frame(maxHeight: .infinity)
+                    }
+                }
+                .frame(width: 10)
+
+                // Entry content
+                VStack(alignment: .leading, spacing: Spacing.xs) {
+                    // Time
+                    Text(timeString)
+                        .font(.caption)
+                        .fontWeight(.medium)
+                        .foregroundStyle(theme.timelineColor)
+
+                    // Content - show full text
+                    Text(entry.content)
+                        .font(.body)
+                        .foregroundStyle(.white.opacity(0.9))
+                        .lineSpacing(4)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.bottom, isLast ? 0 : Spacing.lg)
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    HapticFeedback.light.trigger()
+                    onTap()
+                }
+                .contextMenu {
+                    Button {
+                        UIPasteboard.general.string = entry.content
+                        HapticFeedback.medium.trigger()
+                    } label: {
+                        Label("Copy", systemImage: "doc.on.doc")
+                    }
+
+                    Button {
+                        onToggleFavorite()
+                    } label: {
+                        Label(entry.isFavorite ? "Remove Bookmark" : "Bookmark", systemImage: entry.isFavorite ? "bookmark.slash" : "bookmark")
+                    }
+
+                    Button {
+                        onSpeak()
+                    } label: {
+                        Label("Read Aloud", systemImage: "speaker.wave.2")
+                    }
+
+                    Button {
+                        onAnalyze()
+                    } label: {
+                        Label("Analyze", systemImage: "sparkles")
+                    }
+
+                    Divider()
+
+                    Button(role: .destructive) {
+                        onDelete()
+                    } label: {
+                        Label("Delete", systemImage: "trash")
+                    }
+                }
+            }
+        }
     }
 }
 

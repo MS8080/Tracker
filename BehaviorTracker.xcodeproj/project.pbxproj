@@ -7,16 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		62D3B420DE494003AE3F8219 /* PatternRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 604D454BAF0B4C8796802E0F /* PatternRepository.swift */; };
-		9C02EA58B3F24E6486F08319 /* JournalRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD66769AF1B74950849A2216 /* JournalRepository.swift */; };
-		F7B660360CA64204AE5FF10A /* MedicationRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = E497D6F2B1274ECA93C1E8B8 /* MedicationRepository.swift */; };
-		5C9511DA626D4DAB99CD77FB /* UserProfileRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E025D0FB9664C37BB072F7C /* UserProfileRepository.swift */; };
 		46E432D065324F37847C842D /* SetupItemRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A498F6716094FAD8560F208 /* SetupItemRepository.swift */; };
-		MAC001PATREP00001 /* PatternRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 604D454BAF0B4C8796802E0F /* PatternRepository.swift */; };
-		MAC001JNLREP00001 /* JournalRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD66769AF1B74950849A2216 /* JournalRepository.swift */; };
-		MAC001MEDREP00001 /* MedicationRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = E497D6F2B1274ECA93C1E8B8 /* MedicationRepository.swift */; };
-		MAC001USRREP00001 /* UserProfileRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E025D0FB9664C37BB072F7C /* UserProfileRepository.swift */; };
-		MAC001SETREP00001 /* SetupItemRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A498F6716094FAD8560F208 /* SetupItemRepository.swift */; };
 		4E0091071EC1372900D8A0D1 /* Medication+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E0091072EC1372900D8A0D1 /* Medication+CoreDataClass.swift */; };
 		4E00910A2EC1372900D8A0D2 /* MedicationLog+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E00910A1EC1372900D8A0D1 /* MedicationLog+CoreDataClass.swift */; };
 		4E0091272EC1372900D8A0D1 /* LoggingViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E0091152EC1372900D8A0D1 /* LoggingViewModel.swift */; };
@@ -111,14 +102,14 @@
 		4ECAA0232ED4F22B002970C9 /* Validator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ECAA0212ED4F22B002970C9 /* Validator.swift */; };
 		4ECALSUP012EE0000000001 /* CalendarSupportingViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ECALSUP012EE0000000002 /* CalendarSupportingViews.swift */; };
 		4EDAYANAV0012EE0000000001 /* DayAnalysisView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EDAYANAV0012EE0000000002 /* DayAnalysisView.swift */; };
-		4EEXTPAT012EE0000000001 /* ExtractedPattern+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EEXTPAT012EE0000000002 /* ExtractedPattern+CoreDataClass.swift */; };
-		4EPATCAS012EE0000000001 /* PatternCascade+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EPATCAS012EE0000000002 /* PatternCascade+CoreDataClass.swift */; };
-		4EPATBANK012EE000000001 /* PatternBank.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EPATBANK012EE000000002 /* PatternBank.swift */; };
-		4EPATEXTR012EE000000001 /* PatternExtractionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EPATEXTR012EE000000002 /* PatternExtractionService.swift */; };
-		4EPATVIEW012EE000000001 /* PatternsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EPATVIEW012EE000000002 /* PatternsView.swift */; };
-		4EPATFLOW012EE000000001 /* PatternFlowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EPATFLOW012EE000000002 /* PatternFlowView.swift */; };
-		4EPATVM012EE0000000001 /* PatternsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EPATVM012EE0000000002 /* PatternsViewModel.swift */; };
+		4EDDAFC92EE31AC800116283 /* PatternRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 604D454BAF0B4C8796802E0F /* PatternRepository.swift */; };
+		4EDDAFCA2EE31AC800116283 /* JournalRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD66769AF1B74950849A2216 /* JournalRepository.swift */; };
+		4EDDAFCB2EE31AC800116283 /* MedicationRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = E497D6F2B1274ECA93C1E8B8 /* MedicationRepository.swift */; };
+		4EDDAFCC2EE31AC800116283 /* UserProfileRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E025D0FB9664C37BB072F7C /* UserProfileRepository.swift */; };
+		4EDDAFCD2EE31AC800116283 /* SetupItemRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A498F6716094FAD8560F208 /* SetupItemRepository.swift */; };
+		4EDDAFDD2EE32D3C00116283 /* Toolbar+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EDDAFDC2EE32D3C00116283 /* Toolbar+Extensions.swift */; };
 		4EEDITPROF012EE000000001 /* EditProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EEDITPROF012EE000000002 /* EditProfileView.swift */; };
+		4EEXTPAT012EE0000000001 /* ExtractedPattern+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EEXTPAT012EE0000000002 /* ExtractedPattern+CoreDataClass.swift */; };
 		4EF642062ECBA50F0055E3FB /* MedicationViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EF642052ECBA50F0055E3FB /* MedicationViewModel.swift */; };
 		4EFEEL0012EE0000000001 /* FeelingFinderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EFEEL0012EE0000000002 /* FeelingFinderView.swift */; };
 		4EFEEL0012EE0000000005 /* FeelingFinderStepViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EFEEL0012EE0000000003 /* FeelingFinderStepViews.swift */; };
@@ -143,6 +134,12 @@
 		4ENEW00012EE0000000000005 /* WeeklyReportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ENEW00012EE0000000000002 /* WeeklyReportView.swift */; };
 		4ENEW00012EE0000000000006 /* MonthlyReportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ENEW00012EE0000000000003 /* MonthlyReportView.swift */; };
 		4ENOTIFSET012EE000000001 /* NotificationSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ENOTIFSET012EE000000002 /* NotificationSettingsView.swift */; };
+		4EPATBANK012EE000000001 /* PatternBank.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EPATBANK012EE000000002 /* PatternBank.swift */; };
+		4EPATCAS012EE0000000001 /* PatternCascade+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EPATCAS012EE0000000002 /* PatternCascade+CoreDataClass.swift */; };
+		4EPATEXTR012EE000000001 /* PatternExtractionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EPATEXTR012EE000000002 /* PatternExtractionService.swift */; };
+		4EPATFLOW012EE000000001 /* PatternFlowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EPATFLOW012EE000000002 /* PatternFlowView.swift */; };
+		4EPATVIEW012EE000000001 /* PatternsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EPATVIEW012EE000000002 /* PatternsView.swift */; };
+		4EPATVM012EE0000000001 /* PatternsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EPATVM012EE0000000002 /* PatternsViewModel.swift */; };
 		4EPROF0012EE0000000000001 /* ProfileContainerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EPROF0012EE0000000000002 /* ProfileContainerView.swift */; };
 		4EPROFSUP012EE0000000001 /* ProfileSupportingViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EPROFSUP012EE0000000002 /* ProfileSupportingViews.swift */; };
 		4ESETSUP012EE0000001 /* SettingsSupportingViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ESETSUP012EE0000002 /* SettingsSupportingViews.swift */; };
@@ -156,10 +153,14 @@
 		4ETTS00012EE0000000000001 /* TextToSpeechService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ETTS00012EE0000000000002 /* TextToSpeechService.swift */; };
 		4EVOICEREC012EE0000001 /* VoiceRecorderComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EVOICEREC012EE0000002 /* VoiceRecorderComponents.swift */; };
 		4EWHISPER00012EE000000001 /* WhisperTranscriptionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EWHISPER00012EE000000002 /* WhisperTranscriptionService.swift */; };
+		5C9511DA626D4DAB99CD77FB /* UserProfileRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E025D0FB9664C37BB072F7C /* UserProfileRepository.swift */; };
+		62D3B420DE494003AE3F8219 /* PatternRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 604D454BAF0B4C8796802E0F /* PatternRepository.swift */; };
+		9C02EA58B3F24E6486F08319 /* JournalRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD66769AF1B74950849A2216 /* JournalRepository.swift */; };
 		A3B6464C00000001 /* BehaviorTrackerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3B6464C00000002 /* BehaviorTrackerApp.swift */; };
 		A3B6464C00000003 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3B6464C00000004 /* ContentView.swift */; };
 		A3B6464C00000005 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A3B6464C00000006 /* Assets.xcassets */; };
 		A3B6464C00000007 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A3B6464C00000008 /* Preview Assets.xcassets */; };
+		F7B660360CA64204AE5FF10A /* MedicationRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = E497D6F2B1274ECA93C1E8B8 /* MedicationRepository.swift */; };
 		MAC0001000000002 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3B6464C00000004 /* ContentView.swift */; };
 		MAC0001000000003 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A3B6464C00000006 /* Assets.xcassets */; };
 		MAC0001000000004 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A3B6464C00000008 /* Preview Assets.xcassets */; };
@@ -219,10 +220,14 @@
 		MAC001EDITPROF00001 /* EditProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EEDITPROF012EE000000002 /* EditProfileView.swift */; };
 		MAC001HOMESUP00001 /* HomeSupportingViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EHOMESUP012EE0000002 /* HomeSupportingViews.swift */; };
 		MAC001IMPSUP00001 /* ImportMedicationsSupportingViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EIMPSUP012EE0000002 /* ImportMedicationsSupportingViews.swift */; };
+		MAC001JNLREP00001 /* JournalRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD66769AF1B74950849A2216 /* JournalRepository.swift */; };
 		MAC001JRNLANAV01 /* JournalEntryAnalysisView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EJRNLANAV0012EE000000002 /* JournalEntryAnalysisView.swift */; };
 		MAC001LOGBTN000001 /* LoggingButtonComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ELOGBTN012EE0000002 /* LoggingButtonComponents.swift */; };
+		MAC001MEDREP00001 /* MedicationRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = E497D6F2B1274ECA93C1E8B8 /* MedicationRepository.swift */; };
 		MAC001NOTIFSET0001 /* NotificationSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ENOTIFSET012EE000000002 /* NotificationSettingsView.swift */; };
+		MAC001PATREP00001 /* PatternRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 604D454BAF0B4C8796802E0F /* PatternRepository.swift */; };
 		MAC001PROFSUP00001 /* ProfileSupportingViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EPROFSUP012EE0000000002 /* ProfileSupportingViews.swift */; };
+		MAC001SETREP00001 /* SetupItemRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A498F6716094FAD8560F208 /* SetupItemRepository.swift */; };
 		MAC001SETSUP00001 /* SettingsSupportingViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ESETSUP012EE0000002 /* SettingsSupportingViews.swift */; };
 		MAC001SETUP000001 /* SetupItem+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ESETUP0012EE0000000002 /* SetupItem+Extensions.swift */; };
 		MAC001SETUPCARD01 /* CurrentSetupCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ESETUPCARD012EE000002 /* CurrentSetupCard.swift */; };
@@ -231,7 +236,10 @@
 		MAC001SPRECOG00001 /* SpeechRecognitionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ESPRECOG012EE0000002 /* SpeechRecognitionService.swift */; };
 		MAC001THEME0000001 /* AppTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ETHEME0012EE0000000001 /* AppTheme.swift */; };
 		MAC001TIMECOMP01 /* JournalTimelineComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ETIMECOMP012EE0000000002 /* JournalTimelineComponents.swift */; };
+		MAC001USRREP00001 /* UserProfileRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E025D0FB9664C37BB072F7C /* UserProfileRepository.swift */; };
 		MAC001VOICEREC0001 /* VoiceRecorderComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EVOICEREC012EE0000002 /* VoiceRecorderComponents.swift */; };
+		TB001EXT00000002 /* Toolbar+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = TB001EXT00000001 /* Toolbar+Extensions.swift */; };
+		TB001EXT00000003 /* Toolbar+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = TB001EXT00000001 /* Toolbar+Extensions.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -259,11 +267,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		604D454BAF0B4C8796802E0F /* PatternRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatternRepository.swift; sourceTree = "<group>"; };
-		AD66769AF1B74950849A2216 /* JournalRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JournalRepository.swift; sourceTree = "<group>"; };
-		E497D6F2B1274ECA93C1E8B8 /* MedicationRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MedicationRepository.swift; sourceTree = "<group>"; };
 		3E025D0FB9664C37BB072F7C /* UserProfileRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserProfileRepository.swift; sourceTree = "<group>"; };
-		5A498F6716094FAD8560F208 /* SetupItemRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetupItemRepository.swift; sourceTree = "<group>"; };
 		4E0091062EC1372900D8A0D1 /* PatternEntry+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PatternEntry+CoreDataClass.swift"; sourceTree = "<group>"; };
 		4E0091072EC1372900D8A0D1 /* Medication+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Medication+CoreDataClass.swift"; sourceTree = "<group>"; };
 		4E0091082EC1372900D8A0D1 /* Tag+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Tag+CoreDataClass.swift"; sourceTree = "<group>"; };
@@ -334,14 +338,9 @@
 		4ECAA0212ED4F22B002970C9 /* Validator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Validator.swift; sourceTree = "<group>"; };
 		4ECALSUP012EE0000000002 /* CalendarSupportingViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarSupportingViews.swift; sourceTree = "<group>"; };
 		4EDAYANAV0012EE0000000002 /* DayAnalysisView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DayAnalysisView.swift; sourceTree = "<group>"; };
-		4EEXTPAT012EE0000000002 /* ExtractedPattern+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ExtractedPattern+CoreDataClass.swift"; sourceTree = "<group>"; };
-		4EPATCAS012EE0000000002 /* PatternCascade+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PatternCascade+CoreDataClass.swift"; sourceTree = "<group>"; };
-		4EPATBANK012EE000000002 /* PatternBank.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatternBank.swift; sourceTree = "<group>"; };
-		4EPATEXTR012EE000000002 /* PatternExtractionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatternExtractionService.swift; sourceTree = "<group>"; };
-		4EPATVIEW012EE000000002 /* PatternsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatternsView.swift; sourceTree = "<group>"; };
-		4EPATFLOW012EE000000002 /* PatternFlowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatternFlowView.swift; sourceTree = "<group>"; };
-		4EPATVM012EE0000000002 /* PatternsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatternsViewModel.swift; sourceTree = "<group>"; };
+		4EDDAFDC2EE32D3C00116283 /* Toolbar+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Toolbar+Extensions.swift"; sourceTree = "<group>"; };
 		4EEDITPROF012EE000000002 /* EditProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditProfileView.swift; sourceTree = "<group>"; };
+		4EEXTPAT012EE0000000002 /* ExtractedPattern+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ExtractedPattern+CoreDataClass.swift"; sourceTree = "<group>"; };
 		4EF642052ECBA50F0055E3FB /* MedicationViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MedicationViewModel.swift; sourceTree = "<group>"; };
 		4EFEEL0012EE0000000002 /* FeelingFinderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeelingFinderView.swift; sourceTree = "<group>"; };
 		4EFEEL0012EE0000000003 /* FeelingFinderStepViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeelingFinderStepViews.swift; sourceTree = "<group>"; };
@@ -365,6 +364,12 @@
 		4ENEW00012EE0000000000002 /* WeeklyReportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeeklyReportView.swift; sourceTree = "<group>"; };
 		4ENEW00012EE0000000000003 /* MonthlyReportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MonthlyReportView.swift; sourceTree = "<group>"; };
 		4ENOTIFSET012EE000000002 /* NotificationSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationSettingsView.swift; sourceTree = "<group>"; };
+		4EPATBANK012EE000000002 /* PatternBank.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatternBank.swift; sourceTree = "<group>"; };
+		4EPATCAS012EE0000000002 /* PatternCascade+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PatternCascade+CoreDataClass.swift"; sourceTree = "<group>"; };
+		4EPATEXTR012EE000000002 /* PatternExtractionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatternExtractionService.swift; sourceTree = "<group>"; };
+		4EPATFLOW012EE000000002 /* PatternFlowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatternFlowView.swift; sourceTree = "<group>"; };
+		4EPATVIEW012EE000000002 /* PatternsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatternsView.swift; sourceTree = "<group>"; };
+		4EPATVM012EE0000000002 /* PatternsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatternsViewModel.swift; sourceTree = "<group>"; };
 		4EPROF0012EE0000000000002 /* ProfileContainerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileContainerView.swift; sourceTree = "<group>"; };
 		4EPROFSUP012EE0000000002 /* ProfileSupportingViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileSupportingViews.swift; sourceTree = "<group>"; };
 		4ESETSUP012EE0000002 /* SettingsSupportingViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsSupportingViews.swift; sourceTree = "<group>"; };
@@ -378,12 +383,17 @@
 		4ETTS00012EE0000000000002 /* TextToSpeechService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextToSpeechService.swift; sourceTree = "<group>"; };
 		4EVOICEREC012EE0000002 /* VoiceRecorderComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceRecorderComponents.swift; sourceTree = "<group>"; };
 		4EWHISPER00012EE000000002 /* WhisperTranscriptionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhisperTranscriptionService.swift; sourceTree = "<group>"; };
+		5A498F6716094FAD8560F208 /* SetupItemRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetupItemRepository.swift; sourceTree = "<group>"; };
+		604D454BAF0B4C8796802E0F /* PatternRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatternRepository.swift; sourceTree = "<group>"; };
 		619FF56700000001 /* BehaviorTracker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BehaviorTracker.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A3B6464C00000002 /* BehaviorTrackerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BehaviorTrackerApp.swift; sourceTree = "<group>"; };
 		A3B6464C00000004 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		A3B6464C00000006 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		A3B6464C00000008 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
+		AD66769AF1B74950849A2216 /* JournalRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JournalRepository.swift; sourceTree = "<group>"; };
+		E497D6F2B1274ECA93C1E8B8 /* MedicationRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MedicationRepository.swift; sourceTree = "<group>"; };
 		MAC0001000000100 /* BehaviorTracker-macOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "BehaviorTracker-macOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		TB001EXT00000001 /* Toolbar+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Toolbar+Extensions.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -429,18 +439,6 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		8C318D291DB24C8FAFF24F1A /* Repositories */ = {
-			isa = PBXGroup;
-			children = (
-				604D454BAF0B4C8796802E0F /* PatternRepository.swift */,
-				AD66769AF1B74950849A2216 /* JournalRepository.swift */,
-				E497D6F2B1274ECA93C1E8B8 /* MedicationRepository.swift */,
-				3E025D0FB9664C37BB072F7C /* UserProfileRepository.swift */,
-				5A498F6716094FAD8560F208 /* SetupItemRepository.swift */,
-			);
-			path = Repositories;
-			sourceTree = "<group>";
-		};
 		4E00910A2EC1372900D8A0D1 /* Models */ = {
 			isa = PBXGroup;
 			children = (
@@ -493,6 +491,7 @@
 		4E0091122EC1372900D8A0D1 /* Utilities */ = {
 			isa = PBXGroup;
 			children = (
+				TB001EXT00000001 /* Toolbar+Extensions.swift */,
 				4E3591CF2ED63823000A5E74 /* Color+Extensions.swift */,
 				4ECAA0212ED4F22B002970C9 /* Validator.swift */,
 				4E00910E2EC1372900D8A0D1 /* Accessibility+Extensions.swift */,
@@ -578,15 +577,6 @@
 			path = Settings;
 			sourceTree = "<group>";
 		};
-		4EPATGRP012EE0000000001 /* Patterns */ = {
-			isa = PBXGroup;
-			children = (
-				4EPATVIEW012EE000000002 /* PatternsView.swift */,
-				4EPATFLOW012EE000000002 /* PatternFlowView.swift */,
-			);
-			path = Patterns;
-			sourceTree = "<group>";
-		};
 		4E0091252EC1372900D8A0D1 /* Views */ = {
 			isa = PBXGroup;
 			children = (
@@ -667,6 +657,15 @@
 			path = Medications;
 			sourceTree = "<group>";
 		};
+		4EPATGRP012EE0000000001 /* Patterns */ = {
+			isa = PBXGroup;
+			children = (
+				4EPATVIEW012EE000000002 /* PatternsView.swift */,
+				4EPATFLOW012EE000000002 /* PatternFlowView.swift */,
+			);
+			path = Patterns;
+			sourceTree = "<group>";
+		};
 		4EPROF0012EE0000000000003 /* Profile */ = {
 			isa = PBXGroup;
 			children = (
@@ -687,6 +686,7 @@
 				4E3591DC2ED63C03000A5E74 /* TrackerWidgets */,
 				4E3591D72ED63C03000A5E74 /* Frameworks */,
 				7990D6AB00000003 /* Products */,
+				4EDDAFDC2EE32D3C00116283 /* Toolbar+Extensions.swift */,
 			);
 			sourceTree = "<group>";
 		};
@@ -727,6 +727,18 @@
 				A3B6464C00000008 /* Preview Assets.xcassets */,
 			);
 			path = "Preview Content";
+			sourceTree = "<group>";
+		};
+		8C318D291DB24C8FAFF24F1A /* Repositories */ = {
+			isa = PBXGroup;
+			children = (
+				604D454BAF0B4C8796802E0F /* PatternRepository.swift */,
+				AD66769AF1B74950849A2216 /* JournalRepository.swift */,
+				E497D6F2B1274ECA93C1E8B8 /* MedicationRepository.swift */,
+				3E025D0FB9664C37BB072F7C /* UserProfileRepository.swift */,
+				5A498F6716094FAD8560F208 /* SetupItemRepository.swift */,
+			);
+			path = Repositories;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -876,13 +888,15 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				);
+				4EDDAFDD2EE32D3C00116283 /* Toolbar+Extensions.swift in Sources */,
+			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		62FC608100000003 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				TB001EXT00000002 /* Toolbar+Extensions.swift in Sources */,
 				62D3B420DE494003AE3F8219 /* PatternRepository.swift in Sources */,
 				9C02EA58B3F24E6486F08319 /* JournalRepository.swift in Sources */,
 				F7B660360CA64204AE5FF10A /* MedicationRepository.swift in Sources */,
@@ -1001,16 +1015,17 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-								MAC001PATREP00001 /* PatternRepository.swift in Sources */,
+				TB001EXT00000003 /* Toolbar+Extensions.swift in Sources */,
+				MAC001PATREP00001 /* PatternRepository.swift in Sources */,
 				MAC001JNLREP00001 /* JournalRepository.swift in Sources */,
 				MAC001MEDREP00001 /* MedicationRepository.swift in Sources */,
 				MAC001USRREP00001 /* UserProfileRepository.swift in Sources */,
 				MAC001SETREP00001 /* SetupItemRepository.swift in Sources */,
-62D3B420DE494003AE3F8219 /* PatternRepository.swift in Sources */,
-				9C02EA58B3F24E6486F08319 /* JournalRepository.swift in Sources */,
-				F7B660360CA64204AE5FF10A /* MedicationRepository.swift in Sources */,
-				5C9511DA626D4DAB99CD77FB /* UserProfileRepository.swift in Sources */,
-				46E432D065324F37847C842D /* SetupItemRepository.swift in Sources */,
+				4EDDAFC92EE31AC800116283 /* PatternRepository.swift in Sources */,
+				4EDDAFCA2EE31AC800116283 /* JournalRepository.swift in Sources */,
+				4EDDAFCB2EE31AC800116283 /* MedicationRepository.swift in Sources */,
+				4EDDAFCC2EE31AC800116283 /* UserProfileRepository.swift in Sources */,
+				4EDDAFCD2EE31AC800116283 /* SetupItemRepository.swift in Sources */,
 				MAC0001000000002 /* ContentView.swift in Sources */,
 				MAC0001000000005 /* DataController.swift in Sources */,
 				MAC0001000000006 /* ReportGenerator.swift in Sources */,

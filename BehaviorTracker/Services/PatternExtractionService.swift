@@ -8,6 +8,11 @@ class PatternExtractionService {
 
     private init() {}
 
+    /// Check if the service is configured (has API key)
+    var isConfigured: Bool {
+        geminiService.isConfigured
+    }
+
     // MARK: - Extraction Response Models
 
     struct ExtractionResult: Codable {
@@ -187,6 +192,77 @@ class PatternExtractionService {
         }
 
         return cleaned.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    // MARK: - Daily Summary Generation
+
+    struct DailySummaryResult: Codable {
+        let summary: String
+        let dominantPatterns: [String]
+        let recommendations: [String]?
+
+        enum CodingKeys: String, CodingKey {
+            case summary
+            case dominantPatterns = "dominant_patterns"
+            case recommendations
+        }
+    }
+
+    /// Generate a holistic summary of all patterns for a day
+    func generateDailySummary(patterns: [ExtractedPattern]) async throws -> DailySummaryResult {
+        guard geminiService.isConfigured else {
+            throw ExtractionError.noAPIKey
+        }
+
+        guard !patterns.isEmpty else {
+            throw ExtractionError.noPatterns
+        }
+
+        // Format patterns for the prompt
+        let patternDescriptions = patterns.map { pattern -> String in
+            let formatter = DateFormatter()
+            formatter.timeStyle = .short
+            let time = formatter.string(from: pattern.timestamp)
+
+            var desc = "- \(pattern.patternType) (Category: \(pattern.category), Intensity: \(pattern.intensity)/10, Time: \(time))"
+            if let details = pattern.details, !details.isEmpty {
+                desc += "\n  Details: \(details)"
+            }
+            if !pattern.triggers.isEmpty {
+                desc += "\n  Triggers: \(pattern.triggers.joined(separator: ", "))"
+            }
+            return desc
+        }.joined(separator: "\n\n")
+
+        let summaryPrompt = """
+        You are analyzing a full day's worth of autism/PDA-related patterns for someone tracking their experiences.
+
+        TODAY'S PATTERNS:
+
+        \(patternDescriptions)
+
+        ---
+
+        Generate a warm, supportive daily summary. Write as if speaking directly to the person.
+        Be compassionate and acknowledge their experiences without being clinical.
+        Focus on patterns, not problems. Highlight any positive coping observed.
+
+        Return ONLY valid JSON:
+        {
+          "summary": "A 2-3 sentence holistic summary of the day's patterns, written warmly and supportively",
+          "dominant_patterns": ["Most significant pattern type", "Second most significant"],
+          "recommendations": ["Optional gentle suggestion based on patterns observed"]
+        }
+        """
+
+        let response = try await geminiService.generateContent(prompt: summaryPrompt)
+        let cleaned = cleanJSONResponse(response)
+
+        guard let data = cleaned.data(using: .utf8) else {
+            throw ExtractionError.invalidResponse
+        }
+
+        return try JSONDecoder().decode(DailySummaryResult.self, from: data)
     }
 
     // MARK: - Validation

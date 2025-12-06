@@ -178,16 +178,26 @@ struct WeeklyReportView: View {
     // MARK: - Helpers
 
     private func colorForCategory(_ category: String) -> Color {
-        switch category {
-        case "Sensory": return .red
-        case "Executive Function": return .orange
-        case "Energy & Regulation": return .purple
-        case "Social & Communication": return .blue
-        case "Routine & Change": return .yellow
-        case "Demand Avoidance": return .pink
-        case "Physical & Sleep": return .green
-        case "Special Interests": return .cyan
-        default: return .gray
+        let lowercased = category.lowercased()
+
+        if lowercased.contains("sensory") {
+            return .red
+        } else if lowercased.contains("executive") {
+            return .orange
+        } else if lowercased.contains("energy") || lowercased.contains("regulation") {
+            return .purple
+        } else if lowercased.contains("social") || lowercased.contains("communication") {
+            return .blue
+        } else if lowercased.contains("routine") || lowercased.contains("change") {
+            return .yellow
+        } else if lowercased.contains("demand") || lowercased.contains("pda") || lowercased.contains("avoidance") {
+            return .pink
+        } else if lowercased.contains("physical") || lowercased.contains("sleep") {
+            return .green
+        } else if lowercased.contains("special") || lowercased.contains("interest") {
+            return .cyan
+        } else {
+            return .gray
         }
     }
 }

@@ -32,33 +32,26 @@ struct ContentView: View {
                 }
                 .tag(0)
 
-            LoggingView(showingProfile: $showingProfile)
-                .themedBackground()
-                .tabItem {
-                    Label(NSLocalizedString("tab.log", comment: ""), systemImage: "plus.circle.fill")
-                }
-                .tag(1)
-
             DynamicJournalView(showingProfile: $showingProfile)
                 .themedBackground()
                 .tabItem {
                     Label(NSLocalizedString("tab.journal", comment: ""), systemImage: "book.fill")
                 }
-                .tag(2)
+                .tag(1)
 
             PatternsView(showingProfile: $showingProfile)
                 .themedBackground()
                 .tabItem {
                     Label("Patterns", systemImage: "point.topleft.down.to.point.bottomright.curvepath.fill")
                 }
-                .tag(3)
+                .tag(2)
 
             ReportsView(showingProfile: $showingProfile)
                 .themedBackground()
                 .tabItem {
                     Label(NSLocalizedString("tab.reports", comment: ""), systemImage: "chart.bar.doc.horizontal")
                 }
-                .tag(4)
+                .tag(3)
         }
         .onAppear {
             configureTabBarAppearance()

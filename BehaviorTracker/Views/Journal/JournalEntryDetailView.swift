@@ -9,7 +9,6 @@ struct JournalEntryDetailView: View {
     @Environment(\.dismiss) private var dismiss
 
     // Editable state
-    @State private var title: String
     @State private var content: String
     @State private var hasChanges = false
     @State private var showingAnalysis = false
@@ -26,7 +25,6 @@ struct JournalEntryDetailView: View {
     init(entry: JournalEntry, onDelete: @escaping () -> Void) {
         self.entry = entry
         self.onDelete = onDelete
-        _title = State(initialValue: entry.title ?? "")
         _content = State(initialValue: entry.content)
     }
 
@@ -52,7 +50,7 @@ struct JournalEntryDetailView: View {
                     .ignoresSafeArea()
 
                 ScrollView {
-                    VStack(alignment: .leading, spacing: 16) {
+                    VStack(alignment: .leading, spacing: Spacing.md) {
                         // Date header
                         HStack {
                             Label(entry.formattedDate, systemImage: "calendar")
@@ -68,38 +66,26 @@ struct JournalEntryDetailView: View {
                             }
                         }
 
-                        // Title field
-                        TextField("Add a title (optional)", text: $title)
-                            .font(.title3)
-                            .fontWeight(.semibold)
-                            .foregroundStyle(.white.opacity(0.95))
-                            .onChange(of: title) { _, _ in hasChanges = true }
-
-                        Divider()
-                            .background(.white.opacity(0.2))
-
                         // Voice Note Playback (if exists)
                         if entry.hasVoiceNote {
                             voiceNotePlaybackSection
-                            Divider()
-                                .background(.white.opacity(0.2))
                         }
 
                         // Content - directly editable
                         ZStack(alignment: .topLeading) {
                             if content.isEmpty && !isContentFocused {
                                 Text("Write your thoughts here...")
-                                    .font(.callout)
-                                    .foregroundStyle(.white.opacity(0.5))
+                                    .font(.body)
+                                    .foregroundStyle(.white.opacity(0.4))
                                     .padding(.top, 8)
-                                    .padding(.leading, 4)
+                                    .padding(.leading, 5)
                             }
 
                             TextEditor(text: $content)
-                                .font(.callout)
-                                .lineSpacing(4)
-                                .foregroundStyle(.white.opacity(0.9))
-                                .frame(minHeight: isContentFocused ? 300 : 200)
+                                .font(.body)
+                                .lineSpacing(5)
+                                .foregroundStyle(.white.opacity(0.95))
+                                .frame(minHeight: 300)
                                 .focused($isContentFocused)
                                 .onChange(of: content) { _, _ in hasChanges = true }
                                 .scrollContentBackground(.hidden)
@@ -107,87 +93,93 @@ struct JournalEntryDetailView: View {
 
                         // Related items
                         if entry.relatedPatternEntry != nil || entry.relatedMedicationLog != nil {
-                            Divider()
-                                .background(.white.opacity(0.2))
                             relatedItemsSection
                         }
                     }
-                    .padding(20)
-                    .cardStyle(theme: theme)
-                    .padding()
+                    .padding(.horizontal, Spacing.lg)
+                    .padding(.vertical, Spacing.md)
                 }
+                .scrollDismissesKeyboard(.interactively)
             }
             .navigationTitle("Journal Entry")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button(hasChanges ? "Cancel" : "Done") {
+                    Button {
                         if hasChanges {
-                            // Discard changes
-                            title = entry.title ?? ""
                             content = entry.content
                             hasChanges = false
                         }
                         dismiss()
+                    } label: {
+                        Text(hasChanges ? "Cancel" : "Done")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundStyle(.white)
                     }
-                    .foregroundStyle(.white)
+                }
+
+                if hasChanges {
+                    ToolbarItem(placement: .confirmationAction) {
+                        Button {
+                            saveChanges()
+                        } label: {
+                            Image(systemName: "checkmark")
+                                .font(.system(size: 18, weight: .semibold))
+                                .foregroundStyle(.white)
+                                .frame(width: 44, height: 44)
+                        }
+                        .buttonStyle(.plain)
+                        .modifier(CircularGlassModifier())
+                    }
+                    .hideSharedBackground()
                 }
 
                 ToolbarItem(placement: .primaryAction) {
-                    HStack(spacing: 16) {
-                        if hasChanges {
-                            Button {
-                                saveChanges()
-                            } label: {
-                                Image(systemName: "checkmark")
-                                    .fontWeight(.semibold)
-                                    .foregroundStyle(.green)
-                            }
-                        }
-
-                        Menu {
-                            Button {
-                                toggleFavorite()
-                            } label: {
-                                Label(
-                                    entry.isFavorite ? "Remove Bookmark" : "Bookmark",
-                                    systemImage: entry.isFavorite ? "bookmark.slash" : "bookmark"
-                                )
-                            }
-
-                            Button {
-                                showingAnalysis = true
-                            } label: {
-                                Label("Analyze Entry", systemImage: "sparkles")
-                            }
-
-                            Button {
-                                loadDayAnalysis()
-                            } label: {
-                                Label("Analyze Day", systemImage: "calendar.badge.sparkles")
-                            }
-
-                            Button {
-                                ttsService.speakJournalEntry(entry)
-                            } label: {
-                                Label("Read Aloud", systemImage: "speaker.wave.2")
-                            }
-
-                            Divider()
-
-                            Button(role: .destructive) {
-                                deleteEntry()
-                            } label: {
-                                Label("Delete", systemImage: "trash")
-                            }
+                    Menu {
+                        Button {
+                            toggleFavorite()
                         } label: {
-                            Image(systemName: "ellipsis.circle")
-                                .font(.title3)
-                                .foregroundStyle(.white)
+                            Label(
+                                entry.isFavorite ? "Remove Bookmark" : "Bookmark",
+                                systemImage: entry.isFavorite ? "bookmark.slash" : "bookmark"
+                            )
                         }
-                    }
-                }
 
+                        Button {
+                            showingAnalysis = true
+                        } label: {
+                            Label("Analyze Entry", systemImage: "sparkles")
+                        }
+
+                        Button {
+                            loadDayAnalysis()
+                        } label: {
+                            Label("Analyze Day", systemImage: "calendar.badge.sparkles")
+                        }
+
+                        Button {
+                            ttsService.speakJournalEntry(entry)
+                        } label: {
+                            Label("Read Aloud", systemImage: "speaker.wave.2")
+                        }
+
+                        Divider()
+
+                        Button(role: .destructive) {
+                            deleteEntry()
+                        } label: {
+                            Label("Delete", systemImage: "trash")
+                        }
+                    } label: {
+                        Image(systemName: "ellipsis")
+                            .font(.system(size: 18, weight: .semibold))
+                            .foregroundStyle(.white)
+                            .frame(width: 44, height: 44)
+                    }
+                    .buttonStyle(.plain)
+                    .modifier(CircularGlassModifier())
+                }
+                .hideSharedBackground()
             }
             .onDisappear {
                 // Auto-save on dismiss if there are changes
@@ -214,10 +206,11 @@ struct JournalEntryDetailView: View {
             HStack {
                 Image(systemName: "waveform")
                     .font(.title2)
-                    .foregroundColor(.blue)
+                    .foregroundStyle(theme.primaryColor)
 
                 Text("Voice Note")
                     .font(.headline)
+                    .foregroundStyle(.white)
 
                 Spacer()
 
@@ -225,7 +218,7 @@ struct JournalEntryDetailView: View {
                    let duration = audioService.getAudioDuration(fileName: fileName) {
                     Text(audioService.formatTime(duration))
                         .font(.subheadline)
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(.white.opacity(0.6))
                 }
             }
 
@@ -240,13 +233,13 @@ struct JournalEntryDetailView: View {
                     } label: {
                         Image(systemName: audioService.isPlaying ? "pause.circle.fill" : "play.circle.fill")
                             .font(.system(size: 50))
-                            .foregroundColor(.blue)
+                            .foregroundStyle(theme.primaryColor)
                     }
 
                     VStack(alignment: .leading, spacing: 4) {
                         if audioService.isPlaying || audioService.playbackTime > 0 {
                             ProgressView(value: audioService.playbackTime, total: audioService.playbackDuration)
-                                .tint(.blue)
+                                .tint(theme.primaryColor)
 
                             HStack {
                                 Text(audioService.formatTime(audioService.playbackTime))
@@ -254,11 +247,11 @@ struct JournalEntryDetailView: View {
                                 Text(audioService.formatTime(audioService.playbackDuration))
                             }
                             .font(.caption)
-                            .foregroundColor(.secondary)
+                            .foregroundStyle(.white.opacity(0.6))
                         } else {
                             Text("Tap to play voice note")
                                 .font(.subheadline)
-                                .foregroundColor(.secondary)
+                                .foregroundStyle(.white.opacity(0.6))
                         }
                     }
 
@@ -268,32 +261,33 @@ struct JournalEntryDetailView: View {
                         } label: {
                             Image(systemName: "stop.circle.fill")
                                 .font(.system(size: 32))
-                                .foregroundColor(.red)
+                                .foregroundStyle(.red)
                         }
                     }
                 }
             }
         }
         .padding()
-        .background(Color(.systemGray6))
-        .cornerRadius(12)
+        .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: CornerRadius.md))
     }
 
     private var relatedItemsSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Related Items")
                 .font(.headline)
+                .foregroundStyle(.white)
 
             if let pattern = entry.relatedPatternEntry {
                 HStack {
                     Image(systemName: "chart.line.uptrend.xyaxis")
-                        .foregroundColor(.purple)
+                        .foregroundStyle(theme.primaryColor)
                     VStack(alignment: .leading) {
                         Text("Related Pattern")
                             .font(.caption)
-                            .foregroundColor(.secondary)
+                            .foregroundStyle(.white.opacity(0.6))
                         Text(pattern.patternType)
                             .font(.subheadline)
+                            .foregroundStyle(.white.opacity(0.9))
                     }
                 }
             }
@@ -301,14 +295,15 @@ struct JournalEntryDetailView: View {
             if let medication = entry.relatedMedicationLog {
                 HStack {
                     Image(systemName: "pills.fill")
-                        .foregroundColor(.green)
+                        .foregroundStyle(.green)
                     VStack(alignment: .leading) {
                         Text("Related Medication Log")
                             .font(.caption)
-                            .foregroundColor(.secondary)
+                            .foregroundStyle(.white.opacity(0.6))
                         if let medName = medication.medication?.name {
                             Text(medName)
                                 .font(.subheadline)
+                                .foregroundStyle(.white.opacity(0.9))
                         }
                     }
                 }
@@ -319,7 +314,6 @@ struct JournalEntryDetailView: View {
     private func saveChanges() {
         guard !content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
 
-        entry.title = title.isEmpty ? nil : title
         entry.content = content
         DataController.shared.updateJournalEntry(entry)
         hasChanges = false

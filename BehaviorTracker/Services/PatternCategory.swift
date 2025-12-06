@@ -11,6 +11,7 @@ enum PatternCategory: String, CaseIterable, Codable {
     case routineChange = "Routine & Change"
     case demandAvoidance = "Demand Avoidance"
     case physicalWellbeing = "Physical & Sleep"
+    case positiveCoping = "Positive & Coping"
 
     var icon: String {
         switch self {
@@ -28,6 +29,8 @@ enum PatternCategory: String, CaseIterable, Codable {
             return "hand.raised.circle"
         case .physicalWellbeing:
             return "heart.circle"
+        case .positiveCoping:
+            return "sun.max.circle"
         }
     }
 
@@ -47,9 +50,11 @@ enum PatternCategory: String, CaseIterable, Codable {
             return .yellow
         case .physicalWellbeing:
             return .indigo
+        case .positiveCoping:
+            return .mint
         }
     }
-    
+
     var description: String {
         switch self {
         case .sensory:
@@ -66,6 +71,8 @@ enum PatternCategory: String, CaseIterable, Codable {
             return "Avoided tasks, autonomy needs"
         case .physicalWellbeing:
             return "Sleep, appetite, tension, digestion"
+        case .positiveCoping:
+            return "Wins, joy, calm, connection, progress"
         }
     }
 }

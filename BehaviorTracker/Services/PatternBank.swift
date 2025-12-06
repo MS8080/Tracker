@@ -66,27 +66,47 @@ enum PatternBank {
     - Special Interest Engagement: time with special interest, joy from focused interest
     - Difficulty Disengaging: can't stop activity, unable to transition away
 
+    === POSITIVE & COPING ===
+    - Successful Coping: used a strategy that worked, managed a difficult situation well
+    - Calm/Regulated State: feeling balanced, peaceful, in control, grounded
+    - Connection Moment: positive social interaction, felt understood, meaningful connection
+    - Rest/Recovery Success: good rest, successful recharge, feeling restored
+    - Sensory Comfort: found sensory environment pleasant, comfortable, soothing
+    - Boundary Setting: successfully set a limit, said no, protected own needs
+    - Self-Compassion: was kind to self, accepted limitations, didn't judge harshly
+    - Accommodation Win: an accommodation or adjustment worked well, felt supported
+    - Joy/Happiness: genuine positive emotion, contentment, gratitude
+    - Achievement/Progress: completed something, made progress, felt accomplished
+
     ---
 
     ANALYSIS INSTRUCTIONS:
 
-    1. Read the journal entry carefully
-    2. Identify ALL patterns present (there may be multiple)
+    CRITICAL RULES:
+    - ONLY identify patterns that are EXPLICITLY described in the entry
+    - DO NOT infer, assume, or speculate about patterns not clearly stated
+    - DO NOT mix up events or timelines - each entry is a single moment/event
+    - If something is ambiguous, DO NOT include it as a pattern
+    - Be CONSERVATIVE - fewer accurate patterns are better than many inaccurate ones
+    - The entry describes ONE person's experience at ONE point in time
+
+    1. Read the journal entry carefully - understand EXACTLY what happened
+    2. Identify ONLY patterns that are clearly present (don't reach or infer)
     3. For each pattern, determine:
        - The exact pattern type from the list above
-       - Intensity (1-10 scale)
-       - Any triggers mentioned
-       - Time of day if mentioned
-       - Any coping strategies used
+       - Intensity (1-10 scale) based on language used
+       - Only triggers EXPLICITLY mentioned
+       - Time of day ONLY if stated
+       - Coping strategies ONLY if described
 
-    4. Identify CASCADES - patterns that led to other patterns:
-       - Example: "Sensory Overload" → "Shutdown"
-       - Example: "Routine Disruption" → "Uncertainty Intolerance" → "Meltdown"
+    4. Identify CASCADES - ONLY if the entry explicitly shows one pattern leading to another:
+       - The connection must be clear in the text
+       - DO NOT assume cascades that aren't described
        - Include confidence score (0.0-1.0) for each connection
 
-    5. Extract any TRIGGERS mentioned (what caused the patterns)
+    5. Extract ONLY triggers that are explicitly mentioned in the text
 
-    6. Note the overall CONTEXT (time of day, location, who was present, etc.)
+    6. Note context ONLY from what's explicitly stated
 
     ---
 
@@ -130,7 +150,9 @@ enum PatternBank {
     IMPORTANT:
     - Use EXACT pattern type names from the list above
     - If no patterns found, return empty arrays
-    - If uncertain about a pattern, include it with lower confidence
+    - If uncertain about a pattern, DO NOT include it - accuracy over quantity
+    - DO NOT speculate or infer - only extract what's explicitly written
+    - Each entry is about ONE moment in time - don't create multiple timeline interpretations
     - Always return valid JSON, nothing else
     """
 
@@ -175,7 +197,18 @@ enum PatternBank {
         "Physical Tension/Pain": .physicalTension,
         "Digestive Issue": .digestiveIssue,
         "Special Interest Engagement": .specialInterest,
-        "Difficulty Disengaging": .disengagementDifficulty
+        "Difficulty Disengaging": .disengagementDifficulty,
+        // Positive & Coping
+        "Successful Coping": .successfulCoping,
+        "Calm/Regulated State": .calmState,
+        "Connection Moment": .connectionMoment,
+        "Rest/Recovery Success": .restSuccess,
+        "Sensory Comfort": .sensoryComfort,
+        "Boundary Setting": .boundarySetting,
+        "Self-Compassion": .selfCompassion,
+        "Accommodation Win": .accommodationWin,
+        "Joy/Happiness": .joyHappiness,
+        "Achievement/Progress": .achievementProgress
     ]
 
     /// Get PatternType from AI response string

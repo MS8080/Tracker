@@ -319,6 +319,7 @@ struct PatternEntryFormView: View {
                     }
                     .foregroundStyle(.white)
                 }
+                .hideSharedBackground()
 
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Save") {
@@ -327,6 +328,7 @@ struct PatternEntryFormView: View {
                     .fontWeight(.semibold)
                     .foregroundStyle(.white)
                 }
+                .hideSharedBackground()
             }
         }
     }

@@ -48,6 +48,7 @@ struct ReportsView: View {
                 ToolbarItem(placement: .primaryAction) {
                     ProfileButton(showingProfile: $showingProfile)
                 }
+                .hideSharedBackground()
             }
             .onAppear {
                 viewModel.generateReports()
