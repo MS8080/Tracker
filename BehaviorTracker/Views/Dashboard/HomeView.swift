@@ -44,6 +44,9 @@ struct HomeView: View {
 
                         // Current Setup card
                         CurrentSetupCard()
+
+                        // Life Goals Section (Goals, Struggles, Wishlist)
+                        LifeGoalsSection()
                     }
                     .padding(.horizontal, Spacing.lg)
                     .padding(.vertical, Spacing.lg)
