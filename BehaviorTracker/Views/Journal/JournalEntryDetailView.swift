@@ -6,6 +6,7 @@ struct JournalEntryDetailView: View {
     let onDelete: () -> Void
     @StateObject private var audioService = AudioRecordingService.shared
     @StateObject private var ttsService = TextToSpeechService.shared
+    @StateObject private var calendarService = CalendarEventService.shared
     @Environment(\.dismiss) private var dismiss
 
     // Editable state
@@ -13,6 +14,7 @@ struct JournalEntryDetailView: View {
     @State private var hasChanges = false
     @State private var showingAnalysis = false
     @State private var dayAnalysisData: DayAnalysisData?
+    @State private var linkedEvents: [CalendarEvent] = []
     @FocusState private var isContentFocused: Bool
 
     @AppStorage("selectedTheme") private var selectedThemeRaw: String = AppTheme.purple.rawValue
@@ -21,6 +23,7 @@ struct JournalEntryDetailView: View {
     }
 
     private let dataController = DataController.shared
+    private let mentionService = EventMentionService.shared
 
     init(entry: JournalEntry, onDelete: @escaping () -> Void) {
         self.entry = entry
@@ -69,6 +72,11 @@ struct JournalEntryDetailView: View {
                         // Voice Note Playback (if exists)
                         if entry.hasVoiceNote {
                             voiceNotePlaybackSection
+                        }
+
+                        // Linked Events (if any @mentions)
+                        if !linkedEvents.isEmpty {
+                            linkedEventsSection
                         }
 
                         // Content - directly editable
@@ -181,6 +189,63 @@ struct JournalEntryDetailView: View {
             .sheet(item: $dayAnalysisData) { data in
                 DayAnalysisView(entries: data.entries, date: data.date)
             }
+            .onAppear {
+                loadLinkedEvents()
+            }
+        }
+    }
+
+    // MARK: - Linked Events Section
+
+    private var linkedEventsSection: some View {
+        VStack(alignment: .leading, spacing: Spacing.sm) {
+            HStack {
+                Image(systemName: "calendar")
+                    .font(.subheadline)
+                    .foregroundStyle(SemanticColor.calendar)
+
+                Text("Linked Events")
+                    .font(.subheadline.bold())
+                    .foregroundStyle(.white)
+
+                Spacer()
+            }
+
+            ForEach(linkedEvents) { event in
+                HStack(spacing: Spacing.sm) {
+                    Circle()
+                        .fill(Color(cgColor: event.calendarColor ?? CGColor(red: 0.3, green: 0.6, blue: 0.9, alpha: 1)))
+                        .frame(width: 8, height: 8)
+
+                    Text(event.title)
+                        .font(.subheadline)
+                        .foregroundStyle(.white.opacity(0.9))
+
+                    Spacer()
+
+                    Text(formatEventDateShort(event))
+                        .font(.caption)
+                        .foregroundStyle(.white.opacity(0.6))
+                }
+                .padding(.vertical, Spacing.xs)
+            }
+        }
+        .padding(Spacing.md)
+        .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: CornerRadius.md))
+    }
+
+    private func formatEventDateShort(_ event: CalendarEvent) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MMM d, h:mm a"
+        return event.isAllDay ? "All day" : formatter.string(from: event.startDate)
+    }
+
+    private func loadLinkedEvents() {
+        let mentions = entry.eventMentions
+        guard !mentions.isEmpty else { return }
+
+        linkedEvents = mentions.compactMap { mention in
+            mentionService.lookupEvent(for: mention, around: entry.timestamp)
         }
     }
 

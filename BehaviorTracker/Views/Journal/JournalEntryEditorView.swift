@@ -24,6 +24,7 @@ struct JournalEntryEditorView: View {
     @Environment(\.dismiss) private var dismiss
     private let dataController = DataController.shared
     private let extractionService = PatternExtractionService.shared
+    private let mentionService = EventMentionService.shared
 
     // Entry data
     @State private var content: String = ""
@@ -38,6 +39,12 @@ struct JournalEntryEditorView: View {
     @State private var showDiscardAlert = false
     @State private var hasUnsavedChanges = false
     @FocusState private var contentIsFocused: Bool
+
+    // Event mention autocomplete
+    @State private var showEventSuggestions = false
+    @State private var eventSuggestions: [CalendarEvent] = []
+    @State private var mentionQuery: String = ""
+    @StateObject private var calendarService = CalendarEventService.shared
 
     // Auto-save timer
     @State private var autoSaveTimer: Timer?
@@ -180,7 +187,7 @@ struct JournalEntryEditorView: View {
     private var contentEditor: some View {
         ZStack(alignment: .topLeading) {
             if content.isEmpty && !contentIsFocused {
-                Text("Write your thoughts here...")
+                Text("Write your thoughts here... Use @ to mention events")
                     .font(.body)
                     .foregroundStyle(.white.opacity(0.4))
                     .padding(.top, 8)
@@ -194,7 +201,132 @@ struct JournalEntryEditorView: View {
                 .frame(minHeight: 300)
                 .focused($contentIsFocused)
                 .scrollContentBackground(.hidden)
+                .onChange(of: content) { _, newValue in
+                    checkForMentionTrigger(in: newValue)
+                }
+
+            // Event suggestions overlay
+            if showEventSuggestions && !eventSuggestions.isEmpty {
+                eventSuggestionsOverlay
+            }
         }
+    }
+
+    // MARK: - Event Suggestions Overlay
+
+    private var eventSuggestionsOverlay: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            HStack {
+                Image(systemName: "calendar")
+                    .font(.caption)
+                    .foregroundStyle(SemanticColor.calendar)
+                Text("Events")
+                    .font(.caption.bold())
+                    .foregroundStyle(CardText.secondary)
+                Spacer()
+                Button {
+                    showEventSuggestions = false
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.caption)
+                        .foregroundStyle(.white.opacity(0.5))
+                }
+            }
+            .padding(.horizontal, Spacing.md)
+            .padding(.vertical, Spacing.sm)
+
+            Divider()
+                .background(.white.opacity(0.2))
+
+            ScrollView {
+                VStack(alignment: .leading, spacing: 0) {
+                    ForEach(eventSuggestions.prefix(6)) { event in
+                        eventSuggestionRow(event)
+                    }
+                }
+            }
+            .frame(maxHeight: 200)
+        }
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: CornerRadius.md))
+        .overlay(
+            RoundedRectangle(cornerRadius: CornerRadius.md)
+                .stroke(.white.opacity(0.1), lineWidth: 1)
+        )
+        .padding(.top, 40)
+        .padding(.horizontal, Spacing.sm)
+    }
+
+    private func eventSuggestionRow(_ event: CalendarEvent) -> some View {
+        Button {
+            insertEventMention(event)
+        } label: {
+            HStack(spacing: Spacing.sm) {
+                Circle()
+                    .fill(Color(cgColor: event.calendarColor ?? CGColor(red: 0.3, green: 0.6, blue: 0.9, alpha: 1)))
+                    .frame(width: 8, height: 8)
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(event.title)
+                        .font(.subheadline)
+                        .foregroundStyle(.white)
+                        .lineLimit(1)
+
+                    Text(formatEventDate(event))
+                        .font(.caption)
+                        .foregroundStyle(.white.opacity(0.6))
+                }
+
+                Spacer()
+            }
+            .padding(.horizontal, Spacing.md)
+            .padding(.vertical, Spacing.sm)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func formatEventDate(_ event: CalendarEvent) -> String {
+        let calendar = Calendar.current
+        let formatter = DateFormatter()
+
+        if calendar.isDateInToday(event.startDate) {
+            formatter.dateFormat = "'Today at' h:mm a"
+        } else if calendar.isDateInTomorrow(event.startDate) {
+            formatter.dateFormat = "'Tomorrow at' h:mm a"
+        } else {
+            formatter.dateFormat = "EEE, MMM d 'at' h:mm a"
+        }
+
+        return event.isAllDay ? "All day" : formatter.string(from: event.startDate)
+    }
+
+    // MARK: - Mention Logic
+
+    private func checkForMentionTrigger(in text: String) {
+        // Simple detection: check if text ends with @ or @query
+        if let query = mentionService.extractTypingQuery(from: text, cursorPosition: text.count) {
+            mentionQuery = query
+            if calendarService.isAuthorized {
+                eventSuggestions = mentionService.searchEvents(query: query, around: entryDate)
+                showEventSuggestions = true
+            }
+        } else {
+            showEventSuggestions = false
+        }
+    }
+
+    private func insertEventMention(_ event: CalendarEvent) {
+        // Find and replace the @query with the full mention
+        if let range = mentionService.getTypingMentionRange(from: content, cursorPosition: content.count) {
+            let mention = mentionService.createMention(for: event)
+            content.replaceSubrange(range, with: mention + " ")
+        } else {
+            // Fallback: just append
+            content += mentionService.createMention(for: event) + " "
+        }
+
+        showEventSuggestions = false
+        HapticFeedback.light.trigger()
     }
 
     // MARK: - Action Toolbar

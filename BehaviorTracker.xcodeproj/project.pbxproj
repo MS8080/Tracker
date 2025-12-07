@@ -44,6 +44,8 @@
 		4E00913F2EC1372900D8A0D1 /* UserPreferences+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E0091092EC1372900D8A0D1 /* UserPreferences+CoreDataClass.swift */; };
 		4E1132452ED6574D001C5D0A /* CalendarEventService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E1132442ED6574D001C5D0A /* CalendarEventService.swift */; };
 		4E1132462ED6574D001C5D0A /* CalendarEventService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E1132442ED6574D001C5D0A /* CalendarEventService.swift */; };
+		4EEVTMENTION01 /* EventMentionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EEVTMENTION02 /* EventMentionService.swift */; };
+		4EEVTMENTION03 /* EventMentionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EEVTMENTION02 /* EventMentionService.swift */; };
 		4E16DE672ECE7DF200FEFBD8 /* ContributingFactor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E16DE662ECE7DF200FEFBD8 /* ContributingFactor.swift */; };
 		4E16DE692ECE7F6F00FEFBD8 /* PatternCategory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E16DE682ECE7F6F00FEFBD8 /* PatternCategory.swift */; };
 		4E16DE6B2ECE7F8900FEFBD8 /* PatternType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E16DE6A2ECE7F8900FEFBD8 /* PatternType.swift */; };
@@ -156,6 +158,7 @@
 		4ESETSUP012EE0000001 /* SettingsSupportingViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ESETSUP012EE0000002 /* SettingsSupportingViews.swift */; };
 		4ESETUP0012EE0000000001 /* SetupItem+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ESETUP0012EE0000000002 /* SetupItem+Extensions.swift */; };
 		4ESETUPCARD012EE000001 /* CurrentSetupCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ESETUPCARD012EE000002 /* CurrentSetupCard.swift */; };
+		4EUPCOMEVTS012EE01 /* UpcomingEventsCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EUPCOMEVTS012EE02 /* UpcomingEventsCard.swift */; };
 		4ESETUPITM012EE0000001 /* SetupItemViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ESETUPITM012EE0000002 /* SetupItemViews.swift */; };
 		4ESETUPMGR012EE0000001 /* SetupManagerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ESETUPMGR012EE0000002 /* SetupManagerView.swift */; };
 		4ESPRECOG012EE0000001 /* SpeechRecognitionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ESPRECOG012EE0000002 /* SpeechRecognitionService.swift */; };
@@ -267,6 +270,7 @@
 		MAC001SETSUP00001 /* SettingsSupportingViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ESETSUP012EE0000002 /* SettingsSupportingViews.swift */; };
 		MAC001SETUP000001 /* SetupItem+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ESETUP0012EE0000000002 /* SetupItem+Extensions.swift */; };
 		MAC001SETUPCARD01 /* CurrentSetupCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ESETUPCARD012EE000002 /* CurrentSetupCard.swift */; };
+		MAC001UPCMEVTS01 /* UpcomingEventsCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EUPCOMEVTS012EE02 /* UpcomingEventsCard.swift */; };
 		MAC001SETUPITM0001 /* SetupItemViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ESETUPITM012EE0000002 /* SetupItemViews.swift */; };
 		MAC001SETUPMGR0001 /* SetupManagerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ESETUPMGR012EE0000002 /* SetupManagerView.swift */; };
 		MAC001SPRECOG00001 /* SpeechRecognitionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ESPRECOG012EE0000002 /* SpeechRecognitionService.swift */; };
@@ -336,6 +340,7 @@
 		4E0091232EC1372900D8A0D1 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		4E0091262EC1372900D8A0D1 /* BehaviorTracker.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = BehaviorTracker.xcdatamodel; sourceTree = "<group>"; };
 		4E1132442ED6574D001C5D0A /* CalendarEventService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarEventService.swift; sourceTree = "<group>"; };
+		4EEVTMENTION02 /* EventMentionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventMentionService.swift; sourceTree = "<group>"; };
 		4E16DE662ECE7DF200FEFBD8 /* ContributingFactor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContributingFactor.swift; sourceTree = "<group>"; };
 		4E16DE682ECE7F6F00FEFBD8 /* PatternCategory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatternCategory.swift; sourceTree = "<group>"; };
 		4E16DE6A2ECE7F8900FEFBD8 /* PatternType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatternType.swift; sourceTree = "<group>"; };
@@ -421,6 +426,7 @@
 		4ESETSUP012EE0000002 /* SettingsSupportingViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsSupportingViews.swift; sourceTree = "<group>"; };
 		4ESETUP0012EE0000000002 /* SetupItem+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SetupItem+Extensions.swift"; sourceTree = "<group>"; };
 		4ESETUPCARD012EE000002 /* CurrentSetupCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CurrentSetupCard.swift; sourceTree = "<group>"; };
+		4EUPCOMEVTS012EE02 /* UpcomingEventsCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpcomingEventsCard.swift; sourceTree = "<group>"; };
 		4ESETUPITM012EE0000002 /* SetupItemViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetupItemViews.swift; sourceTree = "<group>"; };
 		4ESETUPMGR012EE0000002 /* SetupManagerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetupManagerView.swift; sourceTree = "<group>"; };
 		4ESPRECOG012EE0000002 /* SpeechRecognitionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeechRecognitionService.swift; sourceTree = "<group>"; };
@@ -452,7 +458,7 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		4E3591E92ED63C04000A5E74 /* Exceptions for "TrackerWidgets" folder in "TrackerWidgetsExtension" target */ = {
+		4E3591E92ED63C04000A5E74 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
@@ -462,18 +468,7 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		4E3591DC2ED63C03000A5E74 /* TrackerWidgets */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				4E3591E92ED63C04000A5E74 /* Exceptions for "TrackerWidgets" folder in "TrackerWidgetsExtension" target */,
-			);
-			explicitFileTypes = {
-			};
-			explicitFolders = (
-			);
-			path = TrackerWidgets;
-			sourceTree = "<group>";
-		};
+		4E3591DC2ED63C03000A5E74 /* TrackerWidgets */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (4E3591E92ED63C04000A5E74 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = TrackerWidgets; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -556,6 +551,7 @@
 			children = (
 				8C318D291DB24C8FAFF24F1A /* Repositories */,
 				4E1132442ED6574D001C5D0A /* CalendarEventService.swift */,
+				4EEVTMENTION02 /* EventMentionService.swift */,
 				4E3591BA2ED62F58000A5E74 /* CorrelationAnalysisService.swift */,
 				4E00910B2EC1372900D8A0D1 /* DataController.swift */,
 				4E00910C2EC1372900D8A0D1 /* ReportGenerator.swift */,
@@ -616,6 +612,7 @@
 				4E0091192EC1372900D8A0D1 /* HomeView.swift */,
 				4EHOMESUP012EE0000002 /* HomeSupportingViews.swift */,
 				4ESETUPCARD012EE000002 /* CurrentSetupCard.swift */,
+				4EUPCOMEVTS012EE02 /* UpcomingEventsCard.swift */,
 				4ESETUPMGR012EE0000002 /* SetupManagerView.swift */,
 				4ESETUPITM012EE0000002 /* SetupItemViews.swift */,
 				52391ECC087BED3DA582DB89 /* HomeViewComponents.swift */,
@@ -1004,6 +1001,7 @@
 				4EJVM00012EE0000000000002 /* JournalViewModel.swift in Sources */,
 				4EJANAVM0012EE00000000001 /* JournalAnalysisViewModels.swift in Sources */,
 				4E1132462ED6574D001C5D0A /* CalendarEventService.swift in Sources */,
+				4EEVTMENTION03 /* EventMentionService.swift in Sources */,
 				4E00912A2EC1372900D8A0D1 /* CategoryLoggingView.swift in Sources */,
 				4E00912B2EC1372900D8A0D1 /* HomeViewModel.swift in Sources */,
 				4E00912C2EC1372900D8A0D1 /* ExportDataView.swift in Sources */,
@@ -1076,6 +1074,7 @@
 				4E00913B2EC1372900D8A0D1 /* SettingsViewModel.swift in Sources */,
 				4E00913C2EC1372900D8A0D1 /* HomeView.swift in Sources */,
 				4ESETUPCARD012EE000001 /* CurrentSetupCard.swift in Sources */,
+				4EUPCOMEVTS012EE01 /* UpcomingEventsCard.swift in Sources */,
 				4ESETUPMGR012EE0000001 /* SetupManagerView.swift in Sources */,
 				4ESETUPITM012EE0000001 /* SetupItemViews.swift in Sources */,
 				4EHOMESUP012EE0000001 /* HomeSupportingViews.swift in Sources */,
@@ -1149,6 +1148,7 @@
 				MAC0001000000012 /* UserProfile+CoreDataClass.swift in Sources */,
 				MAC0001000000013 /* JournalEntry+CoreDataClass.swift in Sources */,
 				4E1132452ED6574D001C5D0A /* CalendarEventService.swift in Sources */,
+				4EEVTMENTION01 /* EventMentionService.swift in Sources */,
 				MAC0001000000014 /* BehaviorTrackerModel.xcdatamodeld in Sources */,
 				MAC0001000000015 /* ContributingFactor.swift in Sources */,
 				4E4EF22C2EE5C64200B485E7 /* LifeGoalsRowViews.swift in Sources */,
@@ -1176,6 +1176,7 @@
 				4E4EF2282EE5C5DA00B485E7 /* CompletedListView.swift in Sources */,
 				MAC0001000000027 /* HomeView.swift in Sources */,
 				MAC001SETUPCARD01 /* CurrentSetupCard.swift in Sources */,
+				MAC001UPCMEVTS01 /* UpcomingEventsCard.swift in Sources */,
 				MAC001SETUPMGR0001 /* SetupManagerView.swift in Sources */,
 				MAC001SETUPITM0001 /* SetupItemViews.swift in Sources */,
 				MAC001HOMESUP00001 /* HomeSupportingViews.swift in Sources */,

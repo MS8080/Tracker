@@ -34,6 +34,8 @@ struct HomeView: View {
                             isFocused: $isNoteFieldFocused
                         )
 
+                        UpcomingEventsCard()
+
                         if viewModel.currentStreak > 0 {
                             StreakCard(streak: viewModel.currentStreak, theme: theme)
                         }

@@ -88,6 +88,23 @@ public class JournalEntry: NSManagedObject, Identifiable {
         guard let tagSet = tags as? Set<Tag> else { return [] }
         return tagSet.compactMap { $0.name }.sorted()
     }
+
+    // MARK: - Event Mentions
+
+    /// Get event mentions from content
+    var eventMentions: [EventMention] {
+        EventMentionService.shared.extractMentions(from: content)
+    }
+
+    /// Check if entry has any event mentions
+    var hasEventMentions: Bool {
+        !eventMentions.isEmpty
+    }
+
+    /// Get display-friendly content with mentions formatted nicely
+    var displayContent: String {
+        EventMentionService.shared.displayText(from: content)
+    }
 }
 
 extension JournalEntry {
