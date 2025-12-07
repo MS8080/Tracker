@@ -9,6 +9,12 @@ struct CorrelationInsightsView: View {
 
     @AppStorage("selectedTheme") private var selectedThemeRaw: String = AppTheme.purple.rawValue
 
+    private let demoService = DemoModeService.shared
+
+    private var isDemoMode: Bool {
+        demoService.isEnabled
+    }
+
     private var theme: AppTheme {
         AppTheme(rawValue: selectedThemeRaw) ?? .purple
     }
@@ -28,6 +34,20 @@ struct CorrelationInsightsView: View {
 
                 ScrollView {
                     VStack(spacing: 20) {
+                        // Demo mode indicator
+                        if isDemoMode {
+                            HStack {
+                                Image(systemName: "play.rectangle.fill")
+                                    .foregroundStyle(.orange)
+                                Text("Demo Mode - Sample Data")
+                                    .font(.caption)
+                                    .foregroundStyle(.white.opacity(0.7))
+                            }
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .background(.orange.opacity(0.2), in: Capsule())
+                        }
+
                         // Time Range Selector
                         timeRangePicker
 
@@ -205,6 +225,12 @@ struct CorrelationInsightsView: View {
     private func loadInsights() {
         isLoading = true
 
+        // Demo mode: use demo correlations
+        if isDemoMode {
+            loadDemoInsights()
+            return
+        }
+
         Task {
             let generatedInsights = await CorrelationAnalysisService.shared.generateInsights(days: selectedDays)
 
@@ -214,6 +240,51 @@ struct CorrelationInsightsView: View {
                     self.isLoading = false
                 }
             }
+        }
+    }
+
+    private func loadDemoInsights() {
+        let demoCorrelations = demoService.demoCorrelations
+
+        // Convert demo correlations to CorrelationInsight
+        let demoInsights: [CorrelationInsight] = [
+            CorrelationInsight(
+                type: .moodPattern,
+                title: demoCorrelations[0].title,
+                description: demoCorrelations[0].description,
+                strength: demoCorrelations[0].strength,
+                confidence: .high,
+                sampleSize: 45
+            ),
+            CorrelationInsight(
+                type: .factorPattern,
+                title: demoCorrelations[1].title,
+                description: demoCorrelations[1].description,
+                strength: demoCorrelations[1].strength,
+                confidence: .high,
+                sampleSize: 38
+            ),
+            CorrelationInsight(
+                type: .timePattern,
+                title: demoCorrelations[2].title,
+                description: demoCorrelations[2].description,
+                strength: demoCorrelations[2].strength,
+                confidence: .medium,
+                sampleSize: 22
+            ),
+            CorrelationInsight(
+                type: .medicationPattern,
+                title: demoCorrelations[3].title,
+                description: demoCorrelations[3].description,
+                strength: demoCorrelations[3].strength,
+                confidence: .medium,
+                sampleSize: 18
+            )
+        ]
+
+        withAnimation {
+            self.insights = demoInsights
+            self.isLoading = false
         }
     }
 }

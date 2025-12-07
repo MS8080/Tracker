@@ -1,5 +1,6 @@
 import SwiftUI
 import CoreData
+import Combine
 
 @MainActor
 class LifeGoalsViewModel: ObservableObject {
@@ -8,6 +9,11 @@ class LifeGoalsViewModel: ObservableObject {
     @Published var goals: [Goal] = []
     @Published var wishlistItems: [WishlistItem] = []
     @Published var struggles: [Struggle] = []
+
+    // Demo mode data
+    @Published var demoGoals: [DemoModeService.DemoLifeGoal] = []
+    @Published var demoWishlistItems: [DemoModeService.DemoWishlistItem] = []
+    @Published var demoStruggles: [DemoModeService.DemoStruggle] = []
 
     @Published var showingAddGoal = false
     @Published var showingAddWishlistItem = false
@@ -26,45 +32,132 @@ class LifeGoalsViewModel: ObservableObject {
     private let goalRepository = GoalRepository.shared
     private let wishlistRepository = WishlistRepository.shared
     private let struggleRepository = StruggleRepository.shared
+    private let demoService = DemoModeService.shared
+    private var cancellables = Set<AnyCancellable>()
+
+    /// Whether we're currently in demo mode
+    var isDemoMode: Bool {
+        demoService.isEnabled
+    }
 
     // MARK: - Computed Properties
 
     var activeGoalsCount: Int {
-        goals.filter { !$0.isCompleted }.count
+        if isDemoMode {
+            return demoGoals.filter { $0.progress < 1.0 }.count
+        }
+        return goals.filter { !$0.isCompleted }.count
     }
 
     var overdueGoalsCount: Int {
-        goals.filter { $0.isOverdue }.count
+        if isDemoMode {
+            return demoGoals.filter { goal in
+                if let dueDate = goal.dueDate {
+                    return dueDate < Date() && goal.progress < 1.0
+                }
+                return false
+            }.count
+        }
+        return goals.filter { $0.isOverdue }.count
     }
 
     var highPriorityWishlistCount: Int {
-        wishlistItems.filter { $0.priorityLevel == .high }.count
+        if isDemoMode {
+            return demoWishlistItems.filter { !$0.isAcquired }.count
+        }
+        return wishlistItems.filter { $0.priorityLevel == .high }.count
     }
 
     var severeStrugglesCount: Int {
-        struggles.filter { $0.intensityLevel.rawValue >= Struggle.Intensity.severe.rawValue }.count
+        if isDemoMode {
+            return demoStruggles.filter { $0.intensity == "Significant" || $0.intensity == "Severe" }.count
+        }
+        return struggles.filter { $0.intensityLevel.rawValue >= Struggle.Intensity.severe.rawValue }.count
     }
 
     var hasAnyItems: Bool {
-        !goals.isEmpty || !wishlistItems.isEmpty || !struggles.isEmpty
+        if isDemoMode {
+            return !demoGoals.isEmpty || !demoWishlistItems.isEmpty || !demoStruggles.isEmpty
+        }
+        return !goals.isEmpty || !wishlistItems.isEmpty || !struggles.isEmpty
     }
 
     var completedCount: Int {
+        if isDemoMode {
+            let completedGoals = demoGoals.filter { $0.progress >= 1.0 }.count
+            let acquiredWishes = demoWishlistItems.filter { $0.isAcquired }.count
+            return completedGoals + acquiredWishes
+        }
         let completedGoals = goalRepository.fetch(includeCompleted: true).filter { $0.isCompleted }.count
         let acquiredWishes = wishlistRepository.fetch(includeAcquired: true).filter { $0.isAcquired }.count
         return completedGoals + acquiredWishes
+    }
+
+    /// Goals count for UI display (demo-aware)
+    var goalsCount: Int {
+        if isDemoMode {
+            return demoGoals.filter { $0.progress < 1.0 }.count
+        }
+        return goals.filter { !$0.isCompleted }.count
+    }
+
+    /// Struggles count for UI display (demo-aware)
+    var strugglesCount: Int {
+        if isDemoMode {
+            return demoStruggles.count
+        }
+        return struggles.count
+    }
+
+    /// Wishlist count for UI display (demo-aware)
+    var wishlistCount: Int {
+        if isDemoMode {
+            return demoWishlistItems.filter { !$0.isAcquired }.count
+        }
+        return wishlistItems.filter { !$0.isAcquired }.count
     }
 
     // MARK: - Lifecycle
 
     init() {
         loadData()
+        observeDemoModeChanges()
+    }
+
+    private func observeDemoModeChanges() {
+        NotificationCenter.default.publisher(for: .demoModeChanged)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                self?.loadData()
+            }
+            .store(in: &cancellables)
     }
 
     func loadData() {
+        if isDemoMode {
+            loadDemoData()
+            return
+        }
+
         goals = goalRepository.fetch(includeCompleted: false)
         wishlistItems = wishlistRepository.fetch(includeAcquired: false)
         struggles = struggleRepository.fetch(activeOnly: true)
+
+        // Clear demo data
+        demoGoals = []
+        demoWishlistItems = []
+        demoStruggles = []
+    }
+
+    private func loadDemoData() {
+        demoGoals = demoService.demoLifeGoals
+        demoWishlistItems = demoService.demoWishlistItems
+        demoStruggles = demoService.demoLifeStruggles
+
+        // Clear real data
+        goals = []
+        wishlistItems = []
+        struggles = []
     }
 
     func refresh() {

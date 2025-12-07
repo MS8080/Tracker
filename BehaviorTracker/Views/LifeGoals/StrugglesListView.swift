@@ -7,42 +7,62 @@ struct StrugglesListView: View {
 
     var body: some View {
         List {
-            Section {
-                ForEach(viewModel.struggles) { struggle in
-                    StruggleDetailRow(struggle: struggle, viewModel: viewModel)
-                }
-                .onDelete(perform: deleteStruggles)
-            } header: {
-                Text("Active Struggles (\(viewModel.struggles.count))")
-            }
-
-            if showingResolved {
+            if viewModel.isDemoMode {
+                // Demo mode content
                 Section {
-                    ForEach(StruggleRepository.shared.fetchResolved()) { struggle in
-                        StruggleDetailRow(struggle: struggle, viewModel: viewModel)
+                    ForEach(viewModel.demoStruggles) { struggle in
+                        DemoStruggleRow(struggle: struggle)
                     }
                 } header: {
-                    Text("Resolved")
+                    HStack {
+                        Text("Active Struggles (\(viewModel.demoStruggles.count))")
+                        Spacer()
+                        Label("Demo Mode", systemImage: "play.rectangle.fill")
+                            .font(.caption2)
+                            .foregroundStyle(.orange)
+                    }
+                }
+            } else {
+                // Real data
+                Section {
+                    ForEach(viewModel.struggles) { struggle in
+                        StruggleDetailRow(struggle: struggle, viewModel: viewModel)
+                    }
+                    .onDelete(perform: deleteStruggles)
+                } header: {
+                    Text("Active Struggles (\(viewModel.struggles.count))")
+                }
+
+                if showingResolved {
+                    Section {
+                        ForEach(StruggleRepository.shared.fetchResolved()) { struggle in
+                            StruggleDetailRow(struggle: struggle, viewModel: viewModel)
+                        }
+                    } header: {
+                        Text("Resolved")
+                    }
                 }
             }
         }
         .navigationTitle("Struggles")
         .toolbar {
-            ToolbarItem(placement: .primaryAction) {
-                Button {
-                    viewModel.showingAddStruggle = true
-                } label: {
-                    Image(systemName: "plus")
+            if !viewModel.isDemoMode {
+                ToolbarItem(placement: .primaryAction) {
+                    Button {
+                        viewModel.showingAddStruggle = true
+                    } label: {
+                        Image(systemName: "plus")
+                    }
                 }
-            }
-            ToolbarItem(placement: .secondaryAction) {
-                Button {
-                    showingResolved.toggle()
-                } label: {
-                    Label(
-                        showingResolved ? "Hide Resolved" : "Show Resolved",
-                        systemImage: showingResolved ? "eye.slash" : "eye"
-                    )
+                ToolbarItem(placement: .secondaryAction) {
+                    Button {
+                        showingResolved.toggle()
+                    } label: {
+                        Label(
+                            showingResolved ? "Hide Resolved" : "Show Resolved",
+                            systemImage: showingResolved ? "eye.slash" : "eye"
+                        )
+                    }
                 }
             }
         }
@@ -54,6 +74,60 @@ struct StrugglesListView: View {
     private func deleteStruggles(at offsets: IndexSet) {
         for index in offsets {
             viewModel.deleteStruggle(viewModel.struggles[index])
+        }
+    }
+}
+
+// MARK: - Demo Struggle Row
+
+struct DemoStruggleRow: View {
+    let struggle: DemoModeService.DemoStruggle
+
+    var body: some View {
+        HStack(spacing: Spacing.md) {
+            Circle()
+                .fill(intensityColor)
+                .frame(width: 12, height: 12)
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text(struggle.title)
+                    .font(.body)
+                    .fontWeight(.medium)
+
+                HStack(spacing: Spacing.sm) {
+                    Text(struggle.intensity)
+                        .font(.caption)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background(intensityColor.opacity(0.2))
+                        .foregroundStyle(intensityColor)
+                        .cornerRadius(4)
+                }
+
+                if !struggle.triggers.isEmpty {
+                    Text("Triggers: \(struggle.triggers.prefix(2).joined(separator: ", "))")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                }
+            }
+
+            Spacer()
+
+            Image(systemName: "exclamationmark.triangle.fill")
+                .foregroundStyle(.secondary)
+        }
+        .padding(.vertical, 4)
+    }
+
+    private var intensityColor: Color {
+        switch struggle.intensity.lowercased() {
+        case "mild": return .green
+        case "moderate": return .yellow
+        case "significant": return .orange
+        case "severe": return .red
+        case "overwhelming": return .purple
+        default: return .yellow
         }
     }
 }

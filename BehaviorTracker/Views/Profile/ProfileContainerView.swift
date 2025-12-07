@@ -7,6 +7,7 @@ struct ProfileContainerView: View {
     @State private var healthKitManager: HealthKitManager?
     @State private var settingsViewModel: SettingsViewModel?
     private let dataController = DataController.shared
+    private let demoService = DemoModeService.shared
 
     @State private var profile: UserProfile?
     @State private var healthSummary: HealthDataSummary?
@@ -19,6 +20,26 @@ struct ProfileContainerView: View {
     @AppStorage("blueLightFilterEnabled") private var blueLightFilterEnabled: Bool = false
 
     @ThemeWrapper var theme
+
+    /// Demo mode health summary
+    private var demoHealthSummary: HealthDataSummary {
+        let demo = demoService.demoHealthData
+        return HealthDataSummary(
+            weight: nil,
+            weightDate: nil,
+            sleepDuration: demo.sleep * 3600, // Convert hours to seconds
+            heartRate: Double(demo.heartRate),
+            restingHeartRate: nil,
+            heartRateVariability: nil,
+            bloodPressure: nil,
+            bloodPressureDate: nil,
+            steps: Double(demo.steps),
+            exerciseMinutes: 35,
+            activeEnergy: 280,
+            waterIntake: 1.8,
+            caffeineIntake: nil
+        )
+    }
 
     var body: some View {
         NavigationStack {
@@ -35,20 +56,44 @@ struct ProfileContainerView: View {
                 } else {
                     ScrollView {
                         VStack(spacing: 20) {
-                            ProfileHeaderSection(profile: profile) {
-                                showingEditProfile = true
+                            // Demo mode indicator
+                            if demoService.isEnabled {
+                                HStack {
+                                    Image(systemName: "play.rectangle.fill")
+                                        .foregroundStyle(.orange)
+                                    Text("Demo Mode - Sample Profile")
+                                        .font(.caption)
+                                        .foregroundStyle(.white.opacity(0.7))
+                                }
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 6)
+                                .background(.orange.opacity(0.2), in: Capsule())
+                            }
+
+                            if demoService.isEnabled {
+                                // Demo profile header
+                                DemoProfileHeaderSection(
+                                    name: demoService.demoUserProfile.name,
+                                    email: demoService.demoUserProfile.email
+                                )
+                            } else {
+                                ProfileHeaderSection(profile: profile) {
+                                    showingEditProfile = true
+                                }
                             }
 
                             if let healthKitManager = healthKitManager {
                                 ProfileHealthDataSection(
-                                    healthSummary: healthSummary,
-                                    isAuthorized: healthKitManager.isAuthorized,
-                                    isLoading: isLoadingHealth,
-                                    onRefresh: { loadHealthData() },
+                                    healthSummary: demoService.isEnabled ? demoHealthSummary : healthSummary,
+                                    isAuthorized: demoService.isEnabled ? true : healthKitManager.isAuthorized,
+                                    isLoading: demoService.isEnabled ? false : isLoadingHealth,
+                                    onRefresh: { if !demoService.isEnabled { loadHealthData() } },
                                     onConnect: {
-                                        await healthKitManager.requestAuthorization()
-                                        if healthKitManager.isAuthorized {
-                                            loadHealthData()
+                                        if !demoService.isEnabled {
+                                            await healthKitManager.requestAuthorization()
+                                            if healthKitManager.isAuthorized {
+                                                loadHealthData()
+                                            }
                                         }
                                     }
                                 )

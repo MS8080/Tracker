@@ -1,9 +1,40 @@
 import SwiftUI
 import CoreData
+import Combine
+
+/// Wrapper struct to display demo journal entries without CoreData
+struct DemoJournalEntryWrapper: Identifiable {
+    let id: UUID
+    let title: String?
+    let content: String
+    let mood: Int16
+    let timestamp: Date
+    let isFavorite: Bool
+    let isAnalyzed: Bool
+    let analysisSummary: String?
+    let overallIntensity: Int16
+
+    init(from demo: DemoModeService.DemoJournalEntry) {
+        self.id = demo.id
+        self.title = demo.title
+        self.content = demo.content
+        self.mood = demo.mood
+        self.timestamp = demo.timestamp
+        self.isFavorite = demo.isFavorite
+        self.isAnalyzed = demo.isAnalyzed
+        self.analysisSummary = demo.analysisSummary
+        self.overallIntensity = demo.overallIntensity
+    }
+
+    var preview: String {
+        String(content.prefix(100))
+    }
+}
 
 @MainActor
 class JournalViewModel: ObservableObject {
     @Published var journalEntries: [JournalEntry] = []
+    @Published var demoEntries: [DemoJournalEntryWrapper] = []
     @Published var isLoading = false
     @Published var isLoadingMore = false
     @Published var isAnalyzing = false
@@ -28,13 +59,30 @@ class JournalViewModel: ObservableObject {
 
     private let dataController = DataController.shared
     private let extractionService = PatternExtractionService.shared
+    private let demoService = DemoModeService.shared
+    private var cancellables = Set<AnyCancellable>()
 
     // Pagination settings
     private let pageSize = 30
     private var currentOffset = 0
 
+    /// Whether we're currently in demo mode
+    var isDemoMode: Bool {
+        demoService.isEnabled
+    }
+
     init() {
         loadJournalEntries()
+        observeDemoModeChanges()
+    }
+
+    private func observeDemoModeChanges() {
+        NotificationCenter.default.publisher(for: .demoModeChanged)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                self?.resetAndLoad()
+            }
+            .store(in: &cancellables)
     }
 
     /// Reset pagination and load fresh
@@ -46,6 +94,12 @@ class JournalViewModel: ObservableObject {
     }
 
     func loadJournalEntries() {
+        // Demo mode: load demo entries
+        if demoService.isEnabled {
+            loadDemoEntries()
+            return
+        }
+
         Task { [weak self] in
             guard let self else { return }
             isLoading = currentOffset == 0
@@ -74,6 +128,28 @@ class JournalViewModel: ObservableObject {
             isLoading = false
             isLoadingMore = false
         }
+    }
+
+    private func loadDemoEntries() {
+        isLoading = true
+
+        var entries = demoService.demoJournalEntries
+        if showFavoritesOnly {
+            entries = entries.filter { $0.isFavorite }
+        }
+        if !searchQuery.isEmpty {
+            entries = entries.filter {
+                $0.content.localizedCaseInsensitiveContains(searchQuery) ||
+                ($0.title?.localizedCaseInsensitiveContains(searchQuery) ?? false)
+            }
+        }
+
+        demoEntries = entries.map { DemoJournalEntryWrapper(from: $0) }
+        journalEntries = [] // Clear real entries
+        totalEntryCount = demoEntries.count
+        hasMoreEntries = false
+
+        isLoading = false
     }
 
     /// Load next page of entries

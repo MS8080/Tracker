@@ -4,6 +4,7 @@ import Foundation
 
 extension Notification.Name {
     static let profileUpdated = Notification.Name("profileUpdated")
+    static let demoModeChanged = Notification.Name("demoModeChanged")
 }
 
 // MARK: - Date Extensions

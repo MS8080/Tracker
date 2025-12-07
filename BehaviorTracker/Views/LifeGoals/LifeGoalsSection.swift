@@ -9,6 +9,20 @@ struct LifeGoalsSection: View {
     var body: some View {
         ZStack {
             VStack(spacing: Spacing.lg) {
+                // Demo mode indicator
+                if viewModel.isDemoMode {
+                    HStack {
+                        Image(systemName: "play.rectangle.fill")
+                            .foregroundStyle(.orange)
+                        Text("Demo Mode - Sample Data")
+                            .font(.caption)
+                            .foregroundStyle(.white.opacity(0.7))
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(.orange.opacity(0.2), in: Capsule())
+                }
+
                 // List cards grid (Apple Reminders style)
                 LazyVGrid(columns: [
                     GridItem(.flexible(), spacing: Spacing.md),
@@ -17,7 +31,7 @@ struct LifeGoalsSection: View {
                     // Goals Card
                     ReminderListCard(
                         title: "Goals",
-                        count: viewModel.goals.filter { !$0.isCompleted }.count,
+                        count: viewModel.goalsCount,
                         icon: "flag.fill",
                         color: .orange
                     ) {
@@ -27,7 +41,7 @@ struct LifeGoalsSection: View {
                     // Struggles Card
                     ReminderListCard(
                         title: "Struggles",
-                        count: viewModel.struggles.count,
+                        count: viewModel.strugglesCount,
                         icon: "exclamationmark.triangle.fill",
                         color: .red
                     ) {
@@ -37,7 +51,7 @@ struct LifeGoalsSection: View {
                     // Wishlist Card
                     ReminderListCard(
                         title: "Wishlist",
-                        count: viewModel.wishlistItems.filter { !$0.isAcquired }.count,
+                        count: viewModel.wishlistCount,
                         icon: "gift.fill",
                         color: .pink
                     ) {
@@ -67,7 +81,7 @@ struct LifeGoalsSection: View {
                         // Goals list row
                         RemindersListRow(
                             title: "Goals",
-                            count: viewModel.goals.count,
+                            count: viewModel.isDemoMode ? viewModel.demoGoals.count : viewModel.goals.count,
                             icon: "flag.fill",
                             color: .orange
                         ) {
@@ -81,7 +95,7 @@ struct LifeGoalsSection: View {
                         // Struggles list row
                         RemindersListRow(
                             title: "Struggles",
-                            count: viewModel.struggles.count,
+                            count: viewModel.strugglesCount,
                             icon: "exclamationmark.triangle.fill",
                             color: .red
                         ) {
@@ -95,7 +109,7 @@ struct LifeGoalsSection: View {
                         // Wishlist row
                         RemindersListRow(
                             title: "Wishlist",
-                            count: viewModel.wishlistItems.count,
+                            count: viewModel.isDemoMode ? viewModel.demoWishlistItems.count : viewModel.wishlistItems.count,
                             icon: "gift.fill",
                             color: .pink
                         ) {

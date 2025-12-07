@@ -138,6 +138,52 @@ struct ProfileHeaderSection: View {
     }
 }
 
+// MARK: - Demo Profile Header Section
+
+struct DemoProfileHeaderSection: View {
+    let name: String
+    let email: String?
+
+    private var initials: String {
+        let parts = name.components(separatedBy: " ")
+        let firstInitial = parts.first?.first.map(String.init) ?? ""
+        let lastInitial = parts.count > 1 ? parts.last?.first.map(String.init) ?? "" : ""
+        return "\(firstInitial)\(lastInitial)"
+    }
+
+    var body: some View {
+        VStack(spacing: 16) {
+            ZStack {
+                Circle()
+                    .fill(Color.orange.opacity(0.2))
+                    .frame(width: 100, height: 100)
+                    .overlay(
+                        Text(initials)
+                            .font(.title)
+                            .fontWeight(.semibold)
+                            .foregroundColor(.orange)
+                    )
+                    .overlay(Circle().stroke(Color.orange, lineWidth: 3))
+            }
+            .modifier(DisableGlassEffectModifier())
+
+            VStack(spacing: 6) {
+                Text(name)
+                    .font(.title)
+                    .fontWeight(.bold)
+
+                if let email = email, !email.isEmpty {
+                    Text(email)
+                        .font(.body)
+                        .foregroundColor(.secondary)
+                }
+            }
+        }
+        .padding()
+        .frame(maxWidth: .infinity)
+    }
+}
+
 // MARK: - Health Data Section
 
 struct ProfileHealthDataSection: View {
@@ -435,6 +481,7 @@ struct ProfileSettingsSection: View {
 
 struct SettingsExpandedContent: View {
     @ObservedObject var settingsViewModel: SettingsViewModel
+    @ObservedObject private var demoMode = DemoModeService.shared
 
     enum SettingsDestination: Hashable {
         case appearance
@@ -445,6 +492,12 @@ struct SettingsExpandedContent: View {
 
     var body: some View {
         VStack(spacing: 12) {
+            // Demo Mode Toggle
+            DemoModeToggleRow(isEnabled: $demoMode.isEnabled)
+
+            Divider()
+                .background(.white.opacity(0.1))
+
             NavigationLink(value: SettingsDestination.appearance) {
                 ModernSettingsRow(
                     icon: "paintbrush.fill",
@@ -497,6 +550,46 @@ struct SettingsExpandedContent: View {
                 AboutView()
             }
         }
+    }
+}
+
+// MARK: - Demo Mode Toggle Row
+
+struct DemoModeToggleRow: View {
+    @Binding var isEnabled: Bool
+
+    var body: some View {
+        HStack(spacing: 14) {
+            // Icon with background
+            Image(systemName: "play.rectangle.fill")
+                .foregroundStyle(.orange)
+                .font(.system(size: 18, weight: .semibold))
+                .frame(width: 40, height: 40)
+                .background(
+                    RoundedRectangle(cornerRadius: 10)
+                        .fill(Color.orange.opacity(0.15))
+                )
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Demo Mode")
+                    .font(.body)
+                    .fontWeight(.medium)
+                    .foregroundStyle(.primary)
+
+                Text(isEnabled ? "Showing sample data" : "Show sample data for demos")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            Spacer()
+
+            Toggle("", isOn: $isEnabled)
+                .labelsHidden()
+                .tint(.orange)
+        }
+        .padding(.vertical, 4)
+        .contentShape(Rectangle())
+        .animation(.easeInOut(duration: 0.2), value: isEnabled)
     }
 }
 

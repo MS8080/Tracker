@@ -17,7 +17,25 @@ struct MedicationView: View {
 
                 ScrollView {
                     VStack(spacing: 20) {
-                        allMedicationsSection
+                        // Demo mode indicator
+                        if viewModel.isDemoMode {
+                            HStack {
+                                Image(systemName: "play.rectangle.fill")
+                                    .foregroundStyle(.orange)
+                                Text("Demo Mode - Sample Data")
+                                    .font(.caption)
+                                    .foregroundStyle(.white.opacity(0.7))
+                            }
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .background(.orange.opacity(0.2), in: Capsule())
+                        }
+
+                        if viewModel.isDemoMode {
+                            demoMedicationsSection
+                        } else {
+                            allMedicationsSection
+                        }
                     }
                     .padding()
                 }
@@ -29,6 +47,25 @@ struct MedicationView: View {
             .onAppear {
                 viewModel.loadMedications()
                 viewModel.loadTodaysLogs()
+            }
+        }
+    }
+
+    // MARK: - Demo Medications Section
+
+    private var demoMedicationsSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            SectionHeaderView(
+                title: "My Medications",
+                icon: "pills.fill",
+                actionTitle: nil,
+                action: nil
+            )
+
+            VStack(spacing: 12) {
+                ForEach(viewModel.demoMedications) { medication in
+                    DemoMedicationCard(medication: medication, theme: theme)
+                }
             }
         }
     }
@@ -184,6 +221,78 @@ struct EnhancedMedicationCard: View {
         } else {
             return .red
         }
+    }
+}
+
+// MARK: - Demo Medication Card
+
+struct DemoMedicationCard: View {
+    let medication: DemoMedicationWrapper
+    let theme: AppTheme
+
+    var body: some View {
+        HStack(spacing: 16) {
+            // Icon with status indicator
+            ZStack(alignment: .bottomTrailing) {
+                ThemedIcon(
+                    systemName: "pills.fill",
+                    color: theme.primaryColor,
+                    size: 56,
+                    backgroundStyle: .roundedSquare
+                )
+
+                // Taken today indicator
+                Circle()
+                    .fill(medication.takenToday ? .green : .orange)
+                    .frame(width: 16, height: 16)
+                    .overlay(
+                        Circle()
+                            .stroke(.white, lineWidth: 2.5)
+                    )
+                    .offset(x: 4, y: 4)
+            }
+
+            VStack(alignment: .leading, spacing: 6) {
+                Text(medication.name)
+                    .font(.body)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(.primary)
+                    .lineLimit(2)
+
+                if let dosage = medication.dosage {
+                    HStack(spacing: 6) {
+                        Image(systemName: "gauge.with.dots.needle.33percent")
+                            .font(.caption2)
+                            .foregroundStyle(theme.primaryColor)
+                        Text(dosage)
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+
+                // Frequency badge
+                BadgeView(
+                    text: medication.frequency,
+                    color: theme.primaryColor,
+                    icon: "clock"
+                )
+            }
+
+            Spacer()
+
+            // Status
+            VStack(alignment: .trailing, spacing: 4) {
+                Image(systemName: medication.takenToday ? "checkmark.circle.fill" : "circle")
+                    .font(.title2)
+                    .foregroundStyle(medication.takenToday ? .green : .secondary)
+
+                Text(medication.takenToday ? "Taken" : "Pending")
+                    .font(.caption2)
+                    .foregroundStyle(.tertiary)
+            }
+        }
+        .padding(16)
+        .compactCardStyle(theme: theme)
     }
 }
 

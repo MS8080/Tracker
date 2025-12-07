@@ -13,14 +13,33 @@ struct AIInsightsView: View {
         NavigationView {
             ScrollView {
                 VStack(spacing: 20) {
+                    // Demo mode indicator
+                    if viewModel.isDemoMode {
+                        HStack {
+                            Image(systemName: "play.rectangle.fill")
+                                .foregroundStyle(.orange)
+                            Text("Demo Mode - Sample Data")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(Color.orange.opacity(0.2), in: Capsule())
+                    }
+
                     // Header
                     headerSection
 
-                    // Mode selector
-                    modeSelectorSection
+                    // Mode selector (hidden in demo mode)
+                    if !viewModel.isDemoMode {
+                        modeSelectorSection
+                    }
 
                     // Content based on mode
-                    if viewModel.analysisMode == .local {
+                    if viewModel.isDemoMode {
+                        // Demo mode - always show analysis section
+                        analysisSection
+                    } else if viewModel.analysisMode == .local {
                         // Local mode - always available
                         analysisSection
                     } else {

@@ -7,6 +7,7 @@ struct DynamicJournalView: View {
     @StateObject private var ttsService = TextToSpeechService.shared
     @State private var showingNewEntry = false
     @State private var selectedEntry: JournalEntry?
+    @State private var selectedDemoEntry: DemoJournalEntryWrapper?
     @State private var entryToAnalyze: JournalEntry?
     @State private var dayToAnalyze: DayAnalysisData?
     @Binding var showingProfile: Bool
@@ -20,6 +21,14 @@ struct DynamicJournalView: View {
         let calendar = Calendar.current
         let validEntries = viewModel.journalEntries.filter { !$0.isDeleted }
         let grouped = Dictionary(grouping: validEntries) { entry in
+            calendar.startOfDay(for: entry.timestamp)
+        }
+        return grouped.sorted { $0.key > $1.key }.map { (date: $0.key, entries: $0.value.sorted { $0.timestamp > $1.timestamp }) }
+    }
+
+    private var demoEntriesGroupedByDay: [(date: Date, entries: [DemoJournalEntryWrapper])] {
+        let calendar = Calendar.current
+        let grouped = Dictionary(grouping: viewModel.demoEntries) { entry in
             calendar.startOfDay(for: entry.timestamp)
         }
         return grouped.sorted { $0.key > $1.key }.map { (date: $0.key, entries: $0.value.sorted { $0.timestamp > $1.timestamp }) }
@@ -39,14 +48,22 @@ struct DynamicJournalView: View {
                 theme.gradient
                     .ignoresSafeArea()
 
-                if viewModel.journalEntries.isEmpty {
+                if viewModel.isDemoMode {
+                    if viewModel.demoEntries.isEmpty {
+                        emptyStateView
+                    } else {
+                        demoTimelineView
+                    }
+                } else if viewModel.journalEntries.isEmpty {
                     emptyStateView
                 } else {
                     timelineView
                 }
 
-                // Floating Action Button
-                floatingActionButton
+                // Floating Action Button (hidden in demo mode)
+                if !viewModel.isDemoMode {
+                    floatingActionButton
+                }
             }
             .navigationTitle(NSLocalizedString("journal.title", comment: ""))
             .navigationBarTitleDisplayMode(.inline)
@@ -82,6 +99,41 @@ struct DynamicJournalView: View {
             .sheet(item: $dayToAnalyze) { dayData in
                 DayAnalysisView(entries: dayData.entries, date: dayData.date)
             }
+            .sheet(item: $selectedDemoEntry) { entry in
+                DemoEntryDetailView(entry: entry)
+            }
+        }
+    }
+
+    // MARK: - Demo Timeline View
+
+    private var demoTimelineView: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: Spacing.lg) {
+                // Demo mode indicator
+                HStack {
+                    Image(systemName: "play.rectangle.fill")
+                        .foregroundStyle(.orange)
+                    Text("Demo Mode - Sample Data")
+                        .font(.caption)
+                        .foregroundStyle(.white.opacity(0.7))
+                }
+                .padding(.horizontal, Spacing.md)
+                .padding(.vertical, Spacing.xs)
+                .background(.orange.opacity(0.2), in: Capsule())
+                .padding(.horizontal, Spacing.lg)
+
+                ForEach(demoEntriesGroupedByDay, id: \.date) { dayGroup in
+                    DemoDaySection(
+                        date: dayGroup.date,
+                        entries: dayGroup.entries,
+                        theme: theme,
+                        onEntryTap: { selectedDemoEntry = $0 }
+                    )
+                }
+            }
+            .padding(.horizontal, Spacing.lg)
+            .padding(.vertical, Spacing.lg)
         }
     }
 
@@ -357,6 +409,238 @@ struct SimpleTimelineEntry: View {
                     } label: {
                         Label("Delete", systemImage: "trash")
                     }
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Demo Day Section
+
+struct DemoDaySection: View {
+    let date: Date
+    let entries: [DemoJournalEntryWrapper]
+    let theme: AppTheme
+    let onEntryTap: (DemoJournalEntryWrapper) -> Void
+
+    private var isToday: Bool {
+        Calendar.current.isDateInToday(date)
+    }
+
+    private var dateHeader: String {
+        if isToday {
+            return NSLocalizedString("time.today", comment: "")
+        } else if Calendar.current.isDateInYesterday(date) {
+            return NSLocalizedString("time.yesterday", comment: "")
+        } else {
+            let formatter = DateFormatter()
+            formatter.dateFormat = "EEEE, d MMMM yyyy"
+            return formatter.string(from: date)
+        }
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: Spacing.sm) {
+            Text(dateHeader)
+                .font(.headline)
+                .fontWeight(.bold)
+                .foregroundStyle(.white.opacity(0.9))
+                .capsuleLabel(theme: theme, style: .title)
+                .padding(.leading, Spacing.xs)
+
+            VStack(alignment: .leading, spacing: 0) {
+                ForEach(Array(entries.enumerated()), id: \.element.id) { index, entry in
+                    DemoTimelineEntry(
+                        entry: entry,
+                        isLast: index == entries.count - 1,
+                        theme: theme,
+                        onTap: { onEntryTap(entry) }
+                    )
+                }
+            }
+            .padding(Spacing.lg)
+            .cardStyle(theme: theme)
+        }
+    }
+}
+
+// MARK: - Demo Timeline Entry
+
+struct DemoTimelineEntry: View {
+    let entry: DemoJournalEntryWrapper
+    let isLast: Bool
+    let theme: AppTheme
+    let onTap: () -> Void
+
+    private var timeString: String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "h:mm a"
+        return formatter.string(from: entry.timestamp)
+    }
+
+    var body: some View {
+        HStack(alignment: .top, spacing: Spacing.md) {
+            // Timeline dot and line
+            VStack(spacing: 0) {
+                Circle()
+                    .fill(theme.timelineColor)
+                    .frame(width: 10, height: 10)
+                    .shadow(color: theme.timelineColor.opacity(0.5), radius: 3)
+                    .padding(.top, 4)
+
+                if !isLast {
+                    Rectangle()
+                        .fill(theme.timelineColor.opacity(0.3))
+                        .frame(width: 2)
+                        .frame(maxHeight: .infinity)
+                }
+            }
+            .frame(width: 10)
+
+            // Entry content
+            VStack(alignment: .leading, spacing: Spacing.xs) {
+                HStack {
+                    Text(timeString)
+                        .font(.caption)
+                        .fontWeight(.medium)
+                        .foregroundStyle(theme.timelineColor)
+                        .capsuleLabel(theme: theme, style: .time)
+
+                    if entry.isFavorite {
+                        Image(systemName: "bookmark.fill")
+                            .font(.caption2)
+                            .foregroundStyle(.yellow)
+                    }
+
+                    if entry.isAnalyzed {
+                        Image(systemName: "sparkles")
+                            .font(.caption2)
+                            .foregroundStyle(.purple)
+                    }
+                }
+
+                Text(entry.content)
+                    .font(.body)
+                    .foregroundStyle(.white.opacity(0.9))
+                    .lineSpacing(4)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.bottom, isLast ? 0 : Spacing.lg)
+            .contentShape(Rectangle())
+            .onTapGesture {
+                HapticFeedback.light.trigger()
+                onTap()
+            }
+        }
+    }
+}
+
+// MARK: - Demo Entry Detail View
+
+struct DemoEntryDetailView: View {
+    let entry: DemoJournalEntryWrapper
+    @Environment(\.dismiss) private var dismiss
+    @ThemeWrapper var theme
+
+    var body: some View {
+        NavigationStack {
+            ZStack {
+                theme.gradient
+                    .ignoresSafeArea()
+
+                ScrollView {
+                    VStack(alignment: .leading, spacing: Spacing.lg) {
+                        // Demo badge
+                        HStack {
+                            Image(systemName: "play.rectangle.fill")
+                                .foregroundStyle(.orange)
+                            Text("Demo Entry")
+                                .font(.caption)
+                                .foregroundStyle(.white.opacity(0.7))
+                        }
+                        .padding(.horizontal, Spacing.md)
+                        .padding(.vertical, Spacing.xs)
+                        .background(.orange.opacity(0.2), in: Capsule())
+
+                        // Title if present
+                        if let title = entry.title {
+                            Text(title)
+                                .font(.title2)
+                                .fontWeight(.bold)
+                                .foregroundStyle(.white)
+                        }
+
+                        // Timestamp
+                        Text(entry.timestamp, style: .date) + Text(" at ") + Text(entry.timestamp, style: .time)
+                            .font(.subheadline)
+                            .foregroundStyle(.white.opacity(0.6))
+
+                        // Content
+                        Text(entry.content)
+                            .font(.body)
+                            .foregroundStyle(.white.opacity(0.9))
+                            .lineSpacing(6)
+                            .padding()
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .cardStyle(theme: theme)
+
+                        // Mood indicator
+                        if entry.mood > 0 {
+                            HStack {
+                                Text("Mood:")
+                                    .foregroundStyle(.white.opacity(0.6))
+                                ForEach(1...5, id: \.self) { index in
+                                    Image(systemName: index <= entry.mood ? "circle.fill" : "circle")
+                                        .font(.caption)
+                                        .foregroundStyle(index <= entry.mood ? theme.primaryColor : .white.opacity(0.3))
+                                }
+                            }
+                            .padding()
+                            .cardStyle(theme: theme)
+                        }
+
+                        // Analysis summary if analyzed
+                        if entry.isAnalyzed, let summary = entry.analysisSummary {
+                            VStack(alignment: .leading, spacing: Spacing.sm) {
+                                HStack {
+                                    Image(systemName: "sparkles")
+                                        .foregroundStyle(.purple)
+                                    Text("AI Analysis")
+                                        .font(.headline)
+                                        .foregroundStyle(.white)
+                                }
+
+                                Text(summary)
+                                    .font(.body)
+                                    .foregroundStyle(.white.opacity(0.8))
+
+                                HStack {
+                                    Text("Intensity:")
+                                        .font(.caption)
+                                        .foregroundStyle(.white.opacity(0.6))
+                                    Text("\(entry.overallIntensity)/10")
+                                        .font(.caption)
+                                        .fontWeight(.medium)
+                                        .foregroundStyle(.white)
+                                }
+                            }
+                            .padding()
+                            .cardStyle(theme: theme)
+                        }
+
+                        Spacer(minLength: 50)
+                    }
+                    .padding()
+                }
+            }
+            .navigationTitle("Entry Details")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Done") {
+                        dismiss()
+                    }
+                    .foregroundStyle(.white)
                 }
             }
         }

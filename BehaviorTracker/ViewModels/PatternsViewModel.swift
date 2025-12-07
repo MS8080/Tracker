@@ -1,10 +1,13 @@
 import Foundation
 import CoreData
 import SwiftUI
+import Combine
 
 @MainActor
 class PatternsViewModel: ObservableObject {
     @Published var todayPatterns: [ExtractedPattern] = []
+    @Published var demoPatterns: [DemoModeService.DemoExtractedPattern] = []
+    @Published var demoCascades: [DemoModeService.DemoPatternCascade] = []
     @Published var todayCascades: [PatternCascade] = []
     @Published var todaySummary: String?
     @Published var dominantPatterns: [String] = []
@@ -16,6 +19,28 @@ class PatternsViewModel: ObservableObject {
 
     private let dataController = DataController.shared
     private let extractionService = PatternExtractionService.shared
+    private let demoService = DemoModeService.shared
+    private var cancellables = Set<AnyCancellable>()
+
+    /// Whether we're currently in demo mode
+    var isDemoMode: Bool {
+        demoService.isEnabled
+    }
+
+    init() {
+        observeDemoModeChanges()
+    }
+
+    private func observeDemoModeChanges() {
+        NotificationCenter.default.publisher(for: .demoModeChanged)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                Task {
+                    await self?.loadTodayPatterns()
+                }
+            }
+            .store(in: &cancellables)
+    }
 
     // Cache keys for daily summary (stored in UserDefaults)
     private let summaryDateKey = "patternsSummaryDate"
@@ -30,15 +55,35 @@ class PatternsViewModel: ObservableObject {
     }
 
     var averageIntensity: String {
+        if demoService.isEnabled {
+            guard !demoPatterns.isEmpty else { return "0" }
+            let total = demoPatterns.reduce(0) { $0 + Int($1.intensity) }
+            let average = Double(total) / Double(demoPatterns.count)
+            return String(format: "%.1f", average)
+        }
         guard !todayPatterns.isEmpty else { return "0" }
         let total = todayPatterns.reduce(0) { $0 + Int($1.intensity) }
         let average = Double(total) / Double(todayPatterns.count)
         return String(format: "%.1f", average)
     }
 
+    /// Pattern count for UI display (demo-aware)
+    var patternCount: Int {
+        if demoService.isEnabled {
+            return demoPatterns.count
+        }
+        return todayPatterns.count
+    }
+
     // MARK: - Load Data
 
     func loadTodayPatterns() async {
+        // Demo mode: load demo patterns
+        if demoService.isEnabled {
+            loadDemoPatterns()
+            return
+        }
+
         isLoading = true
         defer { isLoading = false }
 
@@ -77,6 +122,27 @@ class PatternsViewModel: ObservableObject {
         } catch {
             self.error = "Failed to load patterns: \(error.localizedDescription)"
         }
+    }
+
+    // MARK: - Demo Mode
+
+    private func loadDemoPatterns() {
+        isLoading = true
+
+        // Load demo patterns
+        demoPatterns = demoService.demoExtractedPatterns
+        demoCascades = demoService.demoPatternCascades
+
+        // Clear real data
+        todayPatterns = []
+        todayCascades = []
+
+        // Set demo summary
+        todaySummary = demoService.demoDailySummary
+        dominantPatterns = demoService.demoDominantPatterns
+
+        hasUnanalyzedEntries = false
+        isLoading = false
     }
 
     // MARK: - Summary Caching

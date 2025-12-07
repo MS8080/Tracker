@@ -2,8 +2,26 @@ import Foundation
 import SwiftUI
 import Combine
 
+/// Wrapper struct to display demo medications without CoreData
+struct DemoMedicationWrapper: Identifiable {
+    let id: UUID
+    let name: String
+    let dosage: String?
+    let frequency: String
+    let takenToday: Bool
+
+    init(from demo: DemoModeService.DemoMedication) {
+        self.id = demo.id
+        self.name = demo.name
+        self.dosage = demo.dosage
+        self.frequency = demo.frequency
+        self.takenToday = demo.takenToday
+    }
+}
+
 class MedicationViewModel: ObservableObject {
     @Published var medications: [Medication] = []
+    @Published var demoMedications: [DemoMedicationWrapper] = []
     @Published var todaysLogs: [MedicationLog] = []
     @Published var showingAddMedication = false
     @Published var showingLogMedication = false
@@ -13,7 +31,13 @@ class MedicationViewModel: ObservableObject {
     @Published var showError: Bool = false
 
     private let dataController: DataController
+    private let demoService = DemoModeService.shared
     private var hasLoadedInitially = false
+
+    /// Whether we're currently in demo mode
+    var isDemoMode: Bool {
+        demoService.isEnabled
+    }
 
     init(dataController: DataController = .shared) {
         self.dataController = dataController
@@ -21,6 +45,13 @@ class MedicationViewModel: ObservableObject {
     }
 
     func loadMedications() {
+        // Demo mode: load demo medications
+        if demoService.isEnabled {
+            demoMedications = demoService.demoMedications.map { DemoMedicationWrapper(from: $0) }
+            medications = []
+            return
+        }
+
         // Load on background thread to avoid blocking UI
         Task { @MainActor [weak self] in
             guard let self else { return }
@@ -30,6 +61,9 @@ class MedicationViewModel: ObservableObject {
     }
 
     func loadTodaysLogs() {
+        // Skip in demo mode
+        guard !demoService.isEnabled else { return }
+
         Task { @MainActor [weak self] in
             guard let self else { return }
             let logs = dataController.getTodaysMedicationLogs()

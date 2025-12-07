@@ -7,42 +7,62 @@ struct GoalsListView: View {
 
     var body: some View {
         List {
-            Section {
-                ForEach(viewModel.goals) { goal in
-                    GoalDetailRow(goal: goal, viewModel: viewModel)
-                }
-                .onDelete(perform: deleteGoals)
-            } header: {
-                Text("Active Goals (\(viewModel.goals.count))")
-            }
-
-            if showingCompleted {
+            if viewModel.isDemoMode {
+                // Demo mode content
                 Section {
-                    ForEach(GoalRepository.shared.fetchCompleted()) { goal in
-                        GoalDetailRow(goal: goal, viewModel: viewModel)
+                    ForEach(viewModel.demoGoals) { goal in
+                        DemoGoalRow(goal: goal)
                     }
                 } header: {
-                    Text("Completed")
+                    HStack {
+                        Text("Active Goals (\(viewModel.demoGoals.count))")
+                        Spacer()
+                        Label("Demo Mode", systemImage: "play.rectangle.fill")
+                            .font(.caption2)
+                            .foregroundStyle(.orange)
+                    }
+                }
+            } else {
+                // Real data
+                Section {
+                    ForEach(viewModel.goals) { goal in
+                        GoalDetailRow(goal: goal, viewModel: viewModel)
+                    }
+                    .onDelete(perform: deleteGoals)
+                } header: {
+                    Text("Active Goals (\(viewModel.goals.count))")
+                }
+
+                if showingCompleted {
+                    Section {
+                        ForEach(GoalRepository.shared.fetchCompleted()) { goal in
+                            GoalDetailRow(goal: goal, viewModel: viewModel)
+                        }
+                    } header: {
+                        Text("Completed")
+                    }
                 }
             }
         }
         .navigationTitle("Goals")
         .toolbar {
-            ToolbarItem(placement: .primaryAction) {
-                Button {
-                    viewModel.showingAddGoal = true
-                } label: {
-                    Image(systemName: "plus")
+            if !viewModel.isDemoMode {
+                ToolbarItem(placement: .primaryAction) {
+                    Button {
+                        viewModel.showingAddGoal = true
+                    } label: {
+                        Image(systemName: "plus")
+                    }
                 }
-            }
-            ToolbarItem(placement: .secondaryAction) {
-                Button {
-                    showingCompleted.toggle()
-                } label: {
-                    Label(
-                        showingCompleted ? "Hide Completed" : "Show Completed",
-                        systemImage: showingCompleted ? "eye.slash" : "eye"
-                    )
+                ToolbarItem(placement: .secondaryAction) {
+                    Button {
+                        showingCompleted.toggle()
+                    } label: {
+                        Label(
+                            showingCompleted ? "Hide Completed" : "Show Completed",
+                            systemImage: showingCompleted ? "eye.slash" : "eye"
+                        )
+                    }
                 }
             }
         }
@@ -54,6 +74,81 @@ struct GoalsListView: View {
     private func deleteGoals(at offsets: IndexSet) {
         for index in offsets {
             viewModel.deleteGoal(viewModel.goals[index])
+        }
+    }
+}
+
+// MARK: - Demo Goal Row
+
+struct DemoGoalRow: View {
+    let goal: DemoModeService.DemoLifeGoal
+
+    var body: some View {
+        HStack(spacing: Spacing.md) {
+            Image(systemName: goal.progress >= 1.0 ? "checkmark.circle.fill" : "circle")
+                .font(.title2)
+                .foregroundStyle(goal.progress >= 1.0 ? .green : .secondary)
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text(goal.title)
+                    .font(.body)
+                    .fontWeight(.medium)
+
+                if goal.progress > 0 && goal.progress < 1.0 {
+                    HStack(spacing: Spacing.sm) {
+                        ProgressView(value: goal.progress)
+                            .tint(.orange)
+                            .frame(maxWidth: 100)
+
+                        Text("\(Int(goal.progress * 100))%")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+
+                HStack(spacing: Spacing.sm) {
+                    Label(goal.priority.capitalized, systemImage: "flag.fill")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+
+                    if let dueDate = goal.dueDate {
+                        Label(dueDate.formatted(date: .abbreviated, time: .omitted), systemImage: "calendar")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
+
+            Spacer()
+
+            priorityIndicator
+        }
+        .padding(.vertical, 4)
+    }
+
+    private var priorityIndicator: some View {
+        VStack(spacing: 2) {
+            ForEach(0..<priorityDots, id: \.self) { _ in
+                Circle()
+                    .fill(priorityColor)
+                    .frame(width: 6, height: 6)
+            }
+        }
+    }
+
+    private var priorityDots: Int {
+        switch goal.priority.lowercased() {
+        case "high": return 3
+        case "medium": return 2
+        default: return 1
+        }
+    }
+
+    private var priorityColor: Color {
+        switch goal.priority.lowercased() {
+        case "high": return .red
+        case "medium": return .orange
+        default: return .green
         }
     }
 }

@@ -1,5 +1,6 @@
 import SwiftUI
 import CoreData
+import Combine
 
 // MARK: - Models
 
@@ -53,6 +54,8 @@ class HomeViewModel: ObservableObject {
     private let dataController = DataController.shared
     private let geminiService = GeminiService.shared
     private let localAnalysisService = LocalAnalysisService.shared
+    private let demoService = DemoModeService.shared
+    private var cancellables = Set<AnyCancellable>()
 
     // Track if we should offer local analysis fallback
     @Published var showLocalAnalysisFallback: Bool = false
@@ -62,6 +65,21 @@ class HomeViewModel: ObservableObject {
     private var memoriesCache: [Memory] = []
     private var recentContextCache: RecentContext?
     private let cacheValidityInterval: TimeInterval = 300 // 5 minutes
+
+    init() {
+        observeDemoModeChanges()
+    }
+
+    private func observeDemoModeChanges() {
+        NotificationCenter.default.publisher(for: .demoModeChanged)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                // Clear cache so data reloads fresh
+                self?.lastLoadDate = nil
+                self?.loadData()
+            }
+            .store(in: &cancellables)
+    }
 
     // MARK: - Cached Formatters (Performance Optimization)
     private static let relativeDateFormatter: RelativeDateTimeFormatter = {
@@ -87,6 +105,12 @@ class HomeViewModel: ObservableObject {
     }
 
     func loadData() {
+        // Demo mode: load demo data instead
+        if demoService.isEnabled {
+            loadDemoData()
+            return
+        }
+
         // Skip if data was loaded recently (within 30 seconds)
         if let lastLoad = lastLoadDate,
            Date().timeIntervalSince(lastLoad) < 30 {
@@ -102,6 +126,39 @@ class HomeViewModel: ObservableObject {
         Task.detached(priority: .utility) { [weak self] in
             await self?.loadHeavyData()
         }
+    }
+
+    // MARK: - Demo Mode
+
+    private func loadDemoData() {
+        // Demo user name
+        userFirstName = demoService.demoUserProfile.name.components(separatedBy: " ").first
+
+        // Demo streak and stats
+        currentStreak = demoService.demoStats.streak
+        hasTodayEntries = true
+        todayEntryCount = demoService.demoStats.thisWeek
+
+        // Demo recent context from most recent journal
+        if let recentEntry = demoService.demoJournalEntries.first {
+            recentContext = RecentContext(
+                icon: "doc.text.fill",
+                color: .blue,
+                message: recentEntry.analysisSummary ?? "You wrote in your journal",
+                timeAgo: Self.relativeDateFormatter.localizedString(for: recentEntry.timestamp, relativeTo: Date()),
+                journalPreview: String(recentEntry.content.prefix(100))
+            )
+        }
+
+        // Demo memories
+        memories = [
+            Memory(timeframe: "This time last week", description: "Last week, you dealt with sensory overload at the store. You got through it."),
+            Memory(timeframe: "You got through it", description: "3 days ago, you felt overwhelmed by masking fatigue — and you made it through."),
+            Memory(timeframe: "Around this time", description: "You often experience \"energy dips\" around now")
+        ]
+
+        // Demo day slides are loaded via generateAISlides in demo mode
+        lastLoadDate = Date()
     }
 
     /// Force reload ignoring cache (e.g., after new entry)
@@ -667,6 +724,21 @@ class HomeViewModel: ObservableObject {
         isGeneratingSlides = true
         slidesError = nil
         todaySlides = []
+
+        // Demo mode: use preset slides
+        if demoService.isEnabled {
+            try? await Task.sleep(nanoseconds: 500_000_000) // Brief delay for UI effect
+            todaySlides = demoService.demoDaySlides.map { demoSlide in
+                DaySummarySlide(
+                    icon: demoSlide.icon,
+                    color: demoSlide.color,
+                    title: demoSlide.title,
+                    detail: demoSlide.detail
+                )
+            }
+            isGeneratingSlides = false
+            return
+        }
 
         let calendar = Calendar.current
         let startOfDay = calendar.startOfDay(for: Date())

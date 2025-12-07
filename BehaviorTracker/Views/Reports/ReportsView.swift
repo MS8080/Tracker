@@ -28,6 +28,20 @@ struct ReportsView: View {
 
                 ScrollView {
                     VStack(spacing: Spacing.lg) {
+                        // Demo mode indicator
+                        if viewModel.isDemoMode {
+                            HStack {
+                                Image(systemName: "play.rectangle.fill")
+                                    .foregroundStyle(.orange)
+                                Text("Demo Mode - Sample Data")
+                                    .font(.caption)
+                                    .foregroundStyle(.white.opacity(0.7))
+                            }
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .background(.orange.opacity(0.2), in: Capsule())
+                        }
+
                         AnalysisCardsRow(
                             theme: theme,
                             onAIInsights: { showingAIInsights = true },

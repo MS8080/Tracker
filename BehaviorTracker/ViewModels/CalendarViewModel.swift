@@ -1,5 +1,6 @@
 import SwiftUI
 import CoreData
+import Combine
 
 @MainActor
 class CalendarViewModel: ObservableObject {
@@ -10,10 +11,31 @@ class CalendarViewModel: ObservableObject {
     @Published var journalEntriesByDate: [Date: [JournalEntry]] = [:]
     @Published var calendarEventsByDate: [Date: [CalendarEvent]] = [:]
     @Published var isCalendarAuthorized: Bool = false
+    @Published var demoCalendarData: [Date: DemoModeService.DemoCalendarDay] = [:]
 
     private let dataController = DataController.shared
     private let calendarEventService = CalendarEventService.shared
+    private let demoService = DemoModeService.shared
     private let calendar = Calendar.current
+    private var cancellables = Set<AnyCancellable>()
+
+    /// Whether we're currently in demo mode
+    var isDemoMode: Bool {
+        demoService.isEnabled
+    }
+
+    init() {
+        observeDemoModeChanges()
+    }
+
+    private func observeDemoModeChanges() {
+        NotificationCenter.default.publisher(for: .demoModeChanged)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                self?.loadMonthData()
+            }
+            .store(in: &cancellables)
+    }
 
     // MARK: - Cached Formatters (Performance Optimization)
     private static let monthYearFormatter: DateFormatter = {
@@ -88,6 +110,16 @@ class CalendarViewModel: ObservableObject {
     // MARK: - Data Loading
 
     func loadMonthData() {
+        // Demo mode: load demo calendar data
+        if demoService.isEnabled {
+            demoCalendarData = demoService.demoCalendarDataByDate
+            // Clear real data
+            entriesByDate = [:]
+            medicationLogsByDate = [:]
+            journalEntriesByDate = [:]
+            return
+        }
+
         guard let monthInterval = calendar.dateInterval(of: .month, for: currentMonth) else { return }
 
         // Extend range to include visible days from adjacent months
@@ -203,7 +235,11 @@ class CalendarViewModel: ObservableObject {
     }
 
     func totalEntriesForDate(_ date: Date) -> Int {
-        entriesForDate(date).count
+        if demoService.isEnabled {
+            let day = calendar.startOfDay(for: date)
+            return demoCalendarData[day]?.patternCount ?? 0
+        }
+        return entriesForDate(date).count
     }
 
     func categoriesForDate(_ date: Date) -> [PatternCategory] {
@@ -213,6 +249,10 @@ class CalendarViewModel: ObservableObject {
     }
 
     func averageIntensityForDate(_ date: Date) -> Double? {
+        if demoService.isEnabled {
+            let day = calendar.startOfDay(for: date)
+            return demoCalendarData[day]?.averageIntensity
+        }
         let entries = entriesForDate(date).filter { $0.intensity > 0 }
         guard !entries.isEmpty else { return nil }
         let total = entries.reduce(0) { $0 + Int($1.intensity) }
@@ -220,6 +260,13 @@ class CalendarViewModel: ObservableObject {
     }
 
     func dominantCategoryForDate(_ date: Date) -> PatternCategory? {
+        if demoService.isEnabled {
+            let day = calendar.startOfDay(for: date)
+            if let categoryName = demoCalendarData[day]?.dominantCategory {
+                return PatternCategory(rawValue: categoryName)
+            }
+            return nil
+        }
         let entries = entriesForDate(date)
         let categoryCounts = Dictionary(grouping: entries) { $0.patternCategoryEnum }
             .mapValues { $0.count }
@@ -227,11 +274,31 @@ class CalendarViewModel: ObservableObject {
     }
 
     func hasMedicationLogsForDate(_ date: Date) -> Bool {
-        !medicationLogsForDate(date).isEmpty
+        if demoService.isEnabled {
+            let day = calendar.startOfDay(for: date)
+            return (demoCalendarData[day]?.medicationCount ?? 0) > 0
+        }
+        return !medicationLogsForDate(date).isEmpty
     }
 
     func hasJournalEntriesForDate(_ date: Date) -> Bool {
-        !journalEntriesForDate(date).isEmpty
+        if demoService.isEnabled {
+            let day = calendar.startOfDay(for: date)
+            return (demoCalendarData[day]?.journalCount ?? 0) > 0
+        }
+        return !journalEntriesForDate(date).isEmpty
+    }
+
+    /// Check if any activity exists for date (demo mode aware)
+    func hasAnyDataForDate(_ date: Date) -> Bool {
+        if demoService.isEnabled {
+            let day = calendar.startOfDay(for: date)
+            return demoCalendarData[day] != nil
+        }
+        return totalEntriesForDate(date) > 0 ||
+               hasMedicationLogsForDate(date) ||
+               hasJournalEntriesForDate(date) ||
+               hasCalendarEventsForDate(date)
     }
 
     // MARK: - Calendar Events Helpers

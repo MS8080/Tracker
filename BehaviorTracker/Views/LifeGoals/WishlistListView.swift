@@ -7,42 +7,71 @@ struct WishlistListView: View {
 
     var body: some View {
         List {
-            Section {
-                ForEach(viewModel.wishlistItems) { item in
-                    WishlistDetailRow(item: item, viewModel: viewModel)
-                }
-                .onDelete(perform: deleteItems)
-            } header: {
-                Text("Wishlist (\(viewModel.wishlistItems.count))")
-            }
-
-            if showingAcquired {
+            if viewModel.isDemoMode {
+                // Demo mode content
                 Section {
-                    ForEach(WishlistRepository.shared.fetchAcquired()) { item in
-                        WishlistDetailRow(item: item, viewModel: viewModel)
+                    ForEach(viewModel.demoWishlistItems.filter { !$0.isAcquired }) { item in
+                        DemoWishlistRow(item: item)
+                    }
+                } header: {
+                    HStack {
+                        Text("Wishlist (\(viewModel.demoWishlistItems.filter { !$0.isAcquired }.count))")
+                        Spacer()
+                        Label("Demo Mode", systemImage: "play.rectangle.fill")
+                            .font(.caption2)
+                            .foregroundStyle(.orange)
+                    }
+                }
+
+                // Show acquired demo items
+                Section {
+                    ForEach(viewModel.demoWishlistItems.filter { $0.isAcquired }) { item in
+                        DemoWishlistRow(item: item)
                     }
                 } header: {
                     Text("Acquired")
+                }
+            } else {
+                // Real data
+                Section {
+                    ForEach(viewModel.wishlistItems) { item in
+                        WishlistDetailRow(item: item, viewModel: viewModel)
+                    }
+                    .onDelete(perform: deleteItems)
+                } header: {
+                    Text("Wishlist (\(viewModel.wishlistItems.count))")
+                }
+
+                if showingAcquired {
+                    Section {
+                        ForEach(WishlistRepository.shared.fetchAcquired()) { item in
+                            WishlistDetailRow(item: item, viewModel: viewModel)
+                        }
+                    } header: {
+                        Text("Acquired")
+                    }
                 }
             }
         }
         .navigationTitle("Wishlist")
         .toolbar {
-            ToolbarItem(placement: .primaryAction) {
-                Button {
-                    viewModel.showingAddWishlistItem = true
-                } label: {
-                    Image(systemName: "plus")
+            if !viewModel.isDemoMode {
+                ToolbarItem(placement: .primaryAction) {
+                    Button {
+                        viewModel.showingAddWishlistItem = true
+                    } label: {
+                        Image(systemName: "plus")
+                    }
                 }
-            }
-            ToolbarItem(placement: .secondaryAction) {
-                Button {
-                    showingAcquired.toggle()
-                } label: {
-                    Label(
-                        showingAcquired ? "Hide Acquired" : "Show Acquired",
-                        systemImage: showingAcquired ? "eye.slash" : "eye"
-                    )
+                ToolbarItem(placement: .secondaryAction) {
+                    Button {
+                        showingAcquired.toggle()
+                    } label: {
+                        Label(
+                            showingAcquired ? "Hide Acquired" : "Show Acquired",
+                            systemImage: showingAcquired ? "eye.slash" : "eye"
+                        )
+                    }
                 }
             }
         }
@@ -55,6 +84,38 @@ struct WishlistListView: View {
         for index in offsets {
             viewModel.deleteWishlistItem(viewModel.wishlistItems[index])
         }
+    }
+}
+
+// MARK: - Demo Wishlist Row
+
+struct DemoWishlistRow: View {
+    let item: DemoModeService.DemoWishlistItem
+
+    var body: some View {
+        HStack(spacing: Spacing.md) {
+            Image(systemName: item.isAcquired ? "checkmark.circle.fill" : "circle")
+                .font(.title2)
+                .foregroundStyle(item.isAcquired ? .green : .secondary)
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text(item.title)
+                    .font(.body)
+                    .fontWeight(.medium)
+                    .foregroundStyle(item.isAcquired ? .secondary : .primary)
+                    .strikethrough(item.isAcquired)
+
+                Label(item.category, systemImage: "tag.fill")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            Spacer()
+
+            Image(systemName: "gift.fill")
+                .foregroundStyle(.pink.opacity(0.6))
+        }
+        .padding(.vertical, 4)
     }
 }
 

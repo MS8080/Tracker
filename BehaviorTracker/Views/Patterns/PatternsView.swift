@@ -15,6 +15,30 @@ struct PatternsView: View {
 
                 if viewModel.isLoading {
                     loadingView
+                } else if viewModel.isDemoMode {
+                    // Demo mode content
+                    ScrollView {
+                        VStack(spacing: Spacing.lg) {
+                            // Demo mode indicator
+                            HStack {
+                                Image(systemName: "play.rectangle.fill")
+                                    .foregroundStyle(.orange)
+                                Text("Demo Mode - Sample Data")
+                                    .font(.caption)
+                                    .foregroundStyle(.white.opacity(0.7))
+                            }
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .background(.orange.opacity(0.2), in: Capsule())
+
+                            // Summary card for demo
+                            demoSummaryCard
+
+                            // Demo pattern details list
+                            demoPatternDetailsList
+                        }
+                        .padding()
+                    }
                 } else if viewModel.todayPatterns.isEmpty {
                     emptyStateView
                 } else {
@@ -53,7 +77,7 @@ struct PatternsView: View {
                     }
                     .buttonStyle(.plain)
                     .modifier(CircularGlassModifier())
-                    .disabled(viewModel.todayPatterns.isEmpty)
+                    .disabled(viewModel.todayPatterns.isEmpty && !viewModel.isDemoMode)
                 }
 
             }
@@ -232,6 +256,95 @@ struct PatternsView: View {
         .frame(maxWidth: .infinity)
     }
 
+    // MARK: - Demo Summary Card
+
+    private var demoSummaryCard: some View {
+        VStack(alignment: .leading, spacing: Spacing.md) {
+            HStack {
+                HStack(spacing: Spacing.sm) {
+                    Image(systemName: "chart.bar.fill")
+                        .font(.title3)
+                        .foregroundStyle(theme.primaryColor)
+                    Text("Today's Summary")
+                        .font(.title3)
+                        .fontWeight(.semibold)
+                }
+                .capsuleLabel(theme: theme, style: .title)
+                Spacer()
+                Text(viewModel.todayDateString)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
+
+            HStack(spacing: Spacing.xl) {
+                summaryItem(
+                    value: "\(viewModel.demoPatterns.count)",
+                    label: "Patterns",
+                    icon: "brain"
+                )
+
+                summaryItem(
+                    value: "\(viewModel.demoCascades.count)",
+                    label: "Cascades",
+                    icon: "arrow.right"
+                )
+
+                summaryItem(
+                    value: viewModel.averageIntensity,
+                    label: "Avg Intensity",
+                    icon: "gauge"
+                )
+            }
+
+            // Daily summary
+            if let summary = viewModel.todaySummary {
+                Text(summary)
+                    .font(.subheadline)
+                    .foregroundStyle(.white.opacity(0.85))
+                    .padding(.top, Spacing.sm)
+            }
+        }
+        .padding()
+        .cardStyle(theme: theme)
+    }
+
+    // MARK: - Demo Pattern Details List
+
+    private var demoPatternDetailsList: some View {
+        VStack(alignment: .leading, spacing: Spacing.md) {
+            HStack {
+                HStack(spacing: Spacing.sm) {
+                    Image(systemName: "list.bullet")
+                        .font(.title3)
+                        .foregroundStyle(theme.primaryColor)
+                    Text("Pattern Details")
+                        .font(.title3)
+                        .fontWeight(.semibold)
+                }
+                .capsuleLabel(theme: theme, style: .title)
+                Spacer()
+
+                // Toggle triggers visibility
+                Button {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        showTriggers.toggle()
+                    }
+                } label: {
+                    Image(systemName: showTriggers ? "tag.fill" : "tag.slash")
+                        .font(.subheadline)
+                        .foregroundStyle(showTriggers ? theme.primaryColor : .white.opacity(0.5))
+                }
+                .buttonStyle(.plain)
+            }
+
+            ForEach(viewModel.demoPatterns) { pattern in
+                DemoPatternDetailRow(pattern: pattern, theme: theme, showTriggers: showTriggers)
+            }
+        }
+        .padding()
+        .cardStyle(theme: theme)
+    }
+
     // MARK: - Pattern Details List
 
     private var patternDetailsList: some View {
@@ -367,6 +480,109 @@ struct PatternDetailRow: View {
         // Add time of day context if available and not "unknown"
         if let timeOfDay = pattern.timeOfDay,
            timeOfDay.lowercased() != "unknown" {
+            return "\(timeString) (\(timeOfDay.capitalized))"
+        }
+
+        return timeString
+    }
+}
+
+// MARK: - Demo Pattern Detail Row
+
+struct DemoPatternDetailRow: View {
+    let pattern: DemoModeService.DemoExtractedPattern
+    let theme: AppTheme
+    var showTriggers: Bool = true
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: Spacing.md) {
+            HStack {
+                Circle()
+                    .fill(categoryColor)
+                    .frame(width: 12, height: 12)
+
+                Text(pattern.patternType)
+                    .font(.body)
+                    .fontWeight(.semibold)
+                    .capsuleLabel(theme: theme, style: .title)
+
+                Spacer()
+
+                // Intensity indicator
+                HStack(spacing: 3) {
+                    ForEach(0..<5) { i in
+                        Circle()
+                            .fill(i < pattern.intensity / 2 ? theme.primaryColor : Color.white.opacity(0.2))
+                            .frame(width: 8, height: 8)
+                    }
+                }
+
+                Text("\(pattern.intensity)/10")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
+
+            if let details = pattern.details, !details.isEmpty {
+                Text(details)
+                    .font(.subheadline)
+                    .foregroundStyle(.white.opacity(0.8))
+            }
+
+            // Triggers - using wrapping layout (conditionally shown)
+            if showTriggers && !pattern.triggers.isEmpty {
+                VStack(alignment: .leading, spacing: Spacing.sm) {
+                    Text("Triggers:")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+
+                    FlowLayout(spacing: Spacing.sm) {
+                        ForEach(pattern.triggers, id: \.self) { trigger in
+                            Text(trigger)
+                                .font(.caption)
+                                .lineLimit(1)
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 5)
+                                .background(Color.white.opacity(0.1), in: Capsule())
+                        }
+                    }
+                }
+            }
+
+            // Time
+            HStack {
+                Image(systemName: "clock")
+                    .font(.caption)
+                Text(formattedTime)
+                    .font(.caption)
+            }
+            .foregroundStyle(.secondary)
+        }
+        .padding(Spacing.md)
+        .background(Color.white.opacity(0.05), in: RoundedRectangle(cornerRadius: CornerRadius.md))
+    }
+
+    private var categoryColor: Color {
+        switch pattern.category {
+        case "Sensory": return .red
+        case "Executive Function": return .orange
+        case "Energy & Regulation": return .purple
+        case "Social & Communication": return .blue
+        case "Routine & Change": return .yellow
+        case "Demand Avoidance": return .pink
+        case "Physical & Sleep": return .green
+        case "Positive & Coping": return .mint
+        default: return .gray
+        }
+    }
+
+    private var formattedTime: String {
+        let formatter = DateFormatter()
+        formatter.timeStyle = .short
+
+        let timeString = formatter.string(from: pattern.timestamp)
+
+        // Add time of day context if available
+        if let timeOfDay = pattern.timeOfDay {
             return "\(timeString) (\(timeOfDay.capitalized))"
         }
 

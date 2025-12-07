@@ -1,4 +1,5 @@
 import SwiftUI
+import Combine
 
 // MARK: - Analysis Mode
 
@@ -57,6 +58,38 @@ class AIInsightsTabViewModel: ObservableObject {
     private let geminiService = GeminiService.shared
     private let aiAnalysisService = AIAnalysisService.shared
     private let localAnalysisService = LocalAnalysisService.shared
+    private let demoService = DemoModeService.shared
+    private var cancellables = Set<AnyCancellable>()
+
+    /// Whether we're currently in demo mode
+    var isDemoMode: Bool {
+        demoService.isEnabled
+    }
+
+    init() {
+        // Load saved analysis mode preference
+        if let savedMode = UserDefaults.standard.string(forKey: "preferred_analysis_mode"),
+           let mode = AnalysisMode(rawValue: savedMode) {
+            self.analysisMode = mode
+        } else {
+            // Default to local mode for privacy-first approach
+            self.analysisMode = .local
+        }
+        apiKeyInput = geminiService.apiKey ?? ""
+        observeDemoModeChanges()
+    }
+
+    private func observeDemoModeChanges() {
+        NotificationCenter.default.publisher(for: .demoModeChanged)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                // Clear results when mode changes
+                self?.insights = nil
+                self?.localInsights = nil
+                self?.summaryInsights = nil
+            }
+            .store(in: &cancellables)
+    }
 
     var hasAcknowledgedPrivacy: Bool {
         UserDefaults.standard.bool(forKey: "ai_privacy_acknowledged")
@@ -79,18 +112,6 @@ class AIInsightsTabViewModel: ObservableObject {
     /// Returns true if AI mode is fully configured
     var isAIModeReady: Bool {
         hasAcknowledgedPrivacy && isAPIKeyConfigured
-    }
-
-    init() {
-        // Load saved analysis mode preference
-        if let savedMode = UserDefaults.standard.string(forKey: "preferred_analysis_mode"),
-           let mode = AnalysisMode(rawValue: savedMode) {
-            self.analysisMode = mode
-        } else {
-            // Default to local mode for privacy-first approach
-            self.analysisMode = .local
-        }
-        apiKeyInput = geminiService.apiKey ?? ""
     }
 
     func acknowledgePrivacy() {
@@ -121,6 +142,13 @@ class AIInsightsTabViewModel: ObservableObject {
         localInsights = nil
         summaryInsights = nil
 
+        // Demo mode: show demo insights
+        if isDemoMode {
+            await analyzeDemoMode()
+            isAnalyzing = false
+            return
+        }
+
         switch analysisMode {
         case .local:
             await analyzeLocally()
@@ -129,6 +157,101 @@ class AIInsightsTabViewModel: ObservableObject {
         }
 
         isAnalyzing = false
+    }
+
+    private func analyzeDemoMode() async {
+        // Simulate a brief loading delay for demo
+        try? await Task.sleep(nanoseconds: 800_000_000)
+
+        let demoInsights = demoService.demoAIInsights
+
+        // Create demo local insights with multiple sections
+        let patternSection = LocalInsightSection(
+            title: "Pattern Analysis",
+            icon: "waveform.path.ecg",
+            insights: [
+                LocalInsightItem(
+                    type: .pattern,
+                    title: "Most Common Pattern",
+                    description: "Sensory Overload occurs most frequently, especially in mornings",
+                    value: "35%",
+                    trend: .neutral
+                ),
+                LocalInsightItem(
+                    type: .cascade,
+                    title: "Pattern Cascade",
+                    description: "Sensory Overload often leads to Energy Dip within 2 hours",
+                    value: nil,
+                    trend: nil
+                ),
+                LocalInsightItem(
+                    type: .time,
+                    title: "Peak Times",
+                    description: "Most patterns logged between 9 AM and 11 AM",
+                    value: nil,
+                    trend: nil
+                )
+            ]
+        )
+
+        let moodSection = LocalInsightSection(
+            title: "Mood & Energy",
+            icon: "face.smiling",
+            insights: [
+                LocalInsightItem(
+                    type: .mood,
+                    title: "Average Mood",
+                    description: "Your mood tends to be higher on weekends",
+                    value: "3.8/5",
+                    trend: .positive
+                ),
+                LocalInsightItem(
+                    type: .trend,
+                    title: "Energy Pattern",
+                    description: "Energy levels dip after social interactions",
+                    value: nil,
+                    trend: .negative
+                )
+            ]
+        )
+
+        let suggestionsSection = LocalInsightSection(
+            title: "Suggestions",
+            icon: "lightbulb",
+            insights: [
+                LocalInsightItem(
+                    type: .suggestion,
+                    title: "Morning Routine",
+                    description: demoInsights[0],
+                    value: nil,
+                    trend: nil
+                ),
+                LocalInsightItem(
+                    type: .suggestion,
+                    title: "Recovery Time",
+                    description: demoInsights[1],
+                    value: nil,
+                    trend: nil
+                ),
+                LocalInsightItem(
+                    type: .positive,
+                    title: "Coping Success",
+                    description: demoInsights[4],
+                    value: nil,
+                    trend: .positive
+                )
+            ]
+        )
+
+        localInsights = LocalInsights(
+            sections: [patternSection, moodSection, suggestionsSection],
+            generatedAt: Date()
+        )
+
+        summaryInsights = SummaryInsights(
+            keyPatterns: "Sensory sensitivity peaks in morning hours with 35% of overload episodes",
+            topRecommendation: demoInsights[0]
+        )
     }
 
     private func analyzeLocally() async {
