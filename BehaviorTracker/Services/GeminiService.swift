@@ -34,10 +34,11 @@ class GeminiService {
 
     // Vertex AI configuration with API key
     private let model = "gemini-2.5-flash-lite"
+    private let region = "europe-west6" // Zurich
     private let vertexAPIKey = "AQ.Ab8RN6J3LRWEVCcTHY_FmzsdW90R27P2YIRGulK2pcUMrxeVaw"
 
     private var baseURL: String {
-        "https://aiplatform.googleapis.com/v1/publishers/google/models/\(model):generateContent?key=\(vertexAPIKey)"
+        "https://\(region)-aiplatform.googleapis.com/v1/publishers/google/models/\(model):generateContent?key=\(vertexAPIKey)"
     }
 
     /// Maximum number of retry attempts for rate-limited requests
