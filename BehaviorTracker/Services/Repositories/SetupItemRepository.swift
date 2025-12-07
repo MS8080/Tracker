@@ -46,7 +46,6 @@ final class SetupItemRepository {
         do {
             return try fetchOrThrow(activeOnly: activeOnly, category: category)
         } catch {
-            print("Failed to fetch setup items: \(error)")
             return []
         }
     }

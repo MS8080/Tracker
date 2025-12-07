@@ -167,7 +167,6 @@ class CalendarViewModel: ObservableObject {
             }
             medicationLogsByDate = grouped
         } catch {
-            print("Error fetching medication logs: \(error)")
         }
     }
 

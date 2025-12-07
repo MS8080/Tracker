@@ -131,7 +131,6 @@ class GeminiService {
         // Client-side rate limiting - wait if we made a request too recently
         await enforceMinRequestInterval()
 
-        print("[GeminiService] Starting request...")
 
         guard let url = URL(string: "\(baseURL)?key=\(apiKey)") else {
             throw GeminiError.invalidURL
@@ -196,7 +195,6 @@ class GeminiService {
                        let error = errorResponse["error"] as? [String: Any],
                        let message = error["message"] as? String {
                         errorDetail = message
-                        print("[GeminiService] 429 Error detail: \(message)")
 
                         // Check if it's a quota issue (not retryable)
                         if message.lowercased().contains("quota") || message.lowercased().contains("exhausted") {
@@ -206,7 +204,6 @@ class GeminiService {
 
                     // Temporary rate limit - apply exponential backoff and retry
                     let delay = baseRetryDelay * pow(2.0, Double(attempt))
-                    print("[GeminiService] Rate limited (429). Retrying in \(delay)s... (attempt \(attempt + 1)/\(maxRetries))")
                     try await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
                     lastError = GeminiError.rateLimited
                     continue
@@ -214,7 +211,6 @@ class GeminiService {
                 case 500, 502, 503, 504:
                     // Server error - retry with backoff
                     let delay = baseRetryDelay * pow(2.0, Double(attempt))
-                    print("[GeminiService] Server error (\(httpResponse.statusCode)). Retrying in \(delay)s...")
                     try await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
                     lastError = GeminiError.httpError(httpResponse.statusCode)
                     continue
@@ -229,7 +225,6 @@ class GeminiService {
                 // Network error - retry with backoff
                 if attempt < maxRetries - 1 {
                     let delay = baseRetryDelay * pow(2.0, Double(attempt))
-                    print("[GeminiService] Network error. Retrying in \(delay)s...")
                     try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
                     lastError = error
                     continue

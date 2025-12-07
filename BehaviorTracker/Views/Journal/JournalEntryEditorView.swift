@@ -2,17 +2,21 @@ import SwiftUI
 
 // MARK: - Circular Glass Modifier
 
+/// Applies a circular glass background to toolbar buttons.
+/// On iOS 26+, let the system handle glass effect - don't add custom background.
 struct CircularGlassModifier: ViewModifier {
     func body(content: Content) -> some View {
         if #available(iOS 26.0, *) {
+            // iOS 26+: Don't add any background - system provides glass automatically
             content
-                .glassEffect(.regular.interactive(), in: .circle)
         } else {
+            // Pre-iOS 26: manually add glass background
             content
                 .background(.ultraThinMaterial, in: Circle())
         }
     }
 }
+
 
 // MARK: - Journal Entry Editor
 
@@ -94,7 +98,6 @@ struct JournalEntryEditorView: View {
                     ToolbarItem(placement: .confirmationAction) {
                         saveButton
                     }
-
                 }
             }
 
@@ -269,18 +272,11 @@ struct JournalEntryEditorView: View {
         } label: {
             if isSaving {
                 ProgressView()
-                    .tint(.white)
                     .scaleEffect(0.8)
-                    .frame(width: 44, height: 44)
             } else {
                 Image(systemName: "checkmark")
-                    .font(.system(size: 18, weight: .semibold))
-                    .foregroundStyle(.white)
-                    .frame(width: 44, height: 44)
             }
         }
-        .buttonStyle(.plain)
-        .modifier(CircularGlassModifier())
         .disabled(content.isEmpty || isSaving)
     }
 
@@ -392,7 +388,6 @@ struct JournalEntryEditorView: View {
         UserDefaults.standard.set(entryDate, forKey: "journalDraftDate")
         lastSavedContent = content
         hasUnsavedChanges = false
-        print("[JournalEditor] Draft auto-saved")
     }
 
     private func clearDraft() {
@@ -500,7 +495,6 @@ struct JournalEntryEditorView: View {
 
         // Debounce: skip if this entry was recently analyzed
         if GeminiService.shared.wasRecentlyAnalyzed(entryID: entry.id) {
-            print("[JournalEntryEditorView] Skipping analysis - entry \(entry.id) was recently analyzed")
             return
         }
 
@@ -554,7 +548,6 @@ struct JournalEntryEditorView: View {
             try context.save()
 
         } catch {
-            print("Failed to analyze entry: \(error.localizedDescription)")
         }
     }
 }

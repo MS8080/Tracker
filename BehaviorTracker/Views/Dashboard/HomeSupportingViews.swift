@@ -187,10 +187,10 @@ struct DaySlideshowView: View {
                                 }
                             }
                         } else if error.contains("error") || error.contains("Error") || error.contains("failed") {
-                            // Generic retry for other errors
+                            // Generic retry for other errors - use local analysis
                             Button {
                                 Task {
-                                    await viewModel.generateAISlides()
+                                    await viewModel.generateLocalSlides()
                                 }
                             } label: {
                                 Text("Try Again")
@@ -274,7 +274,8 @@ struct DaySlideshowView: View {
             #endif
 
             if viewModel.todaySlides.isEmpty && !viewModel.isGeneratingSlides {
-                await viewModel.generateAISlides()
+                // Use local analysis by default (no API calls, works offline)
+                await viewModel.generateLocalSlides()
             }
         }
         .onChange(of: viewModel.todaySlides) { _, slides in

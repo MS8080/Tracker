@@ -70,7 +70,6 @@ class SpeechRecognitionService: ObservableObject {
             try audioEngine.start()
             isRecording = true
         } catch {
-            print("Audio engine failed to start: \(error)")
             stopTranscribing()
         }
     }

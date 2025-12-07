@@ -431,7 +431,6 @@ struct ResultStep: View {
             try viewContext.save()
             HapticFeedback.success.trigger()
         } catch {
-            print("Failed to save: \(error)")
         }
     }
 }

@@ -33,7 +33,6 @@ final class UserProfileRepository {
         do {
             return try fetchProfilesOrThrow()
         } catch {
-            print("Failed to fetch user profiles: \(error.localizedDescription)")
             return []
         }
     }
@@ -53,7 +52,6 @@ final class UserProfileRepository {
         do {
             return try getCurrentProfileOrThrow()
         } catch {
-            print("Failed to fetch current user profile: \(error.localizedDescription)")
             return nil
         }
     }
@@ -105,7 +103,6 @@ final class UserProfileRepository {
                 return newPreferences
             }
         } catch {
-            print("Failed to fetch preferences: \(error.localizedDescription)")
             let newPreferences = UserPreferences(context: viewContext)
             DataController.shared.save()
             return newPreferences
@@ -139,7 +136,6 @@ final class UserProfileRepository {
             }
             DataController.shared.save()
         } catch {
-            print("Failed to update streak: \(error.localizedDescription)")
         }
     }
 }

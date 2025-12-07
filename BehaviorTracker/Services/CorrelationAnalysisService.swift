@@ -311,7 +311,6 @@ class CorrelationAnalysisService {
         do {
             return try dataController.container.viewContext.fetch(request)
         } catch {
-            print("Error fetching medication logs: \(error)")
             return []
         }
     }

@@ -87,7 +87,6 @@ final class PatternRepository: @unchecked Sendable {
                     return entry.objectID.uriRepresentation()
                 }
             } catch {
-                print("Failed to fetch pattern entries: \(error.localizedDescription)")
                 return []
             }
         }
@@ -112,7 +111,6 @@ final class PatternRepository: @unchecked Sendable {
         do {
             return try viewContext.fetch(request)
         } catch {
-            print("Failed to fetch pattern entries: \(error.localizedDescription)")
             return []
         }
     }

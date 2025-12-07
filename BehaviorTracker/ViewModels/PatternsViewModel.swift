@@ -17,9 +17,11 @@ class PatternsViewModel: ObservableObject {
     private let dataController = DataController.shared
     private let extractionService = PatternExtractionService.shared
 
-    // Cache key for daily summary to avoid regenerating
-    private var lastSummaryPatternCount: Int = 0
-    private var lastSummaryDate: Date?
+    // Cache keys for daily summary (stored in UserDefaults)
+    private let summaryDateKey = "patternsSummaryDate"
+    private let summaryTextKey = "patternsSummaryText"
+    private let summaryPatternCountKey = "patternsSummaryCount"
+    private let dominantPatternsKey = "patternsDominantPatterns"
 
     var todayDateString: String {
         let formatter = DateFormatter()
@@ -69,27 +71,47 @@ class PatternsViewModel: ObservableObject {
             // Check for unanalyzed entries
             await checkUnanalyzedEntries()
 
-            // Generate daily summary only if:
-            // 1. We have patterns
-            // 2. Either no summary exists, OR pattern count changed, OR it's a new day
-            let today = Calendar.current.startOfDay(for: Date())
-            let needsNewSummary = todaySummary == nil ||
-                                  lastSummaryPatternCount != todayPatterns.count ||
-                                  lastSummaryDate != today
-
-            if !todayPatterns.isEmpty && needsNewSummary {
-                await generateDailySummary()
-                lastSummaryPatternCount = todayPatterns.count
-                lastSummaryDate = today
-            }
+            // Load cached summary - NO API call here
+            loadCachedSummary()
 
         } catch {
             self.error = "Failed to load patterns: \(error.localizedDescription)"
         }
     }
 
+    // MARK: - Summary Caching
+
+    /// Load summary from cache (no API call)
+    private func loadCachedSummary() {
+        let defaults = UserDefaults.standard
+        let today = Calendar.current.startOfDay(for: Date())
+
+        // Check if we have a cached summary for today with matching pattern count
+        if let cachedDate = defaults.object(forKey: summaryDateKey) as? Date,
+           Calendar.current.isDate(cachedDate, inSameDayAs: today),
+           defaults.integer(forKey: summaryPatternCountKey) == todayPatterns.count {
+            // Use cached summary
+            todaySummary = defaults.string(forKey: summaryTextKey)
+            dominantPatterns = defaults.stringArray(forKey: dominantPatternsKey) ?? []
+        } else {
+            // Cache is stale or missing - clear it but don't auto-regenerate
+            todaySummary = nil
+            dominantPatterns = []
+        }
+    }
+
+    /// Save summary to cache
+    private func cacheSummary(_ summary: String, patterns: [String]) {
+        let defaults = UserDefaults.standard
+        defaults.set(Date(), forKey: summaryDateKey)
+        defaults.set(summary, forKey: summaryTextKey)
+        defaults.set(todayPatterns.count, forKey: summaryPatternCountKey)
+        defaults.set(patterns, forKey: dominantPatternsKey)
+    }
+
     // MARK: - Generate Daily Summary
 
+    /// Generate summary - only called explicitly by user action
     func generateDailySummary() async {
         guard !todayPatterns.isEmpty else {
             todaySummary = nil
@@ -98,7 +120,6 @@ class PatternsViewModel: ObservableObject {
         }
 
         guard extractionService.isConfigured else {
-            print("[PatternsViewModel] Cannot generate summary - no API key")
             return
         }
 
@@ -109,9 +130,10 @@ class PatternsViewModel: ObservableObject {
             let result = try await extractionService.generateDailySummary(patterns: todayPatterns)
             todaySummary = result.summary
             dominantPatterns = result.dominantPatterns
-            print("[PatternsViewModel] Generated daily summary: \(result.summary)")
+
+            // Cache the result
+            cacheSummary(result.summary, patterns: result.dominantPatterns)
         } catch {
-            print("[PatternsViewModel] Failed to generate daily summary: \(error.localizedDescription)")
             // Fall back to no summary rather than showing error
             todaySummary = nil
         }
@@ -144,12 +166,10 @@ class PatternsViewModel: ObservableObject {
 
     func analyzeUnanalyzedEntries() async {
         guard !isAnalyzing else {
-            print("[PatternsViewModel] Already analyzing, skipping")
             return
         }
 
         guard extractionService.isConfigured else {
-            print("[PatternsViewModel] Extraction service not configured (no API key)")
             return
         }
 
@@ -174,27 +194,26 @@ class PatternsViewModel: ObservableObject {
             let entries = try context.fetch(fetchRequest)
 
             guard !entries.isEmpty else {
-                print("[PatternsViewModel] No entries to analyze")
                 hasUnanalyzedEntries = false
                 return
             }
 
-            print("[PatternsViewModel] Found \(entries.count) unanalyzed entries")
 
             for entry in entries {
-                print("[PatternsViewModel] Analyzing entry: \(entry.timestamp)")
                 await analyzeEntry(entry, context: context)
             }
 
             try context.save()
-            print("[PatternsViewModel] Saved analyzed entries")
 
-            // Reload patterns and regenerate daily summary
-            todaySummary = nil  // Clear so it regenerates
+            // Reload patterns
             await loadTodayPatterns()
 
+            // Generate summary since user explicitly analyzed (only if we have patterns)
+            if !todayPatterns.isEmpty {
+                await generateDailySummary()
+            }
+
         } catch {
-            print("[PatternsViewModel] Error: \(error.localizedDescription)")
             self.error = "Failed to analyze entries: \(error.localizedDescription)"
         }
     }
@@ -202,7 +221,6 @@ class PatternsViewModel: ObservableObject {
     private func analyzeEntry(_ entry: JournalEntry, context: NSManagedObjectContext) async {
         // Debounce: skip if this entry was recently analyzed
         if GeminiService.shared.wasRecentlyAnalyzed(entryID: entry.id) {
-            print("[PatternsViewModel] Skipping analysis - entry \(entry.id) was recently analyzed")
             return
         }
 
@@ -210,9 +228,7 @@ class PatternsViewModel: ObservableObject {
         GeminiService.shared.markAsAnalyzed(entryID: entry.id)
 
         do {
-            print("[PatternsViewModel] Calling extractPatterns for entry...")
             let result = try await extractionService.extractPatterns(from: entry.content)
-            print("[PatternsViewModel] Got \(result.patterns.count) patterns from extraction")
 
             // Create ExtractedPattern entities
             var createdPatterns: [String: ExtractedPattern] = [:]
@@ -255,7 +271,6 @@ class PatternsViewModel: ObservableObject {
             entry.overallIntensity = Int16(result.overallIntensity)
 
         } catch {
-            print("Failed to analyze entry: \(error.localizedDescription)")
             // Don't mark as analyzed if it failed
         }
     }

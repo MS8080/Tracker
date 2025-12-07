@@ -20,7 +20,6 @@ class iPhoneWatchConnectivityService: NSObject, ObservableObject {
 
     func sendUpdateToWatch() {
         guard WCSession.default.isReachable else {
-            print("Watch not reachable")
             return
         }
 
@@ -48,7 +47,6 @@ class iPhoneWatchConnectivityService: NSObject, ObservableObject {
         ]
 
         WCSession.default.sendMessage(message, replyHandler: nil, errorHandler: { error in
-            print("Error sending update to watch: \(error.localizedDescription)")
         })
     }
 
@@ -67,9 +65,7 @@ class iPhoneWatchConnectivityService: NSObject, ObservableObject {
 
         do {
             try WCSession.default.updateApplicationContext(context)
-            print("Application context updated successfully")
         } catch {
-            print("Error updating application context: \(error.localizedDescription)")
         }
     }
 
@@ -96,7 +92,6 @@ class iPhoneWatchConnectivityService: NSObject, ObservableObject {
                 dataController.updateStreak()
                 sendUpdateToWatch()
             } catch {
-                print("Failed to create pattern entry from watch: \(error)")
             }
         }
 
@@ -200,11 +195,9 @@ extension iPhoneWatchConnectivityService: WCSessionDelegate {
     }
 
     func sessionDidBecomeInactive(_ session: WCSession) {
-        print("WCSession became inactive")
     }
 
     func sessionDidDeactivate(_ session: WCSession) {
-        print("WCSession deactivated")
         WCSession.default.activate()
     }
 

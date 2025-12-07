@@ -502,34 +502,14 @@ class HomeViewModel: ObservableObject {
         }
     }
 
-    // MARK: - Generate AI Slides (now uses ExtractedPattern data)
+    // MARK: - AI Slides Generation Helpers
 
-    func generateAISlides() async {
-        isGeneratingSlides = true
-        slidesError = nil
-        todaySlides = []
-
-        let calendar = Calendar.current
-        let startOfDay = calendar.startOfDay(for: Date())
-        guard let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay) else {
-            isGeneratingSlides = false
-            return
-        }
-
-        // Fetch today's journals with their extracted patterns
-        let todayJournals = await dataController.fetchJournalEntries(startDate: startOfDay, endDate: endOfDay)
-
-        guard !todayJournals.isEmpty else {
-            isGeneratingSlides = false
-            slidesError = "Your day is just beginning. I'll be here."
-            return
-        }
-
-        // Collect all extracted patterns from today's journals
+    /// Collect patterns and cascades from journal entries
+    private func collectPatternsAndCascades(from journals: [JournalEntry]) -> (patterns: [ExtractedPattern], cascades: [PatternCascade]) {
         var allPatterns: [ExtractedPattern] = []
         var allCascades: [PatternCascade] = []
 
-        for journal in todayJournals {
+        for journal in journals {
             let patterns = journal.patternsArray
             allPatterns.append(contentsOf: patterns)
 
@@ -540,67 +520,77 @@ class HomeViewModel: ObservableObject {
             }
         }
 
-        // Build structured data summary from already-extracted patterns
-        var dataSummary = "Today's patterns (already analyzed from journal entries):\n\n"
+        return (allPatterns, allCascades)
+    }
 
-        if !allPatterns.isEmpty {
-            dataSummary += "EXTRACTED PATTERNS:\n"
-            for pattern in allPatterns.sorted(by: { $0.timestamp < $1.timestamp }) {
-                let time = Self.timeFormatter.string(from: pattern.timestamp)
-                dataSummary += "- [\(time)] \(pattern.patternType) (\(pattern.category), intensity: \(pattern.intensity)/10)"
-                if let details = pattern.details, !details.isEmpty {
-                    dataSummary += "\n  Details: \"\(details)\""
-                }
-                if !pattern.triggers.isEmpty {
-                    dataSummary += "\n  Triggers: \(pattern.triggers.joined(separator: ", "))"
-                }
-                dataSummary += "\n"
+    /// Build structured data summary from patterns and journals
+    private func buildDataSummary(patterns: [ExtractedPattern], cascades: [PatternCascade], journals: [JournalEntry]) -> String {
+        // If no patterns were extracted, fall back to raw journal content
+        guard !patterns.isEmpty else {
+            var summary = "Today's journal entries (not yet analyzed for patterns):\n\n"
+            for journal in journals {
+                let time = Self.timeFormatter.string(from: journal.timestamp)
+                let moodText = journal.mood > 0 ? " (mood: \(journal.mood)/5)" : ""
+                summary += "- [\(time)]\(moodText): \"\(journal.content)\"\n"
             }
-            dataSummary += "\n"
+            return summary
         }
 
-        if !allCascades.isEmpty {
-            dataSummary += "PATTERN CASCADES (what led to what):\n"
-            for cascade in allCascades {
+        var summary = "Today's patterns (already analyzed from journal entries):\n\n"
+
+        // Add extracted patterns
+        summary += "EXTRACTED PATTERNS:\n"
+        for pattern in patterns.sorted(by: { $0.timestamp < $1.timestamp }) {
+            let time = Self.timeFormatter.string(from: pattern.timestamp)
+            summary += "- [\(time)] \(pattern.patternType) (\(pattern.category), intensity: \(pattern.intensity)/10)"
+            if let details = pattern.details, !details.isEmpty {
+                summary += "\n  Details: \"\(details)\""
+            }
+            if !pattern.triggers.isEmpty {
+                summary += "\n  Triggers: \(pattern.triggers.joined(separator: ", "))"
+            }
+            summary += "\n"
+        }
+        summary += "\n"
+
+        // Add cascades if present
+        if !cascades.isEmpty {
+            summary += "PATTERN CASCADES (what led to what):\n"
+            for cascade in cascades {
                 let from = cascade.fromPattern?.patternType ?? "Unknown"
                 let to = cascade.toPattern?.patternType ?? "Unknown"
-                dataSummary += "- \(from) → \(to)"
+                summary += "- \(from) → \(to)"
                 if let desc = cascade.descriptionText {
-                    dataSummary += ": \(desc)"
+                    summary += ": \(desc)"
                 }
-                dataSummary += " (confidence: \(Int(cascade.confidence * 100))%)\n"
+                summary += " (confidence: \(Int(cascade.confidence * 100))%)\n"
             }
-            dataSummary += "\n"
+            summary += "\n"
         }
 
         // Add journal summaries for context
-        dataSummary += "JOURNAL CONTEXT:\n"
-        for journal in todayJournals.sorted(by: { $0.timestamp < $1.timestamp }) {
+        summary += "JOURNAL CONTEXT:\n"
+        for journal in journals.sorted(by: { $0.timestamp < $1.timestamp }) {
             let time = Self.timeFormatter.string(from: journal.timestamp)
-            if let summary = journal.analysisSummary {
-                dataSummary += "- [\(time)] \(summary)\n"
+            if let analysisSummary = journal.analysisSummary {
+                summary += "- [\(time)] \(analysisSummary)\n"
             } else {
-                dataSummary += "- [\(time)] \(journal.preview)\n"
+                summary += "- [\(time)] \(journal.preview)\n"
             }
         }
 
-        // Add Life Goals context (Goals, Struggles, Wishlist)
+        // Add Life Goals context
         let lifeGoalsContext = buildLifeGoalsContext()
         if !lifeGoalsContext.isEmpty {
-            dataSummary += "\nLIFE CONTEXT:\n\(lifeGoalsContext)"
+            summary += "\nLIFE CONTEXT:\n\(lifeGoalsContext)"
         }
 
-        // If no patterns were extracted, fall back to raw journal content
-        if allPatterns.isEmpty {
-            dataSummary = "Today's journal entries (not yet analyzed for patterns):\n\n"
-            for journal in todayJournals {
-                let time = Self.timeFormatter.string(from: journal.timestamp)
-                let moodText = journal.mood > 0 ? " (mood: \(journal.mood)/5)" : ""
-                dataSummary += "- [\(time)]\(moodText): \"\(journal.content)\"\n"
-            }
-        }
+        return summary
+    }
 
-        let prompt = """
+    /// Build the AI prompt for slide generation
+    private func buildAISlidesPrompt(dataSummary: String) -> String {
+        """
         You are a warm, caring companion who has been with someone throughout their day, witnessing their experiences. You're now gently reflecting back what you noticed - like a supportive friend who truly sees them.
 
         \(dataSummary)
@@ -644,35 +634,71 @@ class HomeViewModel: ObservableObject {
 
         Icons: heart.fill, hand.raised.fill, sparkles, leaf.fill, sun.max.fill, moon.fill, cloud.fill, brain.head.profile, figure.mind.and.body, eyes, ear.fill, bolt.heart.fill, arrow.up.heart.fill, hands.sparkles.fill
         """
+    }
+
+    /// Parse AI response JSON into DaySummarySlides
+    private func parseAISlidesResponse(_ response: String) -> [DaySummarySlide] {
+        guard let jsonStart = response.firstIndex(of: "["),
+              let jsonEnd = response.lastIndex(of: "]") else {
+            return []
+        }
+
+        let jsonString = String(response[jsonStart...jsonEnd])
+
+        guard let jsonData = jsonString.data(using: .utf8),
+              let aiSlides = try? JSONDecoder().decode([AIGeneratedSlide].self, from: jsonData) else {
+            return []
+        }
+
+        return aiSlides.map { slide in
+            DaySummarySlide(
+                icon: slide.icon,
+                color: Color.fromName(slide.colorName),
+                title: slide.title,
+                detail: slide.message
+            )
+        }
+    }
+
+    // MARK: - Generate AI Slides (now uses ExtractedPattern data)
+
+    func generateAISlides() async {
+        isGeneratingSlides = true
+        slidesError = nil
+        todaySlides = []
+
+        let calendar = Calendar.current
+        let startOfDay = calendar.startOfDay(for: Date())
+        guard let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay) else {
+            isGeneratingSlides = false
+            return
+        }
+
+        // Fetch today's journals
+        let todayJournals = await dataController.fetchJournalEntries(startDate: startOfDay, endDate: endOfDay)
+
+        guard !todayJournals.isEmpty else {
+            isGeneratingSlides = false
+            slidesError = "Your day is just beginning. I'll be here."
+            return
+        }
+
+        // Collect patterns and cascades using helper
+        let (patterns, cascades) = collectPatternsAndCascades(from: todayJournals)
+
+        // Build data summary and prompt using helpers
+        let dataSummary = buildDataSummary(patterns: patterns, cascades: cascades, journals: todayJournals)
+        let prompt = buildAISlidesPrompt(dataSummary: dataSummary)
 
         do {
             let response = try await geminiService.generateContent(prompt: prompt)
-
-            // Parse JSON from response
-            if let jsonStart = response.firstIndex(of: "["),
-               let jsonEnd = response.lastIndex(of: "]") {
-                let jsonString = String(response[jsonStart...jsonEnd])
-
-                if let jsonData = jsonString.data(using: .utf8) {
-                    let aiSlides = try JSONDecoder().decode([AIGeneratedSlide].self, from: jsonData)
-
-                    todaySlides = aiSlides.map { slide in
-                        DaySummarySlide(
-                            icon: slide.icon,
-                            color: Color.fromName(slide.colorName),
-                            title: slide.title,
-                            detail: slide.message
-                        )
-                    }
-                }
-            }
+            todaySlides = parseAISlidesResponse(response)
 
             if todaySlides.isEmpty {
                 slidesError = "I'm here when you're ready to share"
             }
             showLocalAnalysisFallback = false
         } catch {
-            // API failed - offer local analysis as fallback
             slidesError = error.localizedDescription
             showLocalAnalysisFallback = true
         }

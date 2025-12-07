@@ -12,6 +12,7 @@
 		13CBF646634B6561A6B8D64F /* WishlistListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C383F8A971C5D10989B6103 /* WishlistListView.swift */; };
 		15933E2696557D60DB21FDDB /* LifeGoalsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B883EBCC42F58E514FAF3A56 /* LifeGoalsViewModel.swift */; };
 		1F5F59738E5B37B1E892A7EC /* AddStruggleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38EAB3766C5E6E057EF78BB3 /* AddStruggleView.swift */; };
+		1FCE0CC7C598EBD1105F32C8 /* ReportsViewComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3EA647EBB8FC981DE0F20B1F /* ReportsViewComponents.swift */; };
 		28684B64BE85CC65391E152E /* AddWishlistItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E70FEBA3766913839E761BD /* AddWishlistItemView.swift */; };
 		2B226EDD4EC7D0D2469CD8AA /* AddStruggleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38EAB3766C5E6E057EF78BB3 /* AddStruggleView.swift */; };
 		2E865784775EBF677FA6B50D /* LifeGoalsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B883EBCC42F58E514FAF3A56 /* LifeGoalsViewModel.swift */; };
@@ -174,6 +175,7 @@
 		99FDF9D27F07A681DD900E89 /* GoalRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6536C0F04AB7D153C4447D3F /* GoalRepository.swift */; };
 		9C02EA58B3F24E6486F08319 /* JournalRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD66769AF1B74950849A2216 /* JournalRepository.swift */; };
 		9D4DADD644A2A3E065929541 /* AddGoalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8888646954F90237FB128F07 /* AddGoalView.swift */; };
+		9FA81C6AD3A20C7D507D226F /* HomeViewComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52391ECC087BED3DA582DB89 /* HomeViewComponents.swift */; };
 		A3B6464C00000001 /* BehaviorTrackerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3B6464C00000002 /* BehaviorTrackerApp.swift */; };
 		A3B6464C00000003 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3B6464C00000004 /* ContentView.swift */; };
 		A3B6464C00000005 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A3B6464C00000006 /* Assets.xcassets */; };
@@ -186,9 +188,11 @@
 		CB3BD16F5082FB3861A267FE /* Goal+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19A2367145F3B76EE22AA416 /* Goal+CoreDataClass.swift */; };
 		D589D8A045CAB26F9CF74F75 /* Struggle+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48C54C1F69C5BD96E8054F72 /* Struggle+CoreDataClass.swift */; };
 		D86B5893EE19785B8F823186 /* AddGoalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8888646954F90237FB128F07 /* AddGoalView.swift */; };
+		E66477E4ABB312A52B72BBEB /* HomeViewComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52391ECC087BED3DA582DB89 /* HomeViewComponents.swift */; };
 		F55B886F85E53DB261783A10 /* GoalsListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A325C743D154B5E641186A13 /* GoalsListView.swift */; };
 		F5FBD6F233F21B2E6753EE62 /* LifeGoalsSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 464BAD9D4063FF9898E4A68A /* LifeGoalsSection.swift */; };
 		F7B660360CA64204AE5FF10A /* MedicationRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = E497D6F2B1274ECA93C1E8B8 /* MedicationRepository.swift */; };
+		FADEF5F845192EEFD403D096 /* ReportsViewComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3EA647EBB8FC981DE0F20B1F /* ReportsViewComponents.swift */; };
 		MAC0001000000002 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3B6464C00000004 /* ContentView.swift */; };
 		MAC0001000000003 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A3B6464C00000006 /* Assets.xcassets */; };
 		MAC0001000000004 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A3B6464C00000008 /* Preview Assets.xcassets */; };
@@ -300,6 +304,7 @@
 		2E70FEBA3766913839E761BD /* AddWishlistItemView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AddWishlistItemView.swift; path = LifeGoals/AddWishlistItemView.swift; sourceTree = "<group>"; };
 		38EAB3766C5E6E057EF78BB3 /* AddStruggleView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AddStruggleView.swift; path = LifeGoals/AddStruggleView.swift; sourceTree = "<group>"; };
 		3E025D0FB9664C37BB072F7C /* UserProfileRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserProfileRepository.swift; sourceTree = "<group>"; };
+		3EA647EBB8FC981DE0F20B1F /* ReportsViewComponents.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ReportsViewComponents.swift; sourceTree = "<group>"; };
 		464BAD9D4063FF9898E4A68A /* LifeGoalsSection.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = LifeGoalsSection.swift; path = LifeGoals/LifeGoalsSection.swift; sourceTree = "<group>"; };
 		48C54C1F69C5BD96E8054F72 /* Struggle+CoreDataClass.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "Struggle+CoreDataClass.swift"; sourceTree = "<group>"; };
 		4E0091062EC1372900D8A0D1 /* PatternEntry+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PatternEntry+CoreDataClass.swift"; sourceTree = "<group>"; };
@@ -416,6 +421,7 @@
 		4ETTS00012EE0000000000002 /* TextToSpeechService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextToSpeechService.swift; sourceTree = "<group>"; };
 		4EVOICEREC012EE0000002 /* VoiceRecorderComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceRecorderComponents.swift; sourceTree = "<group>"; };
 		4EWHISPER00012EE000000002 /* WhisperTranscriptionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhisperTranscriptionService.swift; sourceTree = "<group>"; };
+		52391ECC087BED3DA582DB89 /* HomeViewComponents.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HomeViewComponents.swift; sourceTree = "<group>"; };
 		5A498F6716094FAD8560F208 /* SetupItemRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetupItemRepository.swift; sourceTree = "<group>"; };
 		5C383F8A971C5D10989B6103 /* WishlistListView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = WishlistListView.swift; path = LifeGoals/WishlistListView.swift; sourceTree = "<group>"; };
 		604D454BAF0B4C8796802E0F /* PatternRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PatternRepository.swift; sourceTree = "<group>"; };
@@ -596,6 +602,7 @@
 				4ESETUPCARD012EE000002 /* CurrentSetupCard.swift */,
 				4ESETUPMGR012EE0000002 /* SetupManagerView.swift */,
 				4ESETUPITM012EE0000002 /* SetupItemViews.swift */,
+				52391ECC087BED3DA582DB89 /* HomeViewComponents.swift */,
 			);
 			path = Dashboard;
 			sourceTree = "<group>";
@@ -629,6 +636,7 @@
 				4EAI00012EE0000000000006 /* AIInsightsView.swift */,
 				4EASD00012EE0000000000004 /* ASDInsightsView.swift */,
 				4EASDSUP012EE0000002 /* ASDInsightsSupportingViews.swift */,
+				3EA647EBB8FC981DE0F20B1F /* ReportsViewComponents.swift */,
 			);
 			path = Reports;
 			sourceTree = "<group>";
@@ -1092,6 +1100,8 @@
 				F55B886F85E53DB261783A10 /* GoalsListView.swift in Sources */,
 				88AC190A36CECE1A77CC5B0A /* StrugglesListView.swift in Sources */,
 				5842EDC91F014EA4D1C7CB15 /* WishlistListView.swift in Sources */,
+				E66477E4ABB312A52B72BBEB /* HomeViewComponents.swift in Sources */,
+				1FCE0CC7C598EBD1105F32C8 /* ReportsViewComponents.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1217,6 +1227,8 @@
 				34F03C79B43EFA06E1FA85C8 /* GoalsListView.swift in Sources */,
 				09C318AF1CB7302AAF7442EB /* StrugglesListView.swift in Sources */,
 				13CBF646634B6561A6B8D64F /* WishlistListView.swift in Sources */,
+				9FA81C6AD3A20C7D507D226F /* HomeViewComponents.swift in Sources */,
+				FADEF5F845192EEFD403D096 /* ReportsViewComponents.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1625,8 +1637,8 @@
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/argmaxinc/WhisperKit.git";
 			requirement = {
-				branch = main;
-				kind = branch;
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.15.0;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */

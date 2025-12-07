@@ -5,11 +5,12 @@ import CoreData
 class JournalViewModel: ObservableObject {
     @Published var journalEntries: [JournalEntry] = []
     @Published var isLoading = false
+    @Published var isLoadingMore = false
     @Published var isAnalyzing = false
     @Published var searchQuery: String = "" {
         didSet {
             if searchQuery.isEmpty {
-                loadJournalEntries()
+                resetAndLoad()
             } else {
                 searchEntries()
             }
@@ -17,33 +18,94 @@ class JournalViewModel: ObservableObject {
     }
     @Published var showFavoritesOnly: Bool = false {
         didSet {
-            loadJournalEntries()
+            resetAndLoad()
         }
     }
     @Published var errorMessage: String?
     @Published var showError: Bool = false
+    @Published var hasMoreEntries: Bool = true
+    @Published var totalEntryCount: Int = 0
 
     private let dataController = DataController.shared
     private let extractionService = PatternExtractionService.shared
+
+    // Pagination settings
+    private let pageSize = 30
+    private var currentOffset = 0
 
     init() {
         loadJournalEntries()
     }
 
+    /// Reset pagination and load fresh
+    func resetAndLoad() {
+        currentOffset = 0
+        hasMoreEntries = true
+        journalEntries = []
+        loadJournalEntries()
+    }
+
     func loadJournalEntries() {
         Task {
-            isLoading = true
-            journalEntries = await dataController.fetchJournalEntries(favoritesOnly: showFavoritesOnly)
+            isLoading = currentOffset == 0
+            isLoadingMore = currentOffset > 0
+
+            // Get total count for UI
+            if currentOffset == 0 {
+                totalEntryCount = await dataController.countJournalEntries(favoritesOnly: showFavoritesOnly)
+            }
+
+            let newEntries = await dataController.fetchJournalEntries(
+                favoritesOnly: showFavoritesOnly,
+                limit: pageSize,
+                offset: currentOffset
+            )
+
+            if currentOffset == 0 {
+                journalEntries = newEntries
+            } else {
+                journalEntries.append(contentsOf: newEntries)
+            }
+
+            // Check if there are more entries to load
+            hasMoreEntries = newEntries.count == pageSize
+
             isLoading = false
+            isLoadingMore = false
+        }
+    }
+
+    /// Load next page of entries
+    func loadMoreIfNeeded(currentEntry: JournalEntry) {
+        // Trigger load when reaching the last 5 entries
+        guard let index = journalEntries.firstIndex(where: { $0.id == currentEntry.id }) else { return }
+
+        if index >= journalEntries.count - 5 && hasMoreEntries && !isLoadingMore && !isLoading {
+            currentOffset += pageSize
+            loadJournalEntries()
         }
     }
 
     func searchEntries() {
         Task {
             isLoading = true
+            hasMoreEntries = false // Search doesn't paginate
             journalEntries = await dataController.searchJournalEntries(query: searchQuery)
             isLoading = false
         }
+    }
+
+    /// Refresh entries (pull-to-refresh)
+    func refresh() async {
+        currentOffset = 0
+        hasMoreEntries = true
+        totalEntryCount = await dataController.countJournalEntries(favoritesOnly: showFavoritesOnly)
+        journalEntries = await dataController.fetchJournalEntries(
+            favoritesOnly: showFavoritesOnly,
+            limit: pageSize,
+            offset: 0
+        )
+        hasMoreEntries = journalEntries.count == pageSize
     }
 
     func createEntry(
@@ -63,7 +125,9 @@ class JournalViewModel: ObservableObject {
                 relatedPatternEntry: relatedPatternEntry,
                 relatedMedicationLog: relatedMedicationLog
             )
-            loadJournalEntries()
+
+            // Reset pagination and reload to show new entry at top
+            resetAndLoad()
 
             // Auto-analyze the new entry for patterns in background
             Task {
@@ -87,7 +151,6 @@ class JournalViewModel: ObservableObject {
 
         // Debounce: skip if this entry was recently analyzed
         if GeminiService.shared.wasRecentlyAnalyzed(entryID: entry.id) {
-            print("[JournalViewModel] Skipping analysis - entry \(entry.id) was recently analyzed")
             return
         }
 
@@ -145,7 +208,6 @@ class JournalViewModel: ObservableObject {
             loadJournalEntries()
 
         } catch {
-            print("Failed to analyze entry: \(error.localizedDescription)")
         }
     }
 

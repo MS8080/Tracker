@@ -182,38 +182,94 @@ struct BlueLightFilterModifier: ViewModifier {
 
 
 
-// MARK: - Hybrid Card Modifiers (glassEffect on iOS 26+, ultraThinMaterial fallback)
+// MARK: - Card Style Option
+
+enum CardStyle: String, CaseIterable {
+    case glass = "Glass"
+    case material = "Material"
+}
+
+// MARK: - Hybrid Card Modifiers (glassEffect + ConcentricRectangle on iOS 26+, RoundedRectangle fallback)
 
 struct TrueLiquidGlassCardModifier: ViewModifier {
     let theme: AppTheme
     let cornerRadius: CGFloat
     let isInteractive: Bool
+    @AppStorage("cardStyle") private var cardStyle: String = CardStyle.glass.rawValue
+
+    private var useSimpleMaterial: Bool {
+        cardStyle == CardStyle.material.rawValue
+    }
 
     func body(content: Content) -> some View {
         if #available(iOS 26.0, *) {
-            content
-                .background {
-                    RoundedRectangle(cornerRadius: cornerRadius)
-                        .fill(theme.primaryColor.opacity(0.07))
-                }
-                .glassEffect(
-                    isInteractive ? .regular.interactive() : .regular,
-                    in: RoundedRectangle(cornerRadius: cornerRadius)
-                )
+            // iOS 26+: Use ConcentricRectangle for automatic corner radius calculation
+            if useSimpleMaterial {
+                content
+                    .background(
+                        ConcentricRectangle()
+                            .fill(.ultraThinMaterial)
+                    )
+                    .overlay(
+                        ConcentricRectangle()
+                            .stroke(theme.primaryColor.opacity(0.15), lineWidth: 0.5)
+                    )
+                    .containerShape(.rect(cornerRadius: cornerRadius))
+            } else {
+                content
+                    .background {
+                        ConcentricRectangle()
+                            .fill(theme.primaryColor.opacity(0.07))
+                    }
+                    .glassEffect(
+                        isInteractive ? .regular.interactive() : .regular,
+                        in: .rect(corners: .concentric)
+                    )
+                    // Inner glow
+                    .overlay(
+                        ConcentricRectangle()
+                            .stroke(Color.white.opacity(0.25), lineWidth: 1.5)
+                            .blur(radius: 2)
+                            .mask(ConcentricRectangle())
+                    )
+                    .shadow(color: .black.opacity(0.15), radius: 8, y: 4)
+                    .containerShape(.rect(cornerRadius: cornerRadius))
+            }
         } else {
-            content
-                .background(
-                    ZStack {
-                        theme.primaryColor.opacity(0.10)
+            // Pre-iOS 26: Use fixed RoundedRectangle
+            if useSimpleMaterial {
+                content
+                    .background(
                         RoundedRectangle(cornerRadius: cornerRadius)
                             .fill(.ultraThinMaterial)
-                    }
-                    .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
-                )
-                .overlay(
-                    RoundedRectangle(cornerRadius: cornerRadius)
-                        .stroke(theme.primaryColor.opacity(0.20), lineWidth: 0.5)
-                )
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: cornerRadius)
+                            .stroke(theme.primaryColor.opacity(0.15), lineWidth: 0.5)
+                    )
+            } else {
+                content
+                    .background(
+                        ZStack {
+                            theme.primaryColor.opacity(0.10)
+                            RoundedRectangle(cornerRadius: cornerRadius)
+                                .fill(.ultraThinMaterial)
+                        }
+                        .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
+                    )
+                    // Inner glow
+                    .overlay(
+                        RoundedRectangle(cornerRadius: cornerRadius)
+                            .stroke(Color.white.opacity(0.25), lineWidth: 1.5)
+                            .blur(radius: 2)
+                            .mask(RoundedRectangle(cornerRadius: cornerRadius))
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: cornerRadius)
+                            .stroke(theme.primaryColor.opacity(0.20), lineWidth: 0.5)
+                    )
+                    .shadow(color: .black.opacity(0.15), radius: 8, y: 4)
+            }
         }
     }
 }
@@ -223,13 +279,16 @@ struct TrueLiquidGlassCompactModifier: ViewModifier {
 
     func body(content: Content) -> some View {
         if #available(iOS 26.0, *) {
+            // iOS 26+: Use ConcentricRectangle
             content
                 .background {
-                    RoundedRectangle(cornerRadius: CornerRadius.md)
+                    ConcentricRectangle()
                         .fill(theme.primaryColor.opacity(0.06))
                 }
-                .glassEffect(.regular, in: RoundedRectangle(cornerRadius: CornerRadius.md))
+                .glassEffect(.regular, in: .rect(corners: .concentric))
+                .containerShape(.rect(cornerRadius: CornerRadius.md))
         } else {
+            // Pre-iOS 26: Use fixed RoundedRectangle
             content
                 .background(
                     ZStack {
@@ -254,20 +313,23 @@ struct TrueLiquidGlassFocusableModifier: ViewModifier {
 
     func body(content: Content) -> some View {
         if #available(iOS 26.0, *) {
+            // iOS 26+: Use ConcentricRectangle
             content
                 .background {
-                    RoundedRectangle(cornerRadius: cornerRadius)
+                    ConcentricRectangle()
                         .fill(theme.primaryColor.opacity(isFocused ? 0.08 : 0.05))
                 }
                 .glassEffect(
                     isFocused ? .regular.interactive() : .regular,
-                    in: RoundedRectangle(cornerRadius: cornerRadius)
+                    in: .rect(corners: .concentric)
                 )
                 .overlay(
-                    RoundedRectangle(cornerRadius: cornerRadius)
+                    ConcentricRectangle()
                         .stroke(isFocused ? theme.primaryColor.opacity(0.3) : Color.clear, lineWidth: 1.5)
                 )
+                .containerShape(.rect(cornerRadius: cornerRadius))
         } else {
+            // Pre-iOS 26: Use fixed RoundedRectangle
             content
                 .background(
                     ZStack {

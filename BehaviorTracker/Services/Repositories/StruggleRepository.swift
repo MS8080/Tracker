@@ -48,7 +48,6 @@ final class StruggleRepository {
         do {
             return try fetchOrThrow(activeOnly: activeOnly)
         } catch {
-            print("Failed to fetch struggles: \(error)")
             return []
         }
     }
@@ -83,7 +82,6 @@ final class StruggleRepository {
         do {
             return try viewContext.fetch(request)
         } catch {
-            print("Failed to fetch struggles by category: \(error)")
             return []
         }
     }
@@ -98,7 +96,6 @@ final class StruggleRepository {
         do {
             return try viewContext.fetch(request)
         } catch {
-            print("Failed to fetch struggles by intensity: \(error)")
             return []
         }
     }
@@ -113,7 +110,6 @@ final class StruggleRepository {
         do {
             return try viewContext.fetch(request)
         } catch {
-            print("Failed to fetch resolved struggles: \(error)")
             return []
         }
     }
@@ -128,7 +124,6 @@ final class StruggleRepository {
         do {
             return try viewContext.fetch(request)
         } catch {
-            print("Failed to fetch high intensity struggles: \(error)")
             return []
         }
     }

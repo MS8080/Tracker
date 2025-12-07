@@ -143,7 +143,6 @@ struct ExportDataView: View {
                     showingShareSheet = true
                 }
             } catch {
-                print("Error exporting data: \(error.localizedDescription)")
                 withAnimation {
                     isExporting = false
                 }

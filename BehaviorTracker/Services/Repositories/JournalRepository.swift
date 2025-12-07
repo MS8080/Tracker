@@ -71,9 +71,17 @@ final class JournalRepository: @unchecked Sendable {
     func fetch(
         startDate: Date? = nil,
         endDate: Date? = nil,
-        favoritesOnly: Bool = false
+        favoritesOnly: Bool = false,
+        limit: Int? = nil,
+        offset: Int = 0
     ) async -> [JournalEntry] {
-        let request = buildFetchRequest(startDate: startDate, endDate: endDate, favoritesOnly: favoritesOnly)
+        let request = buildFetchRequest(
+            startDate: startDate,
+            endDate: endDate,
+            favoritesOnly: favoritesOnly,
+            limit: limit,
+            offset: offset
+        )
         let bgContext = backgroundContext
 
         // Fetch on background context and get permanent object IDs
@@ -87,7 +95,6 @@ final class JournalRepository: @unchecked Sendable {
                     return entry.objectID.uriRepresentation()
                 }
             } catch {
-                print("Failed to fetch journal entries: \(error.localizedDescription)")
                 return []
             }
         }
@@ -97,6 +104,25 @@ final class JournalRepository: @unchecked Sendable {
         return objectIDURIs.compactMap { uri -> JournalEntry? in
             guard let objectID = coordinator.managedObjectID(forURIRepresentation: uri) else { return nil }
             return viewContext.object(with: objectID) as? JournalEntry
+        }
+    }
+
+    /// Get total count of entries (for pagination)
+    @MainActor
+    func count(
+        startDate: Date? = nil,
+        endDate: Date? = nil,
+        favoritesOnly: Bool = false
+    ) async -> Int {
+        let request = buildFetchRequest(startDate: startDate, endDate: endDate, favoritesOnly: favoritesOnly)
+        let bgContext = backgroundContext
+
+        return await bgContext.perform {
+            do {
+                return try bgContext.count(for: request)
+            } catch {
+                return 0
+            }
         }
     }
 
@@ -111,7 +137,6 @@ final class JournalRepository: @unchecked Sendable {
         do {
             return try viewContext.fetch(request)
         } catch {
-            print("Failed to fetch journal entries: \(error.localizedDescription)")
             return []
         }
     }
@@ -133,7 +158,6 @@ final class JournalRepository: @unchecked Sendable {
                     return entry.objectID.uriRepresentation()
                 }
             } catch {
-                print("Failed to search journal entries: \(error.localizedDescription)")
                 return []
             }
         }
@@ -152,7 +176,6 @@ final class JournalRepository: @unchecked Sendable {
         do {
             return try viewContext.fetch(request)
         } catch {
-            print("Failed to search journal entries: \(error.localizedDescription)")
             return []
         }
     }
@@ -175,7 +198,9 @@ final class JournalRepository: @unchecked Sendable {
     private func buildFetchRequest(
         startDate: Date?,
         endDate: Date?,
-        favoritesOnly: Bool
+        favoritesOnly: Bool,
+        limit: Int? = nil,
+        offset: Int = 0
     ) -> NSFetchRequest<JournalEntry> {
         let request = NSFetchRequest<JournalEntry>(entityName: "JournalEntry")
         var predicates: [NSPredicate] = []
@@ -197,6 +222,15 @@ final class JournalRepository: @unchecked Sendable {
         }
 
         request.sortDescriptors = [NSSortDescriptor(keyPath: \JournalEntry.timestamp, ascending: false)]
+
+        // Pagination support
+        if let limit = limit {
+            request.fetchLimit = limit
+        }
+        if offset > 0 {
+            request.fetchOffset = offset
+        }
+
         return request
     }
 

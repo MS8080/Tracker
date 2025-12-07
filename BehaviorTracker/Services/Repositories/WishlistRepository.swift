@@ -44,7 +44,6 @@ final class WishlistRepository {
         do {
             return try fetchOrThrow(includeAcquired: includeAcquired)
         } catch {
-            print("Failed to fetch wishlist items: \(error)")
             return []
         }
     }
@@ -79,7 +78,6 @@ final class WishlistRepository {
         do {
             return try viewContext.fetch(request)
         } catch {
-            print("Failed to fetch wishlist items by category: \(error)")
             return []
         }
     }
@@ -94,7 +92,6 @@ final class WishlistRepository {
         do {
             return try viewContext.fetch(request)
         } catch {
-            print("Failed to fetch acquired wishlist items: \(error)")
             return []
         }
     }

@@ -123,7 +123,6 @@ class DataController: ObservableObject, @unchecked Sendable {
             do {
                 try context.save()
             } catch {
-                print("DataController save error: \(error.localizedDescription)")
                 DispatchQueue.main.async { [weak self] in
                     self?.errorMessage = "Failed to save: \(error.localizedDescription)"
                 }
@@ -293,9 +292,26 @@ class DataController: ObservableObject, @unchecked Sendable {
     func fetchJournalEntries(
         startDate: Date? = nil,
         endDate: Date? = nil,
-        favoritesOnly: Bool = false
+        favoritesOnly: Bool = false,
+        limit: Int? = nil,
+        offset: Int = 0
     ) async -> [JournalEntry] {
-        await JournalRepository.shared.fetch(startDate: startDate, endDate: endDate, favoritesOnly: favoritesOnly)
+        await JournalRepository.shared.fetch(
+            startDate: startDate,
+            endDate: endDate,
+            favoritesOnly: favoritesOnly,
+            limit: limit,
+            offset: offset
+        )
+    }
+
+    @MainActor
+    func countJournalEntries(
+        startDate: Date? = nil,
+        endDate: Date? = nil,
+        favoritesOnly: Bool = false
+    ) async -> Int {
+        await JournalRepository.shared.count(startDate: startDate, endDate: endDate, favoritesOnly: favoritesOnly)
     }
 
     @MainActor
@@ -485,7 +501,6 @@ class DataController: ObservableObject, @unchecked Sendable {
                         contextNotes: "Logged from widget"
                     )
                 } catch {
-                    print("Failed to create pattern entry from widget: \(error)")
                 }
             }
         }

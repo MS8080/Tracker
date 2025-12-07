@@ -124,14 +124,8 @@ struct JournalEntryDetailView: View {
                             saveChanges()
                         } label: {
                             Image(systemName: "checkmark")
-                                .font(.system(size: 18, weight: .semibold))
-                                .foregroundStyle(.white)
-                                .frame(width: 44, height: 44)
                         }
-                        .buttonStyle(.plain)
-                        .modifier(CircularGlassModifier())
                     }
-
                 }
 
                 ToolbarItem(placement: .primaryAction) {
@@ -172,14 +166,8 @@ struct JournalEntryDetailView: View {
                         }
                     } label: {
                         Image(systemName: "ellipsis")
-                            .font(.system(size: 18, weight: .semibold))
-                            .foregroundStyle(.white)
-                            .frame(width: 44, height: 44)
                     }
-                    .buttonStyle(.plain)
-                    .modifier(CircularGlassModifier())
                 }
-
             }
             .onDisappear {
                 // Auto-save on dismiss if there are changes

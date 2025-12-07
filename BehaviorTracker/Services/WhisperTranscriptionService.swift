@@ -35,6 +35,129 @@ class WhisperTranscriptionService: ObservableObject {
     private let recordingsDirectory: URL
     private let modelDirectory: URL
 
+    /// Common misheard phrases and their corrections
+    /// Maps phonetically similar misrecognitions to correct terms
+    private let phoneticCorrections: [String: String] = [
+        // Tyrosine variations
+        "tirrusine": "tyrosine",
+        "tirrosine": "tyrosine",
+        "tirosine": "tyrosine",
+        "tyrosene": "tyrosine",
+        "tyrosin": "tyrosine",
+        "tirosin": "tyrosine",
+        "tire scene": "tyrosine",
+        "tire seen": "tyrosine",
+
+        // Dopamine/Dopaminergic variations
+        "toba menique": "dopaminergic",
+        "tobamenique": "dopaminergic",
+        "dopa menique": "dopaminergic",
+        "dopamenic": "dopaminergic",
+        "dope a manic": "dopaminergic",
+        "dope aminic": "dopaminergic",
+        "dopemenic": "dopaminergic",
+        "dopamenic availability": "dopaminergic availability",
+        "dopamine ic": "dopaminergic",
+        "dopaminic": "dopaminergic",
+
+        // Availability
+        "availiabily": "availability",
+        "availabiliy": "availability",
+        "availibility": "availability",
+        "avail ability": "availability",
+
+        // Serotonin variations
+        "serotonine": "serotonin",
+        "seratonin": "serotonin",
+        "sera tonin": "serotonin",
+        "sira tonin": "serotonin",
+
+        // Norepinephrine variations
+        "nor epinephrine": "norepinephrine",
+        "noraepinephrine": "norepinephrine",
+        "noradrenaline": "norepinephrine",
+        "nor adrenaline": "norepinephrine",
+
+        // L-prefixed supplements
+        "l tyrosine": "L-Tyrosine",
+        "el tyrosine": "L-Tyrosine",
+        "l theanine": "L-Theanine",
+        "el theanine": "L-Theanine",
+        "l tryptophan": "L-Tryptophan",
+        "el tryptophan": "L-Tryptophan",
+
+        // Theanine variations
+        "theanin": "theanine",
+        "the anine": "theanine",
+        "the a nine": "theanine",
+        "tianine": "theanine",
+
+        // Ashwagandha variations
+        "ash waganda": "ashwagandha",
+        "ashwaganda": "ashwagandha",
+        "ash wa ganda": "ashwagandha",
+        "ashwa ganda": "ashwagandha",
+
+        // Magnesium variations
+        "magnezium": "magnesium",
+        "magnesim": "magnesium",
+        "mag nesium": "magnesium",
+
+        // Melatonin variations
+        "melatonine": "melatonin",
+        "mela tonin": "melatonin",
+        "mella tonin": "melatonin",
+
+        // ADHD medication variations
+        "adderal": "Adderall",
+        "add a rall": "Adderall",
+        "ritaline": "Ritalin",
+        "rita lin": "Ritalin",
+        "concertta": "Concerta",
+        "vyvance": "Vyvanse",
+        "vyvans": "Vyvanse",
+        "vie vanse": "Vyvanse",
+
+        // Neuroscience terms
+        "neuro plasticity": "neuroplasticity",
+        "neuro transmitter": "neurotransmitter",
+        "neuro transmitters": "neurotransmitters",
+        "reup take": "reuptake",
+        "re uptake": "reuptake",
+        "hyper focus": "hyperfocus",
+        "hyper fixation": "hyperfixation",
+        "dis regulation": "dysregulation",
+        "dys regulation": "dysregulation",
+        "executive dis function": "executive dysfunction",
+        "executive dys function": "executive dysfunction",
+        "sensory over load": "sensory overload",
+
+        // ASD/ADHD related terms
+        "stimming": "stimming",
+        "stiming": "stimming",
+        "stem ing": "stimming",
+        "melt down": "meltdown",
+        "shut down": "shutdown",
+        "burn out": "burnout",
+        "info dumping": "infodumping",
+        "info dump": "infodump",
+        "echo lailia": "echolalia",
+        "ecko lalia": "echolalia",
+
+        // Common supplement brand names
+        "cue ten": "CoQ10",
+        "co q 10": "CoQ10",
+        "co q ten": "CoQ10",
+        "5 htp": "5-HTP",
+        "five htp": "5-HTP",
+        "sam e": "SAM-e",
+        "sammy": "SAM-e",
+        "en a c": "NAC",
+        "n a c": "NAC",
+        "alpha gpc": "Alpha-GPC",
+        "alfa gpc": "Alpha-GPC"
+    ]
+
     /// Common medication names for vocabulary enhancement
     private let commonMedications: Set<String> = [
         // ADHD medications
@@ -96,6 +219,39 @@ class WhisperTranscriptionService: ObservableObject {
     private func getUserMedicationNames() -> [String] {
         let medications = DataController.shared.fetchMedications(activeOnly: false)
         return medications.compactMap { $0.name }
+    }
+
+    /// Apply phonetic corrections for commonly misheard terms
+    /// This runs BEFORE medication name correction to fix multi-word phrases
+    private func applyPhoneticCorrections(_ text: String) -> String {
+        var result = text.lowercased()
+
+        // Sort corrections by length (longest first) to handle multi-word phrases first
+        let sortedCorrections = phoneticCorrections.sorted { $0.key.count > $1.key.count }
+
+        for (misheard, correct) in sortedCorrections {
+            // Case-insensitive replacement
+            result = result.replacingOccurrences(
+                of: misheard.lowercased(),
+                with: correct,
+                options: .caseInsensitive
+            )
+        }
+
+        // Restore original capitalization for first character of sentences
+        var characters = Array(result)
+        var capitalizeNext = true
+        for i in 0..<characters.count {
+            if capitalizeNext && characters[i].isLetter {
+                characters[i] = Character(characters[i].uppercased())
+                capitalizeNext = false
+            }
+            if characters[i] == "." || characters[i] == "!" || characters[i] == "?" {
+                capitalizeNext = true
+            }
+        }
+
+        return String(characters)
     }
 
     /// Post-process transcription to correct medication names
@@ -299,41 +455,32 @@ class WhisperTranscriptionService: ObservableObject {
         isLoadingModel = true
         loadingProgress = 0
         errorMessage = nil
-
-        let modelAlreadyDownloaded = isModelDownloaded()
-        transcriptionProgress = modelAlreadyDownloaded ? "Loading model..." : "Downloading model..."
+        transcriptionProgress = "Downloading model..."
 
         do {
             // Simulate progress updates for better UX
             let progressTask = Task {
-                for i in 1...8 {
-                    // Faster progress if model already downloaded
-                    let interval: UInt64 = modelAlreadyDownloaded ? 100_000_000 : 300_000_000
-                    try? await Task.sleep(nanoseconds: interval)
+                for i in 1...10 {
+                    try? await Task.sleep(nanoseconds: 500_000_000) // 0.5s intervals
                     if !isModelLoaded {
-                        loadingProgress = Double(i) / 10.0
-                        if modelAlreadyDownloaded {
-                            transcriptionProgress = i <= 5 ? "Loading model..." : "Preparing..."
-                        } else {
-                            if i <= 3 {
-                                transcriptionProgress = "Downloading model..."
-                            } else if i <= 6 {
-                                transcriptionProgress = "Loading neural engine..."
-                            } else {
-                                transcriptionProgress = "Preparing..."
-                            }
+                        loadingProgress = Double(i) / 12.0
+                        switch i {
+                        case 1...3: transcriptionProgress = "Downloading model..."
+                        case 4...6: transcriptionProgress = "Loading neural engine..."
+                        case 7...9: transcriptionProgress = "Preparing..."
+                        default: transcriptionProgress = "Almost ready..."
                         }
                     }
                 }
             }
 
-            // Use WhisperKitConfig with updated API
+            // Simplified config - let WhisperKit handle model location
             // Using "base.en" for faster English-only transcription
             let config = WhisperKitConfig(
                 model: "base.en",
-                modelFolder: modelDirectory.path,
                 verbose: false,
-                logLevel: .error,
+                logLevel: .info,
+                prewarm: true,
                 load: true,
                 download: true
             )
@@ -344,10 +491,14 @@ class WhisperTranscriptionService: ObservableObject {
             transcriptionProgress = ""
             isLoadingModel = false
             isModelLoaded = true
+        } catch let error as NSError {
+            // More detailed error message
+            let details = "Domain: \(error.domain), Code: \(error.code)"
+            errorMessage = "Model error: \(error.localizedDescription) (\(details))"
+            transcriptionProgress = ""
+            isLoadingModel = false
         } catch {
-            // Log the full error for debugging
-            print("[WhisperKit] Model load error: \(error)")
-            errorMessage = "Failed to load model: \(error.localizedDescription)"
+            errorMessage = "Failed to load: \(error)"
             transcriptionProgress = ""
             isLoadingModel = false
         }
@@ -501,11 +652,13 @@ class WhisperTranscriptionService: ObservableObject {
             let results = try await whisper.transcribe(audioPath: audioURL.path, decodeOptions: options)
             var transcription = results.map { $0.text }.joined(separator: " ").trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
 
-            // Apply post-processing
+            // Apply post-processing pipeline
             if !transcription.isEmpty {
-                // First remove Whisper special tokens like [BLANK_AUDIO], {blank_audio}, etc.
+                // 1. Remove Whisper special tokens like [BLANK_AUDIO], {blank_audio}, etc.
                 transcription = removeWhisperSpecialTokens(from: transcription)
-                // Then correct medication names
+                // 2. Apply phonetic corrections for commonly misheard terms (multi-word phrases)
+                transcription = applyPhoneticCorrections(transcription)
+                // 3. Correct medication names using fuzzy matching
                 transcription = correctMedicationNames(in: transcription)
             }
 

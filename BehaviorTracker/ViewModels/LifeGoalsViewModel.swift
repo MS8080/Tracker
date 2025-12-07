@@ -49,6 +49,12 @@ class LifeGoalsViewModel: ObservableObject {
         !goals.isEmpty || !wishlistItems.isEmpty || !struggles.isEmpty
     }
 
+    var completedCount: Int {
+        let completedGoals = goalRepository.fetch(includeCompleted: true).filter { $0.isCompleted }.count
+        let acquiredWishes = wishlistRepository.fetch(includeAcquired: true).filter { $0.isAcquired }.count
+        return completedGoals + acquiredWishes
+    }
+
     // MARK: - Lifecycle
 
     init() {
@@ -84,7 +90,6 @@ class LifeGoalsViewModel: ObservableObject {
             )
             loadData()
         } catch {
-            print("Failed to create goal: \(error)")
         }
     }
 
@@ -129,7 +134,6 @@ class LifeGoalsViewModel: ObservableObject {
             )
             loadData()
         } catch {
-            print("Failed to create wishlist item: \(error)")
         }
     }
 
@@ -185,7 +189,6 @@ class LifeGoalsViewModel: ObservableObject {
             )
             loadData()
         } catch {
-            print("Failed to create struggle: \(error)")
         }
     }
 

@@ -101,7 +101,8 @@ struct DynamicJournalView: View {
                             onToggleFavorite: { viewModel.toggleFavorite($0) },
                             onSpeak: { ttsService.speakJournalEntry($0) },
                             onDelete: { entry in withAnimation { viewModel.deleteEntry(entry) } },
-                            onAnalyze: { entryToAnalyze = $0 }
+                            onAnalyze: { entryToAnalyze = $0 },
+                            onAppear: { viewModel.loadMoreIfNeeded(currentEntry: $0) }
                         )
                         .id(today.date)
                     }
@@ -116,16 +117,45 @@ struct DynamicJournalView: View {
                             onToggleFavorite: { viewModel.toggleFavorite($0) },
                             onSpeak: { ttsService.speakJournalEntry($0) },
                             onDelete: { entry in withAnimation { viewModel.deleteEntry(entry) } },
-                            onAnalyze: { entryToAnalyze = $0 }
+                            onAnalyze: { entryToAnalyze = $0 },
+                            onAppear: { viewModel.loadMoreIfNeeded(currentEntry: $0) }
                         )
                         .id(dayGroup.date)
+                    }
+
+                    // Loading more indicator
+                    if viewModel.isLoadingMore {
+                        HStack {
+                            Spacer()
+                            ProgressView()
+                                .tint(.white)
+                            Text("Loading more...")
+                                .font(.caption)
+                                .foregroundStyle(.white.opacity(0.6))
+                            Spacer()
+                        }
+                        .padding()
+                    }
+
+                    // End of entries indicator
+                    if !viewModel.hasMoreEntries && viewModel.journalEntries.count > 0 {
+                        HStack {
+                            Spacer()
+                            Text("You've reached the beginning")
+                                .font(.caption)
+                                .foregroundStyle(.white.opacity(0.4))
+                            Spacer()
+                        }
+                        .padding()
                     }
                 }
                 .padding(.horizontal, Spacing.lg)
                 .padding(.vertical, Spacing.lg)
                 .padding(.bottom, 80)
             }
-
+            .refreshable {
+                await viewModel.refresh()
+            }
         }
     }
 
@@ -182,6 +212,7 @@ struct SimpleDaySection: View {
     let onSpeak: (JournalEntry) -> Void
     let onDelete: (JournalEntry) -> Void
     let onAnalyze: (JournalEntry) -> Void
+    var onAppear: ((JournalEntry) -> Void)? = nil
 
     private var isToday: Bool {
         Calendar.current.isDateInToday(date)
@@ -222,6 +253,9 @@ struct SimpleDaySection: View {
                         onDelete: { onDelete(entry) },
                         onAnalyze: { onAnalyze(entry) }
                     )
+                    .onAppear {
+                        onAppear?(entry)
+                    }
                 }
             }
             .padding(Spacing.lg)

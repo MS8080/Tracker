@@ -47,7 +47,6 @@ final class GoalRepository {
         do {
             return try fetchOrThrow(includeCompleted: includeCompleted)
         } catch {
-            print("Failed to fetch goals: \(error)")
             return []
         }
     }
@@ -83,7 +82,6 @@ final class GoalRepository {
         do {
             return try viewContext.fetch(request)
         } catch {
-            print("Failed to fetch goals by category: \(error)")
             return []
         }
     }
@@ -98,7 +96,6 @@ final class GoalRepository {
         do {
             return try viewContext.fetch(request)
         } catch {
-            print("Failed to fetch completed goals: \(error)")
             return []
         }
     }
@@ -116,7 +113,6 @@ final class GoalRepository {
         do {
             return try viewContext.fetch(request)
         } catch {
-            print("Failed to fetch overdue goals: \(error)")
             return []
         }
     }

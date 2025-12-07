@@ -51,7 +51,6 @@ final class MedicationRepository {
         do {
             return try fetchMedicationsOrThrow(activeOnly: activeOnly)
         } catch {
-            print("Failed to fetch medications: \(error.localizedDescription)")
             return []
         }
     }
@@ -139,7 +138,6 @@ final class MedicationRepository {
         do {
             return try fetchLogsOrThrow(startDate: startDate, endDate: endDate, medication: medication)
         } catch {
-            print("Failed to fetch medication logs: \(error.localizedDescription)")
             return []
         }
     }

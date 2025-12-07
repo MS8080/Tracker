@@ -2,7 +2,7 @@ import SwiftUI
 import AVFoundation
 import AudioToolbox
 
-// MARK: - Life Goals Section for Home View
+// MARK: - Life Goals Section (Apple Reminders Style)
 
 struct LifeGoalsSection: View {
     @StateObject private var viewModel = LifeGoalsViewModel()
@@ -10,18 +10,104 @@ struct LifeGoalsSection: View {
 
     var body: some View {
         ZStack {
-            VStack(spacing: Spacing.md) {
-                // Goals Section
-                GoalsSectionCard(viewModel: viewModel, theme: theme)
+            VStack(spacing: Spacing.lg) {
+                // List cards grid (Apple Reminders style)
+                LazyVGrid(columns: [
+                    GridItem(.flexible(), spacing: Spacing.md),
+                    GridItem(.flexible(), spacing: Spacing.md)
+                ], spacing: Spacing.md) {
+                    // Goals Card
+                    ReminderListCard(
+                        title: "Goals",
+                        count: viewModel.goals.filter { !$0.isCompleted }.count,
+                        icon: "flag.fill",
+                        color: .orange
+                    ) {
+                        GoalsListView(viewModel: viewModel)
+                    }
 
-                // Struggles Section
-                StrugglesSectionCard(viewModel: viewModel, theme: theme)
+                    // Struggles Card
+                    ReminderListCard(
+                        title: "Struggles",
+                        count: viewModel.struggles.count,
+                        icon: "exclamationmark.triangle.fill",
+                        color: .red
+                    ) {
+                        StrugglesListView(viewModel: viewModel)
+                    }
 
-                // Wishlist Section
-                WishlistSectionCard(viewModel: viewModel, theme: theme)
+                    // Wishlist Card
+                    ReminderListCard(
+                        title: "Wishlist",
+                        count: viewModel.wishlistItems.filter { !$0.isAcquired }.count,
+                        icon: "gift.fill",
+                        color: .pink
+                    ) {
+                        WishlistListView(viewModel: viewModel)
+                    }
 
-                // Add buttons
-                addButtonsRow
+                    // Completed Card
+                    ReminderListCard(
+                        title: "Completed",
+                        count: viewModel.completedCount,
+                        icon: "checkmark.circle.fill",
+                        color: .green
+                    ) {
+                        CompletedListView(viewModel: viewModel)
+                    }
+                }
+
+                // My Lists section
+                VStack(alignment: .leading, spacing: Spacing.sm) {
+                    Text("My Lists")
+                        .font(.title3)
+                        .fontWeight(.bold)
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, Spacing.xs)
+
+                    MyListsContainer {
+                        // Goals list row
+                        RemindersListRow(
+                            title: "Goals",
+                            count: viewModel.goals.count,
+                            icon: "flag.fill",
+                            color: .orange
+                        ) {
+                            GoalsListView(viewModel: viewModel)
+                        }
+
+                        Divider()
+                            .background(.white.opacity(0.1))
+                            .padding(.leading, 56)
+
+                        // Struggles list row
+                        RemindersListRow(
+                            title: "Struggles",
+                            count: viewModel.struggles.count,
+                            icon: "exclamationmark.triangle.fill",
+                            color: .red
+                        ) {
+                            StrugglesListView(viewModel: viewModel)
+                        }
+
+                        Divider()
+                            .background(.white.opacity(0.1))
+                            .padding(.leading, 56)
+
+                        // Wishlist row
+                        RemindersListRow(
+                            title: "Wishlist",
+                            count: viewModel.wishlistItems.count,
+                            icon: "gift.fill",
+                            color: .pink
+                        ) {
+                            WishlistListView(viewModel: viewModel)
+                        }
+                    }
+                }
+
+                // Add List button
+                AddListButton(viewModel: viewModel)
             }
 
             // Celebration overlay
@@ -32,37 +118,153 @@ struct LifeGoalsSection: View {
         }
         .animation(.spring(response: 0.4, dampingFraction: 0.7), value: viewModel.showCelebration)
     }
+}
 
-    // MARK: - Add Buttons
+// MARK: - Reminder List Card (Grid Style)
 
-    private var addButtonsRow: some View {
-        HStack(spacing: Spacing.md) {
-            AddItemButton(
-                label: "Goal",
-                icon: "plus.circle.fill",
-                color: .orange
-            ) {
+private struct ReminderListCard<Destination: View>: View {
+    let title: String
+    let count: Int
+    let icon: String
+    let color: Color
+    @ViewBuilder let destination: () -> Destination
+    @ThemeWrapper var theme
+
+    var body: some View {
+        NavigationLink(destination: destination) {
+            VStack(alignment: .leading, spacing: Spacing.sm) {
+                HStack {
+                    // Icon circle
+                    ZStack {
+                        Circle()
+                            .fill(color)
+                            .frame(width: 32, height: 32)
+
+                        Image(systemName: icon)
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundStyle(.white)
+                    }
+
+                    Spacer()
+
+                    // Count
+                    Text("\(count)")
+                        .font(.title)
+                        .fontWeight(.bold)
+                        .foregroundStyle(.white)
+                }
+
+                Text(title)
+                    .font(.subheadline)
+                    .fontWeight(.medium)
+                    .foregroundStyle(.white.opacity(0.7))
+            }
+            .padding(Spacing.md)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .cardStyle(theme: theme, cornerRadius: CornerRadius.lg)
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+// MARK: - Reminders List Row
+
+private struct RemindersListRow<Destination: View>: View {
+    let title: String
+    let count: Int
+    let icon: String
+    let color: Color
+    @ViewBuilder let destination: () -> Destination
+
+    var body: some View {
+        NavigationLink(destination: destination) {
+            HStack(spacing: Spacing.md) {
+                // Icon circle
+                ZStack {
+                    Circle()
+                        .fill(color)
+                        .frame(width: 32, height: 32)
+
+                    Image(systemName: icon)
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundStyle(.white)
+                }
+
+                Text(title)
+                    .font(.body)
+                    .foregroundStyle(.white)
+
+                Spacer()
+
+                Text("\(count)")
+                    .font(.body)
+                    .foregroundStyle(.white.opacity(0.5))
+
+                Image(systemName: "chevron.right")
+                    .font(.caption)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(.white.opacity(0.3))
+            }
+            .padding(.horizontal, Spacing.md)
+            .padding(.vertical, Spacing.sm + 2)
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+// MARK: - My Lists Container (with glass effect)
+
+private struct MyListsContainer<Content: View>: View {
+    @ThemeWrapper var theme
+    @ViewBuilder let content: () -> Content
+
+    var body: some View {
+        VStack(spacing: 0) {
+            content()
+        }
+        .cardStyle(theme: theme, cornerRadius: CornerRadius.lg)
+    }
+}
+
+// MARK: - Add List Button
+
+private struct AddListButton: View {
+    @ObservedObject var viewModel: LifeGoalsViewModel
+
+    var body: some View {
+        Menu {
+            Button {
                 viewModel.showingAddGoal = true
                 HapticFeedback.light.trigger()
+            } label: {
+                Label("New Goal", systemImage: "flag.fill")
             }
 
-            AddItemButton(
-                label: "Struggle",
-                icon: "plus.circle.fill",
-                color: .red
-            ) {
+            Button {
                 viewModel.showingAddStruggle = true
                 HapticFeedback.light.trigger()
+            } label: {
+                Label("New Struggle", systemImage: "exclamationmark.triangle.fill")
             }
 
-            AddItemButton(
-                label: "Wish",
-                icon: "plus.circle.fill",
-                color: .pink
-            ) {
+            Button {
                 viewModel.showingAddWishlistItem = true
                 HapticFeedback.light.trigger()
+            } label: {
+                Label("New Wish", systemImage: "gift.fill")
             }
+        } label: {
+            HStack(spacing: Spacing.sm) {
+                Image(systemName: "plus.circle.fill")
+                    .font(.title3)
+                Text("Add Item")
+                    .font(.body)
+                    .fontWeight(.medium)
+            }
+            .foregroundStyle(.blue)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, Spacing.md)
+            .padding(.vertical, Spacing.sm)
         }
         .sheet(isPresented: $viewModel.showingAddGoal) {
             AddGoalView(viewModel: viewModel)
@@ -76,241 +278,146 @@ struct LifeGoalsSection: View {
     }
 }
 
-// MARK: - Add Item Button
+// MARK: - Completed List View
 
-private struct AddItemButton: View {
-    let label: String
+struct CompletedListView: View {
+    @ObservedObject var viewModel: LifeGoalsViewModel
+    @ThemeWrapper var theme
+
+    var completedGoals: [Goal] {
+        viewModel.goals.filter { $0.isCompleted }
+    }
+
+    var acquiredItems: [WishlistItem] {
+        viewModel.wishlistItems.filter { $0.isAcquired }
+    }
+
+    var body: some View {
+        ZStack {
+            theme.gradient
+                .ignoresSafeArea()
+
+            ScrollView {
+                VStack(spacing: Spacing.lg) {
+                    if completedGoals.isEmpty && acquiredItems.isEmpty {
+                        VStack(spacing: Spacing.md) {
+                            Image(systemName: "checkmark.circle")
+                                .font(.system(size: 48))
+                                .foregroundStyle(.white.opacity(0.3))
+
+                            Text("No completed items yet")
+                                .font(.headline)
+                                .foregroundStyle(.white.opacity(0.5))
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.top, 100)
+                    } else {
+                        // Completed Goals
+                        if !completedGoals.isEmpty {
+                            VStack(alignment: .leading, spacing: Spacing.sm) {
+                                Text("Goals")
+                                    .font(.headline)
+                                    .foregroundStyle(.white.opacity(0.7))
+                                    .padding(.horizontal, Spacing.xs)
+
+                                VStack(spacing: 0) {
+                                    ForEach(completedGoals) { goal in
+                                        CompletedItemRow(
+                                            title: goal.title,
+                                            icon: "flag.fill",
+                                            color: .orange,
+                                            onUncomplete: {
+                                                viewModel.toggleGoalComplete(goal)
+                                            }
+                                        )
+
+                                        if goal.id != completedGoals.last?.id {
+                                            Divider()
+                                                .background(.white.opacity(0.1))
+                                                .padding(.leading, 56)
+                                        }
+                                    }
+                                }
+                                .cardStyle(theme: theme, cornerRadius: CornerRadius.lg)
+                            }
+                        }
+
+                        // Acquired Wishlist Items
+                        if !acquiredItems.isEmpty {
+                            VStack(alignment: .leading, spacing: Spacing.sm) {
+                                Text("Wishlist")
+                                    .font(.headline)
+                                    .foregroundStyle(.white.opacity(0.7))
+                                    .padding(.horizontal, Spacing.xs)
+
+                                VStack(spacing: 0) {
+                                    ForEach(acquiredItems) { item in
+                                        CompletedItemRow(
+                                            title: item.title,
+                                            icon: "gift.fill",
+                                            color: .pink,
+                                            onUncomplete: {
+                                                viewModel.toggleWishlistAcquired(item)
+                                            }
+                                        )
+
+                                        if item.id != acquiredItems.last?.id {
+                                            Divider()
+                                                .background(.white.opacity(0.1))
+                                                .padding(.leading, 56)
+                                        }
+                                    }
+                                }
+                                .cardStyle(theme: theme, cornerRadius: CornerRadius.lg)
+                            }
+                        }
+                    }
+                }
+                .padding(Spacing.lg)
+            }
+        }
+        .navigationTitle("Completed")
+        .navigationBarTitleDisplayMode(.large)
+    }
+}
+
+// MARK: - Completed Item Row
+
+private struct CompletedItemRow: View {
+    let title: String
     let icon: String
     let color: Color
-    let action: () -> Void
-
-    var body: some View {
-        Button(action: action) {
-            Label(label, systemImage: icon)
-                .font(.subheadline)
-                .fontWeight(.medium)
-                .foregroundStyle(color)
-                .padding(.horizontal, Spacing.md)
-                .padding(.vertical, Spacing.sm)
-                .background(color.opacity(0.15))
-                .cornerRadius(CornerRadius.md)
-        }
-    }
-}
-
-// MARK: - Goals Section Card
-
-private struct GoalsSectionCard: View {
-    @ObservedObject var viewModel: LifeGoalsViewModel
-    let theme: AppTheme
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            // Header
-            SectionHeader(
-                icon: "flag.fill",
-                iconColor: .orange,
-                title: "Goals",
-                badge: viewModel.overdueGoalsCount > 0 ? "\(viewModel.overdueGoalsCount) overdue" : nil,
-                badgeColor: .red,
-                theme: theme
-            ) {
-                NavigationLink {
-                    GoalsListView(viewModel: viewModel)
-                } label: {
-                    Text("See all")
-                        .font(.caption)
-                        .foregroundStyle(.white.opacity(0.7))
-                }
-            }
-
-            if !viewModel.goals.isEmpty {
-                Divider()
-                    .background(.white.opacity(0.1))
-                    .padding(.horizontal, Spacing.lg)
-
-                // Goal rows
-                VStack(spacing: 0) {
-                    ForEach(viewModel.goals.prefix(3)) { goal in
-                        GoalRowView(goal: goal, viewModel: viewModel, theme: theme)
-
-                        if goal.id != viewModel.goals.prefix(3).last?.id {
-                            Divider()
-                                .background(.white.opacity(0.08))
-                                .padding(.leading, 56)
-                        }
-                    }
-                }
-            } else {
-                EmptyStateRow(message: "No active goals", icon: "flag")
-            }
-        }
-        .cardStyle(theme: theme)
-    }
-}
-
-// MARK: - Struggles Section Card
-
-private struct StrugglesSectionCard: View {
-    @ObservedObject var viewModel: LifeGoalsViewModel
-    let theme: AppTheme
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            // Header
-            SectionHeader(
-                icon: "exclamationmark.triangle.fill",
-                iconColor: .red,
-                title: "Struggles",
-                badge: viewModel.severeStrugglesCount > 0 ? "\(viewModel.severeStrugglesCount) severe" : nil,
-                badgeColor: .purple,
-                theme: theme
-            ) {
-                NavigationLink {
-                    StrugglesListView(viewModel: viewModel)
-                } label: {
-                    Text("See all")
-                        .font(.caption)
-                        .foregroundStyle(.white.opacity(0.7))
-                }
-            }
-
-            if !viewModel.struggles.isEmpty {
-                Divider()
-                    .background(.white.opacity(0.1))
-                    .padding(.horizontal, Spacing.lg)
-
-                // Struggle rows
-                VStack(spacing: 0) {
-                    ForEach(viewModel.struggles.prefix(3)) { struggle in
-                        StruggleRowView(struggle: struggle, viewModel: viewModel, theme: theme)
-
-                        if struggle.id != viewModel.struggles.prefix(3).last?.id {
-                            Divider()
-                                .background(.white.opacity(0.08))
-                                .padding(.leading, 56)
-                        }
-                    }
-                }
-            } else {
-                EmptyStateRow(message: "No active struggles", icon: "heart")
-            }
-        }
-        .cardStyle(theme: theme)
-    }
-}
-
-// MARK: - Wishlist Section Card
-
-private struct WishlistSectionCard: View {
-    @ObservedObject var viewModel: LifeGoalsViewModel
-    let theme: AppTheme
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            // Header
-            SectionHeader(
-                icon: "gift.fill",
-                iconColor: .pink,
-                title: "Wishlist",
-                badge: nil,
-                badgeColor: .clear,
-                theme: theme
-            ) {
-                NavigationLink {
-                    WishlistListView(viewModel: viewModel)
-                } label: {
-                    Text("See all")
-                        .font(.caption)
-                        .foregroundStyle(.white.opacity(0.7))
-                }
-            }
-
-            if !viewModel.wishlistItems.isEmpty {
-                Divider()
-                    .background(.white.opacity(0.1))
-                    .padding(.horizontal, Spacing.lg)
-
-                // Wishlist rows
-                VStack(spacing: 0) {
-                    ForEach(viewModel.wishlistItems.prefix(3)) { item in
-                        WishlistRowView(item: item, viewModel: viewModel, theme: theme)
-
-                        if item.id != viewModel.wishlistItems.prefix(3).last?.id {
-                            Divider()
-                                .background(.white.opacity(0.08))
-                                .padding(.leading, 56)
-                        }
-                    }
-                }
-            } else {
-                EmptyStateRow(message: "Your wishlist is empty", icon: "gift")
-            }
-        }
-        .cardStyle(theme: theme)
-    }
-}
-
-// MARK: - Section Header
-
-private struct SectionHeader<TrailingContent: View>: View {
-    let icon: String
-    let iconColor: Color
-    let title: String
-    let badge: String?
-    let badgeColor: Color
-    let theme: AppTheme
-    @ViewBuilder let trailingContent: () -> TrailingContent
-
-    var body: some View {
-        HStack {
-            Image(systemName: icon)
-                .font(.title3)
-                .foregroundStyle(iconColor)
-            Text(title)
-                .font(.title3)
-                .fontWeight(.bold)
-                .foregroundStyle(.white)
-
-            Spacer()
-
-            if let badge = badge {
-                Text(badge)
-                    .font(.caption)
-                    .foregroundStyle(badgeColor)
-                    .padding(.horizontal, Spacing.sm)
-                    .padding(.vertical, 2)
-                    .background(badgeColor.opacity(0.2))
-                    .cornerRadius(CornerRadius.sm)
-            }
-
-            trailingContent()
-        }
-        .padding(Spacing.lg)
-    }
-}
-
-// MARK: - Empty State Row
-
-private struct EmptyStateRow: View {
-    let message: String
-    let icon: String
+    let onUncomplete: () -> Void
 
     var body: some View {
         HStack(spacing: Spacing.md) {
-            Image(systemName: icon)
-                .font(.body)
-                .foregroundStyle(.white.opacity(0.3))
-                .frame(width: 24)
+            // Checked circle
+            Button(action: onUncomplete) {
+                ZStack {
+                    Circle()
+                        .fill(.green)
+                        .frame(width: 24, height: 24)
 
-            Text(message)
-                .font(.subheadline)
-                .foregroundStyle(.white.opacity(0.5))
+                    Image(systemName: "checkmark")
+                        .font(.system(size: 12, weight: .bold))
+                        .foregroundStyle(.white)
+                }
+            }
+            .buttonStyle(.plain)
+
+            Text(title)
+                .font(.body)
+                .foregroundStyle(.white.opacity(0.6))
+                .strikethrough(true, color: .white.opacity(0.3))
 
             Spacer()
+
+            Image(systemName: icon)
+                .font(.caption)
+                .foregroundStyle(color.opacity(0.5))
         }
-        .padding(.horizontal, Spacing.lg)
-        .padding(.vertical, Spacing.md)
+        .padding(.horizontal, Spacing.md)
+        .padding(.vertical, Spacing.sm + 2)
     }
 }
 
@@ -324,7 +431,7 @@ struct GoalRowView: View {
 
     var body: some View {
         HStack(spacing: Spacing.md) {
-            // Circular checkbox (Apple Reminders style)
+            // Circular checkbox
             Button {
                 withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
                     isAnimating = true
@@ -339,15 +446,15 @@ struct GoalRowView: View {
                 ZStack {
                     Circle()
                         .stroke(goal.isCompleted ? Color.green : priorityColor(goal.priorityLevel).opacity(0.5), lineWidth: 2)
-                        .frame(width: 24, height: 24)
+                        .frame(width: 22, height: 22)
 
                     if goal.isCompleted {
                         Circle()
                             .fill(Color.green)
-                            .frame(width: 24, height: 24)
+                            .frame(width: 22, height: 22)
 
                         Image(systemName: "checkmark")
-                            .font(.system(size: 12, weight: .bold))
+                            .font(.system(size: 11, weight: .bold))
                             .foregroundStyle(.white)
                     }
                 }
@@ -356,7 +463,7 @@ struct GoalRowView: View {
             .buttonStyle(.plain)
 
             // Content
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: 3) {
                 HStack(spacing: Spacing.xs) {
                     if goal.isPinned {
                         Image(systemName: "pin.fill")
@@ -365,16 +472,16 @@ struct GoalRowView: View {
                     }
                     Text(goal.title)
                         .font(.body)
-                        .fontWeight(.medium)
                         .foregroundStyle(.white)
                         .strikethrough(goal.isCompleted, color: .white.opacity(0.5))
                         .lineLimit(1)
                 }
 
-                if goal.progress > 0 && goal.progress < 1.0 {
-                    ProgressView(value: goal.progress)
-                        .tint(.orange)
-                        .frame(maxWidth: 120)
+                if let notes = goal.notes, !notes.isEmpty {
+                    Text(notes)
+                        .font(.caption)
+                        .foregroundStyle(.white.opacity(0.5))
+                        .lineLimit(1)
                 }
 
                 if let dueDate = goal.formattedDueDate {
@@ -390,13 +497,15 @@ struct GoalRowView: View {
 
             Spacer()
 
-            // Priority indicator
-            Image(systemName: goal.displayIcon)
-                .font(.caption)
-                .foregroundStyle(priorityColor(goal.priorityLevel))
+            // Priority flag
+            if goal.priorityLevel != .low {
+                Image(systemName: "flag.fill")
+                    .font(.caption)
+                    .foregroundStyle(priorityColor(goal.priorityLevel))
+            }
         }
-        .padding(.horizontal, Spacing.lg)
-        .padding(.vertical, Spacing.md)
+        .padding(.horizontal, Spacing.md)
+        .padding(.vertical, Spacing.sm)
         .contentShape(Rectangle())
         .contextMenu {
             Button {
@@ -417,7 +526,7 @@ struct GoalRowView: View {
 
     private func priorityColor(_ priority: Goal.Priority) -> Color {
         switch priority {
-        case .low: return .green
+        case .low: return .gray
         case .medium: return .orange
         case .high: return .red
         }
@@ -433,14 +542,14 @@ struct StruggleRowView: View {
 
     var body: some View {
         HStack(spacing: Spacing.md) {
-            // Intensity indicator circle
+            // Intensity indicator
             Circle()
                 .fill(intensityColor(struggle.intensityLevel))
                 .frame(width: 12, height: 12)
-                .padding(.leading, 6)
+                .padding(.leading, 5)
 
             // Content
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: 3) {
                 HStack(spacing: Spacing.xs) {
                     if struggle.isPinned {
                         Image(systemName: "pin.fill")
@@ -449,7 +558,6 @@ struct StruggleRowView: View {
                     }
                     Text(struggle.title)
                         .font(.body)
-                        .fontWeight(.medium)
                         .foregroundStyle(.white)
                         .lineLimit(1)
                 }
@@ -460,7 +568,9 @@ struct StruggleRowView: View {
                         .foregroundStyle(intensityColor(struggle.intensityLevel))
 
                     if let category = struggle.categoryType {
-                        Text("• \(category.rawValue)")
+                        Text("•")
+                            .foregroundStyle(.white.opacity(0.3))
+                        Text(category.rawValue)
                             .font(.caption)
                             .foregroundStyle(.white.opacity(0.5))
                     }
@@ -469,13 +579,12 @@ struct StruggleRowView: View {
 
             Spacer()
 
-            // Category icon
             Image(systemName: struggle.displayIcon)
                 .font(.caption)
-                .foregroundStyle(.white.opacity(0.4))
+                .foregroundStyle(.white.opacity(0.3))
         }
-        .padding(.horizontal, Spacing.lg)
-        .padding(.vertical, Spacing.md)
+        .padding(.horizontal, Spacing.md)
+        .padding(.vertical, Spacing.sm)
         .contentShape(Rectangle())
         .contextMenu {
             Button {
@@ -522,13 +631,12 @@ struct WishlistRowView: View {
 
     var body: some View {
         HStack(spacing: Spacing.md) {
-            // Circular checkbox with celebration trigger
+            // Circular checkbox
             Button {
                 withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
                     isAnimating = true
                 }
 
-                // Play celebration sound and trigger haptic
                 if !item.isAcquired {
                     CelebrationSoundPlayer.shared.playSuccess()
                     HapticFeedback.success.trigger()
@@ -545,15 +653,15 @@ struct WishlistRowView: View {
                 ZStack {
                     Circle()
                         .stroke(item.isAcquired ? Color.green : Color.pink.opacity(0.5), lineWidth: 2)
-                        .frame(width: 24, height: 24)
+                        .frame(width: 22, height: 22)
 
                     if item.isAcquired {
                         Circle()
                             .fill(Color.green)
-                            .frame(width: 24, height: 24)
+                            .frame(width: 22, height: 22)
 
                         Image(systemName: "checkmark")
-                            .font(.system(size: 12, weight: .bold))
+                            .font(.system(size: 11, weight: .bold))
                             .foregroundStyle(.white)
                     }
                 }
@@ -562,7 +670,7 @@ struct WishlistRowView: View {
             .buttonStyle(.plain)
 
             // Content
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: 3) {
                 HStack(spacing: Spacing.xs) {
                     if item.isPinned {
                         Image(systemName: "pin.fill")
@@ -571,7 +679,6 @@ struct WishlistRowView: View {
                     }
                     Text(item.title)
                         .font(.body)
-                        .fontWeight(.medium)
                         .foregroundStyle(.white)
                         .strikethrough(item.isAcquired, color: .white.opacity(0.5))
                         .lineLimit(1)
@@ -586,17 +693,19 @@ struct WishlistRowView: View {
 
             Spacer()
 
-            // Priority stars
-            HStack(spacing: 2) {
-                ForEach(0..<Int(item.priorityLevel.rawValue), id: \.self) { _ in
-                    Image(systemName: "star.fill")
-                        .font(.system(size: 10))
-                        .foregroundStyle(.yellow)
+            // Priority indicator (stars or flag)
+            if item.priorityLevel.rawValue > 1 {
+                HStack(spacing: 1) {
+                    ForEach(0..<min(Int(item.priorityLevel.rawValue), 3), id: \.self) { _ in
+                        Image(systemName: "star.fill")
+                            .font(.system(size: 8))
+                            .foregroundStyle(.yellow)
+                    }
                 }
             }
         }
-        .padding(.horizontal, Spacing.lg)
-        .padding(.vertical, Spacing.md)
+        .padding(.horizontal, Spacing.md)
+        .padding(.vertical, Spacing.sm)
         .contentShape(Rectangle())
         .contextMenu {
             Button {
@@ -625,9 +734,8 @@ final class CelebrationSoundPlayer {
     private init() {}
 
     func playSuccess() {
-        // Try system sound first
         #if os(iOS)
-        AudioServicesPlaySystemSound(1407) // Celebration sound
+        AudioServicesPlaySystemSound(1407)
         #endif
     }
 }
@@ -641,12 +749,10 @@ struct CelebrationOverlay: View {
 
     var body: some View {
         ZStack {
-            // Confetti
             ForEach(confettiPieces) { piece in
                 ConfettiView(piece: piece)
             }
 
-            // Celebration message
             if showContent {
                 VStack(spacing: Spacing.lg) {
                     Image(systemName: "party.popper.fill")
@@ -694,10 +800,7 @@ struct CelebrationOverlay: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color.black.opacity(0.4))
         .onAppear {
-            // Generate confetti
             generateConfetti()
-
-            // Show content with delay
             withAnimation(.spring(response: 0.5, dampingFraction: 0.7).delay(0.1)) {
                 showContent = true
             }
@@ -706,9 +809,8 @@ struct CelebrationOverlay: View {
 
     private func generateConfetti() {
         let colors: [Color] = [.yellow, .pink, .orange, .green, .blue, .purple, .red]
-
         for i in 0..<50 {
-            let piece = ConfettiPiece(
+            confettiPieces.append(ConfettiPiece(
                 id: i,
                 color: colors.randomElement() ?? .yellow,
                 startX: CGFloat.random(in: 0...1),
@@ -718,27 +820,18 @@ struct CelebrationOverlay: View {
                 rotation: Double.random(in: 0...720),
                 delay: Double.random(in: 0...0.5),
                 size: CGFloat.random(in: 6...12)
-            )
-            confettiPieces.append(piece)
+            ))
         }
     }
 }
 
-// MARK: - Confetti Piece Model
-
 struct ConfettiPiece: Identifiable {
     let id: Int
     let color: Color
-    let startX: CGFloat
-    let startY: CGFloat
-    let endX: CGFloat
-    let endY: CGFloat
-    let rotation: Double
-    let delay: Double
+    let startX, startY, endX, endY: CGFloat
+    let rotation, delay: Double
     let size: CGFloat
 }
-
-// MARK: - Confetti View
 
 struct ConfettiView: View {
     let piece: ConfettiPiece
@@ -756,10 +849,7 @@ struct ConfettiView: View {
                 .rotationEffect(.degrees(animate ? piece.rotation : 0))
                 .opacity(animate ? 0 : 1)
                 .onAppear {
-                    withAnimation(
-                        .easeOut(duration: 2.5)
-                        .delay(piece.delay)
-                    ) {
+                    withAnimation(.easeOut(duration: 2.5).delay(piece.delay)) {
                         animate = true
                     }
                 }
@@ -768,11 +858,13 @@ struct ConfettiView: View {
 }
 
 #Preview {
-    ZStack {
-        Color.black.ignoresSafeArea()
-        ScrollView {
-            LifeGoalsSection()
-                .padding()
+    NavigationStack {
+        ZStack {
+            Color.black.ignoresSafeArea()
+            ScrollView {
+                LifeGoalsSection()
+                    .padding()
+            }
         }
     }
 }

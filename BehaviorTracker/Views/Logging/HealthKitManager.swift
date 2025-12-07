@@ -234,7 +234,6 @@ class HealthKitManager: ObservableObject, @unchecked Sendable {
                 authorizationError = error.localizedDescription
                 isAuthorized = false
             }
-            print("HealthKit authorization error: \(error)")
         }
     }
     
@@ -329,7 +328,6 @@ class HealthKitManager: ObservableObject, @unchecked Sendable {
         do {
             try await healthStore.save(stateOfMind)
         } catch {
-            print("Failed to save state of mind: \(error.localizedDescription)")
         }
     }
     
@@ -372,7 +370,6 @@ class HealthKitManager: ObservableObject, @unchecked Sendable {
         do {
             try await healthStore.save(stateOfMind)
         } catch {
-            print("Failed to save energy state of mind: \(error.localizedDescription)")
         }
     }
     
@@ -395,7 +392,6 @@ class HealthKitManager: ObservableObject, @unchecked Sendable {
         do {
             try await healthStore.save(sample)
         } catch {
-            print("Failed to save mindful session: \(error.localizedDescription)")
         }
     }
     
@@ -428,7 +424,6 @@ class HealthKitManager: ObservableObject, @unchecked Sendable {
         do {
             try await healthStore.save(sample)
         } catch {
-            print("Failed to save sleep quality: \(error.localizedDescription)")
         }
     }
     

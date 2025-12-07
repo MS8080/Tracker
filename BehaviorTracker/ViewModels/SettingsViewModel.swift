@@ -79,11 +79,7 @@ class SettingsViewModel: ObservableObject {
         let trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: true)
         let request = UNNotificationRequest(identifier: "dailyReminder", content: content, trigger: trigger)
 
-        center.add(request) { error in
-            if let error = error {
-                print("Error scheduling notification: \(error.localizedDescription)")
-            }
-        }
+        center.add(request)
     }
 
     func exportDataAsJSON() -> String {

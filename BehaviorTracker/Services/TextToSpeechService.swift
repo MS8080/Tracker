@@ -107,7 +107,6 @@ class TextToSpeechService: NSObject, ObservableObject {
             try audioSession.setCategory(.playback, mode: .spokenAudio, options: [.duckOthers])
             try audioSession.setActive(true, options: .notifyOthersOnDeactivation)
         } catch {
-            print("Failed to configure audio session: \(error.localizedDescription)")
         }
         #endif
         // macOS doesn't require AVAudioSession configuration

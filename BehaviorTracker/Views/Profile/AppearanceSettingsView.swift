@@ -5,6 +5,7 @@ struct AppearanceSettingsView: View {
     @AppStorage("appearance") private var appearance: AppAppearance = .dark
     @AppStorage("selectedTheme") private var selectedThemeRaw: String = AppTheme.purple.rawValue
     @AppStorage("useCapsuleLabels") private var useCapsuleLabels: Bool = false
+    @AppStorage("cardStyle") private var cardStyle: String = CardStyle.glass.rawValue
 
     @ThemeWrapper var theme
 
@@ -12,6 +13,7 @@ struct AppearanceSettingsView: View {
         ScrollView {
             VStack(spacing: 24) {
                 themeColorsSection
+                cardStyleSection
                 appearanceModeSection
                 accessibilitySection
                 previewSection
@@ -51,6 +53,50 @@ struct AppearanceSettingsView: View {
                     }
                 }
             }
+        }
+        .padding(20)
+        .cardStyle(theme: theme)
+    }
+
+    // MARK: - Card Style Section
+
+    private var cardStyleSection: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            HStack {
+                Image(systemName: "rectangle.on.rectangle")
+                    .foregroundStyle(.mint)
+                    .font(.title3)
+                Text("Card Style")
+                    .font(.headline)
+            }
+
+            HStack(spacing: 12) {
+                CardStyleButton(
+                    title: "Glass",
+                    description: "Blur effects & glow",
+                    icon: "sparkles",
+                    isSelected: cardStyle == CardStyle.glass.rawValue
+                ) {
+                    withAnimation(.spring(response: 0.15, dampingFraction: 0.8)) {
+                        cardStyle = CardStyle.glass.rawValue
+                    }
+                }
+
+                CardStyleButton(
+                    title: "Material",
+                    description: "Simple & fast",
+                    icon: "square.fill",
+                    isSelected: cardStyle == CardStyle.material.rawValue
+                ) {
+                    withAnimation(.spring(response: 0.15, dampingFraction: 0.8)) {
+                        cardStyle = CardStyle.material.rawValue
+                    }
+                }
+            }
+
+            Text("Material style uses less effects for better battery life on older devices")
+                .font(.caption)
+                .foregroundStyle(.secondary)
         }
         .padding(20)
         .cardStyle(theme: theme)
@@ -274,6 +320,58 @@ struct AppearanceModeButton: View {
                         .font(.subheadline)
                         .fontWeight(isSelected ? .semibold : .regular)
                         .foregroundStyle(isSelected ? .primary : .secondary)
+                }
+            }
+            .frame(maxWidth: .infinity)
+        }
+        .buttonStyle(.plain)
+        .scaleEffect(isSelected ? 1.02 : 1.0)
+    }
+}
+
+// MARK: - Card Style Button
+
+struct CardStyleButton: View {
+    let title: String
+    let description: String
+    let icon: String
+    let isSelected: Bool
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            VStack(spacing: 12) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: CornerRadius.md)
+                        .fill(Color(white: 0.15))
+                        .frame(height: 70)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: CornerRadius.md)
+                                .stroke(isSelected ? Color.mint : Color.clear, lineWidth: 3)
+                        )
+                        .shadow(color: isSelected ? .mint.opacity(0.3) : .clear, radius: 8)
+
+                    Image(systemName: icon)
+                        .font(.system(size: 28))
+                        .foregroundColor(isSelected ? .mint : .white.opacity(0.6))
+                }
+
+                VStack(spacing: 4) {
+                    HStack(spacing: 6) {
+                        if isSelected {
+                            Image(systemName: "checkmark.circle.fill")
+                                .foregroundStyle(.mint)
+                                .font(.caption)
+                        }
+                        Text(title)
+                            .font(.subheadline)
+                            .fontWeight(isSelected ? .semibold : .regular)
+                            .foregroundStyle(isSelected ? .primary : .secondary)
+                    }
+
+                    Text(description)
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
                 }
             }
             .frame(maxWidth: .infinity)

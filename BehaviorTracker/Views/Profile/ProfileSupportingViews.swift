@@ -1,5 +1,19 @@
 import SwiftUI
 
+// MARK: - Disable Glass Effect Modifier
+
+/// Disables the automatic Liquid Glass effect on iOS 26+ for views that shouldn't have it
+struct DisableGlassEffectModifier: ViewModifier {
+    func body(content: Content) -> some View {
+        if #available(iOS 26.0, *) {
+            content
+                .glassEffect(.identity, in: Circle())
+        } else {
+            content
+        }
+    }
+}
+
 // MARK: - Profile Toolbar Controls
 
 struct FontSizeToolbarControl: View {
@@ -97,7 +111,9 @@ struct ProfileHeaderSection: View {
                     )
                     .offset(x: 36, y: 36)
             }
+            .contentShape(Circle())
             .onTapGesture { onEditTapped() }
+            .modifier(DisableGlassEffectModifier())
 
             VStack(spacing: 6) {
                 Text(profile?.name ?? "User")

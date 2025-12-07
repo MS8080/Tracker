@@ -52,7 +52,6 @@ class CalendarEventService: ObservableObject {
                 return granted
             }
         } catch {
-            print("Calendar access error: \(error)")
             return false
         }
     }

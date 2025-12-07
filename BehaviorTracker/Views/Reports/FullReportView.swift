@@ -330,7 +330,6 @@ struct FullReportView: View {
         do {
             try viewContext.save()
         } catch {
-            print("Failed to save journal entry: \(error)")
         }
     }
 
