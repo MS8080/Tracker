@@ -1,23 +1,5 @@
 import SwiftUI
 
-// MARK: - Circular Glass Modifier
-
-/// Applies a circular glass background to toolbar buttons.
-/// On iOS 26+, let the system handle glass effect - don't add custom background.
-struct CircularGlassModifier: ViewModifier {
-    func body(content: Content) -> some View {
-        if #available(iOS 26.0, *) {
-            // iOS 26+: Don't add any background - system provides glass automatically
-            content
-        } else {
-            // Pre-iOS 26: manually add glass background
-            content
-                .background(.ultraThinMaterial, in: Circle())
-        }
-    }
-}
-
-
 // MARK: - Journal Entry Editor
 
 struct JournalEntryEditorView: View {
@@ -43,7 +25,6 @@ struct JournalEntryEditorView: View {
     // Event mention autocomplete
     @State private var showEventSuggestions = false
     @State private var eventSuggestions: [CalendarEvent] = []
-    @State private var mentionQuery: String = ""
     @StateObject private var calendarService = CalendarEventService.shared
 
     // Auto-save timer
@@ -56,106 +37,62 @@ struct JournalEntryEditorView: View {
         AppTheme(rawValue: selectedThemeRaw) ?? .purple
     }
 
-    // Date formatters
-    private var dateFormatter: DateFormatter {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "dd.MM.yyyy 'at' HH:mm"
-        return formatter
-    }
-
     var body: some View {
         ZStack {
-            // Themed background
             theme.gradient
                 .ignoresSafeArea()
 
             NavigationView {
                 VStack(spacing: 0) {
-                    // Main content area
-                    ScrollView {
-                        VStack(alignment: .leading, spacing: Spacing.md) {
-                            // Tappable timestamp
-                            timestampButton
-
-                            // Content text area
-                            contentEditor
-                        }
-                        .padding(Spacing.lg)
-                        .cardStyle(theme: theme)
-                        .padding(.horizontal, Spacing.md)
-                        .padding(.top, Spacing.sm)
-                    }
-                    .scrollContentBackground(.hidden)
-                    .scrollDismissesKeyboard(.interactively)
-
-                    // Action toolbar above keyboard
-                    actionToolbar
+                    mainContent
+                    JournalActionToolbar(
+                        isAnalyzing: isAnalyzing,
+                        isContentEmpty: content.isEmpty,
+                        onVoice: {
+                            contentIsFocused = false
+                            showVoiceRecorder = true
+                        },
+                        onAnalyze: analyzeImmediately,
+                        onDelete: deleteEntry
+                    )
                 }
                 .background(Color.clear)
                 .navigationTitle("Journal Entry")
                 .navigationBarTitleDisplayMode(.inline)
-                .toolbar {
-                    ToolbarItem(placement: .cancellationAction) {
-                        Button("Cancel") {
-                            handleCancel()
-                        }
-                        .foregroundStyle(.white)
-                    }
-
-                    ToolbarItem(placement: .confirmationAction) {
-                        saveButton
-                    }
-                }
+                .toolbar { toolbarContent }
             }
 
-            // Voice recorder overlay
-            if showVoiceRecorder {
-                VoiceRecorderOverlay(
-                    isPresented: $showVoiceRecorder,
-                    onTranscription: { text in
-                        if content.isEmpty {
-                            content = text
-                        } else {
-                            content += " " + text
-                        }
-                        hasUnsavedChanges = true
-                    }
-                )
-            }
-
-            // Date picker sheet
-            if showDatePicker {
-                datePickerOverlay
-            }
-
-            // Delete undo toast
-            if showDeleteUndo {
-                deleteUndoToast
-            }
+            overlays
         }
-        .onAppear {
-            setupAutoSave()
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                contentIsFocused = true
-            }
-        }
-        .onDisappear {
-            autoSaveTimer?.invalidate()
-        }
+        .onAppear(perform: onAppear)
+        .onDisappear { autoSaveTimer?.invalidate() }
         .onChange(of: content) { _, _ in
             hasUnsavedChanges = content != lastSavedContent
         }
         .alert("Unsaved Changes", isPresented: $showDiscardAlert) {
-            Button("Save", role: .none) {
-                saveEntry()
-            }
-            Button("Discard", role: .destructive) {
-                dismiss()
-            }
+            Button("Save", role: .none) { saveEntry() }
+            Button("Discard", role: .destructive) { dismiss() }
             Button("Cancel", role: .cancel) { }
         } message: {
             Text("You have unsaved changes. Would you like to save them?")
         }
+    }
+
+    // MARK: - Main Content
+
+    private var mainContent: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: Spacing.md) {
+                timestampButton
+                contentEditor
+            }
+            .padding(Spacing.lg)
+            .cardStyle(theme: theme)
+            .padding(.horizontal, Spacing.md)
+            .padding(.top, Spacing.sm)
+        }
+        .scrollContentBackground(.hidden)
+        .scrollDismissesKeyboard(.interactively)
     }
 
     // MARK: - Timestamp Button
@@ -169,7 +106,7 @@ struct JournalEntryEditorView: View {
             HStack(spacing: Spacing.sm) {
                 Image(systemName: "calendar")
                     .font(.subheadline)
-                Text(dateFormatter.string(from: entryDate))
+                Text(formattedDate)
                     .font(.subheadline)
                 Image(systemName: "chevron.down")
                     .font(.caption2)
@@ -180,6 +117,12 @@ struct JournalEntryEditorView: View {
             .background(.white.opacity(0.1), in: Capsule())
         }
         .buttonStyle(.plain)
+    }
+
+    private var formattedDate: String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "dd.MM.yyyy 'at' HH:mm"
+        return formatter.string(from: entryDate)
     }
 
     // MARK: - Content Editor
@@ -205,107 +148,77 @@ struct JournalEntryEditorView: View {
                     checkForMentionTrigger(in: newValue)
                 }
 
-            // Event suggestions overlay
             if showEventSuggestions && !eventSuggestions.isEmpty {
-                eventSuggestionsOverlay
+                EventMentionAutocomplete(
+                    events: eventSuggestions,
+                    onSelect: insertEventMention,
+                    onDismiss: { showEventSuggestions = false }
+                )
+                .padding(.top, 40)
+                .padding(.horizontal, Spacing.sm)
             }
         }
     }
 
-    // MARK: - Event Suggestions Overlay
+    // MARK: - Toolbar
 
-    private var eventSuggestionsOverlay: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            HStack {
-                Image(systemName: "calendar")
-                    .font(.caption)
-                    .foregroundStyle(SemanticColor.calendar)
-                Text("Events")
-                    .font(.caption.bold())
-                    .foregroundStyle(CardText.secondary)
-                Spacer()
-                Button {
-                    showEventSuggestions = false
-                } label: {
-                    Image(systemName: "xmark.circle.fill")
-                        .font(.caption)
-                        .foregroundStyle(.white.opacity(0.5))
-                }
-            }
-            .padding(.horizontal, Spacing.md)
-            .padding(.vertical, Spacing.sm)
-
-            Divider()
-                .background(.white.opacity(0.2))
-
-            ScrollView {
-                VStack(alignment: .leading, spacing: 0) {
-                    ForEach(eventSuggestions.prefix(6)) { event in
-                        eventSuggestionRow(event)
-                    }
-                }
-            }
-            .frame(maxHeight: 200)
+    @ToolbarContentBuilder
+    private var toolbarContent: some ToolbarContent {
+        ToolbarItem(placement: .cancellationAction) {
+            Button("Cancel") { handleCancel() }
+                .foregroundStyle(.white)
         }
-        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: CornerRadius.md))
-        .overlay(
-            RoundedRectangle(cornerRadius: CornerRadius.md)
-                .stroke(.white.opacity(0.1), lineWidth: 1)
-        )
-        .padding(.top, 40)
-        .padding(.horizontal, Spacing.sm)
+
+        ToolbarItem(placement: .confirmationAction) {
+            Button {
+                saveEntry()
+            } label: {
+                if isSaving {
+                    ProgressView().scaleEffect(0.8)
+                } else {
+                    Image(systemName: "checkmark")
+                }
+            }
+            .disabled(content.isEmpty || isSaving)
+        }
     }
 
-    private func eventSuggestionRow(_ event: CalendarEvent) -> some View {
-        Button {
-            insertEventMention(event)
-        } label: {
-            HStack(spacing: Spacing.sm) {
-                Circle()
-                    .fill(Color(cgColor: event.calendarColor ?? CGColor(red: 0.3, green: 0.6, blue: 0.9, alpha: 1)))
-                    .frame(width: 8, height: 8)
+    // MARK: - Overlays
 
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(event.title)
-                        .font(.subheadline)
-                        .foregroundStyle(.white)
-                        .lineLimit(1)
-
-                    Text(formatEventDate(event))
-                        .font(.caption)
-                        .foregroundStyle(.white.opacity(0.6))
+    @ViewBuilder
+    private var overlays: some View {
+        if showVoiceRecorder {
+            VoiceRecorderOverlay(
+                isPresented: $showVoiceRecorder,
+                onTranscription: { text in
+                    content = content.isEmpty ? text : content + " " + text
+                    hasUnsavedChanges = true
                 }
-
-                Spacer()
-            }
-            .padding(.horizontal, Spacing.md)
-            .padding(.vertical, Spacing.sm)
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-    }
-
-    private func formatEventDate(_ event: CalendarEvent) -> String {
-        let calendar = Calendar.current
-        let formatter = DateFormatter()
-
-        if calendar.isDateInToday(event.startDate) {
-            formatter.dateFormat = "'Today at' h:mm a"
-        } else if calendar.isDateInTomorrow(event.startDate) {
-            formatter.dateFormat = "'Tomorrow at' h:mm a"
-        } else {
-            formatter.dateFormat = "EEE, MMM d 'at' h:mm a"
+            )
         }
 
-        return event.isAllDay ? "All day" : formatter.string(from: event.startDate)
+        if showDatePicker {
+            JournalDatePickerOverlay(
+                selectedDate: $entryDate,
+                isPresented: $showDatePicker,
+                theme: theme
+            )
+        }
+
+        if showDeleteUndo {
+            UndoToast(
+                message: "Entry deleted",
+                theme: theme,
+                onUndo: { showDeleteUndo = false },
+                onDismiss: { showDeleteUndo = false }
+            )
+        }
     }
 
     // MARK: - Mention Logic
 
     private func checkForMentionTrigger(in text: String) {
-        // Simple detection: check if text ends with @ or @query
         if let query = mentionService.extractTypingQuery(from: text, cursorPosition: text.count) {
-            mentionQuery = query
             if calendarService.isAuthorized {
                 eventSuggestions = mentionService.searchEvents(query: query, around: entryDate)
                 showEventSuggestions = true
@@ -316,187 +229,24 @@ struct JournalEntryEditorView: View {
     }
 
     private func insertEventMention(_ event: CalendarEvent) {
-        // Find and replace the @query with the full mention
         if let range = mentionService.getTypingMentionRange(from: content, cursorPosition: content.count) {
             let mention = mentionService.createMention(for: event)
             content.replaceSubrange(range, with: mention + " ")
         } else {
-            // Fallback: just append
             content += mentionService.createMention(for: event) + " "
         }
-
         showEventSuggestions = false
         HapticFeedback.light.trigger()
     }
 
-    // MARK: - Action Toolbar
-
-    private var actionToolbar: some View {
-        HStack(spacing: Spacing.lg) {
-            // Voice input button
-            Button {
-                HapticFeedback.medium.trigger()
-                contentIsFocused = false
-                showVoiceRecorder = true
-            } label: {
-                VStack(spacing: 2) {
-                    Image(systemName: "mic.fill")
-                        .font(.system(size: 20))
-                    Text("Voice")
-                        .font(.caption2)
-                }
-                .foregroundStyle(.white.opacity(0.9))
-                .frame(maxWidth: .infinity)
-            }
-            .buttonStyle(.plain)
-
-            // Analyze button
-            Button {
-                HapticFeedback.medium.trigger()
-                analyzeImmediately()
-            } label: {
-                VStack(spacing: 2) {
-                    if isAnalyzing {
-                        ProgressView()
-                            .scaleEffect(0.8)
-                            .tint(.white)
-                            .frame(height: 20)
-                    } else {
-                        Image(systemName: "sparkles")
-                            .font(.system(size: 20))
-                    }
-                    Text("Analyze")
-                        .font(.caption2)
-                }
-                .foregroundStyle(.white.opacity(0.9))
-                .frame(maxWidth: .infinity)
-            }
-            .buttonStyle(.plain)
-            .disabled(content.isEmpty || isAnalyzing)
-
-            // Delete button
-            Button {
-                HapticFeedback.medium.trigger()
-                deleteEntry()
-            } label: {
-                VStack(spacing: 2) {
-                    Image(systemName: "trash")
-                        .font(.system(size: 20))
-                    Text("Delete")
-                        .font(.caption2)
-                }
-                .foregroundStyle(.red.opacity(0.9))
-                .frame(maxWidth: .infinity)
-            }
-            .buttonStyle(.plain)
-            .disabled(content.isEmpty)
-        }
-        .padding(.horizontal, Spacing.xl)
-        .padding(.vertical, Spacing.md)
-        .background(.ultraThinMaterial)
-    }
-
-    // MARK: - Save Button
-
-    private var saveButton: some View {
-        Button {
-            saveEntry()
-        } label: {
-            if isSaving {
-                ProgressView()
-                    .scaleEffect(0.8)
-            } else {
-                Image(systemName: "checkmark")
-            }
-        }
-        .disabled(content.isEmpty || isSaving)
-    }
-
-    // MARK: - Date Picker Overlay
-
-    private var datePickerOverlay: some View {
-        ZStack {
-            Color.black.opacity(0.5)
-                .ignoresSafeArea()
-                .onTapGesture {
-                    withAnimation(.easeOut(duration: 0.2)) {
-                        showDatePicker = false
-                    }
-                }
-
-            VStack(spacing: 0) {
-                // Header
-                HStack {
-                    Text("Select Date & Time")
-                        .font(.headline)
-                        .foregroundStyle(.white)
-                    Spacer()
-                    Button {
-                        withAnimation(.easeOut(duration: 0.2)) {
-                            showDatePicker = false
-                        }
-                    } label: {
-                        Image(systemName: "xmark.circle.fill")
-                            .font(.title2)
-                            .foregroundStyle(.white.opacity(0.7))
-                    }
-                }
-                .padding()
-
-                DatePicker(
-                    "Entry Date",
-                    selection: $entryDate,
-                    displayedComponents: [.date, .hourAndMinute]
-                )
-                .datePickerStyle(.graphical)
-                .tint(theme.primaryColor)
-                .colorScheme(.dark)
-                .padding()
-            }
-            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: CornerRadius.lg))
-            .padding(.horizontal, Spacing.lg)
-        }
-        .transition(.opacity)
-    }
-
-    // MARK: - Delete Undo Toast
-
-    private var deleteUndoToast: some View {
-        VStack {
-            Spacer()
-
-            HStack {
-                Text("Entry deleted")
-                    .font(.subheadline)
-                    .foregroundStyle(.white)
-
-                Spacer()
-
-                Button("Undo") {
-                    // Undo would restore the entry - for now just dismiss toast
-                    withAnimation {
-                        showDeleteUndo = false
-                    }
-                }
-                .font(.subheadline.bold())
-                .foregroundStyle(theme.primaryColor)
-            }
-            .padding()
-            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: CornerRadius.md))
-            .padding(.horizontal, Spacing.lg)
-            .padding(.bottom, 100)
-        }
-        .transition(.move(edge: .bottom).combined(with: .opacity))
-        .onAppear {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
-                withAnimation {
-                    showDeleteUndo = false
-                }
-            }
-        }
-    }
-
     // MARK: - Actions
+
+    private func onAppear() {
+        setupAutoSave()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            contentIsFocused = true
+        }
+    }
 
     private func handleCancel() {
         if hasUnsavedChanges && !content.isEmpty {
@@ -515,7 +265,6 @@ struct JournalEntryEditorView: View {
     }
 
     private func saveDraft() {
-        // Save to UserDefaults as draft
         UserDefaults.standard.set(content, forKey: "journalDraft")
         UserDefaults.standard.set(entryDate, forKey: "journalDraftDate")
         lastSavedContent = content
@@ -540,16 +289,13 @@ struct JournalEntryEditorView: View {
                     audioFileName: nil
                 )
 
-                // Update timestamp if changed
                 if !Calendar.current.isDate(entryDate, equalTo: Date(), toGranularity: .minute) {
                     entry.timestamp = entryDate
                     try dataController.container.viewContext.save()
                 }
 
-                // Clear draft
                 clearDraft()
 
-                // Auto-analyze in background
                 Task.detached(priority: .background) {
                     await analyzeEntry(entry)
                 }
@@ -568,18 +314,10 @@ struct JournalEntryEditorView: View {
     }
 
     private func deleteEntry() {
-        // Clear content and dismiss
         content = ""
         clearDraft()
-
-        withAnimation {
-            showDeleteUndo = true
-        }
-
-        // Dismiss after showing toast briefly
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            dismiss()
-        }
+        withAnimation { showDeleteUndo = true }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { dismiss() }
     }
 
     private func analyzeImmediately() {
@@ -587,7 +325,6 @@ struct JournalEntryEditorView: View {
         isAnalyzing = true
 
         Task {
-            // First save the entry
             do {
                 let entry = try dataController.createJournalEntry(
                     title: nil,
@@ -596,16 +333,12 @@ struct JournalEntryEditorView: View {
                     audioFileName: nil
                 )
 
-                // Update timestamp if changed
                 if !Calendar.current.isDate(entryDate, equalTo: Date(), toGranularity: .minute) {
                     entry.timestamp = entryDate
                     try dataController.container.viewContext.save()
                 }
 
-                // Clear draft
                 clearDraft()
-
-                // Analyze immediately
                 await analyzeEntry(entry)
 
                 await MainActor.run {
@@ -624,20 +357,14 @@ struct JournalEntryEditorView: View {
 
     private func analyzeEntry(_ entry: JournalEntry) async {
         guard extractionService.isConfigured else { return }
+        guard !GeminiService.shared.wasRecentlyAnalyzed(entryID: entry.id) else { return }
 
-        // Debounce: skip if this entry was recently analyzed
-        if GeminiService.shared.wasRecentlyAnalyzed(entryID: entry.id) {
-            return
-        }
-
-        // Mark as being analyzed to prevent duplicates
         GeminiService.shared.markAsAnalyzed(entryID: entry.id)
 
         do {
             let result = try await extractionService.extractPatterns(from: entry.content)
             let context = dataController.container.viewContext
 
-            // Create ExtractedPattern entities
             var createdPatterns: [String: ExtractedPattern] = [:]
 
             for patternData in result.patterns {
@@ -653,11 +380,9 @@ struct JournalEntryEditorView: View {
                 pattern.confidence = result.confidence
                 pattern.timestamp = entry.timestamp
                 pattern.journalEntry = entry
-
                 createdPatterns[patternData.type] = pattern
             }
 
-            // Create cascade relationships
             for cascadeData in result.cascades {
                 if let fromPattern = createdPatterns[cascadeData.from],
                    let toPattern = createdPatterns[cascadeData.to] {
@@ -671,15 +396,14 @@ struct JournalEntryEditorView: View {
                 }
             }
 
-            // Update journal entry
             entry.isAnalyzed = true
             entry.analysisConfidence = result.confidence
             entry.analysisSummary = result.summary
             entry.overallIntensity = Int16(result.overallIntensity)
 
             try context.save()
-
         } catch {
+            // Analysis failed silently
         }
     }
 }
