@@ -153,11 +153,11 @@ struct CorrelationInsightsView: View {
                 }
 
                 FilterChip(
-                    title: "Factors",
-                    icon: "list.bullet",
-                    isSelected: filterType == .factorPattern
+                    title: "Triggers",
+                    icon: "exclamationmark.triangle",
+                    isSelected: filterType == .triggerPattern
                 ) {
-                    filterType = .factorPattern
+                    filterType = .triggerPattern
                 }
 
                 FilterChip(
@@ -166,6 +166,14 @@ struct CorrelationInsightsView: View {
                     isSelected: filterType == .moodPattern
                 ) {
                     filterType = .moodPattern
+                }
+
+                FilterChip(
+                    title: "Categories",
+                    icon: "square.grid.2x2",
+                    isSelected: filterType == .categoryPattern
+                ) {
+                    filterType = .categoryPattern
                 }
             }
             .padding(.horizontal, 4)
@@ -257,7 +265,7 @@ struct CorrelationInsightsView: View {
                 sampleSize: 45
             ),
             CorrelationInsight(
-                type: .factorPattern,
+                type: .triggerPattern,
                 title: demoCorrelations[1].title,
                 description: demoCorrelations[1].description,
                 strength: demoCorrelations[1].strength,
@@ -279,6 +287,14 @@ struct CorrelationInsightsView: View {
                 strength: demoCorrelations[3].strength,
                 confidence: .medium,
                 sampleSize: 18
+            ),
+            CorrelationInsight(
+                type: .categoryPattern,
+                title: "Sensory patterns",
+                description: "Sensory category patterns have 28% higher intensity than average",
+                strength: 0.72,
+                confidence: .high,
+                sampleSize: 32
             )
         ]
 
@@ -327,8 +343,9 @@ struct InsightCard: View {
         switch insight.type {
         case .medicationPattern: return "pills.fill"
         case .timePattern: return "clock.fill"
-        case .factorPattern: return "list.bullet.circle.fill"
+        case .triggerPattern: return "exclamationmark.triangle.fill"
         case .moodPattern: return "face.smiling.fill"
+        case .categoryPattern: return "square.grid.2x2.fill"
         }
     }
 
@@ -336,8 +353,9 @@ struct InsightCard: View {
         switch insight.type {
         case .medicationPattern: return .green
         case .timePattern: return .blue
-        case .factorPattern: return .orange
+        case .triggerPattern: return .orange
         case .moodPattern: return .pink
+        case .categoryPattern: return .purple
         }
     }
 

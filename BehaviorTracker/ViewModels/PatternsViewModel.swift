@@ -207,6 +207,7 @@ class PatternsViewModel: ObservableObject {
 
     // MARK: - Check Unanalyzed
 
+    /// Check for unanalyzed entries (today only for the Patterns view)
     func checkUnanalyzedEntries() async {
         let calendar = Calendar.current
         let startOfDay = calendar.startOfDay(for: Date())
@@ -228,6 +229,19 @@ class PatternsViewModel: ObservableObject {
         }
     }
 
+    /// Get count of all unanalyzed entries (any date)
+    func countAllUnanalyzedEntries() async -> Int {
+        let fetchRequest = NSFetchRequest<JournalEntry>(entityName: "JournalEntry")
+        fetchRequest.predicate = NSPredicate(format: "isAnalyzed == NO")
+
+        do {
+            let context = dataController.container.viewContext
+            return try context.count(for: fetchRequest)
+        } catch {
+            return 0
+        }
+    }
+
     // MARK: - Analyze Entries
 
     func analyzeUnanalyzedEntries() async {
@@ -236,6 +250,7 @@ class PatternsViewModel: ObservableObject {
         }
 
         guard extractionService.isConfigured else {
+            error = "Please configure your Gemini API key in Settings → AI Insights"
             return
         }
 
@@ -337,7 +352,8 @@ class PatternsViewModel: ObservableObject {
             entry.overallIntensity = Int16(result.overallIntensity)
 
         } catch {
-            // Don't mark as analyzed if it failed
+            // Show error to user - don't mark as analyzed if it failed
+            self.error = "Analysis failed: \(error.localizedDescription)"
         }
     }
 }

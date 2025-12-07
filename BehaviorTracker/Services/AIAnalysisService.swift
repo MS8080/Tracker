@@ -1,11 +1,46 @@
 import Foundation
 import CoreData
 
+/// Available AI models for analysis
+enum AIModel: String, CaseIterable {
+    case gemini = "Gemini"
+    // Claude requires additional Vertex AI setup - disabled for now
+    // case claude = "Claude"
+
+    var displayName: String {
+        switch self {
+        case .gemini: return "Gemini 2.5 Flash"
+        // case .claude: return "Claude Opus 4"
+        }
+    }
+
+    var icon: String {
+        switch self {
+        case .gemini: return "sparkles"
+        // case .claude: return "brain.head.profile"
+        }
+    }
+}
+
 class AIAnalysisService {
     static let shared = AIAnalysisService()
 
     private let dataController = DataController.shared
     private let geminiService = GeminiService.shared
+
+    /// Currently selected AI model (stored in UserDefaults)
+    var selectedModel: AIModel {
+        get {
+            if let rawValue = UserDefaults.standard.string(forKey: "selected_ai_model"),
+               let model = AIModel(rawValue: rawValue) {
+                return model
+            }
+            return .gemini  // Default to Gemini
+        }
+        set {
+            UserDefaults.standard.set(newValue.rawValue, forKey: "selected_ai_model")
+        }
+    }
 
     private init() {}
 
@@ -25,7 +60,7 @@ class AIAnalysisService {
 
     func analyzeData(preferences: AnalysisPreferences = AnalysisPreferences()) async throws -> AIInsights {
         let prompt = await buildPrompt(preferences: preferences)
-        let response = try await geminiService.generateContent(prompt: prompt)
+        let response = try await generateContent(prompt: prompt)
 
         return AIInsights(
             generatedAt: Date(),
@@ -36,6 +71,13 @@ class AIAnalysisService {
 
     /// Analyze with a custom prompt (for journal entry analysis)
     func analyzeWithPrompt(_ prompt: String) async throws -> String {
+        return try await generateContent(prompt: prompt)
+    }
+
+    /// Generate content using the selected AI model
+    private func generateContent(prompt: String) async throws -> String {
+        // Currently only Gemini is available
+        // Claude requires additional Vertex AI Model Garden setup
         return try await geminiService.generateContent(prompt: prompt)
     }
 
@@ -210,7 +252,10 @@ class AIAnalysisService {
     }
 
     private func gatherJournalData(startDate: Date, endDate: Date) async -> String {
-        let entries = await dataController.fetchJournalEntries(startDate: startDate, endDate: endDate)
+        let allEntries = await dataController.fetchJournalEntries(startDate: startDate, endDate: endDate)
+
+        // Filter out insight entries (saved AI insights shouldn't be re-analyzed)
+        let entries = allEntries.filter { !$0.isInsight }
 
         guard !entries.isEmpty else {
             return "No journal entries in this period."

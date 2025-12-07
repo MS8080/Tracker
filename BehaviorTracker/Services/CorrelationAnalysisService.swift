@@ -15,8 +15,9 @@ struct CorrelationInsight: Identifiable {
     enum CorrelationType {
         case medicationPattern
         case timePattern
-        case factorPattern
+        case triggerPattern
         case moodPattern
+        case categoryPattern
     }
 
     enum ConfidenceLevel {
@@ -57,14 +58,16 @@ class CorrelationAnalysisService {
 
         // Fetch data from the last N days
         let startDate = Calendar.current.date(byAdding: .day, value: -days, to: Date()) ?? Date()
-        let patterns = await fetchPatterns(since: startDate)
+        let patterns = await fetchExtractedPatterns(since: startDate)
         let medicationLogs = fetchMedicationLogs(since: startDate)
+        let journalEntries = await fetchJournalEntries(since: startDate)
 
         // Generate different types of correlations
         insights.append(contentsOf: analyzeMedicationPatternCorrelations(patterns: patterns, medicationLogs: medicationLogs))
         insights.append(contentsOf: analyzeTimePatternCorrelations(patterns: patterns))
-        insights.append(contentsOf: analyzeFactorPatternCorrelations(patterns: patterns))
-        insights.append(contentsOf: await analyzeMoodPatternCorrelations(patterns: patterns))
+        insights.append(contentsOf: analyzeTriggerPatternCorrelations(patterns: patterns))
+        insights.append(contentsOf: analyzeMoodPatternCorrelations(patterns: patterns, journalEntries: journalEntries))
+        insights.append(contentsOf: analyzeCategoryCorrelations(patterns: patterns))
 
         // Sort by strength (strongest correlations first)
         return insights.sorted { $0.strength > $1.strength }
@@ -72,7 +75,7 @@ class CorrelationAnalysisService {
 
     // MARK: - Medication-Pattern Correlations
 
-    private func analyzeMedicationPatternCorrelations(patterns: [PatternEntry], medicationLogs: [MedicationLog]) -> [CorrelationInsight] {
+    private func analyzeMedicationPatternCorrelations(patterns: [ExtractedPattern], medicationLogs: [MedicationLog]) -> [CorrelationInsight] {
         var insights: [CorrelationInsight] = []
 
         // Group medication logs by medication name
@@ -114,7 +117,7 @@ class CorrelationAnalysisService {
 
                     let direction = percentChange > 0 ? "increases" : "decreases"
                     let title = "\(medicationName) → \(patternType)"
-                    let description = "When taking \(medicationName), \(patternType) \(direction) by \(Int(abs(percentChange)))%"
+                    let description = "When taking \(medicationName), \(patternType) intensity \(direction) by \(Int(abs(percentChange)))%"
 
                     insights.append(CorrelationInsight(
                         type: .medicationPattern,
@@ -133,7 +136,7 @@ class CorrelationAnalysisService {
 
     // MARK: - Time-Pattern Correlations
 
-    private func analyzeTimePatternCorrelations(patterns: [PatternEntry]) -> [CorrelationInsight] {
+    private func analyzeTimePatternCorrelations(patterns: [ExtractedPattern]) -> [CorrelationInsight] {
         var insights: [CorrelationInsight] = []
 
         // Group patterns by type
@@ -169,7 +172,7 @@ class CorrelationAnalysisService {
             let percentage = (Double(maxPeriod.1) / Double(totalCount)) * 100
 
             // Only report if > 50% occur in a specific time
-            if percentage > 50 {
+            if percentage > 50 && totalCount >= 3 {
                 let confidence = getConfidenceLevel(sampleSize: totalCount)
                 let strength = min(percentage / 100.0, 1.0)
 
@@ -190,46 +193,46 @@ class CorrelationAnalysisService {
         return insights
     }
 
-    // MARK: - Factor-Pattern Correlations
+    // MARK: - Trigger-Pattern Correlations
 
-    private func analyzeFactorPatternCorrelations(patterns: [PatternEntry]) -> [CorrelationInsight] {
+    private func analyzeTriggerPatternCorrelations(patterns: [ExtractedPattern]) -> [CorrelationInsight] {
         var insights: [CorrelationInsight] = []
 
-        // Collect all contributing factors across all patterns
-        var factorOccurrences: [String: [PatternEntry]] = [:]
+        // Collect all triggers across all patterns
+        var triggerOccurrences: [String: [ExtractedPattern]] = [:]
 
         for pattern in patterns {
-            let factors = pattern.contributingFactors
-            for factor in factors {
-                factorOccurrences[factor.rawValue, default: []].append(pattern)
+            for trigger in pattern.triggers where !trigger.isEmpty {
+                triggerOccurrences[trigger, default: []].append(pattern)
             }
         }
 
-        // Analyze each factor's correlation with pattern intensity
-        for (factorName, entriesWithFactor) in factorOccurrences where entriesWithFactor.count >= 3 {
-            let avgIntensityWith = Double(entriesWithFactor.reduce(0) { $0 + Int($1.intensity) }) / Double(entriesWithFactor.count)
+        // Analyze each trigger's correlation with pattern intensity
+        for (triggerName, entriesWithTrigger) in triggerOccurrences where entriesWithTrigger.count >= 3 {
+            let avgIntensityWith = Double(entriesWithTrigger.reduce(0) { $0 + Int($1.intensity) }) / Double(entriesWithTrigger.count)
 
             // Compare with overall average
-            let allEntries = patterns
-            let overallAvg = Double(allEntries.reduce(0) { $0 + Int($1.intensity) }) / Double(allEntries.count)
+            guard !patterns.isEmpty else { continue }
+            let overallAvg = Double(patterns.reduce(0) { $0 + Int($1.intensity) }) / Double(patterns.count)
 
+            guard overallAvg > 0 else { continue }
             let percentDiff = ((avgIntensityWith - overallAvg) / overallAvg) * 100
 
             if abs(percentDiff) > 15 {
-                let confidence = getConfidenceLevel(sampleSize: entriesWithFactor.count)
+                let confidence = getConfidenceLevel(sampleSize: entriesWithTrigger.count)
                 let strength = min(abs(percentDiff) / 100.0, 1.0)
 
                 let direction = percentDiff > 0 ? "higher" : "lower"
-                let title = "\(factorName) affects intensity"
-                let description = "Patterns with '\(factorName)' factor are \(Int(abs(percentDiff)))% \(direction) intensity"
+                let title = "'\(triggerName)' affects intensity"
+                let description = "Patterns with '\(triggerName)' trigger have \(Int(abs(percentDiff)))% \(direction) intensity"
 
                 insights.append(CorrelationInsight(
-                    type: .factorPattern,
+                    type: .triggerPattern,
                     title: title,
                     description: description,
                     strength: strength,
                     confidence: confidence,
-                    sampleSize: entriesWithFactor.count
+                    sampleSize: entriesWithTrigger.count
                 ))
             }
         }
@@ -239,11 +242,8 @@ class CorrelationAnalysisService {
 
     // MARK: - Mood-Pattern Correlations
 
-    private func analyzeMoodPatternCorrelations(patterns: [PatternEntry]) async -> [CorrelationInsight] {
+    private func analyzeMoodPatternCorrelations(patterns: [ExtractedPattern], journalEntries: [JournalEntry]) -> [CorrelationInsight] {
         var insights: [CorrelationInsight] = []
-
-        // Get journal entries to correlate mood with patterns
-        let journalEntries = await dataController.fetchJournalEntries()
 
         // Group patterns by type
         let patternGroups = Dictionary(grouping: patterns) { $0.patternType }
@@ -281,8 +281,8 @@ class CorrelationAnalysisService {
             let confidence = getConfidenceLevel(sampleSize: moodsOnPatternDays.count)
             let strength = abs(avgMood - 3.0) / 2.0 // Distance from neutral (3)
 
-            let title = "\(patternType) correlates with \(moodLevel)"
-            let description = "Days with \(patternType) patterns show \(moodLevel) (avg: \(String(format: "%.1f", avgMood))/5)"
+            let title = "\(patternType) → \(moodLevel)"
+            let description = "Days with \(patternType) show \(moodLevel) (avg: \(String(format: "%.1f", avgMood))/5)"
 
             insights.append(CorrelationInsight(
                 type: .moodPattern,
@@ -297,10 +297,82 @@ class CorrelationAnalysisService {
         return insights
     }
 
+    // MARK: - Category Correlations
+
+    private func analyzeCategoryCorrelations(patterns: [ExtractedPattern]) -> [CorrelationInsight] {
+        var insights: [CorrelationInsight] = []
+
+        // Group patterns by category
+        let categoryGroups = Dictionary(grouping: patterns) { $0.category }
+
+        guard !patterns.isEmpty else { return insights }
+        let overallAvgIntensity = Double(patterns.reduce(0) { $0 + Int($1.intensity) }) / Double(patterns.count)
+
+        for (category, categoryPatterns) in categoryGroups where categoryPatterns.count >= 3 {
+            let avgIntensity = Double(categoryPatterns.reduce(0) { $0 + Int($1.intensity) }) / Double(categoryPatterns.count)
+
+            guard overallAvgIntensity > 0 else { continue }
+            let percentDiff = ((avgIntensity - overallAvgIntensity) / overallAvgIntensity) * 100
+
+            // Report categories with notably different intensity
+            if abs(percentDiff) > 20 {
+                let confidence = getConfidenceLevel(sampleSize: categoryPatterns.count)
+                let strength = min(abs(percentDiff) / 100.0, 1.0)
+
+                let direction = percentDiff > 0 ? "higher" : "lower"
+                let title = "\(category) patterns"
+                let description = "\(category) patterns have \(Int(abs(percentDiff)))% \(direction) intensity than average"
+
+                insights.append(CorrelationInsight(
+                    type: .categoryPattern,
+                    title: title,
+                    description: description,
+                    strength: strength,
+                    confidence: confidence,
+                    sampleSize: categoryPatterns.count
+                ))
+            }
+        }
+
+        return insights
+    }
+
     // MARK: - Helper Functions
 
-    private func fetchPatterns(since date: Date) async -> [PatternEntry] {
-        return await dataController.fetchPatternEntriesAsync(startDate: date, endDate: Date())
+    private func fetchExtractedPatterns(since date: Date) async -> [ExtractedPattern] {
+        return await withCheckedContinuation { continuation in
+            let context = dataController.container.viewContext
+            context.perform {
+                let request = NSFetchRequest<ExtractedPattern>(entityName: "ExtractedPattern")
+                request.predicate = NSPredicate(format: "timestamp >= %@", date as NSDate)
+                request.sortDescriptors = [NSSortDescriptor(keyPath: \ExtractedPattern.timestamp, ascending: false)]
+
+                do {
+                    let results = try context.fetch(request)
+                    continuation.resume(returning: results)
+                } catch {
+                    continuation.resume(returning: [])
+                }
+            }
+        }
+    }
+
+    private func fetchJournalEntries(since date: Date) async -> [JournalEntry] {
+        return await withCheckedContinuation { continuation in
+            let context = dataController.container.viewContext
+            context.perform {
+                let request = NSFetchRequest<JournalEntry>(entityName: "JournalEntry")
+                request.predicate = NSPredicate(format: "timestamp >= %@", date as NSDate)
+                request.sortDescriptors = [NSSortDescriptor(keyPath: \JournalEntry.timestamp, ascending: false)]
+
+                do {
+                    let results = try context.fetch(request)
+                    continuation.resume(returning: results)
+                } catch {
+                    continuation.resume(returning: [])
+                }
+            }
+        }
     }
 
     private func fetchMedicationLogs(since date: Date) -> [MedicationLog] {

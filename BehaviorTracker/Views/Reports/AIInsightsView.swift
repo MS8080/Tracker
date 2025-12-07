@@ -1,13 +1,110 @@
 import SwiftUI
+import CoreData
 #if os(iOS)
 import UIKit
 #elseif os(macOS)
 import AppKit
 #endif
 
+// MARK: - AI Insight Card Model
+
+struct AIInsightCard: Identifiable {
+    let id = UUID()
+    let title: String
+    let content: String
+    let icon: String
+    let color: Color
+
+    static func parse(from markdown: String) -> [AIInsightCard] {
+        var cards: [AIInsightCard] = []
+
+        // Split by headers (### or **)
+        let lines = markdown.components(separatedBy: "\n")
+        var currentTitle = ""
+        var currentContent: [String] = []
+
+        for line in lines {
+            let trimmed = line.trimmingCharacters(in: .whitespaces)
+
+            // Check for header patterns
+            if trimmed.hasPrefix("###") || trimmed.hasPrefix("##") || trimmed.hasPrefix("#") {
+                // Save previous card if exists
+                if !currentTitle.isEmpty && !currentContent.isEmpty {
+                    cards.append(createCard(title: currentTitle, content: currentContent.joined(separator: "\n")))
+                }
+                // Start new section
+                currentTitle = trimmed
+                    .replacingOccurrences(of: "###", with: "")
+                    .replacingOccurrences(of: "##", with: "")
+                    .replacingOccurrences(of: "#", with: "")
+                    .trimmingCharacters(in: .whitespaces)
+                currentContent = []
+            } else if trimmed.hasPrefix("**") && trimmed.hasSuffix("**") && !trimmed.contains(":") {
+                // Bold line as header (e.g., **Key Patterns**)
+                if !currentTitle.isEmpty && !currentContent.isEmpty {
+                    cards.append(createCard(title: currentTitle, content: currentContent.joined(separator: "\n")))
+                }
+                currentTitle = trimmed.replacingOccurrences(of: "**", with: "")
+                currentContent = []
+            } else if !trimmed.isEmpty && trimmed != "---" {
+                currentContent.append(line)
+            }
+        }
+
+        // Don't forget the last card
+        if !currentTitle.isEmpty && !currentContent.isEmpty {
+            cards.append(createCard(title: currentTitle, content: currentContent.joined(separator: "\n")))
+        }
+
+        // If no cards were parsed, create a single card with all content
+        if cards.isEmpty && !markdown.isEmpty {
+            cards.append(AIInsightCard(
+                title: "Insights",
+                content: markdown,
+                icon: "sparkles",
+                color: .purple
+            ))
+        }
+
+        return cards
+    }
+
+    private static func createCard(title: String, content: String) -> AIInsightCard {
+        let lowercased = title.lowercased()
+        let icon: String
+        let color: Color
+
+        if lowercased.contains("pattern") {
+            icon = "waveform.path.ecg"
+            color = .blue
+        } else if lowercased.contains("trigger") {
+            icon = "bolt.fill"
+            color = .orange
+        } else if lowercased.contains("help") || lowercased.contains("positive") || lowercased.contains("working") {
+            icon = "hand.thumbsup.fill"
+            color = .green
+        } else if lowercased.contains("suggest") || lowercased.contains("recommend") || lowercased.contains("tip") {
+            icon = "lightbulb.fill"
+            color = .yellow
+        } else if lowercased.contains("warning") || lowercased.contains("concern") {
+            icon = "exclamationmark.triangle.fill"
+            color = .red
+        } else {
+            icon = "sparkles"
+            color = .purple
+        }
+
+        return AIInsightCard(title: title, content: content.trimmingCharacters(in: .whitespacesAndNewlines), icon: icon, color: color)
+    }
+}
+
 struct AIInsightsView: View {
     @StateObject private var viewModel = AIInsightsTabViewModel()
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.managedObjectContext) private var viewContext
+    @State private var showingSaveAlert = false
+    @State private var cardToSave: AIInsightCard?
+    @State private var savedCardIds: Set<UUID> = []
 
     var body: some View {
         NavigationView {
@@ -43,11 +140,9 @@ struct AIInsightsView: View {
                         // Local mode - always available
                         analysisSection
                     } else {
-                        // AI mode - needs setup
+                        // AI mode - service account is built-in, just need privacy acknowledgment
                         if !viewModel.hasAcknowledgedPrivacy {
                             privacyNoticeSection
-                        } else if !viewModel.isAPIKeyConfigured {
-                            apiKeySection
                         } else {
                             analysisSection
                         }
@@ -134,7 +229,7 @@ struct AIInsightsView: View {
 
                 Text(viewModel.analysisMode == .local
                     ? "All analysis happens on your device. No data leaves your phone."
-                    : "Data is sent to Google Gemini for analysis. Requires internet connection.")
+                    : "Data is sent to AI services for analysis. Requires internet connection.")
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
@@ -154,7 +249,7 @@ struct AIInsightsView: View {
                     .font(.headline)
                     .foregroundColor(.orange)
 
-                Text("To provide AI insights, your data will be sent to Google's Gemini AI service. This includes:")
+                Text("To provide AI insights, your data will be sent to an AI service (Google Gemini or Anthropic Claude). This includes:")
                     .font(.subheadline)
 
                 VStack(alignment: .leading, spacing: 8) {
@@ -192,52 +287,6 @@ struct AIInsightsView: View {
                 .padding(.top, 6)
             Text(text)
                 .font(.subheadline)
-        }
-    }
-
-    // MARK: - API Key Section
-
-    private var apiKeySection: some View {
-        VStack(spacing: 16) {
-            VStack(alignment: .leading, spacing: 12) {
-                Label("Setup Required", systemImage: "key.fill")
-                    .font(.headline)
-                    .foregroundColor(.blue)
-
-                Text("To use AI insights, you need a free Gemini API key from Google.")
-                    .font(.subheadline)
-
-                Link(destination: URL(string: "https://aistudio.google.com/app/apikey")!) {
-                    HStack {
-                        Text("Get your free API key")
-                        Image(systemName: "arrow.up.right.square")
-                    }
-                    .font(.subheadline)
-                }
-
-                TextField("Paste your API key here", text: $viewModel.apiKeyInput)
-                    .textFieldStyle(.roundedBorder)
-                    #if os(iOS)
-                    .autocapitalization(.none)
-                    #endif
-                    .autocorrectionDisabled()
-            }
-            .padding()
-            .background(Color(PlatformColor.secondarySystemGroupedBackground))
-            .cornerRadius(12)
-
-            Button {
-                viewModel.saveAPIKey()
-            } label: {
-                Text("Save API Key")
-                    .fontWeight(.semibold)
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(viewModel.apiKeyInput.isEmpty ? Color.gray : Color.blue)
-                    .foregroundColor(.white)
-                    .cornerRadius(12)
-            }
-            .disabled(viewModel.apiKeyInput.isEmpty)
         }
     }
 
@@ -315,30 +364,16 @@ struct AIInsightsView: View {
                     aiInsightsResultSection(insights)
                 }
             }
-
-            // Settings link (only for AI mode)
-            if viewModel.analysisMode == .ai {
-                Button {
-                    viewModel.showingSettings = true
-                } label: {
-                    HStack {
-                        Image(systemName: "gear")
-                        Text("AI Settings")
-                    }
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-                }
-                .sheet(isPresented: $viewModel.showingSettings) {
-                    AISettingsView(viewModel: viewModel)
-                }
-            }
         }
     }
 
     // MARK: - AI Results Section
 
     private func aiInsightsResultSection(_ insights: AIInsights) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
+        let cards = AIInsightCard.parse(from: insights.content)
+
+        return VStack(alignment: .leading, spacing: 16) {
+            // Header
             HStack {
                 Image(systemName: "sparkles")
                     .foregroundColor(.purple)
@@ -349,14 +384,20 @@ struct AIInsightsView: View {
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
+            .padding(.horizontal)
 
-            Divider()
+            // Hint
+            Text("Hold a card to save to journal")
+                .font(.caption)
+                .foregroundColor(.secondary)
+                .padding(.horizontal)
 
-            Text(markdownToAttributedString(insights.content))
-                .font(.body)
-                .lineSpacing(4)
+            // Cards
+            ForEach(cards) { card in
+                insightCardView(card)
+            }
 
-            // Copy button
+            // Copy all button
             Button {
                 #if os(iOS)
                 UIPasteboard.general.string = insights.content
@@ -371,15 +412,129 @@ struct AIInsightsView: View {
             } label: {
                 HStack {
                     Image(systemName: viewModel.showCopiedFeedback ? "checkmark" : "doc.on.doc")
-                    Text(viewModel.showCopiedFeedback ? "Copied!" : "Copy Insights")
+                    Text(viewModel.showCopiedFeedback ? "Copied!" : "Copy All Insights")
                 }
                 .font(.subheadline)
                 .foregroundColor(.purple)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 12)
             }
+        }
+        .padding(.vertical)
+        .alert("Save to Journal", isPresented: $showingSaveAlert) {
+            Button("Save") {
+                if let card = cardToSave {
+                    saveCardToJournal(card)
+                }
+            }
+            Button("Cancel", role: .cancel) {
+                cardToSave = nil
+            }
+        } message: {
+            if let card = cardToSave {
+                Text("Save \"\(card.title)\" to your journal as an insight?")
+            }
+        }
+    }
+
+    // MARK: - Insight Card View
+
+    private func insightCardView(_ card: AIInsightCard) -> some View {
+        let isSaved = savedCardIds.contains(card.id)
+
+        return VStack(alignment: .leading, spacing: 12) {
+            // Card header
+            HStack {
+                Image(systemName: card.icon)
+                    .foregroundColor(card.color)
+                    .font(.title3)
+
+                Text(card.title)
+                    .font(.headline)
+                    .foregroundColor(.primary)
+
+                Spacer()
+
+                if isSaved {
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundColor(.green)
+                        .font(.subheadline)
+                }
+            }
+
+            // Card content
+            Text(cleanMarkdown(card.content))
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+                .lineSpacing(4)
         }
         .padding()
         .background(Color(PlatformColor.secondarySystemGroupedBackground))
         .cornerRadius(12)
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(card.color.opacity(0.3), lineWidth: 1)
+        )
+        .contentShape(Rectangle())
+        .onLongPressGesture(minimumDuration: 0.5) {
+            #if os(iOS)
+            let generator = UIImpactFeedbackGenerator(style: .medium)
+            generator.impactOccurred()
+            #endif
+            cardToSave = card
+            showingSaveAlert = true
+        }
+        .onTapGesture {
+            // Single tap can expand/collapse in future
+        }
+    }
+
+    // MARK: - Save to Journal
+
+    private func saveCardToJournal(_ card: AIInsightCard) {
+        let entry = JournalEntry(context: viewContext)
+        entry.id = UUID()
+        entry.timestamp = Date()
+        entry.title = "💡 \(card.title)"
+        entry.content = card.content
+        entry.mood = 0
+        entry.isFavorite = false
+
+        // Create or find "Insights" tag
+        let fetchRequest = NSFetchRequest<Tag>(entityName: "Tag")
+        fetchRequest.predicate = NSPredicate(format: "name == %@", "Insights")
+
+        do {
+            let existingTags = try viewContext.fetch(fetchRequest)
+            let insightsTag: Tag
+
+            if let existing = existingTags.first {
+                insightsTag = existing
+            } else {
+                // Create new Insights tag
+                insightsTag = Tag(context: viewContext)
+                insightsTag.id = UUID()
+                insightsTag.name = "Insights"
+            }
+
+            entry.addToTags(insightsTag)
+            try viewContext.save()
+
+            savedCardIds.insert(card.id)
+            cardToSave = nil
+        } catch {
+            print("Failed to save insight to journal: \(error)")
+        }
+    }
+
+    // MARK: - Clean Markdown
+
+    private func cleanMarkdown(_ text: String) -> String {
+        text
+            .replacingOccurrences(of: "**", with: "")
+            .replacingOccurrences(of: "*", with: "")
+            .replacingOccurrences(of: "- ", with: "• ")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
     // MARK: - Local Results Section
@@ -529,70 +684,31 @@ struct AIInsightsView: View {
     // MARK: - Markdown Helper
 
     private func markdownToAttributedString(_ markdown: String) -> AttributedString {
-        do {
-            return try AttributedString(markdown: markdown, options: AttributedString.MarkdownParsingOptions(interpretedSyntax: .inlineOnlyPreservingWhitespace))
-        } catch {
-            return AttributedString(markdown)
+        // Pre-process markdown to convert headers to bold (SwiftUI doesn't render ### headers)
+        var processed = markdown
+
+        // Convert ### Header to **Header** (bold)
+        let headerPattern = /^#{1,3}\s*(.+)$/
+        processed = processed
+            .split(separator: "\n", omittingEmptySubsequences: false)
+            .map { line in
+                let lineStr = String(line)
+                if let match = lineStr.firstMatch(of: headerPattern) {
+                    return "\n**\(match.1)**\n"
+                }
+                return lineStr
+            }
+            .joined(separator: "\n")
+
+        // Clean up extra newlines
+        while processed.contains("\n\n\n") {
+            processed = processed.replacingOccurrences(of: "\n\n\n", with: "\n\n")
         }
-    }
-}
 
-// MARK: - Settings View
-
-struct AISettingsView: View {
-    @ObservedObject var viewModel: AIInsightsTabViewModel
-    @Environment(\.dismiss) private var dismiss
-
-    var body: some View {
-        NavigationView {
-            Form {
-                Section("API Key") {
-                    SecureField("Gemini API Key", text: $viewModel.apiKeyInput)
-                        #if os(iOS)
-                        .autocapitalization(.none)
-                        #endif
-                        .autocorrectionDisabled()
-
-                    Button("Update API Key") {
-                        viewModel.saveAPIKey()
-                    }
-
-                    Link(destination: URL(string: "https://aistudio.google.com/app/apikey")!) {
-                        HStack {
-                            Text("Get a new API key")
-                            Spacer()
-                            Image(systemName: "arrow.up.right.square")
-                        }
-                    }
-                }
-
-                Section("Privacy") {
-                    Button("Reset Privacy Acknowledgment", role: .destructive) {
-                        viewModel.resetPrivacyAcknowledgment()
-                        dismiss()
-                    }
-
-                    Button("Remove API Key", role: .destructive) {
-                        viewModel.removeAPIKey()
-                        dismiss()
-                    }
-                }
-
-                Section("About") {
-                    Text("AI insights are powered by Google's Gemini AI. Your data is processed according to Google's privacy policy.")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
-            }
-            .navigationTitle("AI Settings")
-            .navigationBarTitleDisplayModeInline()
-            .toolbar {
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Done") {
-                        dismiss()
-                    }
-                }
-            }
+        do {
+            return try AttributedString(markdown: processed, options: AttributedString.MarkdownParsingOptions(interpretedSyntax: .inlineOnlyPreservingWhitespace))
+        } catch {
+            return AttributedString(processed)
         }
     }
 }

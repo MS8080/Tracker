@@ -122,13 +122,28 @@ struct PatternsView: View {
                     .fontWeight(.semibold)
                     .foregroundStyle(.white)
 
-                Text("Write a journal entry and patterns will appear here automatically")
+                Text("Write a journal entry and tap Analyze to extract patterns")
                     .font(.subheadline)
                     .foregroundStyle(.white.opacity(0.6))
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, Spacing.xl)
             }
 
+            // Error message
+            if let error = viewModel.error {
+                HStack {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .foregroundStyle(.orange)
+                    Text(error)
+                        .font(.caption)
+                        .foregroundStyle(.white.opacity(0.8))
+                }
+                .padding(.horizontal, Spacing.md)
+                .padding(.vertical, Spacing.sm)
+                .background(.orange.opacity(0.2), in: RoundedRectangle(cornerRadius: CornerRadius.md))
+            }
+
+            // Show analyze button if there are unanalyzed entries
             if viewModel.hasUnanalyzedEntries {
                 Button {
                     Task {
@@ -136,8 +151,14 @@ struct PatternsView: View {
                     }
                 } label: {
                     HStack {
-                        Image(systemName: "sparkles")
-                        Text("Analyze Journal Entries")
+                        if viewModel.isAnalyzing {
+                            ProgressView()
+                                .scaleEffect(0.8)
+                                .tint(.white)
+                        } else {
+                            Image(systemName: "sparkles")
+                        }
+                        Text(viewModel.isAnalyzing ? "Analyzing..." : "Analyze Journal Entries")
                     }
                     .font(.subheadline)
                     .fontWeight(.medium)
@@ -147,6 +168,11 @@ struct PatternsView: View {
                     .background(.ultraThinMaterial, in: Capsule())
                 }
                 .disabled(viewModel.isAnalyzing)
+            } else {
+                // No unanalyzed entries - show status
+                Text("No unanalyzed entries today")
+                    .font(.caption)
+                    .foregroundStyle(.white.opacity(0.5))
             }
         }
     }

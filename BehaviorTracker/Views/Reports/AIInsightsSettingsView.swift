@@ -3,6 +3,7 @@ import SwiftUI
 struct AIInsightsSettingsView: View {
     @ObservedObject var viewModel: AIInsightsTabViewModel
     @Environment(\.dismiss) private var dismiss
+    @State private var showSavedFeedback = false
 
     @AppStorage("selectedTheme") private var selectedThemeRaw: String = AppTheme.purple.rawValue
 
@@ -24,8 +25,39 @@ struct AIInsightsSettingsView: View {
                             #endif
                             .autocorrectionDisabled()
 
-                        Button("Update API Key") {
+                        Button {
                             viewModel.saveAPIKey()
+                            if viewModel.errorMessage == nil {
+                                showSavedFeedback = true
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                                    showSavedFeedback = false
+                                }
+                            }
+                        } label: {
+                            HStack {
+                                Text("Save API Key")
+                                Spacer()
+                                if showSavedFeedback {
+                                    Image(systemName: "checkmark.circle.fill")
+                                        .foregroundStyle(.green)
+                                }
+                            }
+                        }
+
+                        if let error = viewModel.errorMessage {
+                            Text(error)
+                                .font(.caption)
+                                .foregroundStyle(.red)
+                        }
+
+                        if viewModel.isAPIKeyConfigured && !showSavedFeedback {
+                            HStack {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .foregroundStyle(.green)
+                                Text("API key configured")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
                         }
 
                         Link(destination: URL(string: "https://aistudio.google.com/app/apikey")!) {

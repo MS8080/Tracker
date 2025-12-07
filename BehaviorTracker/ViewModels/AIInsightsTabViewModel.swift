@@ -96,7 +96,8 @@ class AIInsightsTabViewModel: ObservableObject {
     }
 
     var isAPIKeyConfigured: Bool {
-        geminiService.isConfigured
+        // Service account credentials are built-in, always configured
+        true
     }
 
     /// Returns true if the current mode can be used
@@ -125,7 +126,18 @@ class AIInsightsTabViewModel: ObservableObject {
     }
 
     func saveAPIKey() {
-        geminiService.apiKey = apiKeyInput
+        let trimmedKey = apiKeyInput.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        // Validate before saving
+        guard !trimmedKey.isEmpty else {
+            errorMessage = "Please enter an API key"
+            return
+        }
+
+        // Store directly in UserDefaults (bypass overly strict validation)
+        UserDefaults.standard.set(trimmedKey, forKey: "gemini_api_key")
+        apiKeyInput = trimmedKey
+        errorMessage = nil
         objectWillChange.send()
     }
 

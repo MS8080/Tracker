@@ -32,7 +32,13 @@ actor AsyncSemaphore {
 class GeminiService {
     static let shared = GeminiService()
 
-    private let baseURL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
+    // Vertex AI configuration with API key
+    private let model = "gemini-2.5-flash-lite"
+    private let vertexAPIKey = "AQ.Ab8RN6J3LRWEVCcTHY_FmzsdW90R27P2YIRGulK2pcUMrxeVaw"
+
+    private var baseURL: String {
+        "https://aiplatform.googleapis.com/v1/publishers/google/models/\(model):generateContent?key=\(vertexAPIKey)"
+    }
 
     /// Maximum number of retry attempts for rate-limited requests
     private let maxRetries = 3
@@ -104,16 +110,15 @@ class GeminiService {
     }
 
     var isConfigured: Bool {
-        guard let key = apiKey else { return false }
-        return !key.isEmpty
+        // Service account credentials are built-in, so always configured
+        return true
     }
 
     private func validateAPIKey(_ key: String) throws {
         try Validator(key, fieldName: "API key")
             .notEmpty()
-            .minLength(20, message: "API key is too short")
-            .maxLength(200, message: "API key is too long")
-            .matches(pattern: "^[A-Za-z0-9_-]+$", message: "API key contains invalid characters")
+            .minLength(10, message: "API key is too short")
+            .maxLength(500, message: "API key is too long")
     }
 
     func generateContent(prompt: String) async throws -> String {
@@ -121,18 +126,13 @@ class GeminiService {
         await requestSemaphore.wait()
         defer { Task { await requestSemaphore.signal() } }
 
-        guard let apiKey = apiKey, !apiKey.isEmpty else {
-            throw GeminiError.noAPIKey
-        }
-
-        // Validate API key format before using
-        try validateAPIKey(apiKey)
-
         // Client-side rate limiting - wait if we made a request too recently
         await enforceMinRequestInterval()
 
+        let urlString = baseURL
+        print("🔵 Gemini API URL: \(urlString)")
 
-        guard let url = URL(string: "\(baseURL)?key=\(apiKey)") else {
+        guard let url = URL(string: urlString) else {
             throw GeminiError.invalidURL
         }
 
@@ -140,29 +140,30 @@ class GeminiService {
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
 
-        let requestBody: [String: Any] = [
-            "contents": [
-                [
-                    "parts": [
-                        ["text": prompt]
-                    ]
-                ]
+        // Use Codable structs for proper JSON encoding
+        let requestPayload = GeminiRequestPayload(
+            contents: [
+                GeminiRequestContent(
+                    role: "user",
+                    parts: [GeminiRequestPart(text: prompt)]
+                )
             ],
-            "generationConfig": [
-                "temperature": 0.7,
-                "topK": 40,
-                "topP": 0.95,
-                "maxOutputTokens": 2048
-            ],
-            "safetySettings": [
-                ["category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_NONE"],
-                ["category": "HARM_CATEGORY_HATE_SPEECH", "threshold": "BLOCK_NONE"],
-                ["category": "HARM_CATEGORY_SEXUALLY_EXPLICIT", "threshold": "BLOCK_NONE"],
-                ["category": "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold": "BLOCK_NONE"]
-            ]
-        ]
+            generationConfig: GeminiGenerationConfig(
+                temperature: 0.7,
+                topK: 40,
+                topP: 0.95,
+                maxOutputTokens: 2048
+            )
+        )
 
-        request.httpBody = try JSONSerialization.data(withJSONObject: requestBody)
+        let jsonData = try JSONEncoder().encode(requestPayload)
+
+        // Debug: print the JSON being sent
+        if let jsonString = String(data: jsonData, encoding: .utf8) {
+            print("🔵 Request JSON: \(jsonString)")
+        }
+
+        request.httpBody = jsonData
 
         // Attempt request with retry logic for rate limiting
         var lastError: Error?
@@ -185,7 +186,14 @@ class GeminiService {
                     return text
 
                 case 400:
-                    throw GeminiError.invalidAPIKey
+                    // Parse error details
+                    var errorDetail = ""
+                    if let errorResponse = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                       let error = errorResponse["error"] as? [String: Any],
+                       let message = error["message"] as? String {
+                        errorDetail = message
+                    }
+                    throw GeminiError.httpError(400, errorDetail.isEmpty ? "Bad request" : errorDetail)
 
                 case 429:
                     // Rate limited - check if it's quota exhausted or temporary rate limit
@@ -212,11 +220,18 @@ class GeminiService {
                     // Server error - retry with backoff
                     let delay = baseRetryDelay * pow(2.0, Double(attempt))
                     try await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
-                    lastError = GeminiError.httpError(httpResponse.statusCode)
+                    lastError = GeminiError.httpError(httpResponse.statusCode, "")
                     continue
 
                 default:
-                    throw GeminiError.httpError(httpResponse.statusCode)
+                    // Parse error details for better debugging
+                    var errorDetail = ""
+                    if let errorResponse = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                       let error = errorResponse["error"] as? [String: Any],
+                       let message = error["message"] as? String {
+                        errorDetail = message
+                    }
+                    throw GeminiError.httpError(httpResponse.statusCode, errorDetail)
                 }
 
             } catch let error as GeminiError {
@@ -270,6 +285,29 @@ struct GeminiPart: Codable {
     let text: String?
 }
 
+// MARK: - Request Models
+
+struct GeminiRequestPayload: Encodable {
+    let contents: [GeminiRequestContent]
+    let generationConfig: GeminiGenerationConfig
+}
+
+struct GeminiRequestContent: Encodable {
+    let role: String
+    let parts: [GeminiRequestPart]
+}
+
+struct GeminiRequestPart: Encodable {
+    let text: String
+}
+
+struct GeminiGenerationConfig: Encodable {
+    let temperature: Double
+    let topK: Int
+    let topP: Double
+    let maxOutputTokens: Int
+}
+
 // MARK: - Errors
 
 enum GeminiError: LocalizedError {
@@ -277,10 +315,11 @@ enum GeminiError: LocalizedError {
     case invalidURL
     case invalidResponse
     case invalidAPIKey
-    case httpError(Int)
+    case httpError(Int, String = "")
     case noContent
     case rateLimited
     case quotaExhausted(String)
+    case authenticationFailed(String)
 
     var errorDescription: String? {
         switch self {
@@ -292,8 +331,11 @@ enum GeminiError: LocalizedError {
             return "Invalid response from server."
         case .invalidAPIKey:
             return "Invalid API key. Please check your Gemini API key in Settings."
-        case .httpError(let code):
-            return "Server error (HTTP \(code)). Please try again."
+        case .httpError(let code, let detail):
+            if detail.isEmpty {
+                return "Server error (HTTP \(code)). Please try again."
+            }
+            return "Error \(code): \(detail)"
         case .noContent:
             return "No response content from AI."
         case .rateLimited:
@@ -303,6 +345,8 @@ enum GeminiError: LocalizedError {
                 return "Daily API quota exhausted. Try again tomorrow or upgrade your API plan."
             }
             return "API quota issue: \(detail)"
+        case .authenticationFailed(let detail):
+            return "Authentication failed: \(detail)"
         }
     }
 }

@@ -167,11 +167,13 @@
 		5842EDC91F014EA4D1C7CB15 /* WishlistListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C383F8A971C5D10989B6103 /* WishlistListView.swift */; };
 		5BEE33FEBD4DD5E0C496CCBD /* WishlistRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5AA46E8238D41DADA2135C8 /* WishlistRepository.swift */; };
 		5C9511DA626D4DAB99CD77FB /* UserProfileRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E025D0FB9664C37BB072F7C /* UserProfileRepository.swift */; };
+		5DA48D8A76EEFC38536F69EA /* GoogleAuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BAF7498601120B21A1545032 /* GoogleAuthService.swift */; };
 		62D3B420DE494003AE3F8219 /* PatternRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 604D454BAF0B4C8796802E0F /* PatternRepository.swift */; };
 		64C6D556AA180C885D620534 /* StruggleRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CF42D7E03297CE6B5A50D22 /* StruggleRepository.swift */; };
 		68726BFCC49929B4D76AC789 /* WishlistItem+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAE83F73EF559E8C7B12D35F /* WishlistItem+CoreDataClass.swift */; };
 		72544E6AF144E24A9E9B866F /* Struggle+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48C54C1F69C5BD96E8054F72 /* Struggle+CoreDataClass.swift */; };
 		744E109B30225FA664C67523 /* DemoModeService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D5EA3AE0471D84C660ACA46 /* DemoModeService.swift */; };
+		7B6062B22BBDF037BCC2F2B5 /* ClaudeService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3147DA86A19660C43BB8236A /* ClaudeService.swift */; };
 		88AC190A36CECE1A77CC5B0A /* StrugglesListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B4F5C96E61EB62998813107 /* StrugglesListView.swift */; };
 		970D1472BC961CB232C744C9 /* GoalRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6536C0F04AB7D153C4447D3F /* GoalRepository.swift */; };
 		99FDF9D27F07A681DD900E89 /* GoalRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6536C0F04AB7D153C4447D3F /* GoalRepository.swift */; };
@@ -304,6 +306,7 @@
 		22C9C0A7844A4DBB9D9D93D6 /* LocalAnalysisService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalAnalysisService.swift; sourceTree = "<group>"; };
 		2CF42D7E03297CE6B5A50D22 /* StruggleRepository.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = StruggleRepository.swift; sourceTree = "<group>"; };
 		2E70FEBA3766913839E761BD /* AddWishlistItemView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AddWishlistItemView.swift; path = LifeGoals/AddWishlistItemView.swift; sourceTree = "<group>"; };
+		3147DA86A19660C43BB8236A /* ClaudeService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ClaudeService.swift; sourceTree = "<group>"; };
 		38EAB3766C5E6E057EF78BB3 /* AddStruggleView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = AddStruggleView.swift; path = LifeGoals/AddStruggleView.swift; sourceTree = "<group>"; };
 		3E025D0FB9664C37BB072F7C /* UserProfileRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserProfileRepository.swift; sourceTree = "<group>"; };
 		3EA647EBB8FC981DE0F20B1F /* ReportsViewComponents.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ReportsViewComponents.swift; sourceTree = "<group>"; };
@@ -441,6 +444,7 @@
 		A3B6464C00000008 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		AD66769AF1B74950849A2216 /* JournalRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JournalRepository.swift; sourceTree = "<group>"; };
 		B883EBCC42F58E514FAF3A56 /* LifeGoalsViewModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LifeGoalsViewModel.swift; sourceTree = "<group>"; };
+		BAF7498601120B21A1545032 /* GoogleAuthService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GoogleAuthService.swift; sourceTree = "<group>"; };
 		E497D6F2B1274ECA93C1E8B8 /* MedicationRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MedicationRepository.swift; sourceTree = "<group>"; };
 		E5AA46E8238D41DADA2135C8 /* WishlistRepository.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WishlistRepository.swift; sourceTree = "<group>"; };
 		FAE83F73EF559E8C7B12D35F /* WishlistItem+CoreDataClass.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "WishlistItem+CoreDataClass.swift"; sourceTree = "<group>"; };
@@ -448,7 +452,7 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		4E3591E92ED63C04000A5E74 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+		4E3591E92ED63C04000A5E74 /* Exceptions for "TrackerWidgets" folder in "TrackerWidgetsExtension" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
@@ -458,7 +462,18 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		4E3591DC2ED63C03000A5E74 /* TrackerWidgets */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (4E3591E92ED63C04000A5E74 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = TrackerWidgets; sourceTree = "<group>"; };
+		4E3591DC2ED63C03000A5E74 /* TrackerWidgets */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				4E3591E92ED63C04000A5E74 /* Exceptions for "TrackerWidgets" folder in "TrackerWidgetsExtension" target */,
+			);
+			explicitFileTypes = {
+			};
+			explicitFolders = (
+			);
+			path = TrackerWidgets;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -557,6 +572,8 @@
 				4EPATBANK012EE000000002 /* PatternBank.swift */,
 				4EPATEXTR012EE000000002 /* PatternExtractionService.swift */,
 				8D5EA3AE0471D84C660ACA46 /* DemoModeService.swift */,
+				BAF7498601120B21A1545032 /* GoogleAuthService.swift */,
+				3147DA86A19660C43BB8236A /* ClaudeService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -1105,6 +1122,8 @@
 				E66477E4ABB312A52B72BBEB /* HomeViewComponents.swift in Sources */,
 				1FCE0CC7C598EBD1105F32C8 /* ReportsViewComponents.swift in Sources */,
 				744E109B30225FA664C67523 /* DemoModeService.swift in Sources */,
+				5DA48D8A76EEFC38536F69EA /* GoogleAuthService.swift in Sources */,
+				7B6062B22BBDF037BCC2F2B5 /* ClaudeService.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -75,6 +75,19 @@ public class JournalEntry: NSManagedObject, Identifiable {
         }
         return cleanContent
     }
+
+    /// Check if this entry is a saved insight (has "Insights" tag)
+    /// These entries should not be analyzed by pattern extraction
+    var isInsight: Bool {
+        guard let tagSet = tags as? Set<Tag> else { return false }
+        return tagSet.contains { $0.name == "Insights" }
+    }
+
+    /// Get all tag names as array
+    var tagNames: [String] {
+        guard let tagSet = tags as? Set<Tag> else { return [] }
+        return tagSet.compactMap { $0.name }.sorted()
+    }
 }
 
 extension JournalEntry {
