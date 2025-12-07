@@ -46,7 +46,8 @@ class JournalViewModel: ObservableObject {
     }
 
     func loadJournalEntries() {
-        Task {
+        Task { [weak self] in
+            guard let self else { return }
             isLoading = currentOffset == 0
             isLoadingMore = currentOffset > 0
 
@@ -87,7 +88,8 @@ class JournalViewModel: ObservableObject {
     }
 
     func searchEntries() {
-        Task {
+        Task { [weak self] in
+            guard let self else { return }
             isLoading = true
             hasMoreEntries = false // Search doesn't paginate
             journalEntries = await dataController.searchJournalEntries(query: searchQuery)
@@ -130,8 +132,8 @@ class JournalViewModel: ObservableObject {
             resetAndLoad()
 
             // Auto-analyze the new entry for patterns in background
-            Task {
-                await analyzeEntry(entry)
+            Task { [weak self] in
+                await self?.analyzeEntry(entry)
             }
 
             return true
@@ -219,8 +221,8 @@ class JournalViewModel: ObservableObject {
         // Re-analyze if content was changed
         if reanalyze && entry.isAnalyzed {
             // Clear old analysis to trigger re-analysis
-            Task {
-                await clearAndReanalyze(entry)
+            Task { [weak self] in
+                await self?.clearAndReanalyze(entry)
             }
         }
     }

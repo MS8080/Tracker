@@ -99,8 +99,8 @@ class HomeViewModel: ObservableObject {
         loadTodaySlides()
 
         // Defer heavy queries to background
-        Task.detached(priority: .utility) {
-            await self.loadHeavyData()
+        Task.detached(priority: .utility) { [weak self] in
+            await self?.loadHeavyData()
         }
     }
 
@@ -478,7 +478,8 @@ class HomeViewModel: ObservableObject {
     // MARK: - Today Slides (now uses ExtractedPattern)
 
     private func loadTodaySlides() {
-        Task {
+        Task { [weak self] in
+            guard let self else { return }
             let calendar = Calendar.current
             let startOfDay = calendar.startOfDay(for: Date())
             guard let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay) else {

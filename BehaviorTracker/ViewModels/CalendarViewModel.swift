@@ -172,7 +172,8 @@ class CalendarViewModel: ObservableObject {
     }
 
     private func loadJournalEntries(from startDate: Date, to endDate: Date) {
-        Task {
+        Task { [weak self] in
+            guard let self else { return }
             let entries = await dataController.fetchJournalEntries(startDate: startDate, endDate: endDate)
 
             var grouped: [Date: [JournalEntry]] = [:]

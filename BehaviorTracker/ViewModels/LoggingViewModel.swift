@@ -93,18 +93,18 @@ class LoggingViewModel: ObservableObject {
             loadRecentEntries()
 
             // Auto-hide undo toast after 5 seconds
-            Task {
+            Task { [weak self] in
                 try? await Task.sleep(nanoseconds: 5_000_000_000)
                 await MainActor.run {
-                    if self.showUndoToast {
-                        self.showUndoToast = false
+                    if self?.showUndoToast == true {
+                        self?.showUndoToast = false
                     }
                 }
             }
 
             // Sync to HealthKit in background
-            Task.detached {
-                await self.healthKitManager.syncPatternToHealthKit(
+            Task.detached { [weak self] in
+                await self?.healthKitManager.syncPatternToHealthKit(
                     patternType: patternType,
                     intensity: intensity,
                     duration: 0
@@ -147,18 +147,18 @@ class LoggingViewModel: ObservableObject {
             loadRecentEntries()
 
             // Auto-hide undo toast after 5 seconds
-            Task {
+            Task { [weak self] in
                 try? await Task.sleep(nanoseconds: 5_000_000_000)
                 await MainActor.run {
-                    if self.showUndoToast {
-                        self.showUndoToast = false
+                    if self?.showUndoToast == true {
+                        self?.showUndoToast = false
                     }
                 }
             }
 
             // Sync to HealthKit in background
-            Task.detached {
-                await self.healthKitManager.syncPatternToHealthKit(
+            Task.detached { [weak self] in
+                await self?.healthKitManager.syncPatternToHealthKit(
                     patternType: patternType,
                     intensity: intensity,
                     duration: duration

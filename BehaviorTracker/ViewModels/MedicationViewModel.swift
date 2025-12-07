@@ -22,14 +22,16 @@ class MedicationViewModel: ObservableObject {
 
     func loadMedications() {
         // Load on background thread to avoid blocking UI
-        Task { @MainActor in
+        Task { @MainActor [weak self] in
+            guard let self else { return }
             let meds = dataController.fetchMedications(activeOnly: true)
             self.medications = meds
         }
     }
 
     func loadTodaysLogs() {
-        Task { @MainActor in
+        Task { @MainActor [weak self] in
+            guard let self else { return }
             let logs = dataController.getTodaysMedicationLogs()
             self.todaysLogs = logs
         }

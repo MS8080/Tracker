@@ -151,10 +151,10 @@ class LifeGoalsViewModel: ObservableObject {
             showCelebration = true
 
             // Auto-hide celebration after delay
-            Task {
+            Task { [weak self] in
                 try? await Task.sleep(nanoseconds: 3_000_000_000)
-                showCelebration = false
-                celebratingItem = nil
+                self?.showCelebration = false
+                self?.celebratingItem = nil
             }
         }
         loadData()
