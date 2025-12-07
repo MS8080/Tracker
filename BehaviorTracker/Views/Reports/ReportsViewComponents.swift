@@ -39,12 +39,12 @@ struct AnalysisCardsRow: View {
 
     var body: some View {
         VStack(spacing: Spacing.md) {
-            // Featured AI Insights Card - Full Width
+            // Featured Insights Card - Full Width
             FeaturedAnalysisCard(
                 icon: "sparkles",
                 iconColor: Color(red: 0.7, green: 0.5, blue: 0.9),
-                title: "AI Insights",
-                subtitle: "Get personalized analysis powered by intelligence",
+                title: "Insights",
+                subtitle: "Get personalized analysis powered by AI",
                 theme: theme,
                 action: onAIInsights
             )

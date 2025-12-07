@@ -88,16 +88,16 @@ class AIAnalysisService {
 
         // System instruction
         sections.append("""
-        You are a supportive assistant helping someone understand their autism-related behavioral patterns.
-        Analyze the following tracking data and provide helpful, compassionate insights.
+        You are a supportive assistant helping someone understand their behavioral patterns.
+        Analyze the following tracking data and provide helpful, concise insights.
 
-        Be specific and reference the actual data. Focus on:
-        1. Patterns and correlations you notice
-        2. Potential triggers to be aware of
-        3. What seems to be helping
-        4. Practical, actionable suggestions
+        IMPORTANT: Keep your response SHORT and SCANNABLE.
+        - Maximum 2-3 bullet points per section
+        - Each bullet should be 1-2 sentences max
+        - No lengthy explanations or paragraphs
+        - Focus only on the most important insights
 
-        Keep your tone warm and supportive. Avoid clinical language.
+        Keep your tone warm but brief. Skip pleasantries and get to the insights.
         Format your response with clear sections using **bold headers**.
         """)
 
@@ -159,11 +159,25 @@ class AIAnalysisService {
         }
 
         sections.append("""
-        Based on this data, provide your analysis with these sections:
-        1. **Key Patterns** - What patterns do you see?
-        2. **Potential Triggers** - What might be causing difficulties?
-        3. **What's Helping** - What positive patterns do you notice?
-        4. **Suggestions** - 2-3 specific, actionable ideas
+        Provide a BRIEF analysis with exactly these 4 sections (2-3 bullets each, no more):
+
+        **Key Patterns**
+        - [Most notable pattern 1]
+        - [Most notable pattern 2]
+
+        **Potential Triggers**
+        - [Main trigger 1]
+        - [Main trigger 2]
+
+        **What's Helping**
+        - [Positive thing 1]
+        - [Positive thing 2]
+
+        **Suggestions**
+        - [Actionable tip 1]
+        - [Actionable tip 2]
+
+        Keep each bullet to ONE short sentence. Total response under 300 words.
         """)
 
         return sections.joined(separator: "\n\n---\n\n")

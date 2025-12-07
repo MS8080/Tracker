@@ -12,6 +12,7 @@ struct AIInsightCard: Identifiable {
     let id = UUID()
     let title: String
     let content: String
+    let bullets: [String]
     let icon: String
     let color: Color
 
@@ -30,19 +31,20 @@ struct AIInsightCard: Identifiable {
             if trimmed.hasPrefix("###") || trimmed.hasPrefix("##") || trimmed.hasPrefix("#") {
                 // Save previous card if exists
                 if !currentTitle.isEmpty && !currentContent.isEmpty {
-                    cards.append(createCard(title: currentTitle, content: currentContent.joined(separator: "\n")))
+                    cards.append(createCard(title: currentTitle, lines: currentContent))
                 }
                 // Start new section
                 currentTitle = trimmed
                     .replacingOccurrences(of: "###", with: "")
                     .replacingOccurrences(of: "##", with: "")
                     .replacingOccurrences(of: "#", with: "")
+                    .replacingOccurrences(of: "**", with: "")
                     .trimmingCharacters(in: .whitespaces)
                 currentContent = []
             } else if trimmed.hasPrefix("**") && trimmed.hasSuffix("**") && !trimmed.contains(":") {
                 // Bold line as header (e.g., **Key Patterns**)
                 if !currentTitle.isEmpty && !currentContent.isEmpty {
-                    cards.append(createCard(title: currentTitle, content: currentContent.joined(separator: "\n")))
+                    cards.append(createCard(title: currentTitle, lines: currentContent))
                 }
                 currentTitle = trimmed.replacingOccurrences(of: "**", with: "")
                 currentContent = []
@@ -53,14 +55,15 @@ struct AIInsightCard: Identifiable {
 
         // Don't forget the last card
         if !currentTitle.isEmpty && !currentContent.isEmpty {
-            cards.append(createCard(title: currentTitle, content: currentContent.joined(separator: "\n")))
+            cards.append(createCard(title: currentTitle, lines: currentContent))
         }
 
         // If no cards were parsed, create a single card with all content
         if cards.isEmpty && !markdown.isEmpty {
             cards.append(AIInsightCard(
                 title: "Insights",
-                content: markdown,
+                content: cleanMarkdownText(markdown),
+                bullets: [],
                 icon: "sparkles",
                 color: .purple
             ))
@@ -69,7 +72,7 @@ struct AIInsightCard: Identifiable {
         return cards
     }
 
-    private static func createCard(title: String, content: String) -> AIInsightCard {
+    private static func createCard(title: String, lines: [String]) -> AIInsightCard {
         let lowercased = title.lowercased()
         let icon: String
         let color: Color
@@ -94,17 +97,66 @@ struct AIInsightCard: Identifiable {
             color = .purple
         }
 
-        return AIInsightCard(title: title, content: content.trimmingCharacters(in: .whitespacesAndNewlines), icon: icon, color: color)
+        // Separate bullets from paragraph text
+        var bullets: [String] = []
+        var paragraphs: [String] = []
+
+        for line in lines {
+            let trimmed = line.trimmingCharacters(in: .whitespaces)
+            if trimmed.hasPrefix("- ") || trimmed.hasPrefix("* ") || trimmed.hasPrefix("• ") {
+                let bulletText = String(trimmed.dropFirst(2)).trimmingCharacters(in: .whitespaces)
+                bullets.append(cleanMarkdownText(bulletText))
+            } else if !trimmed.isEmpty {
+                paragraphs.append(cleanMarkdownText(trimmed))
+            }
+        }
+
+        let content = paragraphs.joined(separator: " ")
+
+        return AIInsightCard(
+            title: title,
+            content: content,
+            bullets: bullets,
+            icon: icon,
+            color: color
+        )
+    }
+
+    /// Clean markdown formatting from text
+    static func cleanMarkdownText(_ text: String) -> String {
+        text
+            .replacingOccurrences(of: "**", with: "")
+            .replacingOccurrences(of: "__", with: "")
+            .replacingOccurrences(of: "*", with: "")
+            .replacingOccurrences(of: "_", with: "")
+            .replacingOccurrences(of: "`", with: "")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    /// Get full text for copying
+    var fullText: String {
+        var text = title + "\n\n"
+        if !content.isEmpty {
+            text += content + "\n\n"
+        }
+        for bullet in bullets {
+            text += "• " + bullet + "\n"
+        }
+        return text.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 }
 
 struct AIInsightsView: View {
     @StateObject private var viewModel = AIInsightsTabViewModel()
+    @AppStorage("selectedTheme") private var selectedThemeRaw: String = AppTheme.purple.rawValue
     @Environment(\.dismiss) private var dismiss
     @Environment(\.managedObjectContext) private var viewContext
-    @State private var showingSaveAlert = false
-    @State private var cardToSave: AIInsightCard?
     @State private var savedCardIds: Set<UUID> = []
+    @State private var bookmarkedCardIds: Set<UUID> = []
+
+    private var theme: AppTheme {
+        AppTheme(rawValue: selectedThemeRaw) ?? .purple
+    }
 
     var body: some View {
         NavigationView {
@@ -372,25 +424,9 @@ struct AIInsightsView: View {
     private func aiInsightsResultSection(_ insights: AIInsights) -> some View {
         let cards = AIInsightCard.parse(from: insights.content)
 
-        return VStack(alignment: .leading, spacing: 16) {
-            // Header
-            HStack {
-                Image(systemName: "sparkles")
-                    .foregroundColor(.purple)
-                Text("AI Insights")
-                    .font(.headline)
-                Spacer()
-                Text(insights.formattedDate)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-            }
-            .padding(.horizontal)
-
-            // Hint
-            Text("Hold a card to save to journal")
-                .font(.caption)
-                .foregroundColor(.secondary)
-                .padding(.horizontal)
+        return VStack(alignment: .leading, spacing: Spacing.lg) {
+            // Section Header
+            SectionHeaderView(title: "Generated Insights", icon: "sparkles")
 
             // Cards
             ForEach(cards) { card in
@@ -401,6 +437,7 @@ struct AIInsightsView: View {
             Button {
                 #if os(iOS)
                 UIPasteboard.general.string = insights.content
+                HapticFeedback.light.trigger()
                 #elseif os(macOS)
                 NSPasteboard.general.clearContents()
                 NSPasteboard.general.setString(insights.content, forType: .string)
@@ -411,28 +448,14 @@ struct AIInsightsView: View {
                 }
             } label: {
                 HStack {
-                    Image(systemName: viewModel.showCopiedFeedback ? "checkmark" : "doc.on.doc")
+                    Image(systemName: viewModel.showCopiedFeedback ? "checkmark.circle.fill" : "doc.on.doc")
                     Text(viewModel.showCopiedFeedback ? "Copied!" : "Copy All Insights")
                 }
                 .font(.subheadline)
-                .foregroundColor(.purple)
+                .fontWeight(.medium)
+                .foregroundColor(theme.primaryColor)
                 .frame(maxWidth: .infinity)
-                .padding(.vertical, 12)
-            }
-        }
-        .padding(.vertical)
-        .alert("Save to Journal", isPresented: $showingSaveAlert) {
-            Button("Save") {
-                if let card = cardToSave {
-                    saveCardToJournal(card)
-                }
-            }
-            Button("Cancel", role: .cancel) {
-                cardToSave = nil
-            }
-        } message: {
-            if let card = cardToSave {
-                Text("Save \"\(card.title)\" to your journal as an insight?")
+                .padding(.vertical, Spacing.md)
             }
         }
     }
@@ -441,51 +464,100 @@ struct AIInsightsView: View {
 
     private func insightCardView(_ card: AIInsightCard) -> some View {
         let isSaved = savedCardIds.contains(card.id)
+        let isBookmarked = bookmarkedCardIds.contains(card.id)
 
-        return VStack(alignment: .leading, spacing: 12) {
+        return VStack(alignment: .leading, spacing: Spacing.md) {
             // Card header
-            HStack {
+            HStack(spacing: Spacing.sm) {
                 Image(systemName: card.icon)
-                    .foregroundColor(card.color)
                     .font(.title3)
+                    .foregroundStyle(card.color)
 
                 Text(card.title)
-                    .font(.headline)
-                    .foregroundColor(.primary)
+                    .font(.title3)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(CardText.title)
 
                 Spacer()
 
+                if isBookmarked {
+                    Image(systemName: "bookmark.fill")
+                        .font(.caption)
+                        .foregroundStyle(.yellow)
+                }
+
                 if isSaved {
                     Image(systemName: "checkmark.circle.fill")
-                        .foregroundColor(.green)
-                        .font(.subheadline)
+                        .font(.caption)
+                        .foregroundStyle(.green)
                 }
             }
 
-            // Card content
-            Text(cleanMarkdown(card.content))
-                .font(.subheadline)
-                .foregroundColor(.secondary)
-                .lineSpacing(4)
+            // Bullets
+            ForEach(card.bullets, id: \.self) { bullet in
+                HStack(alignment: .top, spacing: Spacing.md) {
+                    Circle()
+                        .fill(card.color.opacity(0.6))
+                        .frame(width: 8, height: 8)
+                        .padding(.top, 8)
+
+                    Text(bullet)
+                        .font(.body)
+                        .foregroundStyle(CardText.body)
+                }
+            }
+
+            // Paragraph content
+            if !card.content.isEmpty {
+                Text(card.content)
+                    .font(.body)
+                    .foregroundStyle(CardText.secondary)
+            }
         }
-        .padding()
-        .background(Color(PlatformColor.secondarySystemGroupedBackground))
-        .cornerRadius(12)
-        .overlay(
-            RoundedRectangle(cornerRadius: 12)
-                .stroke(card.color.opacity(0.3), lineWidth: 1)
-        )
-        .contentShape(Rectangle())
-        .onLongPressGesture(minimumDuration: 0.5) {
+        .padding(Spacing.xl)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .cardStyle(theme: theme)
+        .contextMenu {
+            Button {
+                copyCard(card)
+            } label: {
+                Label("Copy", systemImage: "doc.on.doc")
+            }
+
+            Button {
+                toggleBookmark(card)
+            } label: {
+                Label(isBookmarked ? "Remove Bookmark" : "Bookmark", systemImage: isBookmarked ? "bookmark.slash" : "bookmark")
+            }
+
+            Button {
+                saveCardToJournal(card)
+            } label: {
+                Label("Add to Journal", systemImage: "book.fill")
+            }
+        }
+    }
+
+    // MARK: - Card Actions
+
+    private func copyCard(_ card: AIInsightCard) {
+        #if os(iOS)
+        UIPasteboard.general.string = card.fullText
+        HapticFeedback.light.trigger()
+        #elseif os(macOS)
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(card.fullText, forType: .string)
+        #endif
+    }
+
+    private func toggleBookmark(_ card: AIInsightCard) {
+        if bookmarkedCardIds.contains(card.id) {
+            bookmarkedCardIds.remove(card.id)
+        } else {
+            bookmarkedCardIds.insert(card.id)
             #if os(iOS)
-            let generator = UIImpactFeedbackGenerator(style: .medium)
-            generator.impactOccurred()
+            HapticFeedback.light.trigger()
             #endif
-            cardToSave = card
-            showingSaveAlert = true
-        }
-        .onTapGesture {
-            // Single tap can expand/collapse in future
         }
     }
 
@@ -496,7 +568,16 @@ struct AIInsightsView: View {
         entry.id = UUID()
         entry.timestamp = Date()
         entry.title = "💡 \(card.title)"
-        entry.content = card.content
+
+        // Build content with bullets
+        var content = ""
+        if !card.content.isEmpty {
+            content += card.content + "\n\n"
+        }
+        for bullet in card.bullets {
+            content += "• " + bullet + "\n"
+        }
+        entry.content = content.trimmingCharacters(in: .whitespacesAndNewlines)
         entry.mood = 0
         entry.isFavorite = false
 
@@ -521,20 +602,12 @@ struct AIInsightsView: View {
             try viewContext.save()
 
             savedCardIds.insert(card.id)
-            cardToSave = nil
+            #if os(iOS)
+            HapticFeedback.success.trigger()
+            #endif
         } catch {
             print("Failed to save insight to journal: \(error)")
         }
-    }
-
-    // MARK: - Clean Markdown
-
-    private func cleanMarkdown(_ text: String) -> String {
-        text
-            .replacingOccurrences(of: "**", with: "")
-            .replacingOccurrences(of: "*", with: "")
-            .replacingOccurrences(of: "- ", with: "• ")
-            .trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
     // MARK: - Local Results Section
