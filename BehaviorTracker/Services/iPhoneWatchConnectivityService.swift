@@ -47,6 +47,7 @@ class iPhoneWatchConnectivityService: NSObject, ObservableObject {
         ]
 
         WCSession.default.sendMessage(message, replyHandler: nil, errorHandler: { error in
+            print("⌚️ Failed to send message to Watch: \(error.localizedDescription)")
         })
     }
 
@@ -66,6 +67,7 @@ class iPhoneWatchConnectivityService: NSObject, ObservableObject {
         do {
             try WCSession.default.updateApplicationContext(context)
         } catch {
+            print("⌚️ Failed to update Watch application context: \(error.localizedDescription)")
         }
     }
 
@@ -92,6 +94,7 @@ class iPhoneWatchConnectivityService: NSObject, ObservableObject {
                 dataController.updateStreak()
                 sendUpdateToWatch()
             } catch {
+                print("⌚️ Failed to log pattern from Watch: \(error.localizedDescription)")
             }
         }
 

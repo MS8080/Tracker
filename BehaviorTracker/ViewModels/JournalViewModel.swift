@@ -208,6 +208,7 @@ class JournalViewModel: ObservableObject {
             loadJournalEntries()
 
         } catch {
+            print("Failed to analyze journal entry: \(error.localizedDescription)")
         }
     }
 

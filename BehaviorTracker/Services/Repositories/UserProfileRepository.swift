@@ -136,6 +136,7 @@ final class UserProfileRepository {
             }
             DataController.shared.save()
         } catch {
+            print("❌ Failed to update streak: \(error.localizedDescription)")
         }
     }
 }

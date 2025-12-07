@@ -167,6 +167,7 @@ class CalendarViewModel: ObservableObject {
             }
             medicationLogsByDate = grouped
         } catch {
+            print("Failed to load medication logs: \(error.localizedDescription)")
         }
     }
 

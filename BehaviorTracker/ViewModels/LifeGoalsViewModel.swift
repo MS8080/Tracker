@@ -90,6 +90,7 @@ class LifeGoalsViewModel: ObservableObject {
             )
             loadData()
         } catch {
+            print("Failed to create goal '\(title)': \(error.localizedDescription)")
         }
     }
 
@@ -134,6 +135,7 @@ class LifeGoalsViewModel: ObservableObject {
             )
             loadData()
         } catch {
+            print("Failed to create wishlist item '\(title)': \(error.localizedDescription)")
         }
     }
 
@@ -189,6 +191,7 @@ class LifeGoalsViewModel: ObservableObject {
             )
             loadData()
         } catch {
+            print("Failed to create struggle '\(title)': \(error.localizedDescription)")
         }
     }
 

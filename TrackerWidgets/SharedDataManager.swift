@@ -10,8 +10,8 @@ class SharedDataManager {
 
     private lazy var sharedDefaults: UserDefaults? = {
         guard let defaults = UserDefaults(suiteName: appGroupIdentifier) else {
-            print("⚠️ Failed to initialize UserDefaults with App Group: \(appGroupIdentifier)")
-            print("⚠️ Make sure App Groups capability is enabled in your target's Signing & Capabilities")
+            print(" Failed to initialize UserDefaults with App Group: \(appGroupIdentifier)")
+            print(" Make sure App Groups capability is enabled in your target's Signing & Capabilities")
             return nil
         }
         return defaults
