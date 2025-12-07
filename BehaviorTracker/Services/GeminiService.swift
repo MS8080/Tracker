@@ -1,4 +1,96 @@
 import Foundation
+import Security
+
+// MARK: - Keychain Service (embedded for secure API key storage)
+
+/// Secure storage service using iOS Keychain
+private final class KeychainService {
+    static let shared = KeychainService()
+
+    private let serviceName = "com.behaviortracker.credentials"
+
+    private init() {}
+
+    enum Key: String {
+        case vertexAPIKey = "vertex_api_key"
+    }
+
+    func save(_ value: String, for key: Key) throws {
+        guard let data = value.data(using: .utf8) else {
+            throw KeychainError.encodingFailed
+        }
+        try? delete(key)
+
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: serviceName,
+            kSecAttrAccount as String: key.rawValue,
+            kSecValueData as String: data,
+            kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlock
+        ]
+
+        let status = SecItemAdd(query as CFDictionary, nil)
+        guard status == errSecSuccess else {
+            throw KeychainError.saveFailed(status)
+        }
+    }
+
+    func get(_ key: Key) -> String? {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: serviceName,
+            kSecAttrAccount as String: key.rawValue,
+            kSecReturnData as String: true,
+            kSecMatchLimit as String: kSecMatchLimitOne
+        ]
+
+        var result: AnyObject?
+        let status = SecItemCopyMatching(query as CFDictionary, &result)
+
+        guard status == errSecSuccess,
+              let data = result as? Data,
+              let string = String(data: data, encoding: .utf8) else {
+            return nil
+        }
+        return string
+    }
+
+    func delete(_ key: Key) throws {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: serviceName,
+            kSecAttrAccount as String: key.rawValue
+        ]
+
+        let status = SecItemDelete(query as CFDictionary)
+        guard status == errSecSuccess || status == errSecItemNotFound else {
+            throw KeychainError.deleteFailed(status)
+        }
+    }
+
+    func exists(_ key: Key) -> Bool {
+        return get(key) != nil
+    }
+}
+
+private enum KeychainError: LocalizedError {
+    case encodingFailed
+    case saveFailed(OSStatus)
+    case deleteFailed(OSStatus)
+
+    var errorDescription: String? {
+        switch self {
+        case .encodingFailed:
+            return "Failed to encode value for Keychain storage."
+        case .saveFailed(let status):
+            return "Failed to save to Keychain (error: \(status))."
+        case .deleteFailed(let status):
+            return "Failed to delete from Keychain (error: \(status))."
+        }
+    }
+}
+
+// MARK: - Async Semaphore
 
 /// Simple async semaphore to serialize API requests
 actor AsyncSemaphore {
@@ -32,13 +124,15 @@ actor AsyncSemaphore {
 class GeminiService {
     static let shared = GeminiService()
 
-    // Vertex AI configuration with API key
+    // Vertex AI configuration
     private let model = "gemini-2.5-flash-lite"
-    private let region = "europe-west6" // Zurich
-    private let vertexAPIKey = "AQ.Ab8RN6J3LRWEVCcTHY_FmzsdW90R27P2YIRGulK2pcUMrxeVaw"
+    private let region = "europe-west1" // Belgium (better model availability)
 
-    private var baseURL: String {
-        "https://\(region)-aiplatform.googleapis.com/v1/publishers/google/models/\(model):generateContent?key=\(vertexAPIKey)"
+    private var baseURL: String? {
+        guard let apiKey = KeychainService.shared.get(.vertexAPIKey) else {
+            return nil
+        }
+        return "https://\(region)-aiplatform.googleapis.com/v1/publishers/google/models/\(model):generateContent?key=\(apiKey)"
     }
 
     /// Maximum number of retry attempts for rate-limited requests
@@ -93,26 +187,32 @@ class GeminiService {
         }
     }
 
+    /// Get or set the Vertex AI API key (stored securely in Keychain)
     var apiKey: String? {
-        get { UserDefaults.standard.string(forKey: "gemini_api_key") }
+        get { KeychainService.shared.get(.vertexAPIKey) }
         set {
-            // Validate API key before storing
             if let key = newValue {
                 do {
                     try validateAPIKey(key)
-                    UserDefaults.standard.set(key, forKey: "gemini_api_key")
+                    try KeychainService.shared.save(key, for: .vertexAPIKey)
                 } catch {
-                    // Invalid key, don't store it
+                    print("Failed to save API key: \(error)")
                 }
             } else {
-                UserDefaults.standard.removeObject(forKey: "gemini_api_key")
+                try? KeychainService.shared.delete(.vertexAPIKey)
             }
         }
     }
 
+    /// Check if the service is configured with a valid API key
     var isConfigured: Bool {
-        // Service account credentials are built-in, so always configured
-        return true
+        return KeychainService.shared.exists(.vertexAPIKey)
+    }
+
+    /// Configure the service with an API key
+    func configure(apiKey: String) throws {
+        try validateAPIKey(apiKey)
+        try KeychainService.shared.save(apiKey, for: .vertexAPIKey)
     }
 
     private func validateAPIKey(_ key: String) throws {
@@ -127,11 +227,15 @@ class GeminiService {
         await requestSemaphore.wait()
         defer { Task { await requestSemaphore.signal() } }
 
+        // Check if API key is configured
+        guard let urlString = baseURL else {
+            throw GeminiError.noAPIKey
+        }
+
         // Client-side rate limiting - wait if we made a request too recently
         await enforceMinRequestInterval()
 
-        let urlString = baseURL
-        print("🔵 Gemini API URL: \(urlString)")
+        print("🔵 Gemini API URL: [configured]") // Don't log the actual URL with key
 
         guard let url = URL(string: urlString) else {
             throw GeminiError.invalidURL
@@ -153,7 +257,7 @@ class GeminiService {
                 temperature: 0.7,
                 topK: 40,
                 topP: 0.95,
-                maxOutputTokens: 800
+                maxOutputTokens: 2048
             )
         )
 

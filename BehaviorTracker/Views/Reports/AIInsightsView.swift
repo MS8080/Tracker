@@ -13,6 +13,7 @@ struct AIInsightsView: View {
     @Environment(\.managedObjectContext) private var viewContext
     @State private var savedCardIds: Set<UUID> = []
     @State private var bookmarkedCardIds: Set<UUID> = []
+    @State private var showingSettings = false
 
     private var theme: AppTheme {
         AppTheme(rawValue: selectedThemeRaw) ?? .purple
@@ -43,9 +44,19 @@ struct AIInsightsView: View {
             .navigationTitle("Insights")
             .navigationBarTitleDisplayModeInline()
             .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button {
+                        showingSettings = true
+                    } label: {
+                        Image(systemName: "gearshape")
+                    }
+                }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Done") { dismiss() }
                 }
+            }
+            .sheet(isPresented: $showingSettings) {
+                AIInsightsSettingsView(viewModel: viewModel)
             }
         }
     }

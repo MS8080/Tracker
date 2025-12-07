@@ -60,13 +60,17 @@ struct AIInsightsSettingsView: View {
                             }
                         }
 
-                        Link(destination: URL(string: "https://aistudio.google.com/app/apikey")!) {
+                        Link(destination: URL(string: "https://console.cloud.google.com/apis/credentials")!) {
                             HStack {
-                                Text("Get a new API key")
+                                Text("Get a Vertex AI API key")
                                 Spacer()
                                 Image(systemName: "arrow.up.right.square")
                             }
                         }
+
+                        Text("You need a Google Cloud project with Vertex AI API enabled and an API key with appropriate permissions.")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
                     }
 
                     Section("Privacy") {
@@ -83,7 +87,7 @@ struct AIInsightsSettingsView: View {
                     }
 
                     Section("About") {
-                        Text("AI insights are powered by Google's Gemini AI. Your data is processed according to Google's privacy policy.")
+                        Text("AI insights are powered by Google's Gemini AI via Vertex AI. Your API key is stored securely in the device Keychain. Data is processed according to Google's privacy policy.")
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }

@@ -96,8 +96,7 @@ class AIInsightsTabViewModel: ObservableObject {
     }
 
     var isAPIKeyConfigured: Bool {
-        // Service account credentials are built-in, always configured
-        true
+        geminiService.isConfigured
     }
 
     /// Returns true if the current mode can be used
@@ -134,10 +133,14 @@ class AIInsightsTabViewModel: ObservableObject {
             return
         }
 
-        // Store directly in UserDefaults (bypass overly strict validation)
-        UserDefaults.standard.set(trimmedKey, forKey: "gemini_api_key")
-        apiKeyInput = trimmedKey
-        errorMessage = nil
+        // Store securely in Keychain via GeminiService
+        do {
+            try geminiService.configure(apiKey: trimmedKey)
+            apiKeyInput = trimmedKey
+            errorMessage = nil
+        } catch {
+            errorMessage = "Failed to save API key: \(error.localizedDescription)"
+        }
         objectWillChange.send()
     }
 
