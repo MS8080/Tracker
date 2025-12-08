@@ -189,7 +189,7 @@ struct WeeklyReportView: View {
                 ReportEmptyState(message: "No patterns extracted yet")
             } else {
                 VStack(alignment: .leading, spacing: Spacing.md) {
-                    ForEach(Array(report.patternFrequency.prefix(5).enumerated()), id: \.element.key) { index, item in
+                    ForEach(Array(report.patternFrequency.prefix(5).enumerated()), id: \.element.key) { _, item in
                         VStack(alignment: .leading, spacing: Spacing.xs) {
                             HStack {
                                 Text(item.key)
