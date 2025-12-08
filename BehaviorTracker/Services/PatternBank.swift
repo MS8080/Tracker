@@ -99,14 +99,22 @@ enum PatternBank {
        - Time of day ONLY if stated
        - Coping strategies ONLY if described
 
-    4. Identify CASCADES - ONLY if the entry explicitly shows one pattern leading to another:
+    4. DISTINGUISH USER INSIGHTS FROM OBSERVED PATTERNS:
+       - User insight: When the user shows self-awareness about their patterns
+         Look for phrases like: "I noticed", "I think", "I realized", "maybe it's because",
+         "I wonder if", "it seems like", "I've figured out", "I understand now"
+       - Mark is_user_insight=true when the user is analyzing their own behavior
+       - Include their exact insight in user_insight_text
+       - This helps us build on what the user already understands rather than restating it
+
+    5. Identify CASCADES - ONLY if the entry explicitly shows one pattern leading to another:
        - The connection must be clear in the text
        - DO NOT assume cascades that aren't described
        - Include confidence score (0.0-1.0) for each connection
 
-    5. Extract ONLY triggers that are explicitly mentioned in the text
+    6. Extract ONLY triggers that are explicitly mentioned in the text
 
-    6. Note context ONLY from what's explicitly stated
+    7. Note context ONLY from what's explicitly stated
 
     ---
 
@@ -123,7 +131,9 @@ enum PatternBank {
           "triggers": ["trigger1", "trigger2"],
           "time_of_day": "morning|afternoon|evening|night|unknown",
           "coping_used": ["strategy1"],
-          "details": "brief description of how this manifested"
+          "details": "brief description of how this manifested",
+          "is_user_insight": false,
+          "user_insight_text": null
         }
       ],
       "cascades": [

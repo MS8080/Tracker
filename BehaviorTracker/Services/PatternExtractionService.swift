@@ -39,12 +39,16 @@ class PatternExtractionService {
         let timeOfDay: String?
         let copingUsed: [String]?
         let details: String?
+        let isUserInsight: Bool?
+        let userInsightText: String?
 
         enum CodingKeys: String, CodingKey {
             case type, category, intensity, triggers
             case timeOfDay = "time_of_day"
             case copingUsed = "coping_used"
             case details
+            case isUserInsight = "is_user_insight"
+            case userInsightText = "user_insight_text"
         }
     }
 

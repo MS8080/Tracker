@@ -327,6 +327,8 @@ class PatternsViewModel: ObservableObject {
                 pattern.confidence = result.confidence
                 pattern.timestamp = entry.timestamp
                 pattern.journalEntry = entry
+                pattern.isUserInsight = patternData.isUserInsight ?? false
+                pattern.userInsightText = patternData.userInsightText
 
                 createdPatterns[patternData.type] = pattern
             }

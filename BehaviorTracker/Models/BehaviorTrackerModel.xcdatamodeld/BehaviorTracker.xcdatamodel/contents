@@ -7,10 +7,12 @@
         <attribute name="details" optional="YES" attributeType="String"/>
         <attribute name="id" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="intensity" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="isUserInsight" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
         <attribute name="patternType" attributeType="String"/>
         <attribute name="timeOfDay" optional="YES" attributeType="String"/>
         <attribute name="timestamp" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="triggersData" optional="YES" attributeType="String"/>
+        <attribute name="userInsightText" optional="YES" attributeType="String"/>
         <relationship name="cascadesFrom" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="PatternCascade" inverseName="fromPattern" inverseEntity="PatternCascade"/>
         <relationship name="cascadesTo" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="PatternCascade" inverseName="toPattern" inverseEntity="PatternCascade"/>
         <relationship name="journalEntry" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="JournalEntry" inverseName="extractedPatterns" inverseEntity="JournalEntry"/>

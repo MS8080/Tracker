@@ -67,6 +67,8 @@ extension ExtractedPattern {
     @NSManaged public var details: String?
     @NSManaged public var confidence: Double
     @NSManaged public var timestamp: Date
+    @NSManaged public var isUserInsight: Bool
+    @NSManaged public var userInsightText: String?
     @NSManaged public var journalEntry: JournalEntry?
     @NSManaged public var cascadesFrom: Set<PatternCascade>?
     @NSManaged public var cascadesTo: Set<PatternCascade>?
