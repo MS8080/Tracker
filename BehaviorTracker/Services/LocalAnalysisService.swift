@@ -73,7 +73,7 @@ class LocalAnalysisService {
         let summary: String
     }
 
-    enum Sentiment {
+    enum Sentiment: String {
         case positive
         case negative
         case neutral
