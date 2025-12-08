@@ -487,14 +487,14 @@ enum LocalInsightType: String {
 }
 
 /// Trend direction for insights
-enum LocalInsightTrend {
+enum LocalInsightTrend: Equatable {
     case positive
     case negative
     case neutral
 }
 
 /// Individual insight item
-struct LocalInsightItem: Identifiable {
+struct LocalInsightItem: Identifiable, Equatable {
     let id = UUID()
     let type: LocalInsightType
     let title: String
@@ -509,18 +509,34 @@ struct LocalInsightItem: Identifiable {
         self.value = value
         self.trend = trend
     }
+    
+    static func == (lhs: LocalInsightItem, rhs: LocalInsightItem) -> Bool {
+        lhs.id == rhs.id &&
+        lhs.type == rhs.type &&
+        lhs.title == rhs.title &&
+        lhs.description == rhs.description &&
+        lhs.value == rhs.value &&
+        lhs.trend == rhs.trend
+    }
 }
 
 /// Section of insights
-struct LocalInsightSection: Identifiable {
+struct LocalInsightSection: Identifiable, Equatable {
     let id = UUID()
     let title: String
     let icon: String
     let insights: [LocalInsightItem]
+    
+    static func == (lhs: LocalInsightSection, rhs: LocalInsightSection) -> Bool {
+        lhs.id == rhs.id &&
+        lhs.title == rhs.title &&
+        lhs.icon == rhs.icon &&
+        lhs.insights == rhs.insights
+    }
 }
 
 /// Complete local insights result
-struct LocalInsights {
+struct LocalInsights: Equatable {
     let sections: [LocalInsightSection]
     let generatedAt: Date
 
@@ -529,6 +545,11 @@ struct LocalInsights {
         formatter.dateStyle = .short
         formatter.timeStyle = .short
         return formatter.string(from: generatedAt)
+    }
+    
+    static func == (lhs: LocalInsights, rhs: LocalInsights) -> Bool {
+        lhs.sections == rhs.sections &&
+        lhs.generatedAt == rhs.generatedAt
     }
 }
 

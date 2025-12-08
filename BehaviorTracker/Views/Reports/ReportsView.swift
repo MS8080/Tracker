@@ -4,10 +4,12 @@ import Charts
 struct ReportsView: View {
     @StateObject private var viewModel = ReportsViewModel()
     @StateObject private var settingsViewModel = SettingsViewModel()
+    @StateObject private var insightsViewModel = AIInsightsTabViewModel()
     @State private var selectedTimeframe: ReportTimeframe = .weekly
     @State private var showingCorrelations = false
     @State private var showingAIInsights = false
     @State private var showingExport = false
+    @State private var showingInsightsConfig = false
     @Binding var showingProfile: Bool
 
     @AppStorage("selectedTheme") private var selectedThemeRaw: String = AppTheme.purple.rawValue
@@ -74,6 +76,14 @@ struct ReportsView: View {
             }
             .navigationTitle("Reports")
             .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button {
+                        showingInsightsConfig = true
+                    } label: {
+                        Image(systemName: "gearshape")
+                            .foregroundStyle(.white.opacity(0.9))
+                    }
+                }
                 ToolbarItem(placement: .primaryAction) {
                     ProfileButton(showingProfile: $showingProfile)
                 }
@@ -89,6 +99,9 @@ struct ReportsView: View {
             }
             .sheet(isPresented: $showingExport) {
                 ExportDataView(viewModel: settingsViewModel)
+            }
+            .sheet(isPresented: $showingInsightsConfig) {
+                AIInsightsSettingsView(viewModel: insightsViewModel)
             }
         }
     }

@@ -20,29 +20,60 @@ struct AIInsightsSettingsView: View {
                     .ignoresSafeArea()
 
                 List {
-                    Section("AI Model") {
-                        Picker("Model", selection: $selectedModel) {
-                            ForEach(AIModel.allCases, id: \.self) { model in
+                    Section("Analysis Mode") {
+                        Picker("Mode", selection: $viewModel.analysisMode) {
+                            ForEach(AnalysisMode.allCases, id: \.self) { mode in
                                 HStack {
-                                    Image(systemName: model.icon)
-                                    Text(model.displayName)
+                                    Image(systemName: mode.icon)
+                                    Text(mode == .local ? "Local" : "AI")
                                 }
-                                .tag(model)
+                                .tag(mode)
                             }
                         }
-                        .onChange(of: selectedModel) { _, newValue in
-                            AIAnalysisService.shared.selectedModel = newValue
-                            HapticFeedback.selection.trigger()
-                        }
+                        .pickerStyle(.segmented)
 
-                        Text(selectedModel == .claude
-                            ? "Claude Opus 4 - Anthropic's most capable model for deep analysis"
-                            : "Gemini 2.5 Flash - Fast and cost-effective for quick insights")
+                        Text(viewModel.analysisMode.description)
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
 
-                    if selectedModel == .gemini {
+                    Section("Analysis Options") {
+                        Picker("Timeframe", selection: $viewModel.timeframeDays) {
+                            Text("7 days").tag(7)
+                            Text("14 days").tag(14)
+                            Text("30 days").tag(30)
+                        }
+
+                        Toggle("Include Patterns", isOn: $viewModel.includePatterns)
+                        Toggle("Include Journals", isOn: $viewModel.includeJournals)
+                        Toggle("Include Medications", isOn: $viewModel.includeMedications)
+                    }
+
+                    if viewModel.analysisMode == .ai {
+                        Section("AI Model") {
+                            Picker("Model", selection: $selectedModel) {
+                                ForEach(AIModel.allCases, id: \.self) { model in
+                                    HStack {
+                                        Image(systemName: model.icon)
+                                        Text(model.displayName)
+                                    }
+                                    .tag(model)
+                                }
+                            }
+                            .onChange(of: selectedModel) { _, newValue in
+                                AIAnalysisService.shared.selectedModel = newValue
+                                HapticFeedback.selection.trigger()
+                            }
+
+                            Text(selectedModel == .claude
+                                ? "Claude Opus 4 - Anthropic's most capable model for deep analysis"
+                                : "Gemini 2.5 Flash - Fast and cost-effective for quick insights")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+
+                    if viewModel.analysisMode == .ai && selectedModel == .gemini {
                         Section("Gemini API Key") {
                             SecureField("Gemini API Key", text: $viewModel.apiKeyInput)
                                 #if os(iOS)
@@ -99,7 +130,7 @@ struct AIInsightsSettingsView: View {
                                 .font(.caption2)
                                 .foregroundStyle(.secondary)
                         }
-                    } else {
+                    } else if viewModel.analysisMode == .ai && selectedModel == .claude {
                         Section("Claude Configuration") {
                             HStack {
                                 Image(systemName: "checkmark.circle.fill")
@@ -114,30 +145,34 @@ struct AIInsightsSettingsView: View {
                         }
                     }
 
-                    Section("Privacy") {
-                        Button("Reset Privacy Acknowledgment", role: .destructive) {
-                            UserDefaults.standard.set(false, forKey: "ai_privacy_acknowledged")
-                            dismiss()
+                    if viewModel.analysisMode == .ai {
+                        Section("Privacy") {
+                            Button("Reset Privacy Acknowledgment", role: .destructive) {
+                                UserDefaults.standard.set(false, forKey: "ai_privacy_acknowledged")
+                                dismiss()
+                            }
+
+                            if selectedModel == .gemini {
+                                Button("Remove API Key", role: .destructive) {
+                                    GeminiService.shared.apiKey = nil
+                                    viewModel.apiKeyInput = ""
+                                    dismiss()
+                                }
+                            }
                         }
 
-                        Button("Remove API Key", role: .destructive) {
-                            GeminiService.shared.apiKey = nil
-                            viewModel.apiKeyInput = ""
-                            dismiss()
+                        Section("About") {
+                            Text(selectedModel == .claude
+                                ? "AI insights are powered by Anthropic's Claude via Google Cloud Vertex AI. Authentication uses a secure service account. Data is processed according to Anthropic's and Google's privacy policies."
+                                : "AI insights are powered by Google's Gemini AI via Vertex AI. Your API key is stored securely in the device Keychain. Data is processed according to Google's privacy policy.")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
                         }
-                    }
-
-                    Section("About") {
-                        Text(selectedModel == .claude
-                            ? "AI insights are powered by Anthropic's Claude via Google Cloud Vertex AI. Authentication uses a secure service account. Data is processed according to Anthropic's and Google's privacy policies."
-                            : "AI insights are powered by Google's Gemini AI via Vertex AI. Your API key is stored securely in the device Keychain. Data is processed according to Google's privacy policy.")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
                     }
                 }
                 .scrollContentBackground(.hidden)
             }
-            .navigationTitle("AI Settings")
+            .navigationTitle("Insights Settings")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
