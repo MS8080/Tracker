@@ -5,29 +5,29 @@ final class PatternTypeTests: XCTestCase {
 
     func testPatternTypeCategories() throws {
         XCTAssertEqual(PatternType.sensoryOverload.category, .sensory)
-        XCTAssertEqual(PatternType.hyperfocusEpisode.category, .behavioral)
-        XCTAssertEqual(PatternType.socialInteraction.category, .socialCommunication)
+        XCTAssertEqual(PatternType.hyperfocus.category, .executiveFunction)
+        XCTAssertEqual(PatternType.socialInteraction.category, .social)
         XCTAssertEqual(PatternType.decisionFatigue.category, .executiveFunction)
-        XCTAssertEqual(PatternType.energyLevel.category, .energyCapacity)
-        XCTAssertEqual(PatternType.meltdownTrigger.category, .emotionalRegulation)
-        XCTAssertEqual(PatternType.routineAdherence.category, .routineStructure)
-        XCTAssertEqual(PatternType.movementNeeds.category, .physical)
-        XCTAssertEqual(PatternType.academicWorkPerformance.category, .contextual)
+        XCTAssertEqual(PatternType.energyLevel.category, .energyRegulation)
+        XCTAssertEqual(PatternType.meltdown.category, .energyRegulation)
+        XCTAssertEqual(PatternType.routineDisruption.category, .routineChange)
+        XCTAssertEqual(PatternType.sleepQuality.category, .physicalWellbeing)
+        XCTAssertEqual(PatternType.taskAvoidance.category, .demandAvoidance)
     }
 
     func testIntensityScale() throws {
         XCTAssertTrue(PatternType.energyLevel.hasIntensityScale)
         XCTAssertTrue(PatternType.socialInteraction.hasIntensityScale)
-        XCTAssertTrue(PatternType.anxietySpike.hasIntensityScale)
+        XCTAssertTrue(PatternType.emotionalOverwhelm.hasIntensityScale)
 
-        XCTAssertFalse(PatternType.hyperfocusEpisode.hasIntensityScale)
-        XCTAssertFalse(PatternType.sensoryOverload.hasIntensityScale)
+        XCTAssertFalse(PatternType.hyperfocus.hasIntensityScale)
+        XCTAssertFalse(PatternType.taskInitiation.hasIntensityScale)
     }
 
     func testDuration() throws {
-        XCTAssertTrue(PatternType.hyperfocusEpisode.hasDuration)
+        XCTAssertTrue(PatternType.hyperfocus.hasDuration)
         XCTAssertTrue(PatternType.socialInteraction.hasDuration)
-        XCTAssertTrue(PatternType.meltdownTrigger.hasDuration)
+        XCTAssertTrue(PatternType.meltdown.hasDuration)
 
         XCTAssertFalse(PatternType.energyLevel.hasDuration)
         XCTAssertFalse(PatternType.decisionFatigue.hasDuration)

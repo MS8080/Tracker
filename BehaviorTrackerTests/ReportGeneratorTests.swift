@@ -8,6 +8,7 @@ final class ReportGeneratorTests: XCTestCase {
 
     override func setUpWithError() throws {
         dataController = DataController(inMemory: true)
+        DataController.shared = dataController
         reportGenerator = ReportGenerator()
     }
 
@@ -16,10 +17,11 @@ final class ReportGeneratorTests: XCTestCase {
         reportGenerator = nil
     }
 
-    func testWeeklyReportGeneration() throws {
-        _ = dataController.createPatternEntry(patternType: .sensoryOverload)
-        _ = dataController.createPatternEntry(patternType: .hyperfocusEpisode)
-        _ = dataController.createPatternEntry(patternType: .energyLevel, intensity: 4)
+    @MainActor
+    func testWeeklyReportGeneration() async throws {
+        _ = try await dataController.createPatternEntry(patternType: .sensoryOverload)
+        _ = try await dataController.createPatternEntry(patternType: .hyperfocus)
+        _ = try await dataController.createPatternEntry(patternType: .energyLevel, intensity: 4)
 
         let report = reportGenerator.generateWeeklyReport()
 
@@ -28,10 +30,11 @@ final class ReportGeneratorTests: XCTestCase {
         XCTAssertFalse(report.patternFrequency.isEmpty)
     }
 
-    func testMonthlyReportGeneration() throws {
-        _ = dataController.createPatternEntry(patternType: .sensoryOverload)
-        _ = dataController.createPatternEntry(patternType: .hyperfocusEpisode)
-        _ = dataController.createPatternEntry(patternType: .socialInteraction, intensity: 3)
+    @MainActor
+    func testMonthlyReportGeneration() async throws {
+        _ = try await dataController.createPatternEntry(patternType: .sensoryOverload)
+        _ = try await dataController.createPatternEntry(patternType: .hyperfocus)
+        _ = try await dataController.createPatternEntry(patternType: .socialInteraction, intensity: 3)
 
         let report = reportGenerator.generateMonthlyReport()
 

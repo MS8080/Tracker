@@ -4,7 +4,8 @@ import WidgetKit
 
 /// Core Data stack manager. Delegates entity-specific operations to repositories.
 class DataController: ObservableObject, @unchecked Sendable {
-    static let shared = DataController()
+    /// Shared instance. Can be replaced with an in-memory instance for testing.
+    static var shared = DataController()
 
     // MARK: - iCloud Sync Configuration
     static let iCloudSyncEnabled = false

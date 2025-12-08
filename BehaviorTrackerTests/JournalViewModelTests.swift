@@ -2,13 +2,13 @@ import XCTest
 import CoreData
 @testable import BehaviorTracker
 
+@MainActor
 final class JournalViewModelTests: XCTestCase {
     var dataController: DataController!
     var viewModel: JournalViewModel!
 
     override func setUpWithError() throws {
         dataController = DataController(inMemory: true)
-        // Reset singleton for testing
         DataController.shared = dataController
         viewModel = JournalViewModel()
     }
@@ -56,7 +56,6 @@ final class JournalViewModelTests: XCTestCase {
     // MARK: - Load Entry Tests
 
     func testLoadJournalEntries() throws {
-        // Create entries directly
         _ = try dataController.createJournalEntry(title: "Entry 1", content: "Content 1")
         _ = try dataController.createJournalEntry(title: "Entry 2", content: "Content 2")
         _ = try dataController.createJournalEntry(title: "Entry 3", content: "Content 3")
@@ -67,7 +66,7 @@ final class JournalViewModelTests: XCTestCase {
     }
 
     func testLoadJournalEntriesFavoritesOnly() throws {
-        let entry1 = try dataController.createJournalEntry(title: "Regular", content: "Content")
+        _ = try dataController.createJournalEntry(title: "Regular", content: "Content")
         let entry2 = try dataController.createJournalEntry(title: "Favorite", content: "Content")
         entry2.isFavorite = true
         dataController.save()
@@ -88,8 +87,10 @@ final class JournalViewModelTests: XCTestCase {
         viewModel.searchQuery = "morning"
 
         // After setting searchQuery, entries should be filtered
-        XCTAssertTrue(viewModel.journalEntries.allSatisfy {
-            $0.title.lowercased().contains("morning") || $0.content.lowercased().contains("morning")
+        XCTAssertTrue(viewModel.journalEntries.allSatisfy { entry in
+            let title = entry.title ?? ""
+            let content = entry.content ?? ""
+            return title.lowercased().contains("morning") || content.lowercased().contains("morning")
         })
     }
 
@@ -156,7 +157,7 @@ final class JournalViewModelTests: XCTestCase {
 
     // MARK: - Date Range Tests
 
-    func testGetEntriesByDateRange() throws {
+    func testGetEntriesByDateRange() async throws {
         let today = Date()
         let yesterday = Calendar.current.date(byAdding: .day, value: -1, to: today)!
         let lastWeek = Calendar.current.date(byAdding: .day, value: -7, to: today)!
@@ -169,7 +170,7 @@ final class JournalViewModelTests: XCTestCase {
 
         dataController.save()
 
-        let entries = viewModel.getEntriesByDateRange(startDate: yesterday, endDate: today)
+        let entries = await viewModel.getEntriesByDateRange(startDate: yesterday, endDate: today)
 
         XCTAssertEqual(entries.count, 1)
         XCTAssertEqual(entries.first?.title, "Today")

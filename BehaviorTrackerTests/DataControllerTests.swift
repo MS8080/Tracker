@@ -7,14 +7,16 @@ final class DataControllerTests: XCTestCase {
 
     override func setUpWithError() throws {
         dataController = DataController(inMemory: true)
+        DataController.shared = dataController
     }
 
     override func tearDownWithError() throws {
         dataController = nil
     }
 
-    func testCreatePatternEntry() throws {
-        let entry = dataController.createPatternEntry(
+    @MainActor
+    func testCreatePatternEntry() async throws {
+        let entry = try await dataController.createPatternEntry(
             patternType: .sensoryOverload,
             intensity: 4,
             duration: 30,
@@ -30,29 +32,32 @@ final class DataControllerTests: XCTestCase {
         XCTAssertEqual(entry.specificDetails, "Test details")
     }
 
-    func testFetchPatternEntries() throws {
-        _ = dataController.createPatternEntry(patternType: .hyperfocusEpisode)
-        _ = dataController.createPatternEntry(patternType: .sensoryOverload)
-        _ = dataController.createPatternEntry(patternType: .anxietySpike)
+    @MainActor
+    func testFetchPatternEntries() async throws {
+        _ = try await dataController.createPatternEntry(patternType: .hyperfocus)
+        _ = try await dataController.createPatternEntry(patternType: .sensoryOverload)
+        _ = try await dataController.createPatternEntry(patternType: .emotionalOverwhelm)
 
         let entries = dataController.fetchPatternEntries()
         XCTAssertEqual(entries.count, 3)
     }
 
-    func testFetchPatternEntriesByCategory() throws {
-        _ = dataController.createPatternEntry(patternType: .hyperfocusEpisode)
-        _ = dataController.createPatternEntry(patternType: .sensoryOverload)
-        _ = dataController.createPatternEntry(patternType: .anxietySpike)
+    @MainActor
+    func testFetchPatternEntriesByCategory() async throws {
+        _ = try await dataController.createPatternEntry(patternType: .hyperfocus) // Executive Function
+        _ = try await dataController.createPatternEntry(patternType: .sensoryOverload) // Sensory
+        _ = try await dataController.createPatternEntry(patternType: .emotionalOverwhelm) // Energy & Regulation
 
-        let behavioralEntries = dataController.fetchPatternEntries(category: .behavioral)
-        XCTAssertEqual(behavioralEntries.count, 1)
+        let executiveFunctionEntries = dataController.fetchPatternEntries(category: .executiveFunction)
+        XCTAssertEqual(executiveFunctionEntries.count, 1)
 
         let sensoryEntries = dataController.fetchPatternEntries(category: .sensory)
         XCTAssertEqual(sensoryEntries.count, 1)
     }
 
-    func testDeletePatternEntry() throws {
-        let entry = dataController.createPatternEntry(patternType: .energyLevel)
+    @MainActor
+    func testDeletePatternEntry() async throws {
+        let entry = try await dataController.createPatternEntry(patternType: .energyLevel)
 
         var entries = dataController.fetchPatternEntries()
         XCTAssertEqual(entries.count, 1)
@@ -63,6 +68,7 @@ final class DataControllerTests: XCTestCase {
         XCTAssertEqual(entries.count, 0)
     }
 
+    @MainActor
     func testUserPreferences() throws {
         let preferences = dataController.getUserPreferences()
 
@@ -79,12 +85,13 @@ final class DataControllerTests: XCTestCase {
         XCTAssertTrue(updatedPreferences.notificationEnabled)
     }
 
-    func testUpdateStreak() throws {
+    @MainActor
+    func testUpdateStreak() async throws {
         dataController.updateStreak()
         let preferences = dataController.getUserPreferences()
         XCTAssertEqual(preferences.streakCount, 1)
 
-        _ = dataController.createPatternEntry(patternType: .energyLevel)
+        _ = try await dataController.createPatternEntry(patternType: .energyLevel)
         dataController.updateStreak()
 
         let updatedPreferences = dataController.getUserPreferences()

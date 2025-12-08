@@ -36,11 +36,11 @@ final class PatternRepositoryTests: XCTestCase {
     @MainActor
     func testCreatePatternEntryWithDefaultValues() async throws {
         let entry = try await PatternRepository.shared.create(
-            patternType: .hyperfocusEpisode
+            patternType: .hyperfocus
         )
 
         XCTAssertNotNil(entry)
-        XCTAssertEqual(entry.patternType, PatternType.hyperfocusEpisode.rawValue)
+        XCTAssertEqual(entry.patternType, PatternType.hyperfocus.rawValue)
         XCTAssertEqual(entry.intensity, 0)
         XCTAssertEqual(entry.duration, 0)
         XCTAssertNil(entry.contextNotes)
@@ -49,7 +49,7 @@ final class PatternRepositoryTests: XCTestCase {
 
     @MainActor
     func testCreatePatternEntryWithContributingFactors() async throws {
-        let factors: [ContributingFactor] = [.poorSleep, .socialStress, .lowEnergy]
+        let factors: [ContributingFactor] = [.poorSleep, .socialDemands, .fatigue]
 
         let entry = try await PatternRepository.shared.create(
             patternType: .meltdown,
@@ -59,16 +59,16 @@ final class PatternRepositoryTests: XCTestCase {
 
         XCTAssertNotNil(entry)
         XCTAssertEqual(entry.patternType, PatternType.meltdown.rawValue)
-        XCTAssertEqual(entry.contributingFactorsArray.count, 3)
-        XCTAssertTrue(entry.contributingFactorsArray.contains(.poorSleep))
-        XCTAssertTrue(entry.contributingFactorsArray.contains(.socialStress))
-        XCTAssertTrue(entry.contributingFactorsArray.contains(.lowEnergy))
+        XCTAssertEqual(entry.contributingFactors.count, 3)
+        XCTAssertTrue(entry.contributingFactors.contains(.poorSleep))
+        XCTAssertTrue(entry.contributingFactors.contains(.socialDemands))
+        XCTAssertTrue(entry.contributingFactors.contains(.fatigue))
     }
 
     @MainActor
     func testCreatePatternEntryTrimsWhitespace() async throws {
         let entry = try await PatternRepository.shared.create(
-            patternType: .anxietySpike,
+            patternType: .emotionalOverwhelm,
             contextNotes: "   Note with spaces   ",
             specificDetails: "\n\tDetails with whitespace\n"
         )
@@ -122,9 +122,9 @@ final class PatternRepositoryTests: XCTestCase {
 
     @MainActor
     func testFetchPatternEntries() async throws {
-        _ = try await PatternRepository.shared.create(patternType: .hyperfocusEpisode)
+        _ = try await PatternRepository.shared.create(patternType: .hyperfocus)
         _ = try await PatternRepository.shared.create(patternType: .sensoryOverload)
-        _ = try await PatternRepository.shared.create(patternType: .anxietySpike)
+        _ = try await PatternRepository.shared.create(patternType: .emotionalOverwhelm)
 
         let entries = await PatternRepository.shared.fetch()
         XCTAssertEqual(entries.count, 3)
@@ -132,9 +132,9 @@ final class PatternRepositoryTests: XCTestCase {
 
     @MainActor
     func testFetchPatternEntriesByCategory() async throws {
-        _ = try await PatternRepository.shared.create(patternType: .hyperfocusEpisode) // Executive Function
+        _ = try await PatternRepository.shared.create(patternType: .hyperfocus) // Executive Function
         _ = try await PatternRepository.shared.create(patternType: .sensoryOverload) // Sensory
-        _ = try await PatternRepository.shared.create(patternType: .anxietySpike) // Energy & Regulation
+        _ = try await PatternRepository.shared.create(patternType: .emotionalOverwhelm) // Energy & Regulation
 
         let sensoryEntries = await PatternRepository.shared.fetch(category: .sensory)
         XCTAssertEqual(sensoryEntries.count, 1)
@@ -146,7 +146,7 @@ final class PatternRepositoryTests: XCTestCase {
         let yesterday = Calendar.current.date(byAdding: .day, value: -1, to: Date())!
         let tomorrow = Calendar.current.date(byAdding: .day, value: 1, to: Date())!
 
-        _ = try await PatternRepository.shared.create(patternType: .hyperfocusEpisode)
+        _ = try await PatternRepository.shared.create(patternType: .hyperfocus)
         _ = try await PatternRepository.shared.create(patternType: .sensoryOverload)
 
         let entries = await PatternRepository.shared.fetch(startDate: yesterday, endDate: tomorrow)
@@ -155,9 +155,9 @@ final class PatternRepositoryTests: XCTestCase {
 
     @MainActor
     func testFetchPatternEntriesWithLimit() async throws {
-        _ = try await PatternRepository.shared.create(patternType: .hyperfocusEpisode)
+        _ = try await PatternRepository.shared.create(patternType: .hyperfocus)
         _ = try await PatternRepository.shared.create(patternType: .sensoryOverload)
-        _ = try await PatternRepository.shared.create(patternType: .anxietySpike)
+        _ = try await PatternRepository.shared.create(patternType: .emotionalOverwhelm)
         _ = try await PatternRepository.shared.create(patternType: .energyLevel)
         _ = try await PatternRepository.shared.create(patternType: .meltdown)
 
@@ -167,7 +167,7 @@ final class PatternRepositoryTests: XCTestCase {
 
     @MainActor
     func testFetchPatternEntriesReturnsDescendingOrder() async throws {
-        let entry1 = try await PatternRepository.shared.create(patternType: .hyperfocusEpisode)
+        let entry1 = try await PatternRepository.shared.create(patternType: .hyperfocus)
         try await Task.sleep(nanoseconds: 100_000_000) // 0.1 seconds
         let entry2 = try await PatternRepository.shared.create(patternType: .sensoryOverload)
 
@@ -181,7 +181,7 @@ final class PatternRepositoryTests: XCTestCase {
 
     @MainActor
     func testFetchSyncReturnsEntries() async throws {
-        _ = try await PatternRepository.shared.create(patternType: .hyperfocusEpisode)
+        _ = try await PatternRepository.shared.create(patternType: .hyperfocus)
         _ = try await PatternRepository.shared.create(patternType: .sensoryOverload)
 
         let entries = PatternRepository.shared.fetchSync()
@@ -190,7 +190,7 @@ final class PatternRepositoryTests: XCTestCase {
 
     @MainActor
     func testFetchOrThrowReturnsEntries() async throws {
-        _ = try await PatternRepository.shared.create(patternType: .hyperfocusEpisode)
+        _ = try await PatternRepository.shared.create(patternType: .hyperfocus)
 
         let entries = try PatternRepository.shared.fetchOrThrow()
         XCTAssertEqual(entries.count, 1)
@@ -213,9 +213,9 @@ final class PatternRepositoryTests: XCTestCase {
 
     @MainActor
     func testDeleteSpecificEntry() async throws {
-        let entry1 = try await PatternRepository.shared.create(patternType: .hyperfocusEpisode)
+        let entry1 = try await PatternRepository.shared.create(patternType: .hyperfocus)
         let entry2 = try await PatternRepository.shared.create(patternType: .sensoryOverload)
-        let entry3 = try await PatternRepository.shared.create(patternType: .anxietySpike)
+        let entry3 = try await PatternRepository.shared.create(patternType: .emotionalOverwhelm)
 
         PatternRepository.shared.delete(entry2)
 
@@ -223,8 +223,8 @@ final class PatternRepositoryTests: XCTestCase {
         XCTAssertEqual(entries.count, 2)
 
         let patternTypes = entries.map { $0.patternType }
-        XCTAssertTrue(patternTypes.contains(PatternType.hyperfocusEpisode.rawValue))
-        XCTAssertTrue(patternTypes.contains(PatternType.anxietySpike.rawValue))
+        XCTAssertTrue(patternTypes.contains(PatternType.hyperfocus.rawValue))
+        XCTAssertTrue(patternTypes.contains(PatternType.emotionalOverwhelm.rawValue))
         XCTAssertFalse(patternTypes.contains(PatternType.sensoryOverload.rawValue))
     }
 
@@ -238,7 +238,7 @@ final class PatternRepositoryTests: XCTestCase {
 
     @MainActor
     func testFetchWithFutureDateRangeReturnsEmpty() async throws {
-        _ = try await PatternRepository.shared.create(patternType: .hyperfocusEpisode)
+        _ = try await PatternRepository.shared.create(patternType: .hyperfocus)
 
         let futureStart = Calendar.current.date(byAdding: .day, value: 1, to: Date())!
         let futureEnd = Calendar.current.date(byAdding: .day, value: 2, to: Date())!
@@ -249,7 +249,7 @@ final class PatternRepositoryTests: XCTestCase {
 
     @MainActor
     func testFetchWithPastDateRangeReturnsEmpty() async throws {
-        _ = try await PatternRepository.shared.create(patternType: .hyperfocusEpisode)
+        _ = try await PatternRepository.shared.create(patternType: .hyperfocus)
 
         let pastStart = Calendar.current.date(byAdding: .day, value: -10, to: Date())!
         let pastEnd = Calendar.current.date(byAdding: .day, value: -5, to: Date())!

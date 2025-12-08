@@ -2,6 +2,7 @@ import XCTest
 import CoreData
 @testable import BehaviorTracker
 
+@MainActor
 final class CorrelationAnalysisServiceTests: XCTestCase {
     var dataController: DataController!
 
@@ -16,23 +17,23 @@ final class CorrelationAnalysisServiceTests: XCTestCase {
 
     // MARK: - Empty Data Tests
 
-    func testGenerateInsightsWithNoData() throws {
+    func testGenerateInsightsWithNoData() async throws {
         let service = CorrelationAnalysisService.shared
-        let insights = service.generateInsights(days: 30)
+        let insights = await service.generateInsights(days: 30)
 
         XCTAssertTrue(insights.isEmpty)
     }
 
     // MARK: - Confidence Level Tests
 
-    func testConfidenceLevelLow() throws {
+    func testConfidenceLevelLow() async throws {
         // Create less than 10 pattern entries
         for _ in 0..<5 {
-            _ = dataController.createPatternEntry(patternType: .sensoryOverload, intensity: 4)
+            _ = try await dataController.createPatternEntry(patternType: .sensoryOverload, intensity: 4)
         }
 
         let service = CorrelationAnalysisService.shared
-        let insights = service.generateInsights(days: 30)
+        let insights = await service.generateInsights(days: 30)
 
         // Any insights generated should have low confidence due to small sample size
         for insight in insights {
@@ -42,14 +43,14 @@ final class CorrelationAnalysisServiceTests: XCTestCase {
         }
     }
 
-    func testConfidenceLevelMedium() throws {
+    func testConfidenceLevelMedium() async throws {
         // Create 10-30 pattern entries
         for _ in 0..<15 {
-            _ = dataController.createPatternEntry(patternType: .sensoryOverload, intensity: 4)
+            _ = try await dataController.createPatternEntry(patternType: .sensoryOverload, intensity: 4)
         }
 
         let service = CorrelationAnalysisService.shared
-        let insights = service.generateInsights(days: 30)
+        let insights = await service.generateInsights(days: 30)
 
         for insight in insights where insight.sampleSize >= 10 && insight.sampleSize < 30 {
             XCTAssertEqual(insight.confidence, .medium)
@@ -58,20 +59,20 @@ final class CorrelationAnalysisServiceTests: XCTestCase {
 
     // MARK: - Time Pattern Correlation Tests
 
-    func testTimePatternCorrelation() throws {
+    func testTimePatternCorrelation() async throws {
         // Create entries predominantly in the morning
         let calendar = Calendar.current
         let morningTime = calendar.date(bySettingHour: 9, minute: 0, second: 0, of: Date())!
 
         for i in 0..<10 {
-            let entry = dataController.createPatternEntry(patternType: .sensoryOverload, intensity: 3)
+            let entry = try await dataController.createPatternEntry(patternType: .sensoryOverload, intensity: 3)
             let dayOffset = -i
             entry.timestamp = calendar.date(byAdding: .day, value: dayOffset, to: morningTime)!
         }
         dataController.save()
 
         let service = CorrelationAnalysisService.shared
-        let insights = service.generateInsights(days: 30)
+        let insights = await service.generateInsights(days: 30)
 
         // Should find a time pattern correlation for morning
         let timeInsights = insights.filter { $0.type == .timePattern }
@@ -84,7 +85,7 @@ final class CorrelationAnalysisServiceTests: XCTestCase {
 
     // MARK: - Medication Pattern Correlation Tests
 
-    func testMedicationPatternCorrelation() throws {
+    func testMedicationPatternCorrelation() async throws {
         // Create a medication
         let medication = try dataController.createMedication(
             name: "Test Med",
@@ -112,21 +113,21 @@ final class CorrelationAnalysisServiceTests: XCTestCase {
                 notes: nil
             )
 
-            let entry = dataController.createPatternEntry(patternType: .sensoryOverload, intensity: 2)
+            let entry = try await dataController.createPatternEntry(patternType: .sensoryOverload, intensity: 2)
             entry.timestamp = date
         }
 
         // Days without medication: higher intensity
         for i in 0..<5 {
             let date = calendar.date(byAdding: .day, value: -(i * 2 + 1), to: today)!
-            let entry = dataController.createPatternEntry(patternType: .sensoryOverload, intensity: 5)
+            let entry = try await dataController.createPatternEntry(patternType: .sensoryOverload, intensity: 5)
             entry.timestamp = date
         }
 
         dataController.save()
 
         let service = CorrelationAnalysisService.shared
-        let insights = service.generateInsights(days: 30)
+        let insights = await service.generateInsights(days: 30)
 
         // Should find some medication-related correlation
         let medicationInsights = insights.filter { $0.type == .medicationPattern }
@@ -137,32 +138,30 @@ final class CorrelationAnalysisServiceTests: XCTestCase {
 
     // MARK: - Factor Pattern Correlation Tests
 
-    func testFactorPatternCorrelation() throws {
+    func testFactorPatternCorrelation() async throws {
         // Create entries with different contributing factors
         for i in 0..<10 {
-            let entry = dataController.createPatternEntry(
+            _ = try await dataController.createPatternEntry(
                 patternType: .sensoryOverload,
                 intensity: Int16(i % 3 + 3)
             )
-            // Add contributing factors would require modifying the entry
-            // For now, just verify the service handles patterns correctly
         }
 
         dataController.save()
 
         let service = CorrelationAnalysisService.shared
-        let insights = service.generateInsights(days: 30)
+        let insights = await service.generateInsights(days: 30)
 
         XCTAssertNotNil(insights)
     }
 
     // MARK: - Insight Sorting Tests
 
-    func testInsightsAreSortedByStrength() throws {
+    func testInsightsAreSortedByStrength() async throws {
         // Create varied data to generate multiple insights
         for i in 0..<20 {
-            _ = dataController.createPatternEntry(
-                patternType: i % 2 == 0 ? .sensoryOverload : .hyperfocusEpisode,
+            _ = try await dataController.createPatternEntry(
+                patternType: i % 2 == 0 ? .sensoryOverload : .hyperfocus,
                 intensity: Int16((i % 5) + 1)
             )
         }
@@ -170,7 +169,7 @@ final class CorrelationAnalysisServiceTests: XCTestCase {
         dataController.save()
 
         let service = CorrelationAnalysisService.shared
-        let insights = service.generateInsights(days: 30)
+        let insights = await service.generateInsights(days: 30)
 
         // Verify insights are sorted by strength (descending)
         if insights.count > 1 {

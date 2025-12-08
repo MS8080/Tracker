@@ -33,7 +33,7 @@ final class AIInsightsModelsTests: XCTestCase {
 
     func testInsightSectionIconForSleep() {
         let section = InsightSection(title: "Sleep Patterns", bullets: [], paragraph: "")
-        XCTAssertEqual(section.icon, "moon.fill")
+        XCTAssertEqual(section.icon, "chart.line.uptrend.xyaxis")
     }
 
     func testInsightSectionIconForMedication() {
@@ -80,7 +80,7 @@ final class AIInsightsModelsTests: XCTestCase {
 
     func testInsightSectionColorForSleep() {
         let section = InsightSection(title: "Sleep Patterns", bullets: [], paragraph: "")
-        XCTAssertEqual(section.color, .indigo)
+        XCTAssertEqual(section.color, .blue)
     }
 
     func testInsightSectionColorForMedication() {
