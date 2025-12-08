@@ -503,10 +503,10 @@ class DataController: ObservableObject, @unchecked Sendable {
 
         if quickPatterns.isEmpty {
             quickPatterns = [
-                ["name": "Sensory Overload", "patternType": "Sensory Overload", "category": "Sensory", "icon": "eye.circle", "colorHex": "AF52DE"],
-                ["name": "Meltdown", "patternType": "Meltdown", "category": "Energy & Regulation", "icon": "bolt.circle", "colorHex": "FF3B30"],
-                ["name": "Stimming", "patternType": "Stimming", "category": "Energy & Regulation", "icon": "hands.sparkles", "colorHex": "FF9500"],
-                ["name": "Masking Fatigue", "patternType": "Masking Fatigue", "category": "Social & Communication", "icon": "theatermasks", "colorHex": "34C759"]
+                ["name": "Sensory State", "patternType": "Sensory State", "category": "Sensory", "icon": "eye", "colorHex": "AF52DE"],
+                ["name": "Overwhelm", "patternType": "Overwhelm", "category": "Regulation", "icon": "waveform.path", "colorHex": "FF3B30"],
+                ["name": "Stimming", "patternType": "Stimming", "category": "Regulation", "icon": "hands.sparkles", "colorHex": "FF9500"],
+                ["name": "Masking", "patternType": "Masking", "category": "Social", "icon": "theatermasks", "colorHex": "34C759"]
             ]
         }
 

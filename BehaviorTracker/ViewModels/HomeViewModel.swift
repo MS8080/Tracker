@@ -277,10 +277,13 @@ class HomeViewModel: ObservableObject {
         let patternName = pattern.patternType.lowercased()
         let intensity = pattern.intensity
 
-        switch category {
+        // Use PatternCategory to normalize legacy names and get consistent display
+        let normalizedCategory = PatternCategory.normalizedName(category)
+
+        switch normalizedCategory {
         case "Sensory":
-            icon = "waveform.path"
-            color = .red
+            icon = "eye"
+            color = .purple
             if intensity >= 7 {
                 message = "The sensory world was intense - \(patternName) took a lot out of you"
                 insight = "Your system was working hard to process everything"
@@ -290,7 +293,7 @@ class HomeViewModel: ObservableObject {
             }
         case "Executive Function":
             icon = "brain.head.profile"
-            color = .orange
+            color = .blue
             if intensity >= 7 {
                 message = "Focus was really hard today - \(patternName) made things difficult"
                 insight = "When the brain struggles to organize, everything feels heavier"
@@ -298,9 +301,9 @@ class HomeViewModel: ObservableObject {
                 message = "You were navigating how to focus and get things done"
                 insight = nil
             }
-        case "Social & Communication":
-            icon = "person.2.fill"
-            color = .blue
+        case "Social":
+            icon = "person.2"
+            color = .green
             if intensity >= 7 {
                 message = "Social stuff took a lot of energy - \(patternName)"
                 insight = "People interactions can be exhausting, especially when you're already stretched"
@@ -308,9 +311,9 @@ class HomeViewModel: ObservableObject {
                 message = "You had some people moments to process"
                 insight = nil
             }
-        case "Energy & Regulation":
-            icon = "battery.75"
-            color = .purple
+        case "Energy & Capacity":
+            icon = "battery.75percent"
+            color = .orange
             if intensity >= 7 {
                 message = "Your energy was really depleted - \(patternName)"
                 insight = "Running on empty makes everything harder"
@@ -318,14 +321,24 @@ class HomeViewModel: ObservableObject {
                 message = "You were managing your energy levels"
                 insight = "Noticing what fills and drains you"
             }
-        case "Routine & Change":
-            icon = "arrow.triangle.2.circlepath"
+        case "Regulation":
+            icon = "waveform.path"
+            color = .red
+            if intensity >= 7 {
+                message = "Regulation was challenging - \(patternName)"
+                insight = "Your nervous system needed support"
+            } else {
+                message = "You were working on staying regulated"
+                insight = "Finding what helps you feel grounded"
+            }
+        case "Body & Routine":
+            icon = "figure.mind.and.body"
+            color = .cyan
+            message = "Something shifted in your routine or body awareness"
+            insight = "Change and body signals affect everything else"
+        case "Demands & Autonomy":
+            icon = "hand.raised"
             color = .yellow
-            message = "Something shifted in your routine or expectations"
-            insight = "Change can feel unsettling, even small changes"
-        case "Demand Avoidance":
-            icon = "hand.raised.fill"
-            color = .pink
             if intensity >= 7 {
                 message = "Demands felt really overwhelming - \(patternName)"
                 insight = "When everything feels like a 'have to', the resistance makes sense"
@@ -333,16 +346,6 @@ class HomeViewModel: ObservableObject {
                 message = "You noticed some resistance to demands today"
                 insight = nil
             }
-        case "Physical & Sleep":
-            icon = "heart.fill"
-            color = .green
-            message = "Your body was telling you something"
-            insight = "Physical sensations and sleep affect everything else"
-        case "Special Interests":
-            icon = "star.fill"
-            color = .cyan
-            message = "You got to engage with something you love"
-            insight = "These moments refuel you"
         default:
             icon = "circle.fill"
             color = .gray

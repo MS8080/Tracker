@@ -91,9 +91,9 @@ class ReportGenerator {
         let events = calendarService.fetchEvents(from: weekAgo, to: Date())
         let healthSummary = await healthManager.fetchHealthSummary()
 
-        // Analyze patterns
-        let challengingPatterns = ["Sensory Overload", "Meltdown", "Shutdown", "Burnout Indicator", "Emotional Overwhelm"]
-        let positivePatterns = ["Flow State Achieved", "Authenticity Moment", "Special Interest Engagement"]
+        // Analyze patterns - use new pattern names
+        let challengingPatterns = ["Sensory State", "Overwhelm", "Burnout Signs", "Demand Response"]
+        let positivePatterns = ["Focus", "Connection", "Recovery", "Stimming"]
 
         let challengingCount = patterns.filter { challengingPatterns.contains($0.patternType) }.count
         let positiveCount = patterns.filter { positivePatterns.contains($0.patternType) }.count
@@ -594,7 +594,7 @@ class ReportGenerator {
         }
 
         // Check for concerning cascades
-        let concerningPatterns = ["Meltdown", "Shutdown", "Burnout Indicator"]
+        let concerningPatterns = ["Overwhelm", "Burnout Signs"]
         for (cascade, count) in cascadeCounts where count >= 2 {
             let parts = cascade.components(separatedBy: " → ")
             if let to = parts.last, concerningPatterns.contains(to) {
@@ -621,19 +621,19 @@ class ReportGenerator {
         for pattern in patterns {
             let startOfDay = calendar.startOfDay(for: pattern.timestamp)
 
-            if pattern.patternType == "Sleep Quality" {
+            if pattern.patternType == "Sleep" {
                 sleepQualityByDay[startOfDay] = pattern.intensity
             }
 
-            if pattern.patternType == "Sensory Overload" {
+            if pattern.patternType == "Sensory State" {
                 nextDayOverload[startOfDay, default: 0] += 1
             }
 
-            if pattern.patternType == "Masking Intensity" {
+            if pattern.patternType == "Masking" {
                 maskingByDay[startOfDay] = max(maskingByDay[startOfDay] ?? 0, pattern.intensity)
             }
 
-            if pattern.patternType == "Burnout Indicator" {
+            if pattern.patternType == "Burnout Signs" {
                 burnoutByDay[startOfDay] = true
             }
         }
@@ -696,18 +696,16 @@ class ReportGenerator {
         var dayScores: [(Date, Double)] = []
 
         let positivePatternTypes = [
-            "Flow State Achieved",
-            "Authenticity Moment",
-            "Special Interest Engagement",
-            "Hyperfocus Session"
+            "Focus",
+            "Connection",
+            "Recovery"
         ]
 
         let challengingPatternTypes = [
-            "Sensory Overload",
-            "Meltdown",
-            "Shutdown",
-            "Burnout Indicator",
-            "Emotional Overwhelm"
+            "Sensory State",
+            "Overwhelm",
+            "Burnout Signs",
+            "Demand Response"
         ]
 
         for (date, patterns) in dailyPatterns {
@@ -819,18 +817,16 @@ class ReportGenerator {
         let calendar = Calendar.current
 
         let positivePatternTypes = [
-            "Flow State Achieved",
-            "Authenticity Moment",
-            "Special Interest Engagement",
-            "Hyperfocus Session"
+            "Focus",
+            "Connection",
+            "Recovery"
         ]
 
         let challengingPatternTypes = [
-            "Sensory Overload",
-            "Meltdown",
-            "Shutdown",
-            "Burnout Indicator",
-            "Emotional Overwhelm"
+            "Sensory State",
+            "Overwhelm",
+            "Burnout Signs",
+            "Demand Response"
         ]
 
         // Group patterns by day

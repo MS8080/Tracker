@@ -261,31 +261,19 @@ struct PatternNodeView: View {
     }
 
     private var categoryIcon: String {
-        switch pattern.category {
-        case "Sensory": return "ear.and.waveform"
-        case "Executive Function": return "brain"
-        case "Energy & Regulation": return "bolt.fill"
-        case "Social & Communication": return "person.2.fill"
-        case "Routine & Change": return "calendar"
-        case "Demand Avoidance": return "xmark.shield.fill"
-        case "Physical & Sleep": return "bed.double.fill"
-        case "Positive & Coping": return "sun.max.fill"
-        default: return "circle.fill"
+        // Use PatternCategory to get consistent icons
+        if let category = PatternCategory.from(legacyName: pattern.category) {
+            return category.icon
         }
+        return "circle.fill"
     }
 
     private var categoryColor: Color {
-        switch pattern.category {
-        case "Sensory": return .red
-        case "Executive Function": return .orange
-        case "Energy & Regulation": return .purple
-        case "Social & Communication": return .blue
-        case "Routine & Change": return .yellow
-        case "Demand Avoidance": return .pink
-        case "Physical & Sleep": return .green
-        case "Positive & Coping": return .mint
-        default: return .gray
+        // Use PatternCategory to get consistent colors
+        if let category = PatternCategory.from(legacyName: pattern.category) {
+            return category.color
         }
+        return .gray
     }
 }
 

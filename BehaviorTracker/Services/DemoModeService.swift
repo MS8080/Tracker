@@ -126,7 +126,7 @@ final class DemoModeService: ObservableObject {
         return [
             DemoPatternEntry(
                 id: UUID(),
-                patternType: "Sensory Overload",
+                patternType: "Sensory State",
                 category: "Sensory",
                 intensity: 4,
                 duration: 45,
@@ -135,8 +135,8 @@ final class DemoModeService: ObservableObject {
             ),
             DemoPatternEntry(
                 id: UUID(),
-                patternType: "Masking Fatigue",
-                category: "Social & Communication",
+                patternType: "Masking",
+                category: "Social",
                 intensity: 5,
                 duration: 120,
                 timestamp: demoDate(byAdding: .hour, value: -6, to: now),
@@ -144,17 +144,17 @@ final class DemoModeService: ObservableObject {
             ),
             DemoPatternEntry(
                 id: UUID(),
-                patternType: "Hyperfocus Episode",
+                patternType: "Focus",
                 category: "Executive Function",
-                intensity: 3,
+                intensity: 5,
                 duration: 180,
                 timestamp: demoDate(byAdding: .day, value: -1, to: now),
                 contextNotes: "Working on special interest project"
             ),
             DemoPatternEntry(
                 id: UUID(),
-                patternType: "Routine Disruption",
-                category: "Routine & Change",
+                patternType: "Routine/Change",
+                category: "Body & Routine",
                 intensity: 4,
                 duration: 0,
                 timestamp: demoDate(byAdding: .day, value: -1, to: now),
@@ -163,8 +163,8 @@ final class DemoModeService: ObservableObject {
             DemoPatternEntry(
                 id: UUID(),
                 patternType: "Stimming",
-                category: "Energy & Regulation",
-                intensity: 2,
+                category: "Regulation",
+                intensity: 4,
                 duration: 30,
                 timestamp: demoDate(byAdding: .day, value: -2, to: now),
                 contextNotes: "Self-regulation during stressful moment"
@@ -172,7 +172,7 @@ final class DemoModeService: ObservableObject {
             DemoPatternEntry(
                 id: UUID(),
                 patternType: "Social Recovery",
-                category: "Social & Communication",
+                category: "Social",
                 intensity: 3,
                 duration: 60,
                 timestamp: demoDate(byAdding: .day, value: -2, to: now),
@@ -302,7 +302,7 @@ final class DemoModeService: ObservableObject {
                 journalCount: 1,
                 patternCount: 2,
                 medicationCount: 4,
-                dominantCategory: "Social & Communication",
+                dominantCategory: "Social",
                 averageIntensity: 6.0
             ))
         }
@@ -314,7 +314,7 @@ final class DemoModeService: ObservableObject {
                 journalCount: 1,
                 patternCount: 2,
                 medicationCount: 3,
-                dominantCategory: "Energy & Regulation",
+                dominantCategory: "Energy & Capacity",
                 averageIntensity: 7.5
             ))
         }
@@ -350,7 +350,7 @@ final class DemoModeService: ObservableObject {
                 journalCount: 1,
                 patternCount: 2,
                 medicationCount: 4,
-                dominantCategory: "Routine & Change",
+                dominantCategory: "Body & Routine",
                 averageIntensity: 4.0
             ))
         }
@@ -362,7 +362,7 @@ final class DemoModeService: ObservableObject {
                 journalCount: 3,
                 patternCount: 5,
                 medicationCount: 4,
-                dominantCategory: "Social & Communication",
+                dominantCategory: "Social",
                 averageIntensity: 6.5
             ))
         }
@@ -374,7 +374,7 @@ final class DemoModeService: ObservableObject {
                 journalCount: 1,
                 patternCount: 3,
                 medicationCount: 3,
-                dominantCategory: "Demand Avoidance",
+                dominantCategory: "Demands & Autonomy",
                 averageIntensity: 7.0
             ))
         }
@@ -422,7 +422,7 @@ final class DemoModeService: ObservableObject {
         return [
             DemoExtractedPattern(
                 id: UUID(),
-                patternType: "Sensory Overload",
+                patternType: "Sensory State",
                 category: "Sensory",
                 intensity: 4,
                 triggers: ["Bright lights", "Loud environment"],
@@ -434,8 +434,8 @@ final class DemoModeService: ObservableObject {
             ),
             DemoExtractedPattern(
                 id: UUID(),
-                patternType: "Masking Fatigue",
-                category: "Social & Communication",
+                patternType: "Masking",
+                category: "Social",
                 intensity: 5,
                 triggers: ["Extended social interaction", "Video call"],
                 timeOfDay: "Afternoon",
@@ -446,9 +446,9 @@ final class DemoModeService: ObservableObject {
             ),
             DemoExtractedPattern(
                 id: UUID(),
-                patternType: "Hyperfocus Episode",
+                patternType: "Focus",
                 category: "Executive Function",
-                intensity: 3,
+                intensity: 5,
                 triggers: ["Special interest project"],
                 timeOfDay: "Afternoon",
                 copingStrategies: [],
@@ -458,9 +458,9 @@ final class DemoModeService: ObservableObject {
             ),
             DemoExtractedPattern(
                 id: UUID(),
-                patternType: "Energy Dip",
-                category: "Energy & Regulation",
-                intensity: 3,
+                patternType: "Energy Level",
+                category: "Energy & Capacity",
+                intensity: 2,
                 triggers: ["Post-social fatigue", "Missed lunch"],
                 timeOfDay: "Afternoon",
                 copingStrategies: ["Rest", "Snack break"],
@@ -475,15 +475,15 @@ final class DemoModeService: ObservableObject {
         [
             DemoPatternCascade(
                 id: UUID(),
-                fromPattern: "Sensory Overload",
-                toPattern: "Energy Dip",
+                fromPattern: "Sensory State",
+                toPattern: "Energy Level",
                 confidence: 0.78,
                 description: "Sensory processing took energy reserves"
             ),
             DemoPatternCascade(
                 id: UUID(),
-                fromPattern: "Masking Fatigue",
-                toPattern: "Energy Dip",
+                fromPattern: "Masking",
+                toPattern: "Energy Level",
                 confidence: 0.85,
                 description: "Social masking depleted energy"
             )

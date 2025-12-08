@@ -486,17 +486,11 @@ struct PatternDetailRow: View {
     }
 
     private var categoryColor: Color {
-        switch pattern.category {
-        case "Sensory": return .red
-        case "Executive Function": return .orange
-        case "Energy & Regulation": return .purple
-        case "Social & Communication": return .blue
-        case "Routine & Change": return .yellow
-        case "Demand Avoidance": return .pink
-        case "Physical & Sleep": return .green
-        case "Positive & Coping": return .mint
-        default: return .gray
+        // Use PatternCategory to get consistent colors
+        if let category = PatternCategory.from(legacyName: pattern.category) {
+            return category.color
         }
+        return .gray
     }
 
     private var formattedTime: String {
@@ -590,17 +584,11 @@ struct DemoPatternDetailRow: View {
     }
 
     private var categoryColor: Color {
-        switch pattern.category {
-        case "Sensory": return .red
-        case "Executive Function": return .orange
-        case "Energy & Regulation": return .purple
-        case "Social & Communication": return .blue
-        case "Routine & Change": return .yellow
-        case "Demand Avoidance": return .pink
-        case "Physical & Sleep": return .green
-        case "Positive & Coping": return .mint
-        default: return .gray
+        // Use PatternCategory to get consistent colors
+        if let category = PatternCategory.from(legacyName: pattern.category) {
+            return category.color
         }
+        return .gray
     }
 
     private var formattedTime: String {
