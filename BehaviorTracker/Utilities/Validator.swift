@@ -2,11 +2,40 @@ import Foundation
 
 // MARK: - Validator Framework
 
-/// A generic validation framework for ensuring data integrity and security
+/// A fluent, chainable validation framework for ensuring data integrity.
+///
+/// Provides type-safe validation with clear error messages for form validation
+/// and data sanitization. Supports strings, optionals, and numeric types.
+///
+/// ## Usage
+/// ```swift
+/// // Validate a required string
+/// try Validator(username, fieldName: "Username")
+///     .notEmpty()
+///     .minLength(3)
+///     .maxLength(50)
+///     .noSpecialCharacters()
+///
+/// // Validate an optional string
+/// try Validator(bio, fieldName: "Bio")
+///     .ifPresent { validator in
+///         try validator.maxLength(500)
+///     }
+///
+/// // Validate a numeric value
+/// try Validator(rating, fieldName: "Rating")
+///     .inRange(1...5)
+/// ```
 struct Validator<T> {
+    /// The value being validated
     let value: T
+    /// Human-readable name for error messages
     let fieldName: String
 
+    /// Creates a new validator for the given value.
+    /// - Parameters:
+    ///   - value: The value to validate
+    ///   - fieldName: Human-readable name used in error messages
     init(_ value: T, fieldName: String = "Value") {
         self.value = value
         self.fieldName = fieldName

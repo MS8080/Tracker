@@ -1,12 +1,28 @@
 import Foundation
 import CoreData
 
-/// Available AI models for analysis
+/// Available AI models for generating insights and analysis.
+///
+/// Currently supports Gemini as the primary AI backend. Claude support
+/// requires additional Vertex AI Model Garden setup and is disabled.
+///
+/// ## Usage
+/// ```swift
+/// // Check available models
+/// for model in AIModel.allCases {
+///     print("\(model.displayName) - \(model.icon)")
+/// }
+///
+/// // Get selected model
+/// let current = AIAnalysisService.shared.selectedModel
+/// ```
 enum AIModel: String, CaseIterable {
+    /// Google's Gemini 2.5 Flash model - fast and cost-effective
     case gemini = "Gemini"
     // Claude requires additional Vertex AI setup - disabled for now
     // case claude = "Claude"
 
+    /// Human-readable display name for UI
     var displayName: String {
         switch self {
         case .gemini: return "Gemini 2.5 Flash"
@@ -14,6 +30,7 @@ enum AIModel: String, CaseIterable {
         }
     }
 
+    /// SF Symbol icon name for the model
     var icon: String {
         switch self {
         case .gemini: return "sparkles"
@@ -22,13 +39,48 @@ enum AIModel: String, CaseIterable {
     }
 }
 
+/// Service for AI-powered analysis of behavioral tracking data.
+///
+/// Aggregates pattern entries, journal entries, medications, and life goals
+/// to generate personalized insights using AI models. Supports both cloud-based
+/// AI analysis (Gemini) and local statistical analysis.
+///
+/// ## Usage
+/// ```swift
+/// // Basic analysis with default preferences
+/// let insights = try await AIAnalysisService.shared.analyzeData()
+/// print(insights.content)
+///
+/// // Custom analysis preferences
+/// var prefs = AIAnalysisService.AnalysisPreferences()
+/// prefs.timeframeDays = 14
+/// prefs.includeMedications = false
+/// let insights = try await AIAnalysisService.shared.analyzeData(preferences: prefs)
+///
+/// // Custom prompt for specific analysis
+/// let response = try await AIAnalysisService.shared.analyzeWithPrompt(
+///     "Analyze this journal entry for emotional patterns: \(entryText)"
+/// )
+/// ```
+///
+/// ## Data Sources
+/// The service gathers data from:
+/// - Pattern entries (behaviors, intensity, contributing factors)
+/// - Journal entries (mood, content themes)
+/// - Medications (adherence, effectiveness, side effects)
+/// - AI-extracted patterns from journals
+/// - Pattern cascades (behavior chains)
+/// - Life goals, struggles, and wishlist items
 class AIAnalysisService {
+    /// Shared singleton instance
     static let shared = AIAnalysisService()
 
     private let dataController = DataController.shared
     private let geminiService = GeminiService.shared
 
-    /// Currently selected AI model (stored in UserDefaults)
+    /// Currently selected AI model for analysis.
+    ///
+    /// Persisted in UserDefaults. Defaults to `.gemini` if not set.
     var selectedModel: AIModel {
         get {
             if let rawValue = UserDefaults.standard.string(forKey: "selected_ai_model"),
@@ -46,18 +98,38 @@ class AIAnalysisService {
 
     // MARK: - Analysis Preferences
 
+    /// Configuration options for what data to include in AI analysis.
+    ///
+    /// Use these preferences to customize which data sources are included
+    /// in the analysis prompt. Excluding irrelevant data sources can improve
+    /// response quality and reduce API costs.
     struct AnalysisPreferences {
+        /// Include manually logged pattern entries (behaviors, stimming, etc.)
         var includePatterns: Bool = true
+        /// Include journal entries (mood and content)
         var includeJournals: Bool = true
+        /// Include medication logs (adherence, effectiveness, side effects)
         var includeMedications: Bool = true
-        var includeExtractedPatterns: Bool = true  // AI-extracted patterns from journals
-        var includeCascades: Bool = true           // Pattern cascade connections
-        var includeLifeGoals: Bool = true          // Goals, Struggles, Wishlist
+        /// Include AI-extracted patterns from journal analysis
+        var includeExtractedPatterns: Bool = true
+        /// Include pattern cascade connections (behavior chains)
+        var includeCascades: Bool = true
+        /// Include life goals, struggles, and wishlist items
+        var includeLifeGoals: Bool = true
+        /// Number of days of historical data to analyze (default: 30)
         var timeframeDays: Int = 30
     }
 
     // MARK: - Main Analysis Function
 
+    /// Performs comprehensive AI analysis of tracked behavioral data.
+    ///
+    /// Gathers data from all enabled sources within the specified timeframe,
+    /// builds a structured prompt, and sends it to the AI model for analysis.
+    ///
+    /// - Parameter preferences: Configuration for which data to include and timeframe
+    /// - Returns: `AIInsights` containing the generated analysis
+    /// - Throws: Network errors or API errors from the AI service
     func analyzeData(preferences: AnalysisPreferences = AnalysisPreferences()) async throws -> AIInsights {
         let prompt = await buildPrompt(preferences: preferences)
         let response = try await generateContent(prompt: prompt)
@@ -69,7 +141,14 @@ class AIAnalysisService {
         )
     }
 
-    /// Analyze with a custom prompt (for journal entry analysis)
+    /// Sends a custom prompt directly to the AI model.
+    ///
+    /// Use this for specialized analysis tasks like individual journal entry
+    /// analysis or pattern extraction that need custom prompts.
+    ///
+    /// - Parameter prompt: The complete prompt to send to the AI
+    /// - Returns: The raw response text from the AI model
+    /// - Throws: Network errors or API errors from the AI service
     func analyzeWithPrompt(_ prompt: String) async throws -> String {
         return try await generateContent(prompt: prompt)
     }
@@ -798,11 +877,23 @@ class AIAnalysisService {
 
 // MARK: - AI Insights Model
 
+/// Represents the result of an AI analysis operation.
+///
+/// Contains the generated insights text along with metadata about when
+/// and how the analysis was performed.
+///
+/// ## Parsing Insights
+/// The `content` property contains markdown-formatted text with sections
+/// that can be parsed using `AIInsightCard.parse(from:)` for display.
 struct AIInsights: Equatable {
+    /// When the analysis was generated
     let generatedAt: Date
+    /// Number of days of data that was analyzed
     let timeframeDays: Int
+    /// The AI-generated analysis text (markdown formatted)
     let content: String
 
+    /// Human-readable formatted date string
     var formattedDate: String {
         let formatter = DateFormatter()
         formatter.dateStyle = .medium

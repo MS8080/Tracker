@@ -1,8 +1,31 @@
 @preconcurrency import CoreData
 import Foundation
 
-/// Repository for JournalEntry CRUD operations
+/// Repository for JournalEntry CRUD operations.
+///
+/// Provides thread-safe access to journal entries using Core Data background contexts.
+/// All async methods fetch on background threads and return objects on the main context.
+///
+/// ## Usage
+/// ```swift
+/// // Create a new entry
+/// let entry = try JournalRepository.shared.create(
+///     title: "Morning Thoughts",
+///     content: "Today I'm feeling energized...",
+///     mood: 4
+/// )
+///
+/// // Fetch entries with filters
+/// let entries = await JournalRepository.shared.fetch(
+///     startDate: Date().addingTimeInterval(-86400 * 7),
+///     favoritesOnly: true
+/// )
+///
+/// // Search entries
+/// let results = await JournalRepository.shared.search(query: "meditation")
+/// ```
 final class JournalRepository: @unchecked Sendable {
+    /// Shared singleton instance
     static let shared = JournalRepository()
 
     private var viewContext: NSManagedObjectContext {
@@ -20,6 +43,17 @@ final class JournalRepository: @unchecked Sendable {
 
     // MARK: - Create
 
+    /// Creates a new journal entry with validation.
+    ///
+    /// - Parameters:
+    ///   - title: Optional title for the entry (max 200 characters)
+    ///   - content: The main content of the entry (required, max 50,000 characters)
+    ///   - mood: Mood rating from 0-5 (0 = not set)
+    ///   - audioFileName: Optional filename for attached voice recording
+    ///   - relatedPatternEntry: Optional linked pattern entry
+    ///   - relatedMedicationLog: Optional linked medication log
+    /// - Returns: The newly created `JournalEntry`
+    /// - Throws: `ValidationError` if content is empty or parameters are invalid
     func create(
         title: String? = nil,
         content: String,
@@ -67,6 +101,17 @@ final class JournalRepository: @unchecked Sendable {
 
     // MARK: - Read (Async)
 
+    /// Fetches journal entries with optional filters and pagination.
+    ///
+    /// Entries are returned sorted by timestamp in descending order (newest first).
+    ///
+    /// - Parameters:
+    ///   - startDate: Only include entries on or after this date
+    ///   - endDate: Only include entries on or before this date
+    ///   - favoritesOnly: If true, only return favorited entries
+    ///   - limit: Maximum number of entries to return (for pagination)
+    ///   - offset: Number of entries to skip (for pagination)
+    /// - Returns: Array of `JournalEntry` objects on the main context
     @MainActor
     func fetch(
         startDate: Date? = nil,

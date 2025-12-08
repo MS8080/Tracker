@@ -121,7 +121,34 @@ actor AsyncSemaphore {
     }
 }
 
+/// Service for communicating with Google's Gemini AI via Vertex AI.
+///
+/// Handles API authentication, request serialization, rate limiting, and error handling
+/// for Gemini API requests. Implements automatic retry with exponential backoff for
+/// transient errors.
+///
+/// ## Configuration
+/// ```swift
+/// // Configure with API key (stored securely in Keychain)
+/// try GeminiService.shared.configure(apiKey: "your-api-key")
+///
+/// // Check if configured
+/// if GeminiService.shared.isConfigured {
+///     let response = try await GeminiService.shared.generateContent(prompt: "Hello")
+/// }
+/// ```
+///
+/// ## Rate Limiting
+/// The service implements:
+/// - Minimum 2-second interval between requests
+/// - Automatic retry with exponential backoff on 429 errors
+/// - Per-entry cooldown to prevent duplicate analysis
+///
+/// ## Error Handling
+/// All errors are thrown as `GeminiError` with descriptive messages suitable
+/// for display to users.
 class GeminiService {
+    /// Shared singleton instance
     static let shared = GeminiService()
 
     // Vertex AI configuration
@@ -222,6 +249,14 @@ class GeminiService {
             .maxLength(500, message: "API key is too long")
     }
 
+    /// Sends a prompt to Gemini and returns the generated response.
+    ///
+    /// Automatically handles rate limiting, retries on transient errors,
+    /// and serializes concurrent requests.
+    ///
+    /// - Parameter prompt: The text prompt to send to the AI
+    /// - Returns: The AI-generated response text
+    /// - Throws: `GeminiError` on configuration, network, or API errors
     func generateContent(prompt: String) async throws -> String {
         // Serialize requests - only one at a time
         await requestSemaphore.wait()
@@ -415,15 +450,27 @@ struct GeminiGenerationConfig: Encodable {
 
 // MARK: - Errors
 
+/// Errors that can occur during Gemini API operations.
+///
+/// All cases provide localized error descriptions suitable for displaying to users.
 enum GeminiError: LocalizedError {
+    /// No API key has been configured
     case noAPIKey
+    /// The constructed API URL was invalid
     case invalidURL
+    /// Server returned an unparseable response
     case invalidResponse
+    /// The provided API key is invalid
     case invalidAPIKey
+    /// HTTP error with status code and optional detail message
     case httpError(Int, String = "")
+    /// AI returned empty response content
     case noContent
+    /// Request was rate limited (429) - typically temporary
     case rateLimited
+    /// Daily API quota has been exhausted
     case quotaExhausted(String)
+    /// Authentication failed with the API
     case authenticationFailed(String)
 
     var errorDescription: String? {

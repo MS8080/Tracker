@@ -2,9 +2,42 @@
 import Foundation
 import WidgetKit
 
-/// Core Data stack manager. Delegates entity-specific operations to repositories.
+/// Core Data stack manager and primary data persistence layer.
+///
+/// Manages the Core Data persistent container, handles iCloud sync configuration,
+/// and provides fetch/save operations for all entities. Entity-specific operations
+/// are delegated to specialized repositories.
+///
+/// ## Usage
+/// ```swift
+/// // Access the shared instance
+/// let controller = DataController.shared
+///
+/// // Save changes
+/// controller.save()
+///
+/// // Fetch pattern entries
+/// let entries = await controller.fetchPatternEntriesAsync(
+///     startDate: startDate,
+///     endDate: endDate
+/// )
+/// ```
+///
+/// ## Testing
+/// For unit tests, create an in-memory instance to avoid persisting test data:
+/// ```swift
+/// let testController = DataController(inMemory: true)
+/// DataController.shared = testController
+/// ```
+///
+/// ## Repositories
+/// Most CRUD operations should go through specialized repositories:
+/// - `JournalRepository` for journal entries
+/// - `GoalRepository` for life goals
+/// - `StruggleRepository` for struggles
+/// - `WishlistRepository` for wishlist items
 class DataController: ObservableObject, @unchecked Sendable {
-    /// Shared instance. Can be replaced with an in-memory instance for testing.
+    /// Shared singleton instance. Can be replaced for testing.
     static var shared = DataController()
 
     // MARK: - iCloud Sync Configuration
