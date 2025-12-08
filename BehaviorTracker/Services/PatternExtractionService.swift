@@ -39,6 +39,7 @@ class PatternExtractionService {
         let timeOfDay: String?
         let copingUsed: [String]?
         let details: String?
+        // swiftlint:disable:next discouraged_optional_boolean
         let isUserInsight: Bool?
         let userInsightText: String?
 
@@ -63,7 +64,9 @@ class PatternExtractionService {
         let timeOfDay: String?
         let location: String?
         let socialContext: String?
+        // swiftlint:disable:next discouraged_optional_boolean
         let sleepMentioned: Bool?
+        // swiftlint:disable:next discouraged_optional_boolean
         let medicationMentioned: Bool?
 
         enum CodingKeys: String, CodingKey {

@@ -123,7 +123,7 @@ class iPhoneWatchConnectivityService: NSObject, ObservableObject {
         }
 
         if !alreadyLogged {
-            let _ = dataController.createMedicationLog(
+            _ = dataController.createMedicationLog(
                 medication: medication,
                 taken: true,
                 skippedReason: nil,
@@ -151,7 +151,7 @@ class iPhoneWatchConnectivityService: NSObject, ObservableObject {
 
         let mood = message["mood"] as? Int16 ?? 0
 
-        let _ = dataController.createJournalEntry(
+        _ = dataController.createJournalEntry(
             title: "Watch Entry",
             content: content,
             mood: mood
