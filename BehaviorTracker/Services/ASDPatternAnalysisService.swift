@@ -219,7 +219,7 @@ class ASDPatternAnalysisService: ObservableObject {
 
         // Check sleep from yesterday/today
         guard let yesterdayStart = calendar.date(byAdding: .day, value: -1, to: today) else {
-            return 0
+            return insights
         }
         let recentPatterns = patterns.filter { $0.timestamp >= yesterdayStart }
         let sleepPatterns = patternsOfType(recentPatterns, type: .sleepQuality)
