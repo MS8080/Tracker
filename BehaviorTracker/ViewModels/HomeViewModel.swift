@@ -55,6 +55,8 @@ class HomeViewModel: ObservableObject {
     private let geminiService = GeminiService.shared
     private let localAnalysisService = LocalAnalysisService.shared
     private let demoService = DemoModeService.shared
+    private let memoriesGenerator = MemoriesGenerator()
+    private let daySlidesGenerator = DaySlidesGenerator()
     private var cancellables = Set<AnyCancellable>()
 
     // Track if we should offer local analysis fallback
@@ -85,12 +87,6 @@ class HomeViewModel: ObservableObject {
     private static let relativeDateFormatter: RelativeDateTimeFormatter = {
         let formatter = RelativeDateTimeFormatter()
         formatter.unitsStyle = .full
-        return formatter
-    }()
-
-    private static let timeFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.timeStyle = .short
         return formatter
     }()
 
@@ -363,7 +359,7 @@ class HomeViewModel: ObservableObject {
         )
     }
 
-    // MARK: - Memories (now uses ExtractedPattern + JournalEntry)
+    // MARK: - Memories (now uses MemoriesGenerator)
 
     private func loadMemories() async {
         // Use cache if valid
@@ -372,47 +368,17 @@ class HomeViewModel: ObservableObject {
             return
         }
 
-        var foundMemories: [Memory] = []
         let calendar = Calendar.current
 
         // Fetch recent patterns for analysis
         let recentPatterns = await fetchExtractedPatterns(daysBack: 14)
         let lastMonthPatterns = await fetchExtractedPatterns(forDate: calendar.date(byAdding: .month, value: -1, to: Date()))
 
-        // Check last week same day
-        if let lastWeek = calendar.date(byAdding: .weekOfYear, value: -1, to: Date()) {
-            let lastWeekPatterns = filterPatternsForDay(recentPatterns, date: lastWeek)
-            if !lastWeekPatterns.isEmpty {
-                let description = describeDay(lastWeekPatterns, prefix: "Last week")
-                foundMemories.append(Memory(
-                    timeframe: "This time last week",
-                    description: description
-                ))
-            }
-        }
-
-        // Find overcome memory using extracted patterns
-        if let overcameMemory = findOvercomeMemory(from: recentPatterns) {
-            foundMemories.append(overcameMemory)
-        }
-
-        // Check last month
-        if !lastMonthPatterns.isEmpty {
-            let description = describeDay(lastMonthPatterns, prefix: "Last month")
-            foundMemories.append(Memory(
-                timeframe: "This time last month",
-                description: description
-            ))
-        }
-
-        // Check time-of-day pattern
-        let currentHour = calendar.component(.hour, from: Date())
-        if let pattern = findTimeOfDayPattern(from: recentPatterns, hour: currentHour) {
-            foundMemories.append(Memory(
-                timeframe: "Around this time",
-                description: pattern
-            ))
-        }
+        // Use generator to create memories
+        let foundMemories = memoriesGenerator.generateMemories(
+            recentPatterns: recentPatterns,
+            lastMonthPatterns: lastMonthPatterns
+        )
 
         memories = foundMemories
         memoriesCache = foundMemories
@@ -463,75 +429,6 @@ class HomeViewModel: ObservableObject {
         }
     }
 
-    private func filterPatternsForDay(_ patterns: [ExtractedPattern], date: Date) -> [ExtractedPattern] {
-        let calendar = Calendar.current
-        let startOfDay = calendar.startOfDay(for: date)
-        guard let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay) else {
-            return []
-        }
-        return patterns.filter { $0.timestamp >= startOfDay && $0.timestamp < endOfDay }
-    }
-
-    private func findOvercomeMemory(from patterns: [ExtractedPattern]) -> Memory? {
-        // Sort by timestamp descending (most recent first)
-        let sorted = patterns.sorted { $0.timestamp > $1.timestamp }
-
-        for (index, pattern) in sorted.enumerated() where pattern.intensity >= 7 {
-            // Look for a later pattern (earlier in array) with lower intensity
-            if index > 0 {
-                let laterPattern = sorted[index - 1]
-
-                // Check if they recovered (low intensity or positive pattern)
-                let positivePatterns = ["Flow State Achieved", "Authenticity Moment", "Special Interest Engagement"]
-                let isPositive = positivePatterns.contains(laterPattern.patternType)
-
-                if laterPattern.intensity <= 3 || isPositive {
-                    let timeAgo = Self.relativeDateFormatter.localizedString(for: pattern.timestamp, relativeTo: Date())
-                    let patternName = pattern.patternType.lowercased()
-                    return Memory(
-                        timeframe: "You got through it",
-                        description: "\(timeAgo), you felt overwhelmed by \(patternName) — and you made it through."
-                    )
-                }
-            }
-        }
-        return nil
-    }
-
-    private func describeDay(_ patterns: [ExtractedPattern], prefix: String) -> String {
-        if let significant = patterns.max(by: { $0.intensity < $1.intensity }) {
-            let patternName = significant.patternType.lowercased()
-            if significant.intensity >= 7 {
-                return "\(prefix), you were dealing with \(patternName). You got through it."
-            } else if significant.intensity <= 3 {
-                return "\(prefix) was a calmer day. You noticed \(patternName)."
-            } else {
-                return "\(prefix), you experienced \(patternName)."
-            }
-        }
-        return "\(prefix), you had \(patterns.count) moments recorded."
-    }
-
-    private func findTimeOfDayPattern(from patterns: [ExtractedPattern], hour: Int) -> String? {
-        let calendar = Calendar.current
-        let relevantPatterns = patterns.filter { pattern in
-            let patternHour = calendar.component(.hour, from: pattern.timestamp)
-            return abs(patternHour - hour) <= 2
-        }
-
-        guard relevantPatterns.count >= 3 else { return nil }
-
-        var patternCounts: [String: Int] = [:]
-        for pattern in relevantPatterns {
-            patternCounts[pattern.patternType, default: 0] += 1
-        }
-
-        if let mostCommon = patternCounts.max(by: { $0.value < $1.value }), mostCommon.value >= 3 {
-            return "You often experience \"\(mostCommon.key.lowercased())\" around now"
-        }
-        return nil
-    }
-
     // MARK: - Today Slides (now uses ExtractedPattern)
 
     private func loadTodaySlides() {
@@ -560,165 +457,7 @@ class HomeViewModel: ObservableObject {
         }
     }
 
-    // MARK: - AI Slides Generation Helpers
-
-    /// Collect patterns and cascades from journal entries
-    private func collectPatternsAndCascades(from journals: [JournalEntry]) -> (patterns: [ExtractedPattern], cascades: [PatternCascade]) {
-        var allPatterns: [ExtractedPattern] = []
-        var allCascades: [PatternCascade] = []
-
-        for journal in journals {
-            let patterns = journal.patternsArray
-            allPatterns.append(contentsOf: patterns)
-
-            for pattern in patterns {
-                if let cascades = pattern.cascadesFrom {
-                    allCascades.append(contentsOf: cascades)
-                }
-            }
-        }
-
-        return (allPatterns, allCascades)
-    }
-
-    /// Build structured data summary from patterns and journals
-    private func buildDataSummary(patterns: [ExtractedPattern], cascades: [PatternCascade], journals: [JournalEntry]) -> String {
-        // If no patterns were extracted, fall back to raw journal content
-        guard !patterns.isEmpty else {
-            var summary = "Today's journal entries (not yet analyzed for patterns):\n\n"
-            for journal in journals {
-                let time = Self.timeFormatter.string(from: journal.timestamp)
-                let moodText = journal.mood > 0 ? " (mood: \(journal.mood)/5)" : ""
-                summary += "- [\(time)]\(moodText): \"\(journal.content)\"\n"
-            }
-            return summary
-        }
-
-        var summary = "Today's patterns (already analyzed from journal entries):\n\n"
-
-        // Add extracted patterns
-        summary += "EXTRACTED PATTERNS:\n"
-        for pattern in patterns.sorted(by: { $0.timestamp < $1.timestamp }) {
-            let time = Self.timeFormatter.string(from: pattern.timestamp)
-            summary += "- [\(time)] \(pattern.patternType) (\(pattern.category), intensity: \(pattern.intensity)/10)"
-            if let details = pattern.details, !details.isEmpty {
-                summary += "\n  Details: \"\(details)\""
-            }
-            if !pattern.triggers.isEmpty {
-                summary += "\n  Triggers: \(pattern.triggers.joined(separator: ", "))"
-            }
-            summary += "\n"
-        }
-        summary += "\n"
-
-        // Add cascades if present
-        if !cascades.isEmpty {
-            summary += "PATTERN CASCADES (what led to what):\n"
-            for cascade in cascades {
-                let from = cascade.fromPattern?.patternType ?? "Unknown"
-                let to = cascade.toPattern?.patternType ?? "Unknown"
-                summary += "- \(from) → \(to)"
-                if let desc = cascade.descriptionText {
-                    summary += ": \(desc)"
-                }
-                summary += " (confidence: \(Int(cascade.confidence * 100))%)\n"
-            }
-            summary += "\n"
-        }
-
-        // Add journal summaries for context
-        summary += "JOURNAL CONTEXT:\n"
-        for journal in journals.sorted(by: { $0.timestamp < $1.timestamp }) {
-            let time = Self.timeFormatter.string(from: journal.timestamp)
-            if let analysisSummary = journal.analysisSummary {
-                summary += "- [\(time)] \(analysisSummary)\n"
-            } else {
-                summary += "- [\(time)] \(journal.preview)\n"
-            }
-        }
-
-        // Add Life Goals context
-        let lifeGoalsContext = buildLifeGoalsContext()
-        if !lifeGoalsContext.isEmpty {
-            summary += "\nLIFE CONTEXT:\n\(lifeGoalsContext)"
-        }
-
-        return summary
-    }
-
-    /// Build the AI prompt for slide generation
-    private func buildAISlidesPrompt(dataSummary: String) -> String {
-        """
-        You are a warm, caring companion who has been with someone throughout their day, witnessing their experiences. You're now gently reflecting back what you noticed - like a supportive friend who truly sees them.
-
-        \(dataSummary)
-
-        YOUR VOICE & TONE:
-        - Speak as "I" - you are an active witness ("I noticed...", "I saw that...", "I see...")
-        - Be warm, validating, and gently supportive - NOT clinical or analytical
-        - Acknowledge difficulty with phrases like "that's real", "that makes sense", "I see it"
-        - Focus on witnessing and understanding, not instructing or advising
-        - Use everyday language, not clinical terminology
-        - Show you understand the weight of what they're carrying
-        - End with reassurance like "I'm tracking this for you" or "That's real and it makes sense"
-
-        TITLE STYLE:
-        - Short, warm titles (2-4 words)
-        - Examples: "Time Pressure & Overwhelm", "Family & Emotional Weight", "Sensory Seeking & Regulation", "Emotional Load & Focus"
-        - NOT clinical titles like "Executive Dysfunction" or "Sensory Processing Issues"
-
-        MESSAGE STYLE EXAMPLES:
-        GOOD (warm, witnessing):
-        - "I noticed you've been feeling pressure about past missed stops and upcoming family visits. Time felt heavy today. That's real and it makes sense."
-        - "The call with your mother brought up a lot. Family conversations can reactivate old feelings. I'm tracking this pattern for you."
-        - "You've been adjusting your glasses a lot today - seeking that just-right feeling. This often connects to anxiety underneath. I see it."
-        - "Family stress is taking up mental space. It's hard to focus on other things when emotions are this present. That's normal."
-
-        BAD (clinical, instructing):
-        - "Concerns about past 'missed stops' trigger feelings of pressure" (too clinical)
-        - "Monitor communication triggers" (instructing)
-        - "Address time perception distortions directly" (advising)
-        - "Explore grounding techniques" (prescriptive)
-
-        WHAT TO NOTICE:
-        - Be specific about WHAT happened (not abstract categories)
-        - Validate the difficulty - "that's hard", "that's a lot", "that makes sense"
-        - Show you see the connection - "this often connects to...", "when X happens, Y makes sense"
-        - End warmly - "I'm tracking this", "I see it", "That's real"
-
-        Generate 3-4 warm, supportive observations. Each message should be 120-200 characters.
-        Return ONLY valid JSON array:
-        [{"icon": "SF Symbol", "colorName": "gray/blue/purple/orange/green/cyan", "title": "Short gentle title (2-4 words)", "message": "Warm observation that acknowledges what happened, validates it, and reassures"}]
-
-        Icons: heart.fill, hand.raised.fill, sparkles, leaf.fill, sun.max.fill, moon.fill, cloud.fill, brain.head.profile, figure.mind.and.body, eyes, ear.fill, bolt.heart.fill, arrow.up.heart.fill, hands.sparkles.fill
-        """
-    }
-
-    /// Parse AI response JSON into DaySummarySlides
-    private func parseAISlidesResponse(_ response: String) -> [DaySummarySlide] {
-        guard let jsonStart = response.firstIndex(of: "["),
-              let jsonEnd = response.lastIndex(of: "]") else {
-            return []
-        }
-
-        let jsonString = String(response[jsonStart...jsonEnd])
-
-        guard let jsonData = jsonString.data(using: .utf8),
-              let aiSlides = try? JSONDecoder().decode([AIGeneratedSlide].self, from: jsonData) else {
-            return []
-        }
-
-        return aiSlides.map { slide in
-            DaySummarySlide(
-                icon: slide.icon,
-                color: Color.fromName(slide.colorName),
-                title: slide.title,
-                detail: slide.message
-            )
-        }
-    }
-
-    // MARK: - Generate AI Slides (now uses ExtractedPattern data)
+    // MARK: - Generate AI Slides (now uses DaySlidesGenerator)
 
     func generateAISlides() async {
         isGeneratingSlides = true
@@ -756,16 +495,16 @@ class HomeViewModel: ObservableObject {
             return
         }
 
-        // Collect patterns and cascades using helper
-        let (patterns, cascades) = collectPatternsAndCascades(from: todayJournals)
+        // Collect patterns and cascades using generator
+        let (patterns, cascades) = daySlidesGenerator.collectPatternsAndCascades(from: todayJournals)
 
-        // Build data summary and prompt using helpers
-        let dataSummary = buildDataSummary(patterns: patterns, cascades: cascades, journals: todayJournals)
-        let prompt = buildAISlidesPrompt(dataSummary: dataSummary)
+        // Build data summary and prompt using generator
+        let dataSummary = daySlidesGenerator.buildDataSummary(patterns: patterns, cascades: cascades, journals: todayJournals)
+        let prompt = daySlidesGenerator.buildAISlidesPrompt(dataSummary: dataSummary)
 
         do {
             let response = try await geminiService.generateContent(prompt: prompt)
-            todaySlides = parseAISlidesResponse(response)
+            todaySlides = daySlidesGenerator.parseAISlidesResponse(response)
 
             if todaySlides.isEmpty {
                 slidesError = "I'm here when you're ready to share"
@@ -817,62 +556,4 @@ class HomeViewModel: ObservableObject {
         }
     }
 
-    // MARK: - Life Goals Context for Day Summary
-
-    private func buildLifeGoalsContext() -> String {
-        var lines: [String] = []
-
-        // Fetch data from repositories
-        let goals = GoalRepository.shared.fetch(includeCompleted: false)
-        let struggles = StruggleRepository.shared.fetch(activeOnly: true)
-        let wishlistItems = WishlistRepository.shared.fetch(includeAcquired: false)
-
-        // Active goals summary
-        if !goals.isEmpty {
-            let overdueGoals = goals.filter { $0.isOverdue }
-            let dueSoonGoals = goals.filter { $0.isDueSoon }
-            let pinnedGoals = goals.filter { $0.isPinned }
-
-            lines.append("Active goals: \(goals.count)")
-            if !overdueGoals.isEmpty {
-                lines.append("- \(overdueGoals.count) overdue: \(overdueGoals.prefix(2).map { $0.title }.joined(separator: ", "))")
-            }
-            if !dueSoonGoals.isEmpty {
-                lines.append("- \(dueSoonGoals.count) due soon: \(dueSoonGoals.prefix(2).map { $0.title }.joined(separator: ", "))")
-            }
-            if !pinnedGoals.isEmpty {
-                lines.append("- Priority/pinned: \(pinnedGoals.prefix(3).map { $0.title }.joined(separator: ", "))")
-            }
-        }
-
-        // Current struggles summary
-        if !struggles.isEmpty {
-            let severeStruggles = struggles.filter { $0.intensityLevel.rawValue >= Struggle.Intensity.severe.rawValue }
-
-            lines.append("\nOngoing struggles: \(struggles.count)")
-            if !severeStruggles.isEmpty {
-                lines.append("- Severe/overwhelming: \(severeStruggles.prefix(2).map { "\($0.title) (\($0.intensityLevel.displayName))" }.joined(separator: ", "))")
-            }
-            // List top struggles by intensity
-            let topStruggles = struggles.sorted { $0.intensity > $1.intensity }.prefix(3)
-            for struggle in topStruggles {
-                var line = "- \(struggle.title) [\(struggle.intensityLevel.displayName)]"
-                if !struggle.triggersList.isEmpty {
-                    line += " triggers: \(struggle.triggersList.prefix(2).joined(separator: ", "))"
-                }
-                lines.append(line)
-            }
-        }
-
-        // Wishlist context (for positive reinforcement opportunities)
-        if !wishlistItems.isEmpty {
-            let highPriority = wishlistItems.filter { $0.priorityLevel == .high }
-            lines.append("\nWishlist items: \(wishlistItems.count)")
-            if !highPriority.isEmpty {
-                lines.append("- High priority wishes: \(highPriority.prefix(2).map { $0.title }.joined(separator: ", "))")
-            }
-        }
-
-        return lines.joined(separator: "\n")
-    }
 }
