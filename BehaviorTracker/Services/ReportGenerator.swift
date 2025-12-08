@@ -165,43 +165,75 @@ class ReportGenerator {
         events: [CalendarEvent],
         healthSummary: HealthDataSummary
     ) -> String {
-        var parts: [String] = []
+        var sentences: [String] = []
 
         // Overall state based on pattern balance
         if patterns.isEmpty && journals.isEmpty {
-            return "No data recorded this week. Start journaling to get personalized insights."
+            return "No data recorded this week. Start journaling to get personalized insights about your patterns and experiences."
         }
 
+        // Opening sentence about overall week
         if positiveCount > challengingCount * 2 {
-            parts.append("Great week with mostly positive experiences")
+            sentences.append("This has been a great week with mostly positive experiences and good regulation.")
         } else if challengingCount > positiveCount * 2 {
-            parts.append("Challenging week with more difficult moments")
+            sentences.append("This week has been challenging with more difficult moments than usual.")
         } else if positiveCount > 0 || challengingCount > 0 {
-            parts.append("Mixed week with ups and downs")
+            sentences.append("This week has been a mix of ups and downs, with both positive and challenging moments.")
         } else {
-            parts.append("Quiet week")
+            sentences.append("This has been a relatively quiet week with steady patterns.")
         }
 
-        // Add context from other sources
-        if let sleepHours = healthSummary.sleepHours {
-            if sleepHours < 6 {
-                parts.append("sleep has been low")
-            } else if sleepHours >= 8 {
-                parts.append("sleep has been good")
+        // Pattern details
+        if !patterns.isEmpty {
+            let patternCounts = Dictionary(grouping: patterns, by: { $0.patternType })
+                .mapValues { $0.count }
+                .sorted { $0.value > $1.value }
+
+            if let topPattern = patternCounts.first {
+                sentences.append("Your most frequent pattern was \(topPattern.key) (\(topPattern.value) times).")
+            }
+
+            // Category breakdown
+            let categoryCounts = Dictionary(grouping: patterns, by: { $0.category })
+                .mapValues { $0.count }
+                .sorted { $0.value > $1.value }
+
+            if let topCategory = categoryCounts.first, categoryCounts.count > 1 {
+                sentences.append("\(topCategory.key) patterns were most common this week.")
             }
         }
 
+        // Journal engagement
+        if !journals.isEmpty {
+            sentences.append("You wrote \(journals.count) journal \(journals.count == 1 ? "entry" : "entries").")
+        }
+
+        // Sleep context
+        if let sleepHours = healthSummary.sleepHours {
+            if sleepHours < 6 {
+                sentences.append("Sleep has been below optimal at around \(String(format: "%.1f", sleepHours)) hours average.")
+            } else if sleepHours >= 8 {
+                sentences.append("Sleep has been good with \(String(format: "%.1f", sleepHours)) hours average.")
+            } else {
+                sentences.append("Sleep averaged \(String(format: "%.1f", sleepHours)) hours.")
+            }
+        }
+
+        // Calendar busyness
         if events.count > 20 {
-            parts.append("very busy calendar")
+            sentences.append("Your calendar was very busy with \(events.count) events.")
         } else if events.count > 10 {
-            parts.append("moderately busy schedule")
+            sentences.append("You had a moderately busy schedule with \(events.count) events.")
         }
 
+        // Intensity note
         if avgIntensity > 7 {
-            parts.append("high intensity overall")
+            sentences.append("Overall intensity was high this week, averaging \(String(format: "%.1f", avgIntensity))/10.")
+        } else if avgIntensity > 4 && !patterns.isEmpty {
+            sentences.append("Average intensity was moderate at \(String(format: "%.1f", avgIntensity))/10.")
         }
 
-        return parts.joined(separator: ", ") + "."
+        return sentences.joined(separator: " ")
     }
 
     private func generateRecommendations(

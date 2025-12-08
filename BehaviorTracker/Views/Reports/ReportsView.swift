@@ -27,7 +27,7 @@ struct ReportsView: View {
                     .ignoresSafeArea()
 
                 ScrollView {
-                    VStack(spacing: Spacing.lg) {
+                    VStack(spacing: Spacing.md) {
                         // Demo mode indicator
                         if viewModel.isDemoMode {
                             HStack {

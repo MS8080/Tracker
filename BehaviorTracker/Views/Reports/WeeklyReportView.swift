@@ -6,7 +6,7 @@ struct WeeklyReportView: View {
     let theme: AppTheme
 
     var body: some View {
-        VStack(spacing: Spacing.md) {
+        VStack(spacing: Spacing.sm) {
             heroStatsRow
             summaryCard
             categoryDistributionCard
