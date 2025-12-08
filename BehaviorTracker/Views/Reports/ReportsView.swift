@@ -1,5 +1,6 @@
 import SwiftUI
 import Charts
+import CoreData
 
 struct ReportsView: View {
     @StateObject private var viewModel = ReportsViewModel()
@@ -10,7 +11,13 @@ struct ReportsView: View {
     @State private var showingAIInsights = false
     @State private var showingExport = false
     @State private var showingInsightsConfig = false
+    @State private var savedCardIds: Set<UUID> = []
+    @State private var bookmarkedCardIds: Set<UUID> = []
     @Binding var showingProfile: Bool
+
+    @Namespace private var insightsAnimation
+
+    @Environment(\.managedObjectContext) private var viewContext
 
     @AppStorage("selectedTheme") private var selectedThemeRaw: String = AppTheme.purple.rawValue
 
@@ -53,7 +60,11 @@ struct ReportsView: View {
 
                         AnalysisCardsRow(
                             theme: theme,
-                            onAIInsights: { showingAIInsights = true },
+                            insightsNamespace: insightsAnimation,
+                            onAIInsights: {
+                                showingAIInsights = true
+                                Task { await insightsViewModel.analyze() }
+                            },
                             onCorrelations: { showingCorrelations = true },
                             onExport: { showingExport = true }
                         )
@@ -94,8 +105,33 @@ struct ReportsView: View {
             .sheet(isPresented: $showingCorrelations) {
                 CorrelationInsightsView()
             }
-            .sheet(isPresented: $showingAIInsights) {
-                AIInsightsView()
+            .fullScreenCover(isPresented: $showingAIInsights) {
+                if #available(iOS 18.0, *) {
+                    FullScreenInsightsView(
+                        viewModel: insightsViewModel,
+                        savedCardIds: $savedCardIds,
+                        bookmarkedCardIds: $bookmarkedCardIds,
+                        theme: theme,
+                        namespace: insightsAnimation,
+                        onSaveToJournal: saveCardToJournal,
+                        onDismiss: {
+                            showingAIInsights = false
+                        }
+                    )
+                    .navigationTransition(.zoom(sourceID: "insightsCard", in: insightsAnimation))
+                } else {
+                    FullScreenInsightsView(
+                        viewModel: insightsViewModel,
+                        savedCardIds: $savedCardIds,
+                        bookmarkedCardIds: $bookmarkedCardIds,
+                        theme: theme,
+                        namespace: insightsAnimation,
+                        onSaveToJournal: saveCardToJournal,
+                        onDismiss: {
+                            showingAIInsights = false
+                        }
+                    )
+                }
             }
             .sheet(isPresented: $showingExport) {
                 ExportDataView(viewModel: settingsViewModel)
@@ -109,6 +145,50 @@ struct ReportsView: View {
     private func refreshReports() async {
         try? await Task.sleep(nanoseconds: 500_000_000)
         viewModel.generateReports()
+    }
+
+    private func saveCardToJournal(_ card: AIInsightCard) {
+        let entry = JournalEntry(context: viewContext)
+        entry.id = UUID()
+        entry.timestamp = Date()
+        entry.title = "💡 \(card.title)"
+
+        var content = ""
+        if !card.content.isEmpty {
+            content += card.content + "\n\n"
+        }
+        for bullet in card.bullets {
+            content += "• " + bullet + "\n"
+        }
+        entry.content = content.trimmingCharacters(in: .whitespacesAndNewlines)
+        entry.mood = 0
+        entry.isFavorite = false
+
+        let fetchRequest = NSFetchRequest<Tag>(entityName: "Tag")
+        fetchRequest.predicate = NSPredicate(format: "name == %@", "Insights")
+
+        do {
+            let existingTags = try viewContext.fetch(fetchRequest)
+            let insightsTag: Tag
+
+            if let existing = existingTags.first {
+                insightsTag = existing
+            } else {
+                insightsTag = Tag(context: viewContext)
+                insightsTag.id = UUID()
+                insightsTag.name = "Insights"
+            }
+
+            entry.addToTags(insightsTag)
+            try viewContext.save()
+
+            savedCardIds.insert(card.id)
+            #if os(iOS)
+            HapticFeedback.success.trigger()
+            #endif
+        } catch {
+            print("Failed to save insight to journal: \(error)")
+        }
     }
 }
 

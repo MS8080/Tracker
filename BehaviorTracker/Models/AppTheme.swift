@@ -54,12 +54,12 @@ private enum ThemeColorToken {
         }
     }
 
-    /// Primary color - balanced between dark and visible
+    /// Primary color - vibrant and visible
     static func primary(for theme: AppTheme) -> HSLColor {
         HSLColor(
             hue: baseHue(for: theme),
-            saturation: baseSaturation(for: theme),
-            lightness: 0.48  // Visible but not bright
+            saturation: baseSaturation(for: theme) + 0.10,
+            lightness: 0.58  // Brighter, more vibrant
         )
     }
 
@@ -67,8 +67,8 @@ private enum ThemeColorToken {
     static func timeline(for theme: AppTheme) -> HSLColor {
         HSLColor(
             hue: baseHue(for: theme),
-            saturation: min(0.60, baseSaturation(for: theme) + 0.10),
-            lightness: 0.55
+            saturation: min(0.65, baseSaturation(for: theme) + 0.15),
+            lightness: 0.62
         )
     }
 }

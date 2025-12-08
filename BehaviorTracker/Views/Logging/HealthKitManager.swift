@@ -51,7 +51,7 @@ class HealthKitManager: ObservableObject, @unchecked Sendable {
                 predicate: nil,
                 limit: 1,
                 sortDescriptors: nil
-            ) { _, samples, error in
+            ) { _, _, error in
                 // If we get samples or no error, we likely have authorization
                 // Note: empty samples with no error also means authorized but no data
                 if error == nil {
@@ -250,8 +250,8 @@ class HealthKitManager: ObservableObject, @unchecked Sendable {
         guard authorized else { return }
         
         switch patternType {
-        // Emotional Regulation patterns -> State of Mind
-        case .meltdown, .shutdown:
+        // Overwhelm patterns -> State of Mind
+        case .overwhelm:
             await logStateOfMind(
                 for: patternType,
                 intensity: intensity,
@@ -259,7 +259,7 @@ class HealthKitManager: ObservableObject, @unchecked Sendable {
             )
 
         // Recovery patterns -> Mindfulness sessions
-        case .sensoryRecovery, .socialRecovery, .regulatoryStimming:
+        case .recovery, .socialRecovery, .stimming:
             if duration > 0 {
                 await logMindfulSession(
                     duration: TimeInterval(duration * 60), // Convert minutes to seconds
@@ -268,7 +268,7 @@ class HealthKitManager: ObservableObject, @unchecked Sendable {
             }
 
         // Sleep patterns -> Sleep Analysis
-        case .sleepQuality:
+        case .sleep:
             // Only log if duration is provided (actual sleep hours)
             if duration > 0 {
                 await logSleepQuality(
@@ -279,13 +279,13 @@ class HealthKitManager: ObservableObject, @unchecked Sendable {
             }
 
         // Energy patterns -> State of Mind (energy component)
-        case .energyLevel, .burnoutIndicator:
+        case .energyLevel, .burnout:
             await logEnergyStateOfMind(
                 for: patternType,
                 intensity: intensity,
                 timestamp: timestamp
             )
-            
+
         default:
             // Other patterns don't have direct HealthKit equivalents
             break
@@ -309,10 +309,8 @@ class HealthKitManager: ObservableObject, @unchecked Sendable {
         var labels: [HKStateOfMind.Label] = []
         
         switch patternType {
-        case .meltdown:
+        case .overwhelm:
             labels = [.stressed, .overwhelmed]
-        case .shutdown:
-            labels = [.drained]
         default:
             break
         }
@@ -352,7 +350,7 @@ class HealthKitManager: ObservableObject, @unchecked Sendable {
             } else if intensity <= 2 {
                 labels = [.drained]
             }
-        case .burnoutIndicator:
+        case .burnout:
             valence = Double(3 - intensity) / 2.0 // Maps 1->1, 3->0, 5->-1
             labels = [.drained, .stressed]
         default:

@@ -187,8 +187,11 @@
 		68726BFCC49929B4D76AC789 /* WishlistItem+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAE83F73EF559E8C7B12D35F /* WishlistItem+CoreDataClass.swift */; };
 		6CE0C610033DD43C4CE01AD6 /* NetworkMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = EBE2D5DF337F8EECE29D154C /* NetworkMonitor.swift */; };
 		72544E6AF144E24A9E9B866F /* Struggle+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48C54C1F69C5BD96E8054F72 /* Struggle+CoreDataClass.swift */; };
+		PERSKNOW00012EE0000002 /* PersonalKnowledge+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = PERSKNOW00012EE0000001 /* PersonalKnowledge+CoreDataClass.swift */; };
+		PERSKNOWREP00012EE0002 /* PersonalKnowledgeRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = PERSKNOWREP00012EE0001 /* PersonalKnowledgeRepository.swift */; };
 		744E109B30225FA664C67523 /* DemoModeService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D5EA3AE0471D84C660ACA46 /* DemoModeService.swift */; };
 		74BCB96FD47A7278A3541AE7 /* ErrorBannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69C4F9A6C302CE05AF5AA9D0 /* ErrorBannerView.swift */; };
+		TEACHAI00012EE0000002 /* TeachAIView.swift in Sources */ = {isa = PBXBuildFile; fileRef = TEACHAI00012EE0000001 /* TeachAIView.swift */; };
 		796222326AD62D17993741A4 /* ProfileSettingsViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F86B475F9E2344B80711EF5 /* ProfileSettingsViews.swift */; };
 		7B6062B22BBDF037BCC2F2B5 /* ClaudeService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3147DA86A19660C43BB8236A /* ClaudeService.swift */; };
 		7D55C3704A352E10738A0EA7 /* JournalRepositoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDA9BAC44C059E02E26305AA /* JournalRepositoryTests.swift */; };
@@ -369,6 +372,8 @@
 		447B8FE8126FA321FB54A2DB /* NavigationUITests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NavigationUITests.swift; sourceTree = "<group>"; };
 		464BAD9D4063FF9898E4A68A /* LifeGoalsSection.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = LifeGoalsSection.swift; path = LifeGoals/LifeGoalsSection.swift; sourceTree = "<group>"; };
 		48C54C1F69C5BD96E8054F72 /* Struggle+CoreDataClass.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "Struggle+CoreDataClass.swift"; sourceTree = "<group>"; };
+		PERSKNOW00012EE0000001 /* PersonalKnowledge+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PersonalKnowledge+CoreDataClass.swift"; sourceTree = "<group>"; };
+		PERSKNOWREP00012EE0001 /* PersonalKnowledgeRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersonalKnowledgeRepository.swift; sourceTree = "<group>"; };
 		4E0091062EC1372900D8A0D1 /* PatternEntry+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PatternEntry+CoreDataClass.swift"; sourceTree = "<group>"; };
 		4E0091072EC1372900D8A0D1 /* Medication+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Medication+CoreDataClass.swift"; sourceTree = "<group>"; };
 		4E0091082EC1372900D8A0D1 /* Tag+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Tag+CoreDataClass.swift"; sourceTree = "<group>"; };
@@ -501,6 +506,7 @@
 		62B3F9C9832467ED22CA8897 /* JournalViewModelTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = JournalViewModelTests.swift; sourceTree = "<group>"; };
 		6536C0F04AB7D153C4447D3F /* GoalRepository.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GoalRepository.swift; sourceTree = "<group>"; };
 		69C4F9A6C302CE05AF5AA9D0 /* ErrorBannerView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ErrorBannerView.swift; sourceTree = "<group>"; };
+		TEACHAI00012EE0000001 /* TeachAIView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TeachAIView.swift; sourceTree = "<group>"; };
 		72B92F1F3AE3DFBFBBEE2212 /* LaunchPerformanceUITests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LaunchPerformanceUITests.swift; sourceTree = "<group>"; };
 		78F51FCF709F34F345267407 /* BehaviorTrackerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BehaviorTrackerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		7D14BEF8A651870DAC399940 /* ProfileHealthViews.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ProfileHealthViews.swift; sourceTree = "<group>"; };
@@ -631,6 +637,7 @@
 				19A2367145F3B76EE22AA416 /* Goal+CoreDataClass.swift */,
 				FAE83F73EF559E8C7B12D35F /* WishlistItem+CoreDataClass.swift */,
 				48C54C1F69C5BD96E8054F72 /* Struggle+CoreDataClass.swift */,
+				PERSKNOW00012EE0000001 /* PersonalKnowledge+CoreDataClass.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -757,6 +764,7 @@
 				4EC1D7172ED8FBE4003F9272 /* EmptyStateView.swift */,
 				4EC1D71D2ED8FF99003F9272 /* ThemeWrapper.swift */,
 				69C4F9A6C302CE05AF5AA9D0 /* ErrorBannerView.swift */,
+				TEACHAI00012EE0000001 /* TeachAIView.swift */,
 			);
 			path = Settings;
 			sourceTree = "<group>";
@@ -954,6 +962,7 @@
 				6536C0F04AB7D153C4447D3F /* GoalRepository.swift */,
 				E5AA46E8238D41DADA2135C8 /* WishlistRepository.swift */,
 				2CF42D7E03297CE6B5A50D22 /* StruggleRepository.swift */,
+				PERSKNOWREP00012EE0001 /* PersonalKnowledgeRepository.swift */,
 			);
 			path = Repositories;
 			sourceTree = "<group>";
@@ -1347,6 +1356,8 @@
 				BC1936E70D6F1139C84DF5A6 /* Goal+CoreDataClass.swift in Sources */,
 				68726BFCC49929B4D76AC789 /* WishlistItem+CoreDataClass.swift in Sources */,
 				72544E6AF144E24A9E9B866F /* Struggle+CoreDataClass.swift in Sources */,
+				PERSKNOW00012EE0000002 /* PersonalKnowledge+CoreDataClass.swift in Sources */,
+				PERSKNOWREP00012EE0002 /* PersonalKnowledgeRepository.swift in Sources */,
 				99FDF9D27F07A681DD900E89 /* GoalRepository.swift in Sources */,
 				AE0326478B2F55D75FFCEC14 /* WishlistRepository.swift in Sources */,
 				64C6D556AA180C885D620534 /* StruggleRepository.swift in Sources */,
@@ -1371,6 +1382,7 @@
 				C381833EDD8E7F735DB4BF00 /* ProfileMedicationsViews.swift in Sources */,
 				796222326AD62D17993741A4 /* ProfileSettingsViews.swift in Sources */,
 				74BCB96FD47A7278A3541AE7 /* ErrorBannerView.swift in Sources */,
+				TEACHAI00012EE0000002 /* TeachAIView.swift in Sources */,
 				9E769BF29428223D3E380D9A /* AnalysisCoordinator.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

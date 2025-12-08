@@ -1,108 +1,107 @@
 import Foundation
 
-/// Specific pattern types within each category
+/// Refined pattern types - bidirectional where possible
+/// Reduced from 50 to 25 core patterns that capture the full autistic experience
 enum PatternType: String, CaseIterable, Codable {
-    
-    // MARK: - Sensory
-    case sensoryOverload = "Sensory Overload"
-    case sensorySeeking = "Sensory Seeking/Stimming"
-    case environmentalSensitivity = "Environmental Sensitivity"
-    case sensoryRecovery = "Sensory Recovery Time"
-    
-    // MARK: - Executive Function
-    case taskInitiation = "Task Initiation Difficulty"
-    case taskSwitching = "Task Switching Challenge"
-    case timeBlindness = "Time Blindness"
-    case decisionFatigue = "Decision Fatigue"
-    case hyperfocus = "Hyperfocus Session"
-    
-    // MARK: - Energy & Regulation
-    case energyLevel = "Energy/Spoon Level"
-    case maskingIntensity = "Masking Intensity"
-    case burnoutIndicator = "Burnout Indicator"
-    case meltdown = "Meltdown"
-    case shutdown = "Shutdown"
-    case regulatoryStimming = "Regulatory Stimming"
-    case emotionalOverwhelm = "Emotional Overwhelm"
-    case rumination = "Rumination/Thought Loops"
-    case flowState = "Flow State Achieved"
-    case authenticityMoment = "Authenticity Moment"
-    
-    // MARK: - Social & Communication
-    case socialInteraction = "Social Interaction"
-    case socialRecovery = "Social Recovery Needed"
-    case miscommunication = "Miscommunication"
-    case communicationDifficulty = "Communication Difficulty"
-    case processingTime = "Processing Time Needed"
-    
-    // MARK: - Routine & Change
-    case routineDisruption = "Routine Disruption"
-    case transitionDifficulty = "Transition Difficulty"
-    case unexpectedChange = "Unexpected Change"
-    case samenessNeed = "Need for Sameness"
-    case uncertaintyIntolerance = "Uncertainty Intolerance"
-    
-    // MARK: - Demand Avoidance
-    case taskAvoidance = "Task Avoidance"
-    case internalDemand = "Internal Demand Struggle"
-    case externalDemand = "External Demand Struggle"
-    case autonomyNeed = "Autonomy Need"
-    case avoidanceStrategy = "What Helped Complete Task"
-    
-    // MARK: - Physical & Sleep
-    case sleepQuality = "Sleep Quality"
-    case appetiteChange = "Appetite Change"
-    case physicalTension = "Physical Tension/Pain"
-    case digestiveIssue = "Digestive Issue"
-    
-    // MARK: - Special Interests
-    case specialInterest = "Special Interest Engagement"
-    case disengagementDifficulty = "Difficulty Disengaging"
 
-    // MARK: - Positive & Coping
-    case successfulCoping = "Successful Coping"
-    case calmState = "Calm/Regulated State"
-    case connectionMoment = "Connection Moment"
-    case restSuccess = "Rest/Recovery Success"
-    case sensoryComfort = "Sensory Comfort"
-    case boundarySetting = "Boundary Setting"
-    case selfCompassion = "Self-Compassion"
-    case accommodationWin = "Accommodation Win"
-    case joyHappiness = "Joy/Happiness"
-    case achievementProgress = "Achievement/Progress"
+    // MARK: - Energy & Capacity (4)
+    case energyLevel = "Energy Level"              // 1=depleted, 5=abundant
+    case burnout = "Burnout Signs"                 // Exhaustion indicators
+    case recovery = "Recovery"                     // Rest, recharge, what helped
+    case capacity = "Capacity Check"               // How much can you handle today
+
+    // MARK: - Sensory (3)
+    case sensoryState = "Sensory State"            // 1=overloaded, 5=comfortable
+    case sensorySeeking = "Sensory Seeking"        // Stimming, seeking input
+    case sensoryEnvironment = "Environment"        // What's affecting you
+
+    // MARK: - Regulation (4)
+    case overwhelm = "Overwhelm"                   // Meltdown, shutdown, emotional flood
+    case regulation = "Regulation State"           // 1=dysregulated, 5=grounded
+    case stimming = "Stimming"                     // Regulatory movement/behavior
+    case rumination = "Thought Loops"              // Repetitive thoughts, stuck thinking
+
+    // MARK: - Social (4)
+    case socialEnergy = "Social Energy"            // 1=drained, 5=connected
+    case masking = "Masking"                       // How much you're performing
+    case socialRecovery = "Social Recovery"        // Time/space needed after interaction
+    case connection = "Connection"                 // Genuine moments of understanding
+
+    // MARK: - Executive Function (4)
+    case focus = "Focus"                           // Hyperfocus, scattered, flow state
+    case taskInitiation = "Starting Tasks"         // Getting going difficulty
+    case timeAwareness = "Time Awareness"          // Blindness, lost track, managed well
+    case decisions = "Decision Making"             // Fatigue, clarity, overwhelm
+
+    // MARK: - Demands & Autonomy (3)
+    case demandResponse = "Demand Response"        // How demands feel/how you responded
+    case autonomy = "Autonomy"                     // Need for control, choice
+    case avoidance = "Avoidance"                   // What you're avoiding and why
+
+    // MARK: - Body & Routine (3)
+    case bodySignals = "Body Signals"              // Interoception - hunger, pain, needs
+    case sleep = "Sleep"                           // Quality, duration, disturbances
+    case routineChange = "Routine/Change"          // Disruption, transition, unexpected
+
+    // MARK: - Category Mapping
 
     var category: PatternCategory {
         switch self {
-        case .sensoryOverload, .sensorySeeking, .environmentalSensitivity, .sensoryRecovery:
+        case .energyLevel, .burnout, .recovery, .capacity:
+            return .energy
+        case .sensoryState, .sensorySeeking, .sensoryEnvironment:
             return .sensory
-        case .taskInitiation, .taskSwitching, .timeBlindness, .decisionFatigue, .hyperfocus:
-            return .executiveFunction
-        case .energyLevel, .maskingIntensity, .burnoutIndicator, .meltdown, .shutdown, .regulatoryStimming, .emotionalOverwhelm, .rumination, .flowState, .authenticityMoment:
-            return .energyRegulation
-        case .socialInteraction, .socialRecovery, .miscommunication, .communicationDifficulty, .processingTime:
+        case .overwhelm, .regulation, .stimming, .rumination:
+            return .regulation
+        case .socialEnergy, .masking, .socialRecovery, .connection:
             return .social
-        case .routineDisruption, .transitionDifficulty, .unexpectedChange, .samenessNeed, .uncertaintyIntolerance:
-            return .routineChange
-        case .taskAvoidance, .internalDemand, .externalDemand, .autonomyNeed, .avoidanceStrategy:
-            return .demandAvoidance
-        case .sleepQuality, .appetiteChange, .physicalTension, .digestiveIssue:
-            return .physicalWellbeing
-        case .specialInterest, .disengagementDifficulty:
-            return .energyRegulation
-        case .successfulCoping, .calmState, .connectionMoment, .restSuccess, .sensoryComfort, .boundarySetting, .selfCompassion, .accommodationWin, .joyHappiness, .achievementProgress:
-            return .positiveCoping
+        case .focus, .taskInitiation, .timeAwareness, .decisions:
+            return .executive
+        case .demandResponse, .autonomy, .avoidance:
+            return .demands
+        case .bodySignals, .sleep, .routineChange:
+            return .body
+        }
+    }
+
+    // MARK: - Bidirectional Patterns (use 1-5 scale both ways)
+
+    /// Whether this pattern uses a bidirectional scale (1=struggle, 5=thriving)
+    var isBidirectional: Bool {
+        switch self {
+        case .energyLevel, .sensoryState, .regulation, .socialEnergy, .focus, .timeAwareness:
+            return true
+        default:
+            return false
+        }
+    }
+
+    /// Scale labels for bidirectional patterns
+    var scaleLabels: (low: String, high: String)? {
+        switch self {
+        case .energyLevel:
+            return ("Depleted", "Abundant")
+        case .sensoryState:
+            return ("Overloaded", "Comfortable")
+        case .regulation:
+            return ("Dysregulated", "Grounded")
+        case .socialEnergy:
+            return ("Drained", "Connected")
+        case .focus:
+            return ("Scattered", "Flow")
+        case .timeAwareness:
+            return ("Lost", "Aware")
+        default:
+            return nil
         }
     }
 
     /// Whether this pattern should have an intensity scale (1-5)
     var hasIntensityScale: Bool {
         switch self {
-        case .sensoryOverload, .environmentalSensitivity, .energyLevel, .maskingIntensity,
-             .burnoutIndicator, .meltdown, .shutdown, .socialInteraction, .socialRecovery,
-             .routineDisruption, .unexpectedChange, .taskAvoidance, .internalDemand,
-             .externalDemand, .autonomyNeed, .sleepQuality, .physicalTension, .specialInterest,
-             .decisionFatigue, .samenessNeed, .emotionalOverwhelm, .rumination, .flowState,
-             .authenticityMoment, .uncertaintyIntolerance:
+        case .energyLevel, .sensoryState, .regulation, .socialEnergy, .focus,
+             .timeAwareness, .burnout, .overwhelm, .masking, .decisions,
+             .demandResponse, .avoidance, .sleep, .capacity:
             return true
         default:
             return false
@@ -112,128 +111,101 @@ enum PatternType: String, CaseIterable, Codable {
     /// Whether this pattern should track duration
     var hasDuration: Bool {
         switch self {
-        case .sensoryRecovery, .hyperfocus, .meltdown, .shutdown, .socialInteraction,
-             .socialRecovery, .processingTime, .specialInterest, .regulatoryStimming,
-             .rumination, .flowState, .emotionalOverwhelm:
+        case .overwhelm, .recovery, .socialRecovery, .focus, .stimming, .rumination:
             return true
         default:
             return false
         }
     }
-    
+
     /// Placeholder text for specific details field
     var detailsPlaceholder: String {
         switch self {
-        case .sensoryOverload:
-            return "What triggered it? (noise, lights, textures, smells)"
-        case .sensorySeeking:
-            return "Type of stimming or seeking behavior"
-        case .environmentalSensitivity:
-            return "What in the environment bothered you?"
-        case .sensoryRecovery:
-            return "What helped you recover?"
-        case .taskInitiation:
-            return "What task? What time of day?"
-        case .taskSwitching:
-            return "What tasks were you switching between?"
-        case .timeBlindness:
-            return "What were you doing? How much time passed?"
-        case .decisionFatigue:
-            return "What decisions were overwhelming?"
-        case .hyperfocus:
-            return "What triggered it? How did you exit?"
+        // Energy
         case .energyLevel:
-            return "Note what affected your energy"
-        case .maskingIntensity:
-            return "What social situation required masking?"
-        case .burnoutIndicator:
-            return "What exhaustion signs are you noticing?"
-        case .meltdown, .shutdown:
-            return "What were the precursors?"
-        case .regulatoryStimming:
-            return "What type of stimming? Did it help?"
-        case .socialInteraction:
-            return "Draining or energizing? With whom?"
-        case .socialRecovery:
-            return "What helped you recover?"
-        case .miscommunication:
-            return "What was misunderstood?"
-        case .communicationDifficulty:
-            return "Phone, email, in-person? What was hard?"
-        case .processingTime:
-            return "What conversation or information?"
-        case .routineDisruption:
-            return "What was disrupted? How did you respond?"
-        case .transitionDifficulty:
-            return "What transition was difficult?"
-        case .unexpectedChange:
-            return "What changed? How did it affect you?"
-        case .samenessNeed:
-            return "What did you need to stay the same?"
-        case .uncertaintyIntolerance:
-            return "What was uncertain? How did it affect you?"
-        case .taskAvoidance:
-            return "What task? Why do you think you avoided it?"
-        case .internalDemand:
-            return "What internal expectation was difficult?"
-        case .externalDemand:
-            return "Who/what demanded something of you?"
-        case .autonomyNeed:
-            return "What autonomy did you need?"
-        case .avoidanceStrategy:
-            return "What finally helped you complete the task?"
-        case .sleepQuality:
-            return "Hours slept, quality, disturbances"
-        case .appetiteChange:
-            return "Eating more/less? Specific cravings?"
-        case .physicalTension:
-            return "Where? (jaw, shoulders, etc.)"
-        case .digestiveIssue:
-            return "What symptoms?"
-        case .specialInterest:
-            return "What interest? How did it affect your mood?"
-        case .disengagementDifficulty:
-            return "What couldn't you stop doing?"
-        case .emotionalOverwhelm:
-            return "What triggered it? What emotions?"
+            return "What's affecting your energy?"
+        case .burnout:
+            return "What signs are you noticing?"
+        case .recovery:
+            return "What helped? How long did it take?"
+        case .capacity:
+            return "What can/can't you handle today?"
+
+        // Sensory
+        case .sensoryState:
+            return "What's contributing to this state?"
+        case .sensorySeeking:
+            return "What input are you seeking? Does it help?"
+        case .sensoryEnvironment:
+            return "What in your environment is affecting you?"
+
+        // Regulation
+        case .overwhelm:
+            return "Meltdown, shutdown, or emotional? What preceded it?"
+        case .regulation:
+            return "What's helping or hurting your regulation?"
+        case .stimming:
+            return "What type? Is it helping?"
         case .rumination:
-            return "What thoughts kept repeating? What triggered it?"
-        case .flowState:
-            return "What activity? What made it possible?"
-        case .authenticityMoment:
-            return "What felt authentic? Who were you with?"
-        case .successfulCoping:
-            return "What strategy worked? What situation did you manage?"
-        case .calmState:
-            return "What helped you feel calm? Where were you?"
-        case .connectionMoment:
-            return "Who did you connect with? What made it meaningful?"
-        case .restSuccess:
-            return "What kind of rest? How do you feel now?"
-        case .sensoryComfort:
-            return "What sensory input felt good? Where were you?"
-        case .boundarySetting:
-            return "What boundary did you set? How did it feel?"
-        case .selfCompassion:
-            return "What did you accept about yourself?"
-        case .accommodationWin:
-            return "What accommodation helped? Who provided it?"
-        case .joyHappiness:
-            return "What brought you joy? How did it feel?"
-        case .achievementProgress:
-            return "What did you accomplish? How do you feel about it?"
+            return "What thoughts are looping? What triggered it?"
+
+        // Social
+        case .socialEnergy:
+            return "Who were you with? Draining or energizing?"
+        case .masking:
+            return "What situation? How exhausting was it?"
+        case .socialRecovery:
+            return "How much time/space do you need?"
+        case .connection:
+            return "What made this moment feel genuine?"
+
+        // Executive
+        case .focus:
+            return "Hyperfocus, flow, or scattered? On what?"
+        case .taskInitiation:
+            return "What task? What's blocking you?"
+        case .timeAwareness:
+            return "Lost track? Or managed time well?"
+        case .decisions:
+            return "What decisions? Overwhelming or manageable?"
+
+        // Demands
+        case .demandResponse:
+            return "Internal or external demand? How did you respond?"
+        case .autonomy:
+            return "What choice/control do you need?"
+        case .avoidance:
+            return "What are you avoiding? Why do you think?"
+
+        // Body & Routine
+        case .bodySignals:
+            return "Missed hunger, pain, bathroom? Or tuned in?"
+        case .sleep:
+            return "Hours, quality, what affected it?"
+        case .routineChange:
+            return "What changed? Expected or unexpected?"
         }
     }
-    
-    /// Quick-tap friendly patterns that are common daily logs
+
+    /// Quick-tap patterns for daily logging
     static var quickLogPatterns: [PatternType] {
         [
             .energyLevel,
-            .sensoryOverload,
-            .maskingIntensity,
-            .taskAvoidance,
-            .sleepQuality,
-            .socialInteraction
+            .sensoryState,
+            .regulation,
+            .socialEnergy,
+            .focus,
+            .sleep
         ]
+    }
+
+    /// Patterns that indicate struggles (for analysis)
+    static var strugglePatterns: [PatternType] {
+        [.burnout, .overwhelm, .rumination, .avoidance]
+    }
+
+    /// Patterns that indicate wins (for analysis)
+    static var positivePatterns: [PatternType] {
+        [.recovery, .connection, .stimming]
     }
 }

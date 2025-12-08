@@ -55,9 +55,15 @@ struct PatternEntryFormView: View {
                     Section {
                         VStack(alignment: .leading, spacing: 12) {
                             HStack {
-                                Text("Intensity")
-                                    .font(.subheadline)
-                                    .foregroundStyle(.secondary)
+                                if patternType.isBidirectional {
+                                    Text("State")
+                                        .font(.subheadline)
+                                        .foregroundStyle(.secondary)
+                                } else {
+                                    Text("Intensity")
+                                        .font(.subheadline)
+                                        .foregroundStyle(.secondary)
+                                }
                                 Spacer()
                                 Text("\(Int(intensity))")
                                     .font(.headline)
@@ -68,13 +74,23 @@ struct PatternEntryFormView: View {
                                 .tint(intensityColor)
 
                             HStack {
-                                Text("Low")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                                Spacer()
-                                Text("High")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
+                                if let labels = patternType.scaleLabels {
+                                    Text(labels.low)
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                    Spacer()
+                                    Text(labels.high)
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                } else {
+                                    Text("Low")
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                    Spacer()
+                                    Text("High")
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
                             }
                         }
                         .padding(.vertical, 4)
@@ -320,7 +336,6 @@ struct PatternEntryFormView: View {
                     .foregroundStyle(.white)
                 }
 
-
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Save") {
                         saveEntry()
@@ -478,7 +493,7 @@ struct PatternEntryFormView: View {
 
 #Preview {
     PatternEntryFormView(
-        patternType: .sensoryOverload,
+        patternType: .sensoryState,
         viewModel: LoggingViewModel(),
         onSave: {}
     )

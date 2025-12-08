@@ -88,13 +88,13 @@ enum GuidedFactor: String, CaseIterable, Identifiable {
         case .environment:
             return [.sensory]
         case .event:
-            return [.routineChange, .energyRegulation]
+            return [.body, .energy]
         case .health:
-            return [.physicalWellbeing, .energyRegulation]
+            return [.body, .energy]
         case .social:
             return [.social]
         case .demands:
-            return [.demandAvoidance, .executiveFunction]
+            return [.demands, .executive]
         case .notSure:
             return []
         }

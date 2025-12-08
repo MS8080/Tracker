@@ -33,6 +33,7 @@ enum TrendDirection {
 
 struct AnalysisCardsRow: View {
     let theme: AppTheme
+    var insightsNamespace: Namespace.ID
     let onAIInsights: () -> Void
     let onCorrelations: () -> Void
     let onExport: () -> Void
@@ -40,14 +41,26 @@ struct AnalysisCardsRow: View {
     var body: some View {
         VStack(spacing: Spacing.md) {
             // Featured Insights Card - Full Width
-            FeaturedAnalysisCard(
-                icon: "sparkles",
-                iconColor: Color(red: 0.7, green: 0.5, blue: 0.9),
-                title: "Insights",
-                subtitle: "Get personalized analysis powered by AI",
-                theme: theme,
-                action: onAIInsights
-            )
+            if #available(iOS 18.0, *) {
+                FeaturedAnalysisCard(
+                    icon: "sparkles",
+                    iconColor: Color(red: 0.7, green: 0.5, blue: 0.9),
+                    title: "Insights",
+                    subtitle: "Get personalized analysis powered by AI",
+                    theme: theme,
+                    action: onAIInsights
+                )
+                .matchedTransitionSource(id: "insightsCard", in: insightsNamespace)
+            } else {
+                FeaturedAnalysisCard(
+                    icon: "sparkles",
+                    iconColor: Color(red: 0.7, green: 0.5, blue: 0.9),
+                    title: "Insights",
+                    subtitle: "Get personalized analysis powered by AI",
+                    theme: theme,
+                    action: onAIInsights
+                )
+            }
 
             // Secondary Actions - Side by Side
             HStack(spacing: Spacing.md) {

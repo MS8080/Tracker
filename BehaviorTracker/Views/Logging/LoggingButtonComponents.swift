@@ -300,6 +300,6 @@ struct FeelingFinderGridButton: View {
 }
 
 #Preview("QuickLogButton") {
-    QuickLogButton(patternType: .sensoryOverload, action: {})
+    QuickLogButton(patternType: .sensoryState, action: {})
         .padding()
 }

@@ -121,7 +121,6 @@ final class DemoModeService: ObservableObject {
     }
 
     var demoPatternEntries: [DemoPatternEntry] {
-        let calendar = Calendar.current
         let now = Date()
 
         return [
@@ -419,7 +418,6 @@ final class DemoModeService: ObservableObject {
 
     var demoExtractedPatterns: [DemoExtractedPattern] {
         let now = Date()
-        let calendar = Calendar.current
 
         return [
             DemoExtractedPattern(

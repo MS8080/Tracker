@@ -15,113 +15,113 @@ struct LocalAnalysisValidator {
         // Sensory - Clear cases
         TestCase(
             text: "The mall was so loud and bright today. Too many people. I had to leave because I was completely overwhelmed.",
-            expectedPatterns: [.sensoryOverload, .socialRecovery],
+            expectedPatterns: [.sensoryState, .socialRecovery],
             expectedSentiment: .negative
         ),
         TestCase(
             text: "The fluorescent lights at work were buzzing all day. Gave me a headache. Had to wear sunglasses inside.",
-            expectedPatterns: [.environmentalSensitivity, .sensoryOverload],
+            expectedPatterns: [.sensoryEnvironment, .sensoryState],
             expectedSentiment: .negative
         ),
 
-        // Hyperfocus - Clear cases
+        // Focus - Clear cases
         TestCase(
             text: "Got completely absorbed in my coding project. Looked up and 6 hours had passed. Forgot to eat lunch.",
-            expectedPatterns: [.hyperfocus, .timeBlindness],
+            expectedPatterns: [.focus, .timeAwareness],
             expectedSentiment: .neutral
         ),
         TestCase(
             text: "Spent all day researching my special interest. Couldn't stop reading about trains. It was amazing.",
-            expectedPatterns: [.specialInterest, .hyperfocus],
+            expectedPatterns: [.focus],
             expectedSentiment: .positive
         ),
 
         // Social - Clear cases
         TestCase(
             text: "Had a work meeting with 10 people. So exhausted after. Need to be alone for the rest of the day.",
-            expectedPatterns: [.socialInteraction, .socialRecovery],
+            expectedPatterns: [.socialEnergy, .socialRecovery],
             expectedSentiment: .negative
         ),
         TestCase(
             text: "Phone call with my mom was draining. She doesn't understand why I need quiet time after.",
-            expectedPatterns: [.socialInteraction, .socialRecovery, .communicationDifficulty],
+            expectedPatterns: [.socialEnergy, .socialRecovery, .connection],
             expectedSentiment: .negative
         ),
 
         // Energy/Masking - Clear cases
         TestCase(
             text: "Pretended to be normal all day at the office. Smiled when I didn't want to. So tired from masking.",
-            expectedPatterns: [.maskingIntensity, .burnoutIndicator],
+            expectedPatterns: [.masking, .burnout],
             expectedSentiment: .negative
         ),
         TestCase(
             text: "Running on empty. No spoons left. Everything feels impossible today.",
-            expectedPatterns: [.energyLevel, .burnoutIndicator],
+            expectedPatterns: [.energyLevel, .burnout],
             expectedSentiment: .negative
         ),
 
         // Routine - Clear cases
         TestCase(
             text: "They changed my desk location at work without warning. Completely threw off my whole day.",
-            expectedPatterns: [.routineDisruption, .unexpectedChange],
+            expectedPatterns: [.routineChange],
             expectedSentiment: .negative
         ),
         TestCase(
             text: "Plans changed at the last minute. I couldn't handle the uncertainty. Had to cancel.",
-            expectedPatterns: [.unexpectedChange, .uncertaintyIntolerance],
+            expectedPatterns: [.routineChange],
             expectedSentiment: .negative
         ),
 
-        // Meltdown/Shutdown - Clear cases
+        // Overwhelm - Clear cases
         TestCase(
             text: "Had a complete meltdown in the car. Crying, couldn't stop. Too much happened today.",
-            expectedPatterns: [.meltdown, .emotionalOverwhelm],
+            expectedPatterns: [.overwhelm],
             expectedSentiment: .negative
         ),
         TestCase(
             text: "Went nonverbal for an hour. Just shut down completely. Couldn't respond to anyone.",
-            expectedPatterns: [.shutdown],
+            expectedPatterns: [.overwhelm],
             expectedSentiment: .negative
         ),
 
         // Task/Executive Function - Clear cases
         TestCase(
             text: "Stared at my to-do list for 2 hours. Couldn't start anything. Just paralyzed.",
-            expectedPatterns: [.taskInitiation, .taskAvoidance],
+            expectedPatterns: [.taskInitiation, .avoidance],
             expectedSentiment: .negative
         ),
         TestCase(
             text: "Had to switch from emails to a meeting to a phone call. Each transition was painful.",
-            expectedPatterns: [.taskSwitching, .transitionDifficulty],
+            expectedPatterns: [.focus, .routineChange],
             expectedSentiment: .negative
         ),
 
         // Positive - Clear cases
         TestCase(
             text: "Found a quiet corner and just stimmed for 20 minutes. Rocking helped me calm down.",
-            expectedPatterns: [.regulatoryStimming, .successfulCoping],
+            expectedPatterns: [.stimming, .regulation],
             expectedSentiment: .positive
         ),
         TestCase(
             text: "Great day! Felt like myself. Didn't have to mask. Connected with a friend who gets me.",
-            expectedPatterns: [.authenticityMoment, .connectionMoment, .calmState],
+            expectedPatterns: [.connection, .regulation],
             expectedSentiment: .positive
         ),
 
         // Ambiguous/Harder cases - to test limits
         TestCase(
             text: "Today was just too much.",
-            expectedPatterns: [.emotionalOverwhelm], // vague - hard for local
+            expectedPatterns: [.overwhelm], // vague - hard for local
             expectedSentiment: .negative
         ),
         TestCase(
             text: "I don't know why but everything feels wrong.",
-            expectedPatterns: [.emotionalOverwhelm], // very vague
+            expectedPatterns: [.overwhelm], // very vague
             expectedSentiment: .negative
         ),
         TestCase(
             text: "Meeting went okay I guess. Tired now.",
-            expectedPatterns: [.socialInteraction, .socialRecovery], // subtle
+            expectedPatterns: [.socialEnergy, .socialRecovery], // subtle
             expectedSentiment: .neutral
         )
     ]
@@ -214,70 +214,55 @@ struct LocalAnalysisValidator {
             switch category.name.lowercased() {
             case "sensory":
                 if lowercased.contains("overload") || lowercased.contains("overwhelm") {
-                    patterns.append(.sensoryOverload)
+                    patterns.append(.sensoryState)
                 }
                 if lowercased.contains("sensitive") || lowercased.contains("lights") || lowercased.contains("buzzing") {
-                    patterns.append(.environmentalSensitivity)
+                    patterns.append(.sensoryEnvironment)
                 }
             case "emotional":
-                if lowercased.contains("meltdown") {
-                    patterns.append(.meltdown)
-                }
-                if lowercased.contains("shutdown") || lowercased.contains("nonverbal") {
-                    patterns.append(.shutdown)
-                }
-                if lowercased.contains("overwhelm") {
-                    patterns.append(.emotionalOverwhelm)
+                if lowercased.contains("meltdown") || lowercased.contains("shutdown") || lowercased.contains("nonverbal") || lowercased.contains("overwhelm") {
+                    patterns.append(.overwhelm)
                 }
             case "social":
-                patterns.append(.socialInteraction)
+                patterns.append(.socialEnergy)
                 if lowercased.contains("exhausted") || lowercased.contains("drained") || lowercased.contains("tired") || lowercased.contains("alone") {
                     patterns.append(.socialRecovery)
                 }
                 if lowercased.contains("misunderstood") || lowercased.contains("doesn't understand") {
-                    patterns.append(.communicationDifficulty)
+                    patterns.append(.connection)
                 }
             case "routine":
-                if lowercased.contains("change") || lowercased.contains("disruption") {
-                    patterns.append(.routineDisruption)
-                }
-                if lowercased.contains("unexpected") || lowercased.contains("last minute") {
-                    patterns.append(.unexpectedChange)
-                }
-                if lowercased.contains("uncertain") {
-                    patterns.append(.uncertaintyIntolerance)
+                if lowercased.contains("change") || lowercased.contains("disruption") || lowercased.contains("unexpected") || lowercased.contains("last minute") {
+                    patterns.append(.routineChange)
                 }
             case "energy":
                 patterns.append(.energyLevel)
                 if lowercased.contains("burnout") || lowercased.contains("empty") || lowercased.contains("no spoons") {
-                    patterns.append(.burnoutIndicator)
+                    patterns.append(.burnout)
                 }
                 if lowercased.contains("mask") {
-                    patterns.append(.maskingIntensity)
+                    patterns.append(.masking)
                 }
             case "focus":
-                if lowercased.contains("hyperfocus") || lowercased.contains("absorbed") || lowercased.contains("hours had passed") {
-                    patterns.append(.hyperfocus)
-                }
-                if lowercased.contains("special interest") {
-                    patterns.append(.specialInterest)
+                if lowercased.contains("hyperfocus") || lowercased.contains("absorbed") || lowercased.contains("hours had passed") || lowercased.contains("special interest") {
+                    patterns.append(.focus)
                 }
                 if lowercased.contains("lost track") || lowercased.contains("forgot") {
-                    patterns.append(.timeBlindness)
+                    patterns.append(.timeAwareness)
                 }
                 if lowercased.contains("couldn't start") || lowercased.contains("paralyzed") || lowercased.contains("stared at") {
                     patterns.append(.taskInitiation)
                 }
                 if lowercased.contains("switch") || lowercased.contains("transition") {
-                    patterns.append(.taskSwitching)
-                    patterns.append(.transitionDifficulty)
+                    patterns.append(.focus)
+                    patterns.append(.routineChange)
                 }
             case "coping":
                 if lowercased.contains("stim") || lowercased.contains("rocking") {
-                    patterns.append(.regulatoryStimming)
+                    patterns.append(.stimming)
                 }
                 if lowercased.contains("helped") || lowercased.contains("calm") {
-                    patterns.append(.successfulCoping)
+                    patterns.append(.regulation)
                 }
             default:
                 break
@@ -285,17 +270,17 @@ struct LocalAnalysisValidator {
         }
 
         // Check for patterns not in categories
-        if lowercased.contains("avoid") && !patterns.contains(.taskAvoidance) {
-            patterns.append(.taskAvoidance)
+        if lowercased.contains("avoid") && !patterns.contains(.avoidance) {
+            patterns.append(.avoidance)
         }
-        if (lowercased.contains("authentic") || lowercased.contains("myself")) && !patterns.contains(.authenticityMoment) {
-            patterns.append(.authenticityMoment)
+        if (lowercased.contains("authentic") || lowercased.contains("myself")) && !patterns.contains(.regulation) {
+            patterns.append(.regulation)
         }
-        if lowercased.contains("connect") && !patterns.contains(.connectionMoment) {
-            patterns.append(.connectionMoment)
+        if lowercased.contains("connect") && !patterns.contains(.connection) {
+            patterns.append(.connection)
         }
-        if lowercased.contains("calm") && !patterns.contains(.calmState) {
-            patterns.append(.calmState)
+        if lowercased.contains("calm") && !patterns.contains(.regulation) {
+            patterns.append(.regulation)
         }
 
         return Array(Set(patterns)) // Remove duplicates

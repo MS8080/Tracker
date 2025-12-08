@@ -86,9 +86,21 @@ class PatternExtractionService {
             throw ExtractionError.noAPIKey
         }
 
-        // Build the full prompt
-        let fullPrompt = """
-        \(PatternBank.prompt)
+        // Build the full prompt with optional personal context
+        var fullPrompt = PatternBank.prompt
+
+        // Add personal context if available - helps identify user-specific patterns
+        if let personalContext = PersonalKnowledgeRepository.shared.getCombinedContext() {
+            fullPrompt += """
+
+            ---
+
+            PERSONAL CONTEXT ABOUT THIS USER (use to better identify their specific patterns and triggers):
+            \(personalContext)
+            """
+        }
+
+        fullPrompt += """
 
         ---
 
@@ -111,7 +123,7 @@ class PatternExtractionService {
         }
 
         // Format entries with timestamps
-        let formattedEntries = entries.enumerated().map { index, entry in
+        let formattedEntries = entries.map { entry in
             let formatter = DateFormatter()
             formatter.dateStyle = .short
             formatter.timeStyle = .short

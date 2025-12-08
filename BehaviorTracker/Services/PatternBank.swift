@@ -1,82 +1,53 @@
 import Foundation
 
 /// Pattern bank definition for AI analysis
-/// This defines all ASD/PDA patterns the AI should recognize and match
+/// Refined to 25 core patterns that capture the full autistic experience
 enum PatternBank {
 
     /// Full pattern bank prompt to embed in AI requests
     static let prompt = """
     You are an expert ASD/PDA pattern analyst. Analyze journal entries to extract behavioral patterns.
 
-    PATTERN CATEGORIES AND TYPES:
+    PATTERN CATEGORIES AND TYPES (25 core patterns):
+
+    === ENERGY & CAPACITY ===
+    - Energy Level: overall energy/spoons (rate 1=depleted to 5=abundant)
+    - Burnout Signs: prolonged exhaustion, loss of skills, everything harder
+    - Recovery: rest, recharge, what helped restore energy
+    - Capacity Check: how much can be handled today, limits awareness
 
     === SENSORY ===
-    - Sensory Overload: overwhelmed by sensory input, too much noise/light/touch/smell, need to escape
-    - Sensory Seeking/Stimming: seeking specific sensory input, stimming behaviors, pressure seeking
-    - Environmental Sensitivity: bothered by environment, temperature, lighting, sounds, smells
-    - Sensory Recovery Time: needing quiet/dark/alone time after sensory events
+    - Sensory State: overall sensory experience (rate 1=overloaded to 5=comfortable)
+    - Sensory Seeking: stimming, seeking specific input, pressure/movement needs
+    - Environment: environmental factors affecting wellbeing (noise, light, temp, smells)
+
+    === REGULATION ===
+    - Overwhelm: meltdown, shutdown, or emotional flooding (note which type)
+    - Regulation State: emotional/nervous system state (rate 1=dysregulated to 5=grounded)
+    - Stimming: regulatory movement/behavior, self-soothing
+    - Thought Loops: rumination, repetitive thoughts, mental stuck points
+
+    === SOCIAL ===
+    - Social Energy: effect of social interaction (rate 1=drained to 5=connected)
+    - Masking: performing neurotypical, hiding autistic traits, exhaustion from pretending
+    - Social Recovery: time/space needed after interaction, alone time requirement
+    - Connection: genuine moments of understanding, felt seen/heard
 
     === EXECUTIVE FUNCTION ===
-    - Task Initiation Difficulty: can't start tasks, paralysis, knowing what to do but unable to begin
-    - Task Switching Challenge: difficulty changing activities, stuck on one thing, can't transition
-    - Time Blindness: losing track of time, surprised by how much time passed, always late
-    - Decision Fatigue: overwhelmed by choices, can't decide, exhausted from decisions
-    - Hyperfocus Session: deep focus on one thing, losing awareness of surroundings/time/needs
+    - Focus: attention state - scattered, hyperfocus, or flow (rate 1=scattered to 5=flow)
+    - Starting Tasks: task initiation difficulty, paralysis, can't begin
+    - Time Awareness: time perception (rate 1=lost track to 5=well managed)
+    - Decision Making: choice overwhelm or clarity
 
-    === ENERGY & REGULATION ===
-    - Energy/Spoon Level: overall energy, capacity for tasks, spoon theory reference
-    - Masking Intensity: hiding autistic traits, performing neurotypical, exhaustion from pretending
-    - Burnout Indicator: prolonged exhaustion, loss of skills, everything harder than usual
-    - Meltdown: emotional explosion, loss of control, intense overwhelm expressed outward
-    - Shutdown: going nonverbal, withdrawing, freezing, unable to respond or function
-    - Regulatory Stimming: stimming to regulate, self-soothing behaviors
-    - Emotional Overwhelm: intense emotions, can't process feelings, emotional flooding
-    - Rumination/Thought Loops: repetitive thoughts, can't stop thinking about something, mental loops
-    - Flow State Achieved: positive hyperfocus, productive, in the zone
-    - Authenticity Moment: feeling genuine, unmasked, comfortable being self
+    === DEMANDS & AUTONOMY ===
+    - Demand Response: how demands (internal or external) feel and how responded
+    - Autonomy: need for control, choice, resistance when autonomy threatened
+    - Avoidance: what's being avoided and underlying reason
 
-    === SOCIAL & COMMUNICATION ===
-    - Social Interaction: any social contact, meeting people, conversations
-    - Social Recovery Needed: exhausted after socializing, need alone time
-    - Miscommunication: being misunderstood, misunderstanding others, unclear communication
-    - Communication Difficulty: hard to express thoughts, word finding, phone anxiety
-    - Processing Time Needed: need extra time to understand, delayed processing
-
-    === ROUTINE & CHANGE ===
-    - Routine Disruption: schedule changed, routine broken, unexpected events
-    - Transition Difficulty: hard time moving between activities or places
-    - Unexpected Change: plans changed, surprises, things not as expected
-    - Need for Sameness: wanting things to stay the same, comfort in routine
-    - Uncertainty Intolerance: anxiety about unknown, can't handle not knowing, need certainty
-
-    === DEMAND AVOIDANCE (PDA) ===
-    - Task Avoidance: avoiding tasks, procrastination driven by demand, resistance
-    - Internal Demand Struggle: own expectations feel like demands, self-imposed pressure
-    - External Demand Struggle: others' requests/expectations feel overwhelming
-    - Autonomy Need: need for control, resistance when autonomy threatened
-    - What Helped Complete Task: strategies that worked to overcome avoidance
-
-    === PHYSICAL & SLEEP ===
-    - Sleep Quality: how well slept, insomnia, sleep disturbances
-    - Appetite Change: eating more/less, food aversions, sensory food issues
-    - Physical Tension/Pain: body tension, headaches, jaw clenching, physical stress
-    - Digestive Issue: stomach problems, often stress-related
-
-    === SPECIAL INTERESTS ===
-    - Special Interest Engagement: time with special interest, joy from focused interest
-    - Difficulty Disengaging: can't stop activity, unable to transition away
-
-    === POSITIVE & COPING ===
-    - Successful Coping: used a strategy that worked, managed a difficult situation well
-    - Calm/Regulated State: feeling balanced, peaceful, in control, grounded
-    - Connection Moment: positive social interaction, felt understood, meaningful connection
-    - Rest/Recovery Success: good rest, successful recharge, feeling restored
-    - Sensory Comfort: found sensory environment pleasant, comfortable, soothing
-    - Boundary Setting: successfully set a limit, said no, protected own needs
-    - Self-Compassion: was kind to self, accepted limitations, didn't judge harshly
-    - Accommodation Win: an accommodation or adjustment worked well, felt supported
-    - Joy/Happiness: genuine positive emotion, contentment, gratitude
-    - Achievement/Progress: completed something, made progress, felt accomplished
+    === BODY & ROUTINE ===
+    - Body Signals: interoception - noticing or missing hunger, pain, bathroom, temperature
+    - Sleep: quality, duration, disturbances, factors affecting sleep
+    - Routine/Change: routine disruption, transitions, unexpected changes
 
     ---
 
@@ -85,42 +56,39 @@ enum PatternBank {
     CRITICAL RULES:
     - ONLY identify patterns that are EXPLICITLY described in the entry
     - DO NOT infer, assume, or speculate about patterns not clearly stated
-    - DO NOT mix up events or timelines - each entry is a single moment/event
-    - If something is ambiguous, DO NOT include it as a pattern
-    - Be CONSERVATIVE - fewer accurate patterns are better than many inaccurate ones
-    - The entry describes ONE person's experience at ONE point in time
+    - For BIDIRECTIONAL patterns, note where on the spectrum (1-5)
+    - Be CONSERVATIVE - fewer accurate patterns are better than many guessed ones
+    - The entry describes ONE person's experience - understand their perspective
 
-    1. Read the journal entry carefully - understand EXACTLY what happened
-    2. Identify ONLY patterns that are clearly present (don't reach or infer)
-    3. For each pattern, determine:
-       - The exact pattern type from the list above
-       - Intensity (1-10 scale) based on language used
-       - Only triggers EXPLICITLY mentioned
-       - Time of day ONLY if stated
-       - Coping strategies ONLY if described
+    BIDIRECTIONAL PATTERNS (capture both struggle AND thriving):
+    These patterns use a 1-5 scale where both ends are meaningful:
+    - Energy Level: 1=depleted ↔ 5=abundant
+    - Sensory State: 1=overloaded ↔ 5=comfortable
+    - Regulation State: 1=dysregulated ↔ 5=grounded
+    - Social Energy: 1=drained ↔ 5=connected
+    - Focus: 1=scattered ↔ 5=flow
+    - Time Awareness: 1=lost ↔ 5=aware
 
-    4. DISTINGUISH USER INSIGHTS FROM OBSERVED PATTERNS:
-       - User insight: When the user shows self-awareness about their patterns
-         Look for phrases like: "I noticed", "I think", "I realized", "maybe it's because",
-         "I wonder if", "it seems like", "I've figured out", "I understand now"
-       - Mark is_user_insight=true when the user is analyzing their own behavior
-       - Include their exact insight in user_insight_text
-       - This helps us build on what the user already understands rather than restating it
+    For these, a "5" is a WIN worth noting, not just absence of struggle.
 
-    5. Identify CASCADES - ONLY if the entry explicitly shows one pattern leading to another:
-       - The connection must be clear in the text
-       - DO NOT assume cascades that aren't described
-       - Include confidence score (0.0-1.0) for each connection
+    1. Read the journal entry carefully
+    2. Identify patterns that are clearly present
+    3. For bidirectional patterns, determine where on the 1-5 scale
+    4. For other patterns, note intensity (1-10 scale)
+    5. Only include triggers EXPLICITLY mentioned
+    6. Note context only from what's stated
 
-    6. Extract ONLY triggers that are explicitly mentioned in the text
-
-    7. Note context ONLY from what's explicitly stated
+    DISTINGUISH USER INSIGHTS:
+    When the user shows self-awareness ("I noticed", "I realized", "I think it's because"):
+    - Mark is_user_insight=true
+    - Capture their insight in user_insight_text
+    - This builds on what user already understands
 
     ---
 
     RESPONSE FORMAT:
 
-    Return ONLY valid JSON with this exact structure:
+    Return ONLY valid JSON:
 
     {
       "patterns": [
@@ -128,10 +96,10 @@ enum PatternBank {
           "type": "Pattern Type Name",
           "category": "Category Name",
           "intensity": 7,
-          "triggers": ["trigger1", "trigger2"],
+          "triggers": ["trigger1"],
           "time_of_day": "morning|afternoon|evening|night|unknown",
           "coping_used": ["strategy1"],
-          "details": "brief description of how this manifested",
+          "details": "brief description",
           "is_user_insight": false,
           "user_insight_text": null
         }
@@ -141,10 +109,10 @@ enum PatternBank {
           "from": "Pattern Type Name",
           "to": "Pattern Type Name",
           "confidence": 0.85,
-          "description": "brief explanation of the connection"
+          "description": "how one led to the other"
         }
       ],
-      "triggers": ["overall trigger1", "overall trigger2"],
+      "triggers": ["overall triggers"],
       "context": {
         "time_of_day": "morning|afternoon|evening|night|unknown",
         "location": "home|work|public|social|unknown",
@@ -154,76 +122,121 @@ enum PatternBank {
       },
       "overall_intensity": 6,
       "confidence": 0.8,
-      "summary": "One sentence summary of the entry's main theme"
+      "summary": "One sentence summary"
     }
 
-    IMPORTANT:
-    - Use EXACT pattern type names from the list above
-    - If no patterns found, return empty arrays
-    - If uncertain about a pattern, DO NOT include it - accuracy over quantity
-    - DO NOT speculate or infer - only extract what's explicitly written
-    - Each entry is about ONE moment in time - don't create multiple timeline interpretations
-    - Always return valid JSON, nothing else
+    VALID PATTERN NAMES (use exactly):
+    Energy Level, Burnout Signs, Recovery, Capacity Check,
+    Sensory State, Sensory Seeking, Environment,
+    Overwhelm, Regulation State, Stimming, Thought Loops,
+    Social Energy, Masking, Social Recovery, Connection,
+    Focus, Starting Tasks, Time Awareness, Decision Making,
+    Demand Response, Autonomy, Avoidance,
+    Body Signals, Sleep, Routine/Change
+
+    Always return valid JSON, nothing else.
     """
 
     /// Mapping from AI response pattern names to PatternType enum
     static let patternTypeMapping: [String: PatternType] = [
-        "Sensory Overload": .sensoryOverload,
-        "Sensory Seeking/Stimming": .sensorySeeking,
-        "Environmental Sensitivity": .environmentalSensitivity,
-        "Sensory Recovery Time": .sensoryRecovery,
-        "Task Initiation Difficulty": .taskInitiation,
-        "Task Switching Challenge": .taskSwitching,
-        "Time Blindness": .timeBlindness,
-        "Decision Fatigue": .decisionFatigue,
-        "Hyperfocus Session": .hyperfocus,
-        "Energy/Spoon Level": .energyLevel,
-        "Masking Intensity": .maskingIntensity,
-        "Burnout Indicator": .burnoutIndicator,
-        "Meltdown": .meltdown,
-        "Shutdown": .shutdown,
-        "Regulatory Stimming": .regulatoryStimming,
-        "Emotional Overwhelm": .emotionalOverwhelm,
-        "Rumination/Thought Loops": .rumination,
-        "Flow State Achieved": .flowState,
-        "Authenticity Moment": .authenticityMoment,
-        "Social Interaction": .socialInteraction,
-        "Social Recovery Needed": .socialRecovery,
-        "Miscommunication": .miscommunication,
-        "Communication Difficulty": .communicationDifficulty,
-        "Processing Time Needed": .processingTime,
-        "Routine Disruption": .routineDisruption,
-        "Transition Difficulty": .transitionDifficulty,
-        "Unexpected Change": .unexpectedChange,
-        "Need for Sameness": .samenessNeed,
-        "Uncertainty Intolerance": .uncertaintyIntolerance,
-        "Task Avoidance": .taskAvoidance,
-        "Internal Demand Struggle": .internalDemand,
-        "External Demand Struggle": .externalDemand,
-        "Autonomy Need": .autonomyNeed,
-        "What Helped Complete Task": .avoidanceStrategy,
-        "Sleep Quality": .sleepQuality,
-        "Appetite Change": .appetiteChange,
-        "Physical Tension/Pain": .physicalTension,
-        "Digestive Issue": .digestiveIssue,
-        "Special Interest Engagement": .specialInterest,
-        "Difficulty Disengaging": .disengagementDifficulty,
-        // Positive & Coping
-        "Successful Coping": .successfulCoping,
-        "Calm/Regulated State": .calmState,
-        "Connection Moment": .connectionMoment,
-        "Rest/Recovery Success": .restSuccess,
-        "Sensory Comfort": .sensoryComfort,
-        "Boundary Setting": .boundarySetting,
-        "Self-Compassion": .selfCompassion,
-        "Accommodation Win": .accommodationWin,
-        "Joy/Happiness": .joyHappiness,
-        "Achievement/Progress": .achievementProgress
+        // Energy & Capacity
+        "Energy Level": .energyLevel,
+        "Burnout Signs": .burnout,
+        "Recovery": .recovery,
+        "Capacity Check": .capacity,
+
+        // Sensory
+        "Sensory State": .sensoryState,
+        "Sensory Seeking": .sensorySeeking,
+        "Environment": .sensoryEnvironment,
+
+        // Regulation
+        "Overwhelm": .overwhelm,
+        "Regulation State": .regulation,
+        "Stimming": .stimming,
+        "Thought Loops": .rumination,
+
+        // Social
+        "Social Energy": .socialEnergy,
+        "Masking": .masking,
+        "Social Recovery": .socialRecovery,
+        "Connection": .connection,
+
+        // Executive Function
+        "Focus": .focus,
+        "Starting Tasks": .taskInitiation,
+        "Time Awareness": .timeAwareness,
+        "Decision Making": .decisions,
+
+        // Demands & Autonomy
+        "Demand Response": .demandResponse,
+        "Autonomy": .autonomy,
+        "Avoidance": .avoidance,
+
+        // Body & Routine
+        "Body Signals": .bodySignals,
+        "Sleep": .sleep,
+        "Routine/Change": .routineChange
     ]
 
-    /// Get PatternType from AI response string
+    /// Legacy mapping for backward compatibility with existing data
+    static let legacyPatternMapping: [String: PatternType] = [
+        // Map old pattern names to new ones
+        "Sensory Overload": .sensoryState,
+        "Environmental Sensitivity": .sensoryEnvironment,
+        "Sensory Recovery Time": .recovery,
+        "Sensory Seeking/Stimming": .sensorySeeking,
+        "Task Initiation Difficulty": .taskInitiation,
+        "Task Switching Challenge": .taskInitiation,
+        "Time Blindness": .timeAwareness,
+        "Decision Fatigue": .decisions,
+        "Hyperfocus Session": .focus,
+        "Energy/Spoon Level": .energyLevel,
+        "Masking Intensity": .masking,
+        "Burnout Indicator": .burnout,
+        "Meltdown": .overwhelm,
+        "Shutdown": .overwhelm,
+        "Regulatory Stimming": .stimming,
+        "Emotional Overwhelm": .overwhelm,
+        "Rumination/Thought Loops": .rumination,
+        "Flow State Achieved": .focus,
+        "Authenticity Moment": .connection,
+        "Social Interaction": .socialEnergy,
+        "Social Recovery Needed": .socialRecovery,
+        "Miscommunication": .socialEnergy,
+        "Communication Difficulty": .socialEnergy,
+        "Processing Time Needed": .socialRecovery,
+        "Routine Disruption": .routineChange,
+        "Transition Difficulty": .routineChange,
+        "Unexpected Change": .routineChange,
+        "Need for Sameness": .routineChange,
+        "Uncertainty Intolerance": .routineChange,
+        "Task Avoidance": .avoidance,
+        "Internal Demand Struggle": .demandResponse,
+        "External Demand Struggle": .demandResponse,
+        "Autonomy Need": .autonomy,
+        "What Helped Complete Task": .recovery,
+        "Sleep Quality": .sleep,
+        "Appetite Change": .bodySignals,
+        "Physical Tension/Pain": .bodySignals,
+        "Digestive Issue": .bodySignals,
+        "Special Interest Engagement": .focus,
+        "Difficulty Disengaging": .focus,
+        "Successful Coping": .recovery,
+        "Calm/Regulated State": .regulation,
+        "Connection Moment": .connection,
+        "Rest/Recovery Success": .recovery,
+        "Sensory Comfort": .sensoryState,
+        "Boundary Setting": .autonomy,
+        "Self-Compassion": .regulation,
+        "Accommodation Win": .recovery,
+        "Joy/Happiness": .connection,
+        "Achievement/Progress": .recovery
+    ]
+
+    /// Get PatternType from AI response string (checks both new and legacy mappings)
     static func patternType(from string: String) -> PatternType? {
-        return patternTypeMapping[string]
+        return patternTypeMapping[string] ?? legacyPatternMapping[string]
     }
 
     /// All valid pattern type names for validation

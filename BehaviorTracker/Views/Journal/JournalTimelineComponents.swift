@@ -215,7 +215,7 @@ struct JournalTimelineEntryRow: View {
             VStack(alignment: .leading, spacing: Spacing.sm) {
                 // Time
                 Text(timeString)
-                    .font(.subheadline)
+                    .font(.callout)
                     .fontWeight(.semibold)
                     .foregroundStyle(theme.timelineColor)
 

@@ -279,7 +279,6 @@ class PatternsViewModel: ObservableObject {
                 return
             }
 
-
             for entry in entries {
                 await analyzeEntry(entry, context: context)
             }

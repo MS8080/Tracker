@@ -1,78 +1,71 @@
 import Foundation
 import SwiftUI
 
-/// Represents the main categories of patterns tracked
-/// Simplified to 7 core categories for quick logging
+/// Core categories for pattern tracking
+/// Simplified to 7 meaningful categories
 enum PatternCategory: String, CaseIterable, Codable {
+    case energy = "Energy & Capacity"
     case sensory = "Sensory"
-    case executiveFunction = "Executive Function"
-    case energyRegulation = "Energy & Regulation"
-    case social = "Social & Communication"
-    case routineChange = "Routine & Change"
-    case demandAvoidance = "Demand Avoidance"
-    case physicalWellbeing = "Physical & Sleep"
-    case positiveCoping = "Positive & Coping"
+    case regulation = "Regulation"
+    case social = "Social"
+    case executive = "Executive Function"
+    case demands = "Demands & Autonomy"
+    case body = "Body & Routine"
 
     var icon: String {
         switch self {
+        case .energy:
+            return "battery.75percent"
         case .sensory:
-            return "eye.circle"
-        case .executiveFunction:
-            return "brain.head.profile"
-        case .energyRegulation:
-            return "bolt.circle"
+            return "eye"
+        case .regulation:
+            return "waveform.path"
         case .social:
-            return "person.2.circle"
-        case .routineChange:
-            return "calendar.circle"
-        case .demandAvoidance:
-            return "hand.raised.circle"
-        case .physicalWellbeing:
-            return "heart.circle"
-        case .positiveCoping:
-            return "sun.max.circle"
+            return "person.2"
+        case .executive:
+            return "brain.head.profile"
+        case .demands:
+            return "hand.raised"
+        case .body:
+            return "figure.mind.and.body"
         }
     }
 
     var color: Color {
         switch self {
+        case .energy:
+            return .orange
         case .sensory:
             return .purple
-        case .executiveFunction:
-            return .orange
-        case .energyRegulation:
+        case .regulation:
             return .red
         case .social:
             return .green
-        case .routineChange:
-            return .cyan
-        case .demandAvoidance:
+        case .executive:
+            return .blue
+        case .demands:
             return .yellow
-        case .physicalWellbeing:
-            return .indigo
-        case .positiveCoping:
-            return .mint
+        case .body:
+            return .cyan
         }
     }
 
     var description: String {
         switch self {
+        case .energy:
+            return "Spoons, burnout, recovery, capacity"
         case .sensory:
-            return "Overload, seeking, triggers, recovery"
-        case .executiveFunction:
-            return "Task struggles, hyperfocus, time blindness"
-        case .energyRegulation:
-            return "Masking, burnout, meltdowns, spoons"
+            return "Overload, comfort, seeking"
+        case .regulation:
+            return "Overwhelm, calm, stimming"
         case .social:
-            return "Interaction quality, masking level, recovery"
-        case .routineChange:
-            return "Disruptions, transitions, unexpected changes"
-        case .demandAvoidance:
-            return "Avoided tasks, autonomy needs"
-        case .physicalWellbeing:
-            return "Sleep, appetite, tension, digestion"
-        case .positiveCoping:
-            return "Wins, joy, calm, connection, progress"
+            return "Connection, masking, recovery"
+        case .executive:
+            return "Focus, time, decisions, tasks"
+        case .demands:
+            return "Internal, external, autonomy"
+        case .body:
+            return "Sleep, interoception, routine, physical"
         }
     }
 }

@@ -139,25 +139,26 @@ struct WeeklyReportView: View {
                         HStack(alignment: .top, spacing: Spacing.xs) {
                             Text(cascade.from)
                                 .font(.subheadline)
-                                .foregroundStyle(CardText.body)
+                                .fontWeight(.medium)
+                                .foregroundStyle(CardText.title)
                                 .lineLimit(2)
                                 .fixedSize(horizontal: false, vertical: true)
-                            
+
                             Image(systemName: "arrow.down")
                                 .font(.caption)
                                 .foregroundStyle(CardText.caption)
                                 .padding(.top, 2)
                         }
-                        
+
                         HStack {
                             Text(cascade.to)
                                 .font(.subheadline)
                                 .foregroundStyle(theme.primaryColor)
                                 .lineLimit(2)
                                 .fixedSize(horizontal: false, vertical: true)
-                            
+
                             Spacer()
-                            
+
                             Text("×\(cascade.count)")
                                 .font(.caption)
                                 .fontWeight(.semibold)

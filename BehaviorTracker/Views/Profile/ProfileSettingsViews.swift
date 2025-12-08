@@ -54,6 +54,7 @@ struct SettingsExpandedContent: View {
         case appearance
         case notifications
         case exportData
+        case teachAI
         case about
     }
 
@@ -95,6 +96,16 @@ struct SettingsExpandedContent: View {
                 )
             }
 
+            NavigationLink(value: SettingsDestination.teachAI) {
+                ModernSettingsRow(
+                    icon: "brain.head.profile",
+                    iconColor: .mint,
+                    iconBackground: .mint.opacity(0.15),
+                    title: "Teach AI About Me",
+                    subtitle: "Personalize AI responses"
+                )
+            }
+
             NavigationLink(value: SettingsDestination.about) {
                 ModernSettingsRow(
                     icon: "info.circle.fill",
@@ -113,6 +124,8 @@ struct SettingsExpandedContent: View {
                 NotificationSettingsView(viewModel: settingsViewModel)
             case .exportData:
                 ExportDataView(viewModel: settingsViewModel)
+            case .teachAI:
+                TeachAIView()
             case .about:
                 AboutView()
             }

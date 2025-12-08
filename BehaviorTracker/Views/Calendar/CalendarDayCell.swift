@@ -221,7 +221,7 @@ struct IntensityBar: View {
                 isToday: false,
                 isSelected: true,
                 entryCount: 5,
-                dominantCategory: .energyRegulation,
+                dominantCategory: .energy,
                 averageIntensity: 4.2,
                 hasMedication: false,
                 hasJournal: true

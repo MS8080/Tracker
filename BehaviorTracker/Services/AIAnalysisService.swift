@@ -169,12 +169,25 @@ class AIAnalysisService {
         var sections: [String] = []
 
         // System instruction - concise output
-        sections.append("""
+        var systemInstruction = """
         You are a supportive wellness assistant. Analyze the data and provide CONCISE insights.
 
         IMPORTANT: Keep responses SHORT and scannable. Users want quick insights, not essays.
         Focus primarily on journal content and AI-extracted patterns, not manual logging stats.
-        """)
+        """
+
+        // Add personal context if available
+        if let personalContext = PersonalKnowledgeRepository.shared.getCombinedContext() {
+            systemInstruction += """
+
+            PERSONAL CONTEXT ABOUT THIS USER:
+            \(personalContext)
+
+            Use this personal context to provide more tailored and relevant insights.
+            """
+        }
+
+        sections.append(systemInstruction)
 
         let endDate = Date()
         let startDate = Calendar.current.date(byAdding: .day, value: -preferences.timeframeDays, to: endDate) ?? endDate

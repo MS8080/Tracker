@@ -34,15 +34,15 @@ class LoggingViewModel: ObservableObject {
 
         switch hour {
         case 5..<10: // Morning
-            return [.sleepQuality, .energyLevel, .appetiteChange]
+            return [.sleep, .energyLevel, .bodySignals]
         case 10..<14: // Late morning/early afternoon
-            return [.taskInitiation, .decisionFatigue, .hyperfocus]
+            return [.taskInitiation, .decisions, .focus]
         case 14..<18: // Afternoon
-            return [.energyLevel, .maskingIntensity, .socialInteraction]
+            return [.energyLevel, .masking, .socialEnergy]
         case 18..<22: // Evening
-            return [.socialRecovery, .burnoutIndicator, .regulatoryStimming]
+            return [.socialRecovery, .burnout, .stimming]
         default: // Night
-            return [.sleepQuality, .rumination, .sensoryRecovery]
+            return [.sleep, .rumination, .recovery]
         }
     }
 

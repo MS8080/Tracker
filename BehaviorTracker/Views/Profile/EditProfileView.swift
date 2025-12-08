@@ -67,7 +67,6 @@ struct EditProfileView: View {
                     .foregroundStyle(.white)
                 }
 
-
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Save") {
                         saveProfile()
