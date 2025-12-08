@@ -72,8 +72,6 @@ struct AddSetupItemView: View {
                     Button("Cancel") { dismiss() }
                         .foregroundStyle(.white)
                 }
-
-
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Add") { saveItem() }
                         .foregroundStyle(name.isEmpty ? .white.opacity(0.4) : .white)
@@ -193,8 +191,6 @@ struct EditSetupItemView: View {
                     Button("Cancel") { dismiss() }
                         .foregroundStyle(.white)
                 }
-
-
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Save") { saveChanges() }
                         .foregroundStyle(name.isEmpty ? .white.opacity(0.4) : .white)

@@ -205,7 +205,7 @@ extension iPhoneWatchConnectivityService: WCSessionDelegate {
         WCSession.default.activate()
     }
 
-    func session(_ session: WCSession, didReceiveMessage message: [String : Any], replyHandler: @escaping ([String : Any]) -> Void) {
+    func session(_ session: WCSession, didReceiveMessage message: [String: Any], replyHandler: @escaping ([String: Any]) -> Void) {
         guard let action = message["action"] as? String else {
             replyHandler(["success": false, "error": "No action specified"])
             return

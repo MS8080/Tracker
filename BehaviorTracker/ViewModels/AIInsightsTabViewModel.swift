@@ -4,8 +4,8 @@ import Combine
 // MARK: - Analysis Mode
 
 enum AnalysisMode: String, CaseIterable {
-    case local = "local"
-    case ai = "ai"
+    case local
+    case ai
 
     var displayName: String {
         switch self {
