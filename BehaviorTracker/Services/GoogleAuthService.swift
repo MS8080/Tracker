@@ -139,7 +139,7 @@ A/h7DZA3uzbmYruXnBsSog0=
 
         // Sign with RSA-SHA256
         guard let inputData = signatureInput.data(using: .utf8) else {
-            throw GoogleAuthError.invalidCredentials
+            throw GoogleAuthError.signingFailed
         }
         let signature = try signWithRSA(data: inputData)
         let signatureBase64 = signature.base64URLEncodedString()
