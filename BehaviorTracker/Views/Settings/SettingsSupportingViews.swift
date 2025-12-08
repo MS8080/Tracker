@@ -97,6 +97,12 @@ struct EnhancedDataPrivacyView: View {
 // MARK: - About View
 
 struct AboutView: View {
+    private var appVersion: String {
+        let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
+        let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1"
+        return "Version \(version) (\(build))"
+    }
+
     var body: some View {
         ScrollView {
             VStack(spacing: 24) {
@@ -112,7 +118,7 @@ struct AboutView: View {
                     .font(.largeTitle)
                     .fontWeight(.bold)
 
-                Text("Version 1.0.0")
+                Text(appVersion)
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
 

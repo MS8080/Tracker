@@ -6,6 +6,7 @@ struct ContentView: View {
     @AppStorage("appearance") private var appearance: AppAppearance = .dark
     @AppStorage("selectedTheme") private var selectedThemeRaw: String = AppTheme.purple.rawValue
     @AppStorage("fontSizeScale") private var fontSizeScale: Double = 1.0
+    @StateObject private var networkMonitor = NetworkMonitor.shared
 
     private var theme: AppTheme {
         AppTheme(rawValue: selectedThemeRaw) ?? .purple
@@ -64,6 +65,13 @@ struct ContentView: View {
             // Lazy wrapper to defer ProfileContainerView construction
             LazyProfileSheet()
         }
+        .overlay(alignment: .top) {
+            if !networkMonitor.isConnected {
+                OfflineBanner()
+                    .transition(.move(edge: .top).combined(with: .opacity))
+            }
+        }
+        .animation(.easeInOut(duration: 0.3), value: networkMonitor.isConnected)
     }
 
     private func configureTabBarAppearance() {
@@ -92,6 +100,26 @@ private struct LazyProfileSheet: View {
             .presentationDragIndicator(.visible)
             .presentationDetents([.large])
             .presentationContentInteraction(.scrolls)
+    }
+}
+
+// MARK: - Offline Banner
+
+private struct OfflineBanner: View {
+    var body: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "wifi.slash")
+                .font(.subheadline)
+            Text("No Internet Connection")
+                .font(.subheadline)
+                .fontWeight(.medium)
+        }
+        .foregroundStyle(.white)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 10)
+        .background(.orange.gradient, in: Capsule())
+        .padding(.top, 50) // Account for safe area
+        .shadow(color: .black.opacity(0.2), radius: 4, y: 2)
     }
 }
 

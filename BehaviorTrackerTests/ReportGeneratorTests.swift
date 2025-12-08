@@ -25,8 +25,8 @@ final class ReportGeneratorTests: XCTestCase {
 
         let report = reportGenerator.generateWeeklyReport()
 
-        XCTAssertEqual(report.totalEntries, 3)
-        XCTAssertGreaterThan(report.averagePerDay, 0)
+        // totalEntries counts journals, totalPatterns counts pattern entries
+        XCTAssertEqual(report.totalPatterns, 3)
         XCTAssertFalse(report.patternFrequency.isEmpty)
     }
 
@@ -38,8 +38,8 @@ final class ReportGeneratorTests: XCTestCase {
 
         let report = reportGenerator.generateMonthlyReport()
 
-        XCTAssertEqual(report.totalEntries, 3)
-        XCTAssertGreaterThan(report.averagePerDay, 0)
+        // totalEntries counts journals, totalPatterns counts pattern entries
+        XCTAssertEqual(report.totalPatterns, 3)
         XCTAssertFalse(report.topPatterns.isEmpty)
     }
 

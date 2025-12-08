@@ -181,6 +181,7 @@
 		62D3B420DE494003AE3F8219 /* PatternRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 604D454BAF0B4C8796802E0F /* PatternRepository.swift */; };
 		64C6D556AA180C885D620534 /* StruggleRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CF42D7E03297CE6B5A50D22 /* StruggleRepository.swift */; };
 		68726BFCC49929B4D76AC789 /* WishlistItem+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAE83F73EF559E8C7B12D35F /* WishlistItem+CoreDataClass.swift */; };
+		6CE0C610033DD43C4CE01AD6 /* NetworkMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = EBE2D5DF337F8EECE29D154C /* NetworkMonitor.swift */; };
 		72544E6AF144E24A9E9B866F /* Struggle+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48C54C1F69C5BD96E8054F72 /* Struggle+CoreDataClass.swift */; };
 		744E109B30225FA664C67523 /* DemoModeService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D5EA3AE0471D84C660ACA46 /* DemoModeService.swift */; };
 		7B6062B22BBDF037BCC2F2B5 /* ClaudeService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3147DA86A19660C43BB8236A /* ClaudeService.swift */; };
@@ -490,6 +491,7 @@
 		E1A29FDC8750A2A0F23D5D87 /* PatternTypeTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PatternTypeTests.swift; sourceTree = "<group>"; };
 		E497D6F2B1274ECA93C1E8B8 /* MedicationRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MedicationRepository.swift; sourceTree = "<group>"; };
 		E5AA46E8238D41DADA2135C8 /* WishlistRepository.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WishlistRepository.swift; sourceTree = "<group>"; };
+		EBE2D5DF337F8EECE29D154C /* NetworkMonitor.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NetworkMonitor.swift; sourceTree = "<group>"; };
 		EDA9BAC44C059E02E26305AA /* JournalRepositoryTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = JournalRepositoryTests.swift; sourceTree = "<group>"; };
 		FAE83F73EF559E8C7B12D35F /* WishlistItem+CoreDataClass.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "WishlistItem+CoreDataClass.swift"; sourceTree = "<group>"; };
 		MAC0001000000100 /* BehaviorTracker-macOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "BehaviorTracker-macOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -627,6 +629,7 @@
 				8D5EA3AE0471D84C660ACA46 /* DemoModeService.swift */,
 				BAF7498601120B21A1545032 /* GoogleAuthService.swift */,
 				3147DA86A19660C43BB8236A /* ClaudeService.swift */,
+				EBE2D5DF337F8EECE29D154C /* NetworkMonitor.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -1258,6 +1261,7 @@
 				744E109B30225FA664C67523 /* DemoModeService.swift in Sources */,
 				5DA48D8A76EEFC38536F69EA /* GoogleAuthService.swift in Sources */,
 				7B6062B22BBDF037BCC2F2B5 /* ClaudeService.swift in Sources */,
+				6CE0C610033DD43C4CE01AD6 /* NetworkMonitor.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

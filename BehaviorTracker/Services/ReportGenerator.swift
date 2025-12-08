@@ -62,7 +62,7 @@ struct DataPoint: Identifiable {
 }
 
 class ReportGenerator {
-    private let dataController = DataController.shared
+    private var dataController: DataController { DataController.shared }
 
     // MARK: - Weekly Report (uses ExtractedPattern)
 

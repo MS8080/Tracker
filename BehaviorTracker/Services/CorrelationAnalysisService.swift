@@ -47,7 +47,7 @@ struct CorrelationInsight: Identifiable {
 
 class CorrelationAnalysisService {
     static let shared = CorrelationAnalysisService()
-    private let dataController = DataController.shared
+    private var dataController: DataController { DataController.shared }
 
     private init() {}
 
