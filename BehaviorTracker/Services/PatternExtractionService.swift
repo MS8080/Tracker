@@ -111,7 +111,7 @@ class PatternExtractionService {
         }
 
         // Format entries with timestamps
-        let formattedEntries = entries.enumerated().map { index, entry in
+        let formattedEntries = entries.enumerated().map { _, entry in
             let formatter = DateFormatter()
             formatter.dateStyle = .short
             formatter.timeStyle = .short

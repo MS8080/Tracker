@@ -64,7 +64,7 @@ struct ResultStep: View {
         "Someone expecting something from me": [.externalDemand],
         "Decision I need to make": [.decisionFatigue],
         "Pressure to be productive": [.internalDemand],
-        "Responsibility I don't want": [.taskAvoidance, .autonomyNeed],
+        "Responsibility I don't want": [.taskAvoidance, .autonomyNeed]
     ]
 
     private var relatedPatternTypes: [PatternType] {
@@ -535,4 +535,5 @@ struct FeelingFinderFlyingTile: View {
         }
     }
 }
+
 

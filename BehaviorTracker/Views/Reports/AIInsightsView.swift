@@ -14,7 +14,8 @@ struct AIInsightsView: View {
     @State private var savedCardIds: Set<UUID> = []
     @State private var bookmarkedCardIds: Set<UUID> = []
     @State private var showingSettings = false
-    @State private var showingResults = false
+    @State private var isExpanded = false
+    @Namespace private var heroAnimation
 
     private var theme: AppTheme {
         AppTheme(rawValue: selectedThemeRaw) ?? .purple
@@ -22,36 +23,58 @@ struct AIInsightsView: View {
 
     var body: some View {
         NavigationView {
-            ScrollView {
-                VStack(spacing: 20) {
-                    if viewModel.isDemoMode {
-                        demoModeIndicator
+            ZStack {
+                Color(PlatformColor.systemGroupedBackground)
+                    .ignoresSafeArea()
+
+                if !isExpanded {
+                    // Collapsed state - main view
+                    ScrollView {
+                        VStack(spacing: 20) {
+                            if viewModel.isDemoMode {
+                                demoModeIndicator
+                            }
+
+                            currentModelIndicator
+
+                            headerSection
+
+                            if !viewModel.isDemoMode {
+                                AnalysisModeSelector(
+                                    selectedMode: $viewModel.analysisMode,
+                                    onModeChange: clearResults
+                                )
+                            }
+
+                            // Privacy notice (if needed for AI mode)
+                            privacySection
+
+                            // Analysis Card (tappable for hero animation)
+                            if canAnalyze {
+                                analysisCard
+                                    .matchedGeometryEffect(id: "card", in: heroAnimation)
+                            }
+
+                            errorMessage
+                        }
+                        .padding()
                     }
-
-                    currentModelIndicator
-
-                    headerSection
-
-                    if !viewModel.isDemoMode {
-                        AnalysisModeSelector(
-                            selectedMode: $viewModel.analysisMode,
-                            onModeChange: clearResults
-                        )
-                    }
-
-                    contentSection
+                } else {
+                    // Expanded state - results view
+                    expandedResultsView
+                        .matchedGeometryEffect(id: "card", in: heroAnimation)
                 }
-                .padding()
             }
-            .background(Color(PlatformColor.systemGroupedBackground))
             .navigationTitle("Insights")
             .navigationBarTitleDisplayModeInline()
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button {
-                        showingSettings = true
-                    } label: {
-                        Image(systemName: "gearshape")
+                    if !isExpanded {
+                        Button {
+                            showingSettings = true
+                        } label: {
+                            Image(systemName: "gearshape")
+                        }
                     }
                 }
                 ToolbarItem(placement: .confirmationAction) {
@@ -61,21 +84,126 @@ struct AIInsightsView: View {
             .sheet(isPresented: $showingSettings) {
                 AIInsightsSettingsView(viewModel: viewModel)
             }
-            .fullScreenCover(isPresented: $showingResults) {
-                InsightsResultsView(
-                    viewModel: viewModel,
-                    savedCardIds: $savedCardIds,
-                    bookmarkedCardIds: $bookmarkedCardIds,
-                    theme: theme,
-                    onSaveToJournal: saveCardToJournal
-                )
-            }
             .onChange(of: viewModel.insights) { _, newValue in
                 if newValue != nil {
-                    showingResults = true
+                    withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
+                        isExpanded = true
+                    }
+                }
+            }
+            .onChange(of: viewModel.localInsights) { _, newValue in
+                if newValue != nil {
+                    withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
+                        isExpanded = true
+                    }
                 }
             }
         }
+    }
+
+    // MARK: - Analysis Card (Collapsed)
+
+    private var analysisCard: some View {
+        VStack(spacing: 16) {
+            // Card content
+            VStack(spacing: 12) {
+                HStack {
+                    Image(systemName: viewModel.analysisMode == .local ? "cpu" : "sparkles")
+                        .font(.title2)
+                        .foregroundStyle(theme.primaryColor)
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Analyze My Data")
+                            .font(.headline)
+                            .fontWeight(.semibold)
+
+                        Text(configSummary)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+
+                    Spacer()
+
+                    if viewModel.isAnalyzing {
+                        ProgressView()
+                            .tint(theme.primaryColor)
+                    } else {
+                        Image(systemName: "chevron.right")
+                            .font(.subheadline)
+                            .foregroundStyle(.tertiary)
+                    }
+                }
+            }
+            .padding()
+            .background(Color(PlatformColor.secondarySystemGroupedBackground))
+            .cornerRadius(16)
+        }
+        .contentShape(Rectangle())
+        .onTapGesture {
+            guard !viewModel.isAnalyzing else { return }
+            HapticFeedback.light.trigger()
+            Task { await viewModel.analyze() }
+        }
+    }
+
+    private var configSummary: String {
+        var parts: [String] = []
+        parts.append("\(viewModel.timeframeDays) days")
+        parts.append(viewModel.analysisMode == .local ? "Local" : AIAnalysisService.shared.selectedModel.displayName)
+        return parts.joined(separator: " • ")
+    }
+
+    // MARK: - Expanded Results View
+
+    private var expandedResultsView: some View {
+        VStack(spacing: 0) {
+            // Header with close button
+            HStack {
+                Button {
+                    withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                        isExpanded = false
+                    }
+                } label: {
+                    HStack(spacing: 6) {
+                        Image(systemName: "chevron.down")
+                            .font(.subheadline.weight(.semibold))
+                        Text("Close")
+                            .font(.subheadline.weight(.medium))
+                    }
+                    .foregroundStyle(theme.primaryColor)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 8)
+                    .background(theme.primaryColor.opacity(0.15), in: Capsule())
+                }
+
+                Spacer()
+
+                Text(configSummary)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            .padding()
+            .background(Color(PlatformColor.secondarySystemGroupedBackground))
+
+            // Results content
+            ScrollView {
+                VStack(spacing: 20) {
+                    if viewModel.analysisMode == .local {
+                        if let localInsights = viewModel.localInsights {
+                            LocalInsightsResultView(insights: localInsights)
+                        }
+                    } else {
+                        if let insights = viewModel.insights {
+                            aiInsightsResultSection(insights)
+                        }
+                    }
+                }
+                .padding()
+            }
+        }
+        .background(Color(PlatformColor.systemGroupedBackground))
+        .cornerRadius(isExpanded ? 0 : 16)
+        .ignoresSafeArea(edges: .bottom)
     }
 
     // MARK: - Demo Mode Indicator
@@ -140,77 +268,17 @@ struct AIInsightsView: View {
         .padding()
     }
 
-    // MARK: - Content Section
+    // MARK: - Privacy Notice (shown before AI analysis)
 
     @ViewBuilder
-    private var contentSection: some View {
-        if viewModel.isDemoMode {
-            analysisSection
-        } else if viewModel.analysisMode == .local {
-            analysisSection
-        } else {
-            if !viewModel.hasAcknowledgedPrivacy {
-                PrivacyNoticeView(onAcknowledge: viewModel.acknowledgePrivacy)
-            } else {
-                analysisSection
-            }
+    private var privacySection: some View {
+        if viewModel.analysisMode == .ai && !viewModel.hasAcknowledgedPrivacy && !viewModel.isDemoMode {
+            PrivacyNoticeView(onAcknowledge: viewModel.acknowledgePrivacy)
         }
     }
 
-    // MARK: - Analysis Section
-
-    private var analysisSection: some View {
-        VStack(spacing: 16) {
-            analysisOptions
-            analyzeButton
-            errorMessage
-        }
-    }
-
-    private var analysisOptions: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Include in Analysis")
-                .font(.headline)
-
-            Toggle("Pattern Entries", isOn: $viewModel.includePatterns)
-            Toggle("Journal Entries", isOn: $viewModel.includeJournals)
-            Toggle("Medications", isOn: $viewModel.includeMedications)
-
-            Divider()
-
-            Picker("Timeframe", selection: $viewModel.timeframeDays) {
-                Text("7 days").tag(7)
-                Text("14 days").tag(14)
-                Text("30 days").tag(30)
-            }
-            .pickerStyle(.segmented)
-        }
-        .padding()
-        .background(Color(PlatformColor.secondarySystemGroupedBackground))
-        .cornerRadius(12)
-    }
-
-    private var analyzeButton: some View {
-        Button {
-            Task { await viewModel.analyze() }
-        } label: {
-            HStack {
-                if viewModel.isAnalyzing {
-                    ProgressView()
-                        .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                } else {
-                    Image(systemName: viewModel.analysisMode == .local ? "cpu" : "sparkles")
-                }
-                Text(viewModel.isAnalyzing ? "Analyzing..." : "Analyze My Data")
-            }
-            .fontWeight(.semibold)
-            .frame(maxWidth: .infinity)
-            .padding()
-            .background(viewModel.isAnalyzing ? Color.gray : Color.purple)
-            .foregroundColor(.white)
-            .cornerRadius(12)
-        }
-        .disabled(viewModel.isAnalyzing)
+    private var canAnalyze: Bool {
+        viewModel.isDemoMode || viewModel.analysisMode == .local || viewModel.hasAcknowledgedPrivacy
     }
 
     @ViewBuilder

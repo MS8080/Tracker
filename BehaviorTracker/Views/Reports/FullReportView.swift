@@ -158,7 +158,7 @@ struct FullReportView: View {
         let sections = MarkdownParser.parseMarkdownSections(insights.content)
 
         return VStack(alignment: .leading, spacing: 24) {
-            ForEach(Array(sections.enumerated()), id: \.element.title) { index, section in
+            ForEach(Array(sections.enumerated()), id: \.element.title) { _, section in
                 InsightTileView(
                     section: section,
                     theme: theme,

@@ -140,7 +140,7 @@ struct DynamicJournalView: View {
     // MARK: - Timeline View
 
     private var timelineView: some View {
-        ScrollViewReader { proxy in
+        ScrollViewReader { _ in
             ScrollView {
                 VStack(alignment: .leading, spacing: Spacing.lg) {
                     // Today's entries
