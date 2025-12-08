@@ -44,6 +44,10 @@ struct GoalsListView: View {
                 }
             }
         }
+        .refreshable {
+            viewModel.refresh()
+            HapticFeedback.light.trigger()
+        }
         .navigationTitle("Goals")
         .toolbar {
             if !viewModel.isDemoMode {

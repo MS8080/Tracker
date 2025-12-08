@@ -58,6 +58,10 @@ struct CalendarView: View {
                     .padding()
                 }
                 .scrollContentBackground(.hidden)
+                .refreshable {
+                    await viewModel.loadMonthDataAsync()
+                    HapticFeedback.light.trigger()
+                }
             }
             .navigationTitle(NSLocalizedString("calendar.title", comment: "Calendar"))
             .toolbar {
@@ -68,6 +72,7 @@ struct CalendarView: View {
 
                 ToolbarItem(placement: .topBarLeading) {
                     Button {
+                        HapticFeedback.medium.trigger()
                         viewModel.goToToday()
                     } label: {
                         Text("Today")
@@ -150,6 +155,7 @@ struct CalendarView: View {
     private var monthNavigationHeader: some View {
         HStack {
             Button {
+                HapticFeedback.light.trigger()
                 withAnimation(.easeInOut(duration: 0.2)) {
                     viewModel.previousMonth()
                 }
@@ -170,6 +176,7 @@ struct CalendarView: View {
             Spacer()
 
             Button {
+                HapticFeedback.light.trigger()
                 withAnimation(.easeInOut(duration: 0.2)) {
                     viewModel.nextMonth()
                 }
@@ -217,6 +224,7 @@ struct CalendarView: View {
                     calendarEventCount: viewModel.calendarEventCountForDate(date)
                 )
                 .onTapGesture {
+                    HapticFeedback.selection.trigger()
                     withAnimation(.easeInOut(duration: 0.15)) {
                         if viewModel.isSelected(date) {
                             showingDayDetail = true

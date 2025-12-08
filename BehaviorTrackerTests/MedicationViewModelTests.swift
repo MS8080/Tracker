@@ -8,10 +8,19 @@ final class MedicationViewModelTests: XCTestCase {
 
     override func setUpWithError() throws {
         dataController = DataController(inMemory: true)
+        DataController.shared = dataController
         viewModel = MedicationViewModel(dataController: dataController)
     }
 
     override func tearDownWithError() throws {
+        // Clean up all data
+        let context = dataController.container.viewContext
+        for entityName in ["Medication", "MedicationLog"] {
+            let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: entityName)
+            let deleteRequest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
+            try? context.execute(deleteRequest)
+        }
+        try? context.save()
         dataController = nil
         viewModel = nil
     }

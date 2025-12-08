@@ -7,9 +7,18 @@ final class MedicationRepositoryTests: XCTestCase {
 
     override func setUpWithError() throws {
         dataController = DataController(inMemory: true)
+        DataController.shared = dataController
     }
 
     override func tearDownWithError() throws {
+        // Clean up all data
+        let context = dataController.container.viewContext
+        for entityName in ["Medication", "MedicationLog"] {
+            let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: entityName)
+            let deleteRequest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
+            try? context.execute(deleteRequest)
+        }
+        try? context.save()
         dataController = nil
     }
 

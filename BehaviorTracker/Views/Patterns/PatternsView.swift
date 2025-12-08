@@ -68,6 +68,7 @@ struct PatternsView: View {
 
                 ToolbarItem(placement: .topBarLeading) {
                     Button {
+                        HapticFeedback.medium.trigger()
                         showingFlowMap = true
                     } label: {
                         Image(systemName: "arrow.triangle.branch")
@@ -352,6 +353,7 @@ struct PatternsView: View {
 
                 // Toggle triggers visibility
                 Button {
+                    HapticFeedback.selection.trigger()
                     withAnimation(.easeInOut(duration: 0.2)) {
                         showTriggers.toggle()
                     }
@@ -389,6 +391,7 @@ struct PatternsView: View {
 
                 // Toggle triggers visibility
                 Button {
+                    HapticFeedback.selection.trigger()
                     withAnimation(.easeInOut(duration: 0.2)) {
                         showTriggers.toggle()
                     }
@@ -642,6 +645,7 @@ struct FullScreenFlowView: View {
             VStack {
                 HStack {
                     Button {
+                        HapticFeedback.light.trigger()
                         dismiss()
                     } label: {
                         Image(systemName: "xmark.circle.fill")

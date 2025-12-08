@@ -44,6 +44,10 @@ struct StrugglesListView: View {
                 }
             }
         }
+        .refreshable {
+            viewModel.refresh()
+            HapticFeedback.light.trigger()
+        }
         .navigationTitle("Struggles")
         .toolbar {
             if !viewModel.isDemoMode {

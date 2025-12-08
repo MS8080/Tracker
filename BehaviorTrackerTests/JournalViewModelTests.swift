@@ -14,17 +14,26 @@ final class JournalViewModelTests: XCTestCase {
     }
 
     override func tearDownWithError() throws {
+        // Clean up all data
+        let context = dataController.container.viewContext
+        for entityName in ["JournalEntry", "ExtractedPattern", "PatternCascade"] {
+            let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: entityName)
+            let deleteRequest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
+            try? context.execute(deleteRequest)
+        }
+        try? context.save()
         dataController = nil
         viewModel = nil
     }
 
     // MARK: - Create Entry Tests
 
-    func testCreateEntry() throws {
+    func testCreateEntry() async throws {
         let success = viewModel.createEntry(
             title: "Test Entry",
             content: "This is test content"
         )
+        try await Task.sleep(nanoseconds: 100_000_000)
 
         XCTAssertTrue(success)
         XCTAssertEqual(viewModel.journalEntries.count, 1)
@@ -32,22 +41,24 @@ final class JournalViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.journalEntries.first?.content, "This is test content")
     }
 
-    func testCreateEntryWithMood() throws {
+    func testCreateEntryWithMood() async throws {
         let success = viewModel.createEntry(
             title: "Mood Entry",
             content: "Feeling good today",
             mood: 4
         )
+        try await Task.sleep(nanoseconds: 100_000_000)
 
         XCTAssertTrue(success)
         XCTAssertEqual(viewModel.journalEntries.first?.mood, 4)
     }
 
-    func testCreateEntryWithAudioFile() throws {
+    func testCreateEntryWithAudioFile() async throws {
         let success = viewModel.createEntry(
             content: "Voice note",
             audioFileName: "recording_001.m4a"
         )
+        try await Task.sleep(nanoseconds: 100_000_000)
 
         XCTAssertTrue(success)
         XCTAssertEqual(viewModel.journalEntries.first?.audioFileName, "recording_001.m4a")
@@ -55,23 +66,26 @@ final class JournalViewModelTests: XCTestCase {
 
     // MARK: - Load Entry Tests
 
-    func testLoadJournalEntries() throws {
+    func testLoadJournalEntries() async throws {
         _ = try dataController.createJournalEntry(title: "Entry 1", content: "Content 1")
         _ = try dataController.createJournalEntry(title: "Entry 2", content: "Content 2")
         _ = try dataController.createJournalEntry(title: "Entry 3", content: "Content 3")
 
         viewModel.loadJournalEntries()
+        try await Task.sleep(nanoseconds: 100_000_000)
 
         XCTAssertEqual(viewModel.journalEntries.count, 3)
     }
 
-    func testLoadJournalEntriesFavoritesOnly() throws {
+    func testLoadJournalEntriesFavoritesOnly() async throws {
         _ = try dataController.createJournalEntry(title: "Regular", content: "Content")
         let entry2 = try dataController.createJournalEntry(title: "Favorite", content: "Content")
         entry2.isFavorite = true
         dataController.save()
 
         viewModel.showFavoritesOnly = true
+        // Wait for async load to complete
+        try await Task.sleep(nanoseconds: 100_000_000)
 
         XCTAssertEqual(viewModel.journalEntries.count, 1)
         XCTAssertEqual(viewModel.journalEntries.first?.title, "Favorite")
@@ -79,12 +93,14 @@ final class JournalViewModelTests: XCTestCase {
 
     // MARK: - Search Tests
 
-    func testSearchEntries() throws {
+    func testSearchEntries() async throws {
         _ = try dataController.createJournalEntry(title: "Morning Routine", content: "Started the day well")
         _ = try dataController.createJournalEntry(title: "Afternoon Slump", content: "Feeling tired")
         _ = try dataController.createJournalEntry(title: "Evening Review", content: "Good evening routine")
 
         viewModel.searchQuery = "morning"
+        // Wait for async load to complete
+        try await Task.sleep(nanoseconds: 100_000_000)
 
         // After setting searchQuery, entries should be filtered
         XCTAssertTrue(viewModel.journalEntries.allSatisfy { entry in
@@ -94,12 +110,14 @@ final class JournalViewModelTests: XCTestCase {
         })
     }
 
-    func testClearSearchQuery() throws {
+    func testClearSearchQuery() async throws {
         _ = try dataController.createJournalEntry(title: "Entry 1", content: "Content 1")
         _ = try dataController.createJournalEntry(title: "Entry 2", content: "Content 2")
 
         viewModel.searchQuery = "Entry 1"
+        try await Task.sleep(nanoseconds: 100_000_000)
         viewModel.searchQuery = ""
+        try await Task.sleep(nanoseconds: 100_000_000)
 
         // After clearing, all entries should be loaded
         XCTAssertEqual(viewModel.journalEntries.count, 2)
@@ -107,34 +125,38 @@ final class JournalViewModelTests: XCTestCase {
 
     // MARK: - Delete Tests
 
-    func testDeleteEntry() throws {
+    func testDeleteEntry() async throws {
         let entry = try dataController.createJournalEntry(title: "To Delete", content: "This will be deleted")
         viewModel.loadJournalEntries()
+        try await Task.sleep(nanoseconds: 100_000_000)
 
         XCTAssertEqual(viewModel.journalEntries.count, 1)
 
         viewModel.deleteEntry(entry)
+        try await Task.sleep(nanoseconds: 100_000_000)
 
         XCTAssertEqual(viewModel.journalEntries.count, 0)
     }
 
     // MARK: - Favorite Tests
 
-    func testToggleFavorite() throws {
+    func testToggleFavorite() async throws {
         let entry = try dataController.createJournalEntry(title: "Toggle Me", content: "Content")
         viewModel.loadJournalEntries()
+        try await Task.sleep(nanoseconds: 100_000_000)
 
         XCTAssertFalse(entry.isFavorite)
 
         viewModel.toggleFavorite(entry)
         viewModel.loadJournalEntries()
+        try await Task.sleep(nanoseconds: 100_000_000)
 
         XCTAssertTrue(viewModel.journalEntries.first?.isFavorite ?? false)
     }
 
     // MARK: - Grouped By Date Tests
 
-    func testGetEntriesGroupedByDate() throws {
+    func testGetEntriesGroupedByDate() async throws {
         let today = Date()
         let yesterday = Calendar.current.date(byAdding: .day, value: -1, to: today)!
 
@@ -149,6 +171,7 @@ final class JournalViewModelTests: XCTestCase {
 
         dataController.save()
         viewModel.loadJournalEntries()
+        try await Task.sleep(nanoseconds: 100_000_000)
 
         let grouped = viewModel.getEntriesGroupedByDate()
 

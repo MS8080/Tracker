@@ -185,6 +185,7 @@
 		6CE0C610033DD43C4CE01AD6 /* NetworkMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = EBE2D5DF337F8EECE29D154C /* NetworkMonitor.swift */; };
 		72544E6AF144E24A9E9B866F /* Struggle+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48C54C1F69C5BD96E8054F72 /* Struggle+CoreDataClass.swift */; };
 		744E109B30225FA664C67523 /* DemoModeService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D5EA3AE0471D84C660ACA46 /* DemoModeService.swift */; };
+		74BCB96FD47A7278A3541AE7 /* ErrorBannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69C4F9A6C302CE05AF5AA9D0 /* ErrorBannerView.swift */; };
 		796222326AD62D17993741A4 /* ProfileSettingsViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F86B475F9E2344B80711EF5 /* ProfileSettingsViews.swift */; };
 		7B6062B22BBDF037BCC2F2B5 /* ClaudeService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3147DA86A19660C43BB8236A /* ClaudeService.swift */; };
 		7D55C3704A352E10738A0EA7 /* JournalRepositoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDA9BAC44C059E02E26305AA /* JournalRepositoryTests.swift */; };
@@ -483,6 +484,7 @@
 		619FF56700000001 /* BehaviorTracker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BehaviorTracker.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		62B3F9C9832467ED22CA8897 /* JournalViewModelTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = JournalViewModelTests.swift; sourceTree = "<group>"; };
 		6536C0F04AB7D153C4447D3F /* GoalRepository.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GoalRepository.swift; sourceTree = "<group>"; };
+		69C4F9A6C302CE05AF5AA9D0 /* ErrorBannerView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ErrorBannerView.swift; sourceTree = "<group>"; };
 		78F51FCF709F34F345267407 /* BehaviorTrackerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BehaviorTrackerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		7D14BEF8A651870DAC399940 /* ProfileHealthViews.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ProfileHealthViews.swift; sourceTree = "<group>"; };
 		81FCF55FF6DB5F63BA7CD321 /* ProfileMedicationsViews.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ProfileMedicationsViews.swift; sourceTree = "<group>"; };
@@ -737,6 +739,7 @@
 				4ESETSUP012EE0000002 /* SettingsSupportingViews.swift */,
 				4EC1D7172ED8FBE4003F9272 /* EmptyStateView.swift */,
 				4EC1D71D2ED8FF99003F9272 /* ThemeWrapper.swift */,
+				69C4F9A6C302CE05AF5AA9D0 /* ErrorBannerView.swift */,
 			);
 			path = Settings;
 			sourceTree = "<group>";
@@ -973,6 +976,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 62FC608100000002 /* Build configuration list for PBXNativeTarget "BehaviorTracker" */;
 			buildPhases = (
+				DB1A4D9C1073BF321B0DACE7 /* SwiftLint */,
 				62FC608100000003 /* Sources */,
 				C212516800000001 /* Frameworks */,
 				62FC608100000004 /* Resources */,
@@ -1110,6 +1114,27 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		DB1A4D9C1073BF321B0DACE7 /* SwiftLint */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = SwiftLint;
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "if which swiftlint >/dev/null; then\n  swiftlint\nfi";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		21AA664213FACA49F426431F /* Sources */ = {
@@ -1286,6 +1311,7 @@
 				FADB5315E14AE18710A0F7D7 /* ProfileHealthViews.swift in Sources */,
 				C381833EDD8E7F735DB4BF00 /* ProfileMedicationsViews.swift in Sources */,
 				796222326AD62D17993741A4 /* ProfileSettingsViews.swift in Sources */,
+				74BCB96FD47A7278A3541AE7 /* ErrorBannerView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

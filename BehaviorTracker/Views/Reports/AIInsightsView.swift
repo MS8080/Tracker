@@ -173,16 +173,18 @@ struct AIInsightsView: View {
     @ViewBuilder
     private var errorMessage: some View {
         if let error = viewModel.errorMessage {
-            HStack {
-                Image(systemName: "exclamationmark.triangle.fill")
-                    .foregroundColor(.orange)
-                Text(error)
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-            }
-            .padding()
-            .background(Color.orange.opacity(0.1))
-            .cornerRadius(8)
+            ErrorBannerView(
+                title: "Analysis Failed",
+                message: error,
+                style: error.lowercased().contains("api key") || error.lowercased().contains("not configured") ? .warning : .error,
+                primaryAction: ErrorBannerView.ErrorAction(title: "Try Again", icon: "arrow.clockwise") {
+                    Task { await viewModel.analyze() }
+                },
+                secondaryAction: error.lowercased().contains("api key") || error.lowercased().contains("not configured")
+                    ? ErrorBannerView.ErrorAction(title: "Settings", icon: "gear") { showingSettings = true }
+                    : nil,
+                onDismiss: { viewModel.errorMessage = nil }
+            )
         }
     }
 

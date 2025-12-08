@@ -252,6 +252,7 @@ struct JournalEntryDetailView: View {
     private func toggleFavorite() {
         entry.isFavorite.toggle()
         DataController.shared.updateJournalEntry(entry)
+        HapticFeedback.light.trigger()
     }
 
     private var voiceNotePlaybackSection: some View {
@@ -370,9 +371,11 @@ struct JournalEntryDetailView: View {
         entry.content = content
         DataController.shared.updateJournalEntry(entry)
         hasChanges = false
+        HapticFeedback.success.trigger()
     }
 
     private func deleteEntry() {
+        HapticFeedback.warning.trigger()
         onDelete()
         dismiss()
     }

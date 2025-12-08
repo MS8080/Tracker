@@ -47,6 +47,7 @@ struct AppearanceSettingsView: View {
                         theme: themeOption,
                         isSelected: selectedThemeRaw == themeOption.rawValue
                     ) {
+                        HapticFeedback.selection.trigger()
                         withAnimation(.spring(response: 0.15, dampingFraction: 0.8)) {
                             selectedThemeRaw = themeOption.rawValue
                         }
@@ -77,6 +78,7 @@ struct AppearanceSettingsView: View {
                     icon: "sparkles",
                     isSelected: cardStyle == CardStyle.glass.rawValue
                 ) {
+                    HapticFeedback.selection.trigger()
                     withAnimation(.spring(response: 0.15, dampingFraction: 0.8)) {
                         cardStyle = CardStyle.glass.rawValue
                     }
@@ -88,6 +90,7 @@ struct AppearanceSettingsView: View {
                     icon: "square.fill",
                     isSelected: cardStyle == CardStyle.material.rawValue
                 ) {
+                    HapticFeedback.selection.trigger()
                     withAnimation(.spring(response: 0.15, dampingFraction: 0.8)) {
                         cardStyle = CardStyle.material.rawValue
                     }
@@ -122,6 +125,7 @@ struct AppearanceSettingsView: View {
                     backgroundColor: .white,
                     isSelected: appearance == .light
                 ) {
+                    HapticFeedback.selection.trigger()
                     withAnimation(.spring(response: 0.15, dampingFraction: 0.8)) {
                         appearance = .light
                     }
@@ -134,6 +138,7 @@ struct AppearanceSettingsView: View {
                     backgroundColor: Color(white: 0.15),
                     isSelected: appearance == .dark
                 ) {
+                    HapticFeedback.selection.trigger()
                     withAnimation(.spring(response: 0.15, dampingFraction: 0.8)) {
                         appearance = .dark
                     }
@@ -167,6 +172,9 @@ struct AppearanceSettingsView: View {
                 }
             }
             .tint(theme.primaryColor)
+            .onChange(of: useCapsuleLabels) { _, _ in
+                HapticFeedback.selection.trigger()
+            }
 
             // Preview of capsule labels
             if useCapsuleLabels {

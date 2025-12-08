@@ -53,6 +53,10 @@ struct WishlistListView: View {
                 }
             }
         }
+        .refreshable {
+            viewModel.refresh()
+            HapticFeedback.light.trigger()
+        }
         .navigationTitle("Wishlist")
         .toolbar {
             if !viewModel.isDemoMode {

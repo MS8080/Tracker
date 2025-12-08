@@ -7,9 +7,16 @@ final class PatternRepositoryTests: XCTestCase {
 
     override func setUpWithError() throws {
         dataController = DataController(inMemory: true)
+        DataController.shared = dataController
     }
 
     override func tearDownWithError() throws {
+        // Clean up all pattern entries
+        let context = dataController.container.viewContext
+        let fetchRequest: NSFetchRequest<NSFetchRequestResult> = PatternEntry.fetchRequest()
+        let deleteRequest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
+        try? context.execute(deleteRequest)
+        try? context.save()
         dataController = nil
     }
 

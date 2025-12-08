@@ -233,23 +233,39 @@ struct JournalEntryAnalysisView: View {
     }
 
     private func errorCard(_ error: String) -> some View {
-        VStack(spacing: Spacing.md) {
-            Image(systemName: "exclamationmark.triangle")
-                .font(.largeTitle)
-                .foregroundStyle(.orange)
-            Text(error)
-                .font(.subheadline)
+        VStack(spacing: Spacing.lg) {
+            // Large icon for visual impact
+            ZStack {
+                Circle()
+                    .fill(.orange.opacity(0.15))
+                    .frame(width: 80, height: 80)
+
+                Image(systemName: "exclamationmark.triangle.fill")
+                    .font(.system(size: 40))
+                    .foregroundStyle(.orange)
+            }
+
+            // Error banner with actions
+            ErrorBannerView(
+                title: "Analysis Failed",
+                message: error,
+                style: error.lowercased().contains("api key") ? .warning : .error,
+                primaryAction: ErrorBannerView.ErrorAction(title: "Try Again", icon: "arrow.clockwise") {
+                    Task {
+                        await analysisViewModel.analyzeEntry(entry, context: viewContext)
+                    }
+                },
+                onDismiss: { analysisViewModel.errorMessage = nil }
+            )
+
+            // Helpful tip
+            Text("Tip: Make sure you have an internet connection and your API key is configured in Settings.")
+                .font(.caption)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
-
-            Button("Try Again") {
-                Task {
-                    await analysisViewModel.analyzeEntry(entry, context: viewContext)
-                }
-            }
-            .buttonStyle(.borderedProminent)
+                .padding(.horizontal)
         }
-        .padding(30)
+        .padding(Spacing.lg)
         .frame(maxWidth: .infinity)
         .cardStyle(theme: theme, cornerRadius: 20)
     }
