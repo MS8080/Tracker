@@ -32,13 +32,6 @@ struct AIInsightsView: View {
 
                     headerSection
 
-                    if !viewModel.isDemoMode {
-                        AnalysisModeSelector(
-                            selectedMode: $viewModel.analysisMode,
-                            onModeChange: clearResults
-                        )
-                    }
-
                     contentSection
                 }
                 .padding()
@@ -93,29 +86,35 @@ struct AIInsightsView: View {
         .background(Color.orange.opacity(0.2), in: Capsule())
     }
 
-    // MARK: - Current Model Indicator
+    // MARK: - Current Mode/Model Indicator
 
     private var currentModelIndicator: some View {
+        let isLocal = viewModel.analysisMode == .local
         let model = AIAnalysisService.shared.selectedModel
+        let displayText = isLocal ? "Local Analysis" : model.displayName
+        let icon = isLocal ? "cpu" : model.icon
+        let color: Color = isLocal ? .green : (model == .claude ? .purple : .blue)
+
         return Button {
             showingSettings = true
         } label: {
             HStack(spacing: 6) {
-                Image(systemName: model.icon)
+                Image(systemName: icon)
                     .font(.caption)
-                Text(model.displayName)
+                Text(displayText)
                     .font(.caption)
                     .fontWeight(.medium)
+                Text("•")
+                    .font(.caption)
+                Text("\(viewModel.timeframeDays)d")
+                    .font(.caption)
                 Image(systemName: "chevron.right")
                     .font(.caption2)
             }
-            .foregroundStyle(model == .claude ? .purple : .blue)
+            .foregroundStyle(color)
             .padding(.horizontal, 12)
             .padding(.vertical, 6)
-            .background(
-                (model == .claude ? Color.purple : Color.blue).opacity(0.15),
-                in: Capsule()
-            )
+            .background(color.opacity(0.15), in: Capsule())
         }
         .buttonStyle(.plain)
     }
@@ -161,49 +160,42 @@ struct AIInsightsView: View {
 
     private var analysisSection: some View {
         VStack(spacing: 16) {
-            analysisOptions
             analyzeButton
             errorMessage
         }
     }
 
-    private var analysisOptions: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Include in Analysis")
-                .font(.headline)
-
-            Toggle("Pattern Entries", isOn: $viewModel.includePatterns)
-            Toggle("Journal Entries", isOn: $viewModel.includeJournals)
-            Toggle("Medications", isOn: $viewModel.includeMedications)
-
-            Divider()
-
-            Picker("Timeframe", selection: $viewModel.timeframeDays) {
-                Text("7 days").tag(7)
-                Text("14 days").tag(14)
-                Text("30 days").tag(30)
-            }
-            .pickerStyle(.segmented)
+    private var configSummary: String {
+        var parts: [String] = []
+        parts.append("\(viewModel.timeframeDays) days")
+        if viewModel.analysisMode == .local {
+            parts.append("Local")
+        } else {
+            parts.append(AIAnalysisService.shared.selectedModel.displayName)
         }
-        .padding()
-        .background(Color(PlatformColor.secondarySystemGroupedBackground))
-        .cornerRadius(12)
+        return parts.joined(separator: " • ")
     }
 
     private var analyzeButton: some View {
         Button {
             Task { await viewModel.analyze() }
         } label: {
-            HStack {
-                if viewModel.isAnalyzing {
-                    ProgressView()
-                        .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                } else {
-                    Image(systemName: viewModel.analysisMode == .local ? "cpu" : "sparkles")
+            VStack(spacing: 6) {
+                HStack {
+                    if viewModel.isAnalyzing {
+                        ProgressView()
+                            .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                    } else {
+                        Image(systemName: viewModel.analysisMode == .local ? "cpu" : "sparkles")
+                    }
+                    Text(viewModel.isAnalyzing ? "Analyzing..." : "Analyze My Data")
                 }
-                Text(viewModel.isAnalyzing ? "Analyzing..." : "Analyze My Data")
+                .fontWeight(.semibold)
+
+                Text(configSummary)
+                    .font(.caption)
+                    .opacity(0.8)
             }
-            .fontWeight(.semibold)
             .frame(maxWidth: .infinity)
             .padding()
             .background(viewModel.isAnalyzing ? Color.gray : Color.purple)
