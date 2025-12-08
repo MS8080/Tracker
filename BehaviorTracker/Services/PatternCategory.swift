@@ -68,4 +68,41 @@ enum PatternCategory: String, CaseIterable, Codable {
             return "Sleep, interoception, routine, physical"
         }
     }
+
+    /// Maps old category names to new PatternCategory
+    /// Used for backward compatibility with stored data
+    static func from(legacyName: String) -> PatternCategory? {
+        // First try direct match with rawValue
+        if let direct = PatternCategory(rawValue: legacyName) {
+            return direct
+        }
+
+        // Map old category names to new ones
+        switch legacyName {
+        case "Energy & Regulation", "Energy":
+            return .energy
+        case "Sensory":
+            return .sensory
+        case "Emotional Regulation", "Emotional":
+            return .regulation
+        case "Social & Communication", "Social":
+            return .social
+        case "Executive Function", "Focus & Attention":
+            return .executive
+        case "Demand Avoidance", "Demands":
+            return .demands
+        case "Physical & Sleep", "Body", "Routine & Change":
+            return .body
+        default:
+            return nil
+        }
+    }
+
+    /// Normalized category name for display (maps legacy to current)
+    static func normalizedName(_ categoryName: String) -> String {
+        if let category = from(legacyName: categoryName) {
+            return category.rawValue
+        }
+        return categoryName
+    }
 }

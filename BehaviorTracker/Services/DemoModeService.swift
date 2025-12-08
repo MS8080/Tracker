@@ -526,10 +526,10 @@ final class DemoModeService: ObservableObject {
             ],
             categoryBreakdown: [
                 "Sensory": 10,
-                "Social & Communication": 8,
+                "Social": 8,
                 "Executive Function": 5,
-                "Energy & Regulation": 4,
-                "Routine & Change": 1
+                "Energy & Capacity": 4,
+                "Body & Routine": 1
             ],
             commonTriggers: [
                 "Bright lights",
@@ -641,10 +641,10 @@ final class DemoModeService: ObservableObject {
     var demoCategoryDistribution: [(category: String, percentage: Double, count: Int)] {
         [
             (category: "Sensory", percentage: 35.7, count: 40),
-            (category: "Social & Communication", percentage: 25.0, count: 28),
+            (category: "Social", percentage: 25.0, count: 28),
             (category: "Executive Function", percentage: 16.1, count: 18),
-            (category: "Energy & Regulation", percentage: 13.4, count: 15),
-            (category: "Routine & Change", percentage: 9.8, count: 11)
+            (category: "Energy & Capacity", percentage: 13.4, count: 15),
+            (category: "Body & Routine", percentage: 9.8, count: 11)
         ]
     }
 

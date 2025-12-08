@@ -351,7 +351,9 @@ class ReportGenerator {
             dailyCounts[dayName, default: 0] += 1
 
             patternCounts[pattern.patternType, default: 0] += 1
-            categoryCounts[pattern.category, default: 0] += 1
+            // Normalize category name to handle legacy data
+            let normalizedCategory = PatternCategory.normalizedName(pattern.category)
+            categoryCounts[normalizedCategory, default: 0] += 1
 
             // Track intensity trend
             let startOfDay = calendar.startOfDay(for: pattern.timestamp)
