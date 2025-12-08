@@ -65,6 +65,7 @@ struct PatternsView: View {
                     ProfileButton(showingProfile: $showingProfile)
                 }
 
+
                 ToolbarItem(placement: .topBarLeading) {
                     Button {
                         HapticFeedback.medium.trigger()

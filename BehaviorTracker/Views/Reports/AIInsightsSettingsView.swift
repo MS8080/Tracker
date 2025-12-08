@@ -20,18 +20,6 @@ struct AIInsightsSettingsView: View {
                     .ignoresSafeArea()
 
                 List {
-                    Section("Analysis Options") {
-                        Picker("Timeframe", selection: $viewModel.timeframeDays) {
-                            Text("7 days").tag(7)
-                            Text("14 days").tag(14)
-                            Text("30 days").tag(30)
-                        }
-
-                        Toggle("Include Patterns", isOn: $viewModel.includePatterns)
-                        Toggle("Include Journals", isOn: $viewModel.includeJournals)
-                        Toggle("Include Medications", isOn: $viewModel.includeMedications)
-                    }
-
                     Section("AI Model") {
                         Picker("Model", selection: $selectedModel) {
                             ForEach(AIModel.allCases, id: \.self) { model in

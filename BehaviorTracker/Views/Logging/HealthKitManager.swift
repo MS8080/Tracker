@@ -51,7 +51,7 @@ class HealthKitManager: ObservableObject, @unchecked Sendable {
                 predicate: nil,
                 limit: 1,
                 sortDescriptors: nil
-            ) { _, _, error in
+            ) { _, samples, error in
                 // If we get samples or no error, we likely have authorization
                 // Note: empty samples with no error also means authorized but no data
                 if error == nil {

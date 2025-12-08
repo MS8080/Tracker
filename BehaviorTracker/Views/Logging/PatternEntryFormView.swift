@@ -320,6 +320,7 @@ struct PatternEntryFormView: View {
                     .foregroundStyle(.white)
                 }
 
+
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Save") {
                         saveEntry()

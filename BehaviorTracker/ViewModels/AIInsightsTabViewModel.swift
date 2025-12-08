@@ -349,7 +349,7 @@ class AIInsightsTabViewModel: ObservableObject {
             }
 
             let trimmed = line.trimmingCharacters(in: .whitespaces)
-            if trimmed.hasPrefix("- ") || trimmed.hasPrefix("* ") || trimmed.hasPrefix("• ") {
+            if (trimmed.hasPrefix("- ") || trimmed.hasPrefix("* ") || trimmed.hasPrefix("• ")) {
                 var bullet = String(trimmed.dropFirst(2)).trimmingCharacters(in: .whitespaces)
                 // Clean up markdown bold markers
                 bullet = bullet.replacingOccurrences(of: "**", with: "")
