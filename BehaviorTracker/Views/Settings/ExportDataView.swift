@@ -184,8 +184,9 @@ struct ShareSheet: View {
         Button("Share") {
             if let url = items.first as? URL {
                 let picker = NSSharingServicePicker(items: [url])
-                if let window = NSApplication.shared.keyWindow {
-                    picker.show(relativeTo: .zero, of: window.contentView!, preferredEdge: .minY)
+                if let window = NSApplication.shared.keyWindow,
+                   let contentView = window.contentView {
+                    picker.show(relativeTo: .zero, of: contentView, preferredEdge: .minY)
                 }
             }
         }

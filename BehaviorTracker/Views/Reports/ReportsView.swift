@@ -42,6 +42,13 @@ struct ReportsView: View {
                             .background(.orange.opacity(0.2), in: Capsule())
                         }
 
+                        // Summary Card - TL;DR + Recommendations
+                        ReportSummaryCard(
+                            summary: viewModel.summary,
+                            isLoading: viewModel.isLoadingSummary,
+                            theme: theme
+                        )
+
                         AnalysisCardsRow(
                             theme: theme,
                             onAIInsights: { showingAIInsights = true },

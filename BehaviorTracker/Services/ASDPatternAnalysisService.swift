@@ -218,7 +218,9 @@ class ASDPatternAnalysisService: ObservableObject {
         }
 
         // Check sleep from yesterday/today
-        let yesterdayStart = calendar.date(byAdding: .day, value: -1, to: today)!
+        guard let yesterdayStart = calendar.date(byAdding: .day, value: -1, to: today) else {
+            return 0
+        }
         let recentPatterns = patterns.filter { $0.timestamp >= yesterdayStart }
         let sleepPatterns = patternsOfType(recentPatterns, type: .sleepQuality)
         if let lastSleep = sleepPatterns.first, lastSleep.intensity <= 2 {
@@ -315,7 +317,9 @@ class ASDPatternAnalysisService: ObservableObject {
         let calendar = Calendar.current
 
         // Look at last 3 days of masking
-        let threeDaysAgo = calendar.date(byAdding: .day, value: -3, to: Date())!
+        guard let threeDaysAgo = calendar.date(byAdding: .day, value: -3, to: Date()) else {
+            return []
+        }
         let recentMasking = patterns.filter {
             $0.timestamp >= threeDaysAgo &&
             $0.patternType == PatternType.maskingIntensity.rawValue
@@ -328,7 +332,9 @@ class ASDPatternAnalysisService: ObservableObject {
         // Check for consecutive high masking days
         var consecutiveHighDays = 0
         for dayOffset in 0..<3 {
-            let day = calendar.date(byAdding: .day, value: -dayOffset, to: Date())!
+            guard let day = calendar.date(byAdding: .day, value: -dayOffset, to: Date()) else {
+                continue
+            }
             let dayMasking = recentMasking.filter { calendar.isDate($0.timestamp, inSameDayAs: day) }
             if averageIntensity(dayMasking) >= 3 {
                 consecutiveHighDays += 1
@@ -439,7 +445,9 @@ class ASDPatternAnalysisService: ObservableObject {
         // Analyze for missing expected patterns (routine deviation)
         // Look at what patterns typically occur by this time of day
         let currentHour = calendar.component(.hour, from: Date())
-        let weekAgo = calendar.date(byAdding: .day, value: -7, to: Date())!
+        guard let weekAgo = calendar.date(byAdding: .day, value: -7, to: Date()) else {
+            return insights
+        }
 
         let historicalPatterns = patterns.filter {
             $0.timestamp >= weekAgo && !calendar.isDate($0.timestamp, inSameDayAs: today)
@@ -495,7 +503,9 @@ class ASDPatternAnalysisService: ObservableObject {
 
         for crisis in meltdownShutdownPatterns {
             // Look at patterns in the 4 hours before
-            let fourHoursBefore = calendar.date(byAdding: .hour, value: -4, to: crisis.timestamp)!
+            guard let fourHoursBefore = calendar.date(byAdding: .hour, value: -4, to: crisis.timestamp) else {
+                continue
+            }
 
             let precedingPatterns = patterns.filter {
                 $0.timestamp >= fourHoursBefore &&
@@ -537,7 +547,9 @@ class ASDPatternAnalysisService: ObservableObject {
     private func analyzeBurnoutIndicators(patterns: [PatternEntry], journals: [JournalEntry]) -> [ASDInsight] {
         var insights: [ASDInsight] = []
         let calendar = Calendar.current
-        let weekAgo = calendar.date(byAdding: .day, value: -7, to: Date())!
+        guard let weekAgo = calendar.date(byAdding: .day, value: -7, to: Date()) else {
+            return insights
+        }
         let recentPatterns = patterns.filter { $0.timestamp >= weekAgo }
 
         // Check for burnout indicator patterns
@@ -603,7 +615,9 @@ class ASDPatternAnalysisService: ObservableObject {
         let calendar = Calendar.current
 
         // Get last 7 days of sleep data
-        let weekAgo = calendar.date(byAdding: .day, value: -7, to: Date())!
+        guard let weekAgo = calendar.date(byAdding: .day, value: -7, to: Date()) else {
+            return insights
+        }
         let recentPatterns = patterns.filter { $0.timestamp >= weekAgo }
         let sleepPatterns = patternsOfType(recentPatterns, type: .sleepQuality)
 
@@ -650,6 +664,7 @@ class ASDPatternAnalysisService: ObservableObject {
         let todaysPatterns = todayPatterns(from: patterns)
 
         // Positive pattern definitions
+        // swiftlint:disable:next large_tuple
         let positiveTypes: [(type: PatternType, title: String, message: String, icon: String, color: Color)] = [
             (.flowState, "Flow State Achieved", "You found your flow today", "sparkles", .blue),
             (.specialInterest, "Special Interest Time", "You engaged with something you love", "star.fill", .yellow),
@@ -732,7 +747,9 @@ class ASDPatternAnalysisService: ObservableObject {
 
         for crisis in crisisEvents {
             // Get patterns in the 2 hours before
-            let twoHoursBefore = calendar.date(byAdding: .hour, value: -2, to: crisis.timestamp)!
+            guard let twoHoursBefore = calendar.date(byAdding: .hour, value: -2, to: crisis.timestamp) else {
+                continue
+            }
 
             let precedingPatterns = patterns.filter {
                 $0.timestamp >= twoHoursBefore &&

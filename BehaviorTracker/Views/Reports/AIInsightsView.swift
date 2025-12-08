@@ -14,6 +14,7 @@ struct AIInsightsView: View {
     @State private var savedCardIds: Set<UUID> = []
     @State private var bookmarkedCardIds: Set<UUID> = []
     @State private var showingSettings = false
+    @State private var showingResults = false
 
     private var theme: AppTheme {
         AppTheme(rawValue: selectedThemeRaw) ?? .purple
@@ -26,6 +27,8 @@ struct AIInsightsView: View {
                     if viewModel.isDemoMode {
                         demoModeIndicator
                     }
+
+                    currentModelIndicator
 
                     headerSection
 
@@ -58,6 +61,20 @@ struct AIInsightsView: View {
             .sheet(isPresented: $showingSettings) {
                 AIInsightsSettingsView(viewModel: viewModel)
             }
+            .fullScreenCover(isPresented: $showingResults) {
+                InsightsResultsView(
+                    viewModel: viewModel,
+                    savedCardIds: $savedCardIds,
+                    bookmarkedCardIds: $bookmarkedCardIds,
+                    theme: theme,
+                    onSaveToJournal: saveCardToJournal
+                )
+            }
+            .onChange(of: viewModel.insights) { _, newValue in
+                if newValue != nil {
+                    showingResults = true
+                }
+            }
         }
     }
 
@@ -74,6 +91,33 @@ struct AIInsightsView: View {
         .padding(.horizontal, 12)
         .padding(.vertical, 6)
         .background(Color.orange.opacity(0.2), in: Capsule())
+    }
+
+    // MARK: - Current Model Indicator
+
+    private var currentModelIndicator: some View {
+        let model = AIAnalysisService.shared.selectedModel
+        return Button {
+            showingSettings = true
+        } label: {
+            HStack(spacing: 6) {
+                Image(systemName: model.icon)
+                    .font(.caption)
+                Text(model.displayName)
+                    .font(.caption)
+                    .fontWeight(.medium)
+                Image(systemName: "chevron.right")
+                    .font(.caption2)
+            }
+            .foregroundStyle(model == .claude ? .purple : .blue)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
+            .background(
+                (model == .claude ? Color.purple : Color.blue).opacity(0.15),
+                in: Capsule()
+            )
+        }
+        .buttonStyle(.plain)
     }
 
     // MARK: - Header Section
@@ -120,7 +164,6 @@ struct AIInsightsView: View {
             analysisOptions
             analyzeButton
             errorMessage
-            resultsSection
         }
     }
 

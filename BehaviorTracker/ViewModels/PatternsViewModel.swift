@@ -89,7 +89,7 @@ class PatternsViewModel: ObservableObject {
 
         let calendar = Calendar.current
         let startOfDay = calendar.startOfDay(for: Date())
-        let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay)!
+        guard let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay) else { return }
 
         // Fetch extracted patterns for today
         let fetchRequest: NSFetchRequest<ExtractedPattern> = ExtractedPattern.fetchRequest()
@@ -211,7 +211,7 @@ class PatternsViewModel: ObservableObject {
     func checkUnanalyzedEntries() async {
         let calendar = Calendar.current
         let startOfDay = calendar.startOfDay(for: Date())
-        let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay)!
+        guard let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay) else { return }
 
         let fetchRequest = NSFetchRequest<JournalEntry>(entityName: "JournalEntry")
         fetchRequest.predicate = NSPredicate(
@@ -259,7 +259,7 @@ class PatternsViewModel: ObservableObject {
 
         let calendar = Calendar.current
         let startOfDay = calendar.startOfDay(for: Date())
-        let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay)!
+        guard let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay) else { return }
 
         // Fetch unanalyzed entries - always check fresh from database
         let fetchRequest = NSFetchRequest<JournalEntry>(entityName: "JournalEntry")

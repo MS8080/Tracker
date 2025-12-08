@@ -469,7 +469,9 @@ class DataController: ObservableObject, @unchecked Sendable {
     func syncWidgetData() {
         let calendar = Calendar.current
         let today = calendar.startOfDay(for: Date())
-        let tomorrow = calendar.date(byAdding: .day, value: 1, to: today)!
+        guard let tomorrow = calendar.date(byAdding: .day, value: 1, to: today) else {
+            return
+        }
 
         let todayEntries = fetchPatternEntries(startDate: today, endDate: tomorrow)
         let todayCount = todayEntries.count
@@ -477,7 +479,9 @@ class DataController: ObservableObject, @unchecked Sendable {
         let preferences = getUserPreferences()
         let streakCount = Int(preferences.streakCount)
 
-        let thirtyDaysAgo = calendar.date(byAdding: .day, value: -30, to: Date())!
+        guard let thirtyDaysAgo = calendar.date(byAdding: .day, value: -30, to: Date()) else {
+            return
+        }
         let recentEntries = fetchPatternEntries(startDate: thirtyDaysAgo)
         let patternCounts = Dictionary(grouping: recentEntries) { $0.patternType }
             .mapValues { $0.count }

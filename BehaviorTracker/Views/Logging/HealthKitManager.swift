@@ -563,10 +563,15 @@ class HealthKitManager: ObservableObject, @unchecked Sendable {
         let startOfToday = calendar.startOfDay(for: now)
         var components = DateComponents()
         components.hour = 18 // 6 PM
-        let sleepWindowStart = calendar.date(byAdding: components, to: calendar.date(byAdding: .day, value: -1, to: startOfToday)!)!
+        guard let yesterday = calendar.date(byAdding: .day, value: -1, to: startOfToday),
+              let sleepWindowStart = calendar.date(byAdding: components, to: yesterday) else {
+            return nil
+        }
 
         components.hour = 12 // 12 PM (noon)
-        let sleepWindowEnd = calendar.date(byAdding: components, to: startOfToday)!
+        guard let sleepWindowEnd = calendar.date(byAdding: components, to: startOfToday) else {
+            return nil
+        }
 
         let sleepData = await fetchSleepData(startDate: sleepWindowStart, endDate: sleepWindowEnd)
 
@@ -735,7 +740,7 @@ class HealthKitManager: ObservableObject, @unchecked Sendable {
             heartRate: heartRate,
             restingHeartRate: restingHR,
             heartRateVariability: hrv,
-            bloodPressure: bloodPressure != nil ? (systolic: bloodPressure!.systolic, diastolic: bloodPressure!.diastolic) : nil,
+            bloodPressure: bloodPressure.map { (systolic: $0.systolic, diastolic: $0.diastolic) },
             bloodPressureDate: bloodPressure?.date,
             steps: steps,
             exerciseMinutes: exerciseMinutes,

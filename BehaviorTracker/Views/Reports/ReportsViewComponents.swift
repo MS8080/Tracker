@@ -308,3 +308,94 @@ struct StatRow: View {
         }
     }
 }
+
+// MARK: - Report Summary Card
+
+struct ReportSummaryCard: View {
+    let summary: ReportSummary
+    let isLoading: Bool
+    let theme: AppTheme
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: Spacing.md) {
+            // Header
+            HStack(spacing: Spacing.sm) {
+                Image(systemName: "text.quote")
+                    .font(.headline)
+                    .foregroundStyle(theme.primaryColor)
+
+                Text("This Week")
+                    .font(.headline)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(CardText.title)
+
+                Spacer()
+            }
+
+            if isLoading {
+                HStack {
+                    Spacer()
+                    ProgressView()
+                        .tint(.white)
+                    Spacer()
+                }
+                .padding(.vertical, Spacing.lg)
+            } else if summary.tldr.isEmpty {
+                Text("Loading your summary...")
+                    .font(.subheadline)
+                    .foregroundStyle(CardText.secondary)
+                    .italic()
+            } else {
+                // TL;DR
+                Text(summary.tldr)
+                    .font(.body)
+                    .foregroundStyle(CardText.body)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                // Recommendations
+                if !summary.recommendations.isEmpty {
+                    Divider()
+                        .background(CardText.caption.opacity(0.3))
+
+                    VStack(alignment: .leading, spacing: Spacing.sm) {
+                        Text("Recommendations")
+                            .font(.subheadline)
+                            .fontWeight(.semibold)
+                            .foregroundStyle(CardText.secondary)
+
+                        ForEach(Array(summary.recommendations.enumerated()), id: \.offset) { index, recommendation in
+                            HStack(alignment: .top, spacing: Spacing.sm) {
+                                Text("\(index + 1).")
+                                    .font(.subheadline)
+                                    .fontWeight(.bold)
+                                    .foregroundStyle(theme.primaryColor)
+                                    .frame(width: 20, alignment: .leading)
+
+                                Text(recommendation)
+                                    .font(.subheadline)
+                                    .foregroundStyle(CardText.body)
+                                    .fixedSize(horizontal: false, vertical: true)
+                            }
+                        }
+                    }
+                }
+
+                // Data sources indicator
+                if !summary.dataSource.isEmpty {
+                    HStack(spacing: Spacing.xs) {
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.caption2)
+                            .foregroundStyle(.green)
+
+                        Text("Based on: \(summary.dataSource)")
+                            .font(.caption2)
+                            .foregroundStyle(CardText.caption)
+                    }
+                    .padding(.top, Spacing.xs)
+                }
+            }
+        }
+        .padding(Spacing.lg)
+        .cardStyle(theme: theme)
+    }
+}

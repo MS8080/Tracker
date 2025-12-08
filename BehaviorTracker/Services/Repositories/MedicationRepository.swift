@@ -179,7 +179,9 @@ final class MedicationRepository {
     func getTodaysLogs() -> [MedicationLog] {
         let calendar = Calendar.current
         let startOfDay = calendar.startOfDay(for: Date())
-        let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay)!
+        guard let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay) else {
+            return []
+        }
 
         return fetchLogs(startDate: startOfDay, endDate: endOfDay)
     }

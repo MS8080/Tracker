@@ -180,8 +180,6 @@ struct BlueLightFilterModifier: ViewModifier {
     }
 }
 
-
-
 // MARK: - Card Style Option
 
 enum CardStyle: String, CaseIterable {

@@ -138,7 +138,10 @@ A/h7DZA3uzbmYruXnBsSog0=
         let signatureInput = "\(headerBase64).\(claimsBase64)"
 
         // Sign with RSA-SHA256
-        let signature = try signWithRSA(data: signatureInput.data(using: .utf8)!)
+        guard let inputData = signatureInput.data(using: .utf8) else {
+            throw GoogleAuthError.invalidCredentials
+        }
+        let signature = try signWithRSA(data: inputData)
         let signatureBase64 = signature.base64URLEncodedString()
 
         return "\(signatureInput).\(signatureBase64)"

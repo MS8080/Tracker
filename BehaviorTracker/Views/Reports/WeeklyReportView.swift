@@ -10,13 +10,9 @@ struct WeeklyReportView: View {
             heroStatsRow
             summaryCard
             categoryDistributionCard
-            if !report.commonTriggers.isEmpty {
-                triggersCard
-            }
             if !report.topCascades.isEmpty {
                 cascadesCard
             }
-            patternFrequencyCard
         }
     }
     
@@ -122,34 +118,6 @@ struct WeeklyReportView: View {
                         .font(.subheadline)
                         .fontWeight(.medium)
                         .foregroundStyle(CardText.body)
-                }
-            }
-        }
-    }
-
-    // MARK: - Triggers Card
-
-    private var triggersCard: some View {
-        ReportCard(
-            title: "Common Triggers",
-            subtitle: "What's been affecting you",
-            theme: theme,
-            icon: "exclamationmark.triangle.fill",
-            iconColor: Color(red: 0.9, green: 0.6, blue: 0.3) // Soft orange
-        ) {
-            VStack(alignment: .leading, spacing: Spacing.sm) {
-                ForEach(report.commonTriggers.filter { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }, id: \.self) { trigger in
-                    HStack(alignment: .top, spacing: Spacing.sm) {
-                        Image(systemName: "circle.fill")
-                            .font(.system(size: 6))
-                            .foregroundStyle(Color(red: 0.9, green: 0.6, blue: 0.3)) // Soft orange
-                            .padding(.top, 6)
-
-                        Text(formatTriggerName(trigger))
-                            .font(.subheadline)
-                            .foregroundStyle(CardText.body)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
                 }
             }
         }
@@ -320,12 +288,6 @@ struct WeeklyReportView: View {
                 return word.prefix(1).uppercased() + word.dropFirst()
             }
             .joined(separator: " ")
-    }
-    
-    private func formatTriggerName(_ trigger: String) -> String {
-        // Capitalize the first letter of the sentence, keep rest as-is
-        guard !trigger.isEmpty else { return trigger }
-        return trigger.prefix(1).uppercased() + trigger.dropFirst()
     }
 }
 

@@ -520,3 +520,113 @@ struct AIInsightsSectionHeader: View {
         }
     }
 }
+
+// MARK: - Insights Results View (Full Screen)
+
+struct InsightsResultsView: View {
+    @ObservedObject var viewModel: AIInsightsTabViewModel
+    @Binding var savedCardIds: Set<UUID>
+    @Binding var bookmarkedCardIds: Set<UUID>
+    let theme: AppTheme
+    let onSaveToJournal: (AIInsightCard) -> Void
+
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        NavigationView {
+            ScrollView {
+                VStack(spacing: Spacing.lg) {
+                    if viewModel.analysisMode == .local {
+                        if let localInsights = viewModel.localInsights {
+                            LocalInsightsResultView(insights: localInsights)
+                        }
+                    } else {
+                        if let insights = viewModel.insights {
+                            aiInsightsResultSection(insights)
+                        }
+                    }
+                }
+                .padding()
+            }
+            .background(Color(PlatformColor.systemGroupedBackground))
+            .navigationTitle("Results")
+            .navigationBarTitleDisplayModeInline()
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done") {
+                        dismiss()
+                    }
+                }
+            }
+        }
+    }
+
+    private func aiInsightsResultSection(_ insights: AIInsights) -> some View {
+        let cards = AIInsightCard.parse(from: insights.content)
+
+        return VStack(alignment: .leading, spacing: Spacing.lg) {
+            AIInsightsSectionHeader(title: "Generated Insights", icon: "sparkles")
+
+            ForEach(cards) { card in
+                InsightCardView(
+                    card: card,
+                    theme: theme,
+                    isSaved: savedCardIds.contains(card.id),
+                    isBookmarked: bookmarkedCardIds.contains(card.id),
+                    onCopy: { copyCard(card) },
+                    onBookmark: { toggleBookmark(card) },
+                    onSaveToJournal: { onSaveToJournal(card) }
+                )
+            }
+
+            copyAllButton(insights: insights)
+        }
+    }
+
+    private func copyCard(_ card: AIInsightCard) {
+        #if os(iOS)
+        UIPasteboard.general.string = card.fullText
+        HapticFeedback.light.trigger()
+        #elseif os(macOS)
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(card.fullText, forType: .string)
+        #endif
+    }
+
+    private func toggleBookmark(_ card: AIInsightCard) {
+        if bookmarkedCardIds.contains(card.id) {
+            bookmarkedCardIds.remove(card.id)
+        } else {
+            bookmarkedCardIds.insert(card.id)
+            #if os(iOS)
+            HapticFeedback.light.trigger()
+            #endif
+        }
+    }
+
+    private func copyAllButton(insights: AIInsights) -> some View {
+        Button {
+            #if os(iOS)
+            UIPasteboard.general.string = insights.content
+            HapticFeedback.light.trigger()
+            #elseif os(macOS)
+            NSPasteboard.general.clearContents()
+            NSPasteboard.general.setString(insights.content, forType: .string)
+            #endif
+            viewModel.showCopiedFeedback = true
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                viewModel.showCopiedFeedback = false
+            }
+        } label: {
+            HStack {
+                Image(systemName: viewModel.showCopiedFeedback ? "checkmark.circle.fill" : "doc.on.doc")
+                Text(viewModel.showCopiedFeedback ? "Copied!" : "Copy All Insights")
+            }
+            .font(.subheadline)
+            .fontWeight(.medium)
+            .foregroundColor(theme.primaryColor)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, Spacing.md)
+        }
+    }
+}

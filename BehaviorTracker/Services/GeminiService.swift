@@ -102,7 +102,7 @@ actor AsyncSemaphore {
     }
 
     func wait() async {
-        if count > 0 {
+        if count > 0 { // swiftlint:disable:this empty_count
             count -= 1
             return
         }
@@ -389,8 +389,8 @@ class GeminiService {
         }
 
         // All retries exhausted
-        if lastError is GeminiError {
-            throw lastError!
+        if let error = lastError as? GeminiError {
+            throw error
         }
         throw GeminiError.rateLimited
     }

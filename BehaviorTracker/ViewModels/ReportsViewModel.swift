@@ -4,6 +4,8 @@ import Combine
 class ReportsViewModel: ObservableObject {
     @Published var weeklyReport: WeeklyReport = WeeklyReport()
     @Published var monthlyReport: MonthlyReport = MonthlyReport()
+    @Published var summary: ReportSummary = ReportSummary()
+    @Published var isLoadingSummary: Bool = false
 
     private let reportGenerator = ReportGenerator()
     private let demoService = DemoModeService.shared
@@ -34,6 +36,16 @@ class ReportsViewModel: ObservableObject {
         }
         weeklyReport = reportGenerator.generateWeeklyReport()
         monthlyReport = reportGenerator.generateMonthlyReport()
+
+        // Generate summary asynchronously
+        isLoadingSummary = true
+        Task {
+            let newSummary = await reportGenerator.generateSummary()
+            await MainActor.run {
+                self.summary = newSummary
+                self.isLoadingSummary = false
+            }
+        }
     }
 
     private func generateDemoReports() {
@@ -90,5 +102,18 @@ class ReportsViewModel: ObservableObject {
         )
 
         monthlyReport = monthly
+
+        // Demo summary
+        summary = ReportSummary(
+            tldr: "Mixed week with ups and downs, moderately busy schedule.",
+            recommendations: [
+                "Schedule recovery time after social events",
+                "Keep up the morning routine - it's helping with focus",
+                "Watch out for 'noise' - it's been a frequent trigger"
+            ],
+            moodTrend: "stable",
+            topPattern: "Sensory Overload",
+            dataSource: "journal, calendar, health, setup"
+        )
     }
 }

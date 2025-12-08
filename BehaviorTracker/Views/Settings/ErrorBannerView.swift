@@ -234,9 +234,10 @@ extension ErrorBannerView {
             title: title,
             message: message,
             style: .info,
-            primaryAction: actionTitle != nil && action != nil
-                ? ErrorAction(title: actionTitle!, action: action!)
-                : nil,
+            primaryAction: {
+                guard let title = actionTitle, let action = action else { return nil }
+                return ErrorAction(title: title, action: action)
+            }(),
             onDismiss: onDismiss
         )
     }

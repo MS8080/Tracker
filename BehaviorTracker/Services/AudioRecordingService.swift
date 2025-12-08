@@ -75,30 +75,18 @@ class AudioRecordingService: NSObject, ObservableObject {
         } else {
             // Fallback for iOS < 17.0
             return await withCheckedContinuation { continuation in
-                #if compiler(>=5.9)
-                // Silence deprecation warning - this code only runs on iOS < 17
-                if #unavailable(iOS 17.0) {
-                    AVAudioSession.sharedInstance().requestRecordPermission { granted in
-                        DispatchQueue.main.async {
-                            self.hasPermission = granted
-                            continuation.resume(returning: granted)
-                        }
-                    }
-                }
-                #else
                 AVAudioSession.sharedInstance().requestRecordPermission { granted in
-                    DispatchQueue.main.async {
+                    Task { @MainActor in
                         self.hasPermission = granted
                         continuation.resume(returning: granted)
                     }
                 }
-                #endif
             }
         }
         #elseif os(macOS)
         return await withCheckedContinuation { continuation in
             AVCaptureDevice.requestAccess(for: .audio) { granted in
-                DispatchQueue.main.async {
+                Task { @MainActor in
                     self.hasPermission = granted
                     continuation.resume(returning: granted)
                 }

@@ -19,14 +19,14 @@ import CoreData
 enum AIModel: String, CaseIterable {
     /// Google's Gemini 2.5 Flash model - fast and cost-effective
     case gemini = "Gemini"
-    // Claude requires additional Vertex AI setup - disabled for now
-    // case claude = "Claude"
+    /// Anthropic's Claude Opus 4 - most capable model
+    case claude = "Claude"
 
     /// Human-readable display name for UI
     var displayName: String {
         switch self {
         case .gemini: return "Gemini 2.5 Flash"
-        // case .claude: return "Claude Opus 4"
+        case .claude: return "Claude Opus 4"
         }
     }
 
@@ -34,7 +34,7 @@ enum AIModel: String, CaseIterable {
     var icon: String {
         switch self {
         case .gemini: return "sparkles"
-        // case .claude: return "brain.head.profile"
+        case .claude: return "brain.head.profile"
         }
     }
 }
@@ -155,9 +155,12 @@ class AIAnalysisService {
 
     /// Generate content using the selected AI model
     private func generateContent(prompt: String) async throws -> String {
-        // Currently only Gemini is available
-        // Claude requires additional Vertex AI Model Garden setup
-        return try await geminiService.generateContent(prompt: prompt)
+        switch selectedModel {
+        case .gemini:
+            return try await geminiService.generateContent(prompt: prompt)
+        case .claude:
+            return try await ClaudeService.shared.generateContent(prompt: prompt)
+        }
     }
 
     // MARK: - Build Prompt
@@ -165,23 +168,18 @@ class AIAnalysisService {
     private func buildPrompt(preferences: AnalysisPreferences) async -> String {
         var sections: [String] = []
 
-        // System instruction
+        // System instruction - concise output
         sections.append("""
-        You are a supportive assistant helping someone understand their behavioral patterns.
-        Analyze the following tracking data and provide thorough, helpful insights.
+        You are a supportive wellness assistant. Analyze the data and provide CONCISE insights.
 
-        Guidelines:
-        - Provide 4-6 bullet points per section for comprehensive coverage
-        - Each bullet can be 2-3 sentences with helpful context
-        - Include specific observations from the data
-        - Offer actionable suggestions where appropriate
-
-        Keep your tone warm and supportive.
-        Format your response with clear sections using **bold headers**.
+        IMPORTANT: Keep responses SHORT and scannable. Users want quick insights, not essays.
+        Focus primarily on journal content and AI-extracted patterns, not manual logging stats.
         """)
 
         let endDate = Date()
-        let startDate = Calendar.current.date(byAdding: .day, value: -preferences.timeframeDays, to: endDate)!
+        guard let startDate = Calendar.current.date(byAdding: .day, value: -preferences.timeframeDays, to: endDate) else {
+            throw GeminiError.invalidRequest
+        }
 
         // Pattern data
         if preferences.includePatterns {
@@ -238,39 +236,22 @@ class AIAnalysisService {
         }
 
         sections.append("""
-        Provide a comprehensive analysis with these sections:
+        Respond with EXACTLY this format (keep it brief!):
 
-        **Key Patterns**
-        Identify 4-6 significant behavioral patterns from the data. For each:
-        - Describe the pattern and its frequency
-        - Note any relevant timing or context
-        - Mention intensity levels if applicable
+        **Summary**
+        2-3 sentences summarizing the overall picture from the data.
 
-        **Potential Triggers**
-        List 3-5 factors that appear to trigger or worsen patterns:
-        - Identify specific triggers from the data
-        - Note any patterns in when triggers occur
-        - Include environmental, emotional, or situational factors
+        **Key Insights**
+        • [Insight 1 - one sentence about a pattern or theme you noticed]
+        • [Insight 2 - one sentence]
+        • [Insight 3 - one sentence]
 
-        **What's Helping**
-        Highlight 3-5 positive factors or coping strategies that seem effective:
-        - Mention specific strategies that correlate with better outcomes
-        - Note any protective factors visible in the data
-        - Include medication effectiveness if relevant
+        **Recommendations**
+        • [Action 1 - specific, actionable suggestion]
+        • [Action 2 - specific, actionable suggestion]
+        • [Action 3 - specific, actionable suggestion]
 
-        **Connections & Cascades**
-        If cascade data is available, describe:
-        - How patterns connect to each other
-        - Common sequences or chains of behaviors
-        - Feedback loops (positive or negative)
-
-        **Suggestions**
-        Provide 4-6 actionable, personalized recommendations:
-        - Base suggestions on the specific data provided
-        - Include both short-term tactics and longer-term strategies
-        - Consider goals and struggles when making suggestions
-
-        Each bullet point can be 1-2 sentences. Provide enough detail to be genuinely helpful.
+        Keep each bullet to ONE sentence. Be specific to the data, not generic advice.
         """)
 
         return sections.joined(separator: "\n\n---\n\n")
@@ -329,6 +310,7 @@ class AIAnalysisService {
 
         // Category breakdown
         for (category, stats) in categoryStats.sorted(by: { $0.value.count > $1.value.count }) {
+            // swiftlint:disable:next empty_count
             let avgIntensity = stats.count > 0 ? Double(stats.totalIntensity) / Double(stats.count) : 0
             let topTypes = stats.types.sorted { $0.value > $1.value }.prefix(3).map { "\($0.key) (\($0.value)x)" }
             lines.append("- \(category): \(stats.count) entries, avg intensity \(String(format: "%.1f", avgIntensity))/5")
@@ -471,6 +453,14 @@ class AIAnalysisService {
         )
         fetchRequest.sortDescriptors = [NSSortDescriptor(keyPath: \ExtractedPattern.timestamp, ascending: false)]
 
+        // Category statistics helper
+        struct CategoryStats {
+            var count: Int
+            var totalIntensity: Int
+            var types: [String: Int]
+            var triggers: [String: Int]
+        }
+
         do {
             let patterns = try context.fetch(fetchRequest)
 
@@ -482,7 +472,7 @@ class AIAnalysisService {
             lines.append("Total extracted patterns: \(patterns.count)")
 
             // Group by category
-            var categoryStats: [String: (count: Int, totalIntensity: Int, types: [String: Int], triggers: [String: Int])] = [:]
+            var categoryStats: [String: CategoryStats] = [:]
 
             for pattern in patterns {
                 let category = pattern.category
@@ -502,13 +492,19 @@ class AIAnalysisService {
                     for trigger in pattern.triggers {
                         triggerCounts[trigger, default: 0] += 1
                     }
-                    categoryStats[category] = (1, intensity, [patternType: 1], triggerCounts)
+                    categoryStats[category] = CategoryStats(
+                        count: 1,
+                        totalIntensity: intensity,
+                        types: [patternType: 1],
+                        triggers: triggerCounts
+                    )
                 }
             }
 
             // Category breakdown
             lines.append("\nBy Category:")
             for (category, stats) in categoryStats.sorted(by: { $0.value.count > $1.value.count }) {
+                // swiftlint:disable:next empty_count
                 let avgIntensity = stats.count > 0 ? Double(stats.totalIntensity) / Double(stats.count) : 0
                 lines.append("- \(category): \(stats.count) patterns, avg intensity \(String(format: "%.1f", avgIntensity))/10")
 

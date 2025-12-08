@@ -61,8 +61,231 @@ struct DataPoint: Identifiable {
     let value: Double
 }
 
+struct ReportSummary {
+    var tldr: String = ""
+    var recommendations: [String] = []
+    var moodTrend: String = ""
+    var topPattern: String = ""
+    var dataSource: String = "" // "journal", "manual", or "combined"
+}
+
 class ReportGenerator {
     private var dataController: DataController { DataController.shared }
+    private let calendarService = CalendarEventService.shared
+    private let healthManager = HealthKitManager.shared
+
+    // MARK: - Summary Generation
+
+    func generateSummary() async -> ReportSummary {
+        var summary = ReportSummary()
+
+        let calendar = Calendar.current
+        guard let weekAgo = calendar.date(byAdding: .day, value: -7, to: Date()) else {
+            return ReportSummary()
+        }
+
+        // Gather data from all sources
+        let patterns = fetchExtractedPatterns(startDate: weekAgo, endDate: Date())
+        let journals = fetchJournalEntries(startDate: weekAgo, endDate: Date())
+        let setupItems = SetupItemRepository.shared.fetch(activeOnly: true)
+        let events = calendarService.fetchEvents(from: weekAgo, to: Date())
+        let healthSummary = await healthManager.fetchHealthSummary()
+
+        // Analyze patterns
+        let challengingPatterns = ["Sensory Overload", "Meltdown", "Shutdown", "Burnout Indicator", "Emotional Overwhelm"]
+        let positivePatterns = ["Flow State Achieved", "Authenticity Moment", "Special Interest Engagement"]
+
+        let challengingCount = patterns.filter { challengingPatterns.contains($0.patternType) }.count
+        let positiveCount = patterns.filter { positivePatterns.contains($0.patternType) }.count
+        let avgIntensity = patterns.isEmpty ? 0.0 :
+            Double(patterns.map { Int($0.intensity) }.reduce(0, +)) / Double(patterns.count)
+
+        // Calculate mood from journals
+        let avgMood = journals.isEmpty ? 0.0 :
+            Double(journals.compactMap { $0.mood }.reduce(0, +)) / Double(journals.count)
+
+        // Determine data sources used
+        var sources: [String] = []
+        if !patterns.isEmpty { sources.append("journal") }
+        if !events.isEmpty { sources.append("calendar") }
+        if healthSummary.sleepDuration != nil || healthSummary.steps != nil { sources.append("health") }
+        if !setupItems.isEmpty { sources.append("setup") }
+        summary.dataSource = sources.joined(separator: ", ")
+
+        // Generate TL;DR
+        summary.tldr = generateTLDR(
+            patterns: patterns,
+            journals: journals,
+            challengingCount: challengingCount,
+            positiveCount: positiveCount,
+            avgMood: avgMood,
+            avgIntensity: avgIntensity,
+            events: events,
+            healthSummary: healthSummary
+        )
+
+        // Generate recommendations
+        summary.recommendations = generateRecommendations(
+            patterns: patterns,
+            challengingCount: challengingCount,
+            positiveCount: positiveCount,
+            avgIntensity: avgIntensity,
+            setupItems: setupItems,
+            events: events,
+            healthSummary: healthSummary
+        )
+
+        // Set top pattern
+        let patternCounts = Dictionary(grouping: patterns, by: { $0.patternType })
+            .mapValues { $0.count }
+            .sorted { $0.value > $1.value }
+        summary.topPattern = patternCounts.first?.key ?? ""
+
+        // Set mood trend
+        if avgMood >= 4 {
+            summary.moodTrend = "positive"
+        } else if avgMood >= 3 {
+            summary.moodTrend = "stable"
+        } else if avgMood > 0 {
+            summary.moodTrend = "challenging"
+        } else {
+            summary.moodTrend = "unknown"
+        }
+
+        return summary
+    }
+
+    private func generateTLDR(
+        patterns: [ExtractedPattern],
+        journals: [JournalEntry],
+        challengingCount: Int,
+        positiveCount: Int,
+        avgMood: Double,
+        avgIntensity: Double,
+        events: [CalendarEvent],
+        healthSummary: HealthDataSummary
+    ) -> String {
+        var parts: [String] = []
+
+        // Overall state based on pattern balance
+        if patterns.isEmpty && journals.isEmpty {
+            return "No data recorded this week. Start journaling to get personalized insights."
+        }
+
+        if positiveCount > challengingCount * 2 {
+            parts.append("Great week with mostly positive experiences")
+        } else if challengingCount > positiveCount * 2 {
+            parts.append("Challenging week with more difficult moments")
+        } else if positiveCount > 0 || challengingCount > 0 {
+            parts.append("Mixed week with ups and downs")
+        } else {
+            parts.append("Quiet week")
+        }
+
+        // Add context from other sources
+        if let sleepHours = healthSummary.sleepHours {
+            if sleepHours < 6 {
+                parts.append("sleep has been low")
+            } else if sleepHours >= 8 {
+                parts.append("sleep has been good")
+            }
+        }
+
+        if events.count > 20 {
+            parts.append("very busy calendar")
+        } else if events.count > 10 {
+            parts.append("moderately busy schedule")
+        }
+
+        if avgIntensity > 7 {
+            parts.append("high intensity overall")
+        }
+
+        return parts.joined(separator: ", ") + "."
+    }
+
+    private func generateRecommendations(
+        patterns: [ExtractedPattern],
+        challengingCount: Int,
+        positiveCount: Int,
+        avgIntensity: Double,
+        setupItems: [SetupItem],
+        events: [CalendarEvent],
+        healthSummary: HealthDataSummary
+    ) -> [String] {
+        var recommendations: [String] = []
+
+        // Sleep-based recommendation
+        if let sleepHours = healthSummary.sleepHours, sleepHours < 7 {
+            recommendations.append("Prioritize sleep - aim for 7-8 hours to support regulation")
+        }
+
+        // Pattern-based recommendations
+        if challengingCount > positiveCount {
+            recommendations.append("Schedule recovery time - you've had more challenging moments than positive ones")
+        }
+
+        if avgIntensity > 7 {
+            recommendations.append("Consider reducing sensory input - intensity has been high")
+        }
+
+        // Calendar-based recommendation
+        if let futureDate = Calendar.current.date(byAdding: .day, value: 3, to: Date()) {
+            let upcomingEvents = CalendarEventService.shared.fetchEvents(
+                from: Date(),
+                to: futureDate
+            )
+            if upcomingEvents.count > 8 {
+                recommendations.append("Busy days ahead - plan buffer time between activities")
+            }
+        }
+
+        // Setup-based recommendations
+        let medications = setupItems.filter { $0.categoryEnum == .medication }
+        let activities = setupItems.filter { $0.categoryEnum == .activity }
+
+        if medications.isEmpty && challengingCount > 2 {
+            recommendations.append("Track your medications/supplements to find what helps")
+        }
+
+        if activities.isEmpty {
+            recommendations.append("Add a calming activity to your routine")
+        }
+
+        // Positive reinforcement
+        if positiveCount > challengingCount && recommendations.count < 3 {
+            recommendations.append("Keep doing what's working - more positive patterns than challenging ones")
+        }
+
+        // Pattern-specific
+        let triggers = patterns.flatMap { $0.triggers }
+        let triggerCounts = Dictionary(grouping: triggers, by: { $0 }).mapValues { $0.count }
+        if let topTrigger = triggerCounts.max(by: { $0.value < $1.value }), topTrigger.value >= 3 {
+            recommendations.append("Watch out for '\(topTrigger.key)' - it's been a frequent trigger")
+        }
+
+        // Ensure we have exactly 3 recommendations
+        if recommendations.isEmpty {
+            recommendations.append("Keep journaling to build more personalized insights")
+        }
+
+        // Default fillers if needed
+        let defaults = [
+            "Take breaks when you notice rising intensity",
+            "Use your coping strategies early when triggers appear",
+            "Celebrate small wins - they add up"
+        ]
+
+        while recommendations.count < 3 {
+            if let next = defaults.first(where: { !recommendations.contains($0) }) {
+                recommendations.append(next)
+            } else {
+                break
+            }
+        }
+
+        return Array(recommendations.prefix(3))
+    }
 
     // MARK: - Weekly Report (uses ExtractedPattern)
 
@@ -70,7 +293,9 @@ class ReportGenerator {
         var report = WeeklyReport()
 
         let calendar = Calendar.current
-        let weekAgo = calendar.date(byAdding: .day, value: -7, to: Date())!
+        guard let weekAgo = calendar.date(byAdding: .day, value: -7, to: Date()) else {
+            return WeeklyReport()
+        }
 
         // Fetch ExtractedPatterns instead of PatternEntry
         let patterns = fetchExtractedPatterns(startDate: weekAgo, endDate: Date())
@@ -141,7 +366,9 @@ class ReportGenerator {
         var report = MonthlyReport()
 
         let calendar = Calendar.current
-        let monthAgo = calendar.date(byAdding: .month, value: -1, to: Date())!
+        guard let monthAgo = calendar.date(byAdding: .month, value: -1, to: Date()) else {
+            return MonthlyReport()
+        }
 
         // Fetch ExtractedPatterns instead of PatternEntry
         let patterns = fetchExtractedPatterns(startDate: monthAgo, endDate: Date())
@@ -169,7 +396,9 @@ class ReportGenerator {
             if categoryByDay[pattern.category] == nil {
                 categoryByDay[pattern.category] = [:]
             }
-            categoryByDay[pattern.category]![startOfDay, default: []].append(pattern.intensity)
+            if categoryByDay[pattern.category] != nil {
+                categoryByDay[pattern.category]?[startOfDay, default: []].append(pattern.intensity)
+            }
         }
 
         if let mostActiveWeek = weekCounts.max(by: { $0.value < $1.value }) {
@@ -482,7 +711,9 @@ class ReportGenerator {
 
     private func generateMedicationInsights(days: Int, patterns: [ExtractedPattern]) -> [MedicationInsight] {
         let calendar = Calendar.current
-        let startDate = calendar.date(byAdding: .day, value: -days, to: Date())!
+        guard let startDate = calendar.date(byAdding: .day, value: -days, to: Date()) else {
+            return []
+        }
         let medications = dataController.fetchMedications(activeOnly: true)
 
         var insights: [MedicationInsight] = []
@@ -518,7 +749,8 @@ class ReportGenerator {
                 Double(energyList.reduce(0, +)) / Double(energyList.count)
 
             let sideEffectsCount = takenLogs.filter { log in
-                log.sideEffects != nil && !log.sideEffects!.isEmpty
+                guard let effects = log.sideEffects else { return false }
+                return !effects.isEmpty
             }.count
 
             var correlationNotes: [String] = []

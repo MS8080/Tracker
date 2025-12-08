@@ -5,7 +5,7 @@ import SwiftUI
 struct JournalEntryEditorView: View {
     @Environment(\.dismiss) private var dismiss
     private let dataController = DataController.shared
-    private let extractionService = PatternExtractionService.shared
+    private let analysisCoordinator = AnalysisCoordinator.shared
     private let mentionService = EventMentionService.shared
 
     // Entry data
@@ -296,9 +296,8 @@ struct JournalEntryEditorView: View {
 
                 clearDraft()
 
-                Task.detached(priority: .background) {
-                    await analyzeEntry(entry)
-                }
+                // Queue for background analysis via coordinator
+                analysisCoordinator.queueAnalysis(for: entry)
 
                 await MainActor.run {
                     HapticFeedback.success.trigger()
@@ -339,7 +338,9 @@ struct JournalEntryEditorView: View {
                 }
 
                 clearDraft()
-                await analyzeEntry(entry)
+
+                // Analyze immediately via coordinator (blocking)
+                try await analysisCoordinator.analyzeNow(entry)
 
                 await MainActor.run {
                     isAnalyzing = false
@@ -352,58 +353,6 @@ struct JournalEntryEditorView: View {
                     HapticFeedback.error.trigger()
                 }
             }
-        }
-    }
-
-    private func analyzeEntry(_ entry: JournalEntry) async {
-        guard extractionService.isConfigured else { return }
-        guard !GeminiService.shared.wasRecentlyAnalyzed(entryID: entry.id) else { return }
-
-        GeminiService.shared.markAsAnalyzed(entryID: entry.id)
-
-        do {
-            let result = try await extractionService.extractPatterns(from: entry.content)
-            let context = dataController.container.viewContext
-
-            var createdPatterns: [String: ExtractedPattern] = [:]
-
-            for patternData in result.patterns {
-                let pattern = ExtractedPattern(context: context)
-                pattern.id = UUID()
-                pattern.patternType = patternData.type
-                pattern.category = patternData.category
-                pattern.intensity = Int16(patternData.intensity)
-                pattern.triggers = patternData.triggers ?? []
-                pattern.timeOfDay = patternData.timeOfDay ?? result.context.timeOfDay
-                pattern.copingStrategies = patternData.copingUsed ?? []
-                pattern.details = patternData.details
-                pattern.confidence = result.confidence
-                pattern.timestamp = entry.timestamp
-                pattern.journalEntry = entry
-                createdPatterns[patternData.type] = pattern
-            }
-
-            for cascadeData in result.cascades {
-                if let fromPattern = createdPatterns[cascadeData.from],
-                   let toPattern = createdPatterns[cascadeData.to] {
-                    let cascade = PatternCascade(context: context)
-                    cascade.id = UUID()
-                    cascade.confidence = cascadeData.confidence
-                    cascade.descriptionText = cascadeData.description
-                    cascade.timestamp = entry.timestamp
-                    cascade.fromPattern = fromPattern
-                    cascade.toPattern = toPattern
-                }
-            }
-
-            entry.isAnalyzed = true
-            entry.analysisConfidence = result.confidence
-            entry.analysisSummary = result.summary
-            entry.overallIntensity = Int16(result.overallIntensity)
-
-            try context.save()
-        } catch {
-            // Analysis failed silently
         }
     }
 }

@@ -208,10 +208,8 @@ class WhisperTranscriptionService: ObservableObject {
         modelDirectory = appSupportPath.appendingPathComponent("WhisperKitModels")
 
         // Create directories if needed
-        for directory in [recordingsDirectory, modelDirectory] {
-            if !FileManager.default.fileExists(atPath: directory.path) {
-                try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
-            }
+        for directory in [recordingsDirectory, modelDirectory] where !FileManager.default.fileExists(atPath: directory.path) {
+            try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         }
     }
 
@@ -282,8 +280,7 @@ class WhisperTranscriptionService: ObservableObject {
             else if let match = findClosestMedication(cleanWord, in: allMedications) {
                 let suffix = word.hasSuffix(".") ? "." : (word.hasSuffix(",") ? "," : "")
                 correctedWords.append(match + suffix)
-            }
-            else {
+            } else {
                 correctedWords.append(word)
             }
         }
@@ -321,7 +318,7 @@ class WhisperTranscriptionService: ObservableObject {
     }
 
     /// Common English words that should never be matched to medications
-    private let commonWordsBlacklist: Set<String> = [
+    private let commonWordsExclusionList: Set<String> = [
         // Common verbs
         "take", "took", "taken", "feel", "felt", "make", "made", "have", "having",
         "give", "gave", "given", "work", "works", "help", "helps", "helped",
@@ -365,7 +362,7 @@ class WhisperTranscriptionService: ObservableObject {
         let lowercasedWord = word.lowercased()
 
         // Skip common words that should never match medications
-        guard !commonWordsBlacklist.contains(lowercasedWord) else { return nil }
+        guard !commonWordsExclusionList.contains(lowercasedWord) else { return nil }
 
         // Only try to match words that are at least 5 characters
         guard lowercasedWord.count >= 5 else { return nil }

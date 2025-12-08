@@ -1,6 +1,7 @@
 import Foundation
 import WatchConnectivity
 
+// swiftlint:disable:next type_name
 class iPhoneWatchConnectivityService: NSObject, ObservableObject {
     static let shared = iPhoneWatchConnectivityService()
 

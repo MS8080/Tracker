@@ -137,6 +137,105 @@ final class PatternRepository: @unchecked Sendable {
         DataController.shared.save()
     }
 
+    // MARK: - Extracted Pattern Methods
+
+    /// Save extraction result as Core Data entities for a journal entry
+    func saveExtractionResult(
+        _ result: PatternExtractionService.ExtractionResult,
+        for entry: JournalEntry
+    ) async throws {
+        let context = backgroundContext
+        let entryObjectID = entry.objectID  // Capture objectID instead of entry
+
+        try await context.perform {
+            // Get entry in this context
+            guard let entryInContext = try? context.existingObject(with: entryObjectID) as? JournalEntry else {
+                throw PatternRepositoryError.entryNotFound
+            }
+
+            // Clear any existing patterns (for re-analysis)
+            self.deleteExtractedPatterns(for: entryInContext, in: context)
+
+            // Create pattern entities
+            var createdPatterns: [String: ExtractedPattern] = [:]
+
+            for patternData in result.patterns {
+                let pattern = ExtractedPattern(context: context)
+                pattern.id = UUID()
+                pattern.patternType = patternData.type
+                pattern.category = patternData.category
+                pattern.intensity = Int16(patternData.intensity)
+                pattern.triggers = patternData.triggers ?? []
+                pattern.timeOfDay = patternData.timeOfDay ?? result.context.timeOfDay ?? "unknown"
+                pattern.copingStrategies = patternData.copingUsed ?? []
+                pattern.details = patternData.details
+                pattern.confidence = result.confidence
+                pattern.timestamp = entryInContext.timestamp
+                pattern.journalEntry = entryInContext
+
+                createdPatterns[patternData.type] = pattern
+            }
+
+            // Create cascade relationships
+            for cascadeData in result.cascades {
+                guard let fromPattern = createdPatterns[cascadeData.from],
+                      let toPattern = createdPatterns[cascadeData.to] else { continue }
+
+                let cascade = PatternCascade(context: context)
+                cascade.id = UUID()
+                cascade.confidence = cascadeData.confidence
+                cascade.descriptionText = cascadeData.description
+                cascade.timestamp = entryInContext.timestamp
+                cascade.fromPattern = fromPattern
+                cascade.toPattern = toPattern
+            }
+
+            // Update entry metadata
+            entryInContext.isAnalyzed = true
+            entryInContext.analysisConfidence = result.confidence
+            entryInContext.analysisSummary = result.summary
+            entryInContext.overallIntensity = Int16(result.overallIntensity)
+
+            try context.save()
+        }
+    }
+
+    /// Delete existing extracted patterns for a journal entry
+    private func deleteExtractedPatterns(for entry: JournalEntry, in context: NSManagedObjectContext) {
+        guard let patterns = entry.extractedPatterns as? Set<ExtractedPattern> else { return }
+        for pattern in patterns {
+            context.delete(pattern)
+        }
+    }
+
+    /// Clear analysis data for an entry (for re-analysis)
+    func clearAnalysis(for entry: JournalEntry) throws {
+        deleteExtractedPatterns(for: entry, in: viewContext)
+
+        entry.isAnalyzed = false
+        entry.analysisSummary = nil
+        entry.analysisConfidence = 0
+        entry.overallIntensity = 0
+
+        try viewContext.save()
+    }
+
+    /// Fetch all unanalyzed journal entries
+    func fetchUnanalyzedEntries() -> [JournalEntry] {
+        let request = NSFetchRequest<JournalEntry>(entityName: "JournalEntry")
+        request.predicate = NSPredicate(format: "isAnalyzed == NO")
+        request.sortDescriptors = [NSSortDescriptor(keyPath: \JournalEntry.timestamp, ascending: false)]
+        return (try? viewContext.fetch(request)) ?? []
+    }
+
+    /// Fetch extracted patterns for a date range
+    func fetchExtractedPatterns(from startDate: Date, to endDate: Date) -> [ExtractedPattern] {
+        let request = NSFetchRequest<ExtractedPattern>(entityName: "ExtractedPattern")
+        request.predicate = NSPredicate(format: "timestamp >= %@ AND timestamp <= %@", startDate as NSDate, endDate as NSDate)
+        request.sortDescriptors = [NSSortDescriptor(keyPath: \ExtractedPattern.timestamp, ascending: false)]
+        return (try? viewContext.fetch(request)) ?? []
+    }
+
     // MARK: - Private Helpers
 
     private func buildFetchRequest(
@@ -170,5 +269,21 @@ final class PatternRepository: @unchecked Sendable {
 
         request.sortDescriptors = [NSSortDescriptor(keyPath: \PatternEntry.timestamp, ascending: false)]
         return request
+    }
+}
+
+// MARK: - Errors
+
+enum PatternRepositoryError: LocalizedError {
+    case entryNotFound
+    case saveFailed(String)
+
+    var errorDescription: String? {
+        switch self {
+        case .entryNotFound:
+            return "Journal entry not found in context"
+        case .saveFailed(let detail):
+            return "Failed to save patterns: \(detail)"
+        }
     }
 }

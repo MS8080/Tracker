@@ -58,7 +58,7 @@ class JournalViewModel: ObservableObject {
     @Published var totalEntryCount: Int = 0
 
     private let dataController = DataController.shared
-    private let extractionService = PatternExtractionService.shared
+    private let analysisCoordinator = AnalysisCoordinator.shared
     private let demoService = DemoModeService.shared
     private var cancellables = Set<AnyCancellable>()
 
@@ -207,10 +207,8 @@ class JournalViewModel: ObservableObject {
             // Reset pagination and reload to show new entry at top
             resetAndLoad()
 
-            // Auto-analyze the new entry for patterns in background
-            Task { [weak self] in
-                await self?.analyzeEntry(entry)
-            }
+            // Queue for background analysis via coordinator
+            analysisCoordinator.queueAnalysis(for: entry)
 
             return true
         } catch {
@@ -222,69 +220,14 @@ class JournalViewModel: ObservableObject {
 
     // MARK: - Pattern Extraction
 
-    /// Analyze a journal entry to extract patterns
+    /// Analyze a journal entry to extract patterns (via coordinator)
     func analyzeEntry(_ entry: JournalEntry) async {
-        guard !entry.isAnalyzed else { return }
-        guard extractionService.isConfigured else { return }
-
-        // Debounce: skip if this entry was recently analyzed
-        if GeminiService.shared.wasRecentlyAnalyzed(entryID: entry.id) {
-            return
-        }
-
         isAnalyzing = true
         defer { isAnalyzing = false }
 
-        // Mark as being analyzed to prevent duplicates
-        GeminiService.shared.markAsAnalyzed(entryID: entry.id)
-
         do {
-            let result = try await extractionService.extractPatterns(from: entry.content)
-            let context = dataController.container.viewContext
-
-            // Create ExtractedPattern entities
-            var createdPatterns: [String: ExtractedPattern] = [:]
-
-            for patternData in result.patterns {
-                let pattern = ExtractedPattern(context: context)
-                pattern.id = UUID()
-                pattern.patternType = patternData.type
-                pattern.category = patternData.category
-                pattern.intensity = Int16(patternData.intensity)
-                pattern.triggers = patternData.triggers ?? []
-                pattern.timeOfDay = patternData.timeOfDay ?? result.context.timeOfDay
-                pattern.copingStrategies = patternData.copingUsed ?? []
-                pattern.details = patternData.details
-                pattern.confidence = result.confidence
-                pattern.timestamp = entry.timestamp
-                pattern.journalEntry = entry
-
-                createdPatterns[patternData.type] = pattern
-            }
-
-            // Create cascade relationships
-            for cascadeData in result.cascades {
-                if let fromPattern = createdPatterns[cascadeData.from],
-                   let toPattern = createdPatterns[cascadeData.to] {
-                    let cascade = PatternCascade(context: context)
-                    cascade.id = UUID()
-                    cascade.confidence = cascadeData.confidence
-                    cascade.descriptionText = cascadeData.description
-                    cascade.timestamp = entry.timestamp
-                    cascade.fromPattern = fromPattern
-                    cascade.toPattern = toPattern
-                }
-            }
-
-            // Update journal entry
-            entry.isAnalyzed = true
-            entry.analysisConfidence = result.confidence
-            entry.analysisSummary = result.summary
-            entry.overallIntensity = Int16(result.overallIntensity)
-
-            try context.save()
+            try await analysisCoordinator.analyzeNow(entry)
             loadJournalEntries()
-
         } catch {
             print("Failed to analyze journal entry: \(error.localizedDescription)")
         }
@@ -296,7 +239,6 @@ class JournalViewModel: ObservableObject {
 
         // Re-analyze if content was changed
         if reanalyze && entry.isAnalyzed {
-            // Clear old analysis to trigger re-analysis
             Task { [weak self] in
                 await self?.clearAndReanalyze(entry)
             }
@@ -305,25 +247,16 @@ class JournalViewModel: ObservableObject {
 
     /// Clear existing patterns and re-analyze the entry
     private func clearAndReanalyze(_ entry: JournalEntry) async {
-        let context = dataController.container.viewContext
+        do {
+            // Clear analysis via repository
+            try PatternRepository.shared.clearAnalysis(for: entry)
 
-        // Delete existing patterns for this entry
-        if let existingPatterns = entry.extractedPatterns as? Set<ExtractedPattern> {
-            for pattern in existingPatterns {
-                context.delete(pattern)
-            }
+            // Re-analyze via coordinator
+            try await analysisCoordinator.analyzeNow(entry)
+            loadJournalEntries()
+        } catch {
+            print("Failed to re-analyze entry: \(error.localizedDescription)")
         }
-
-        // Mark as not analyzed
-        entry.isAnalyzed = false
-        entry.analysisSummary = nil
-        entry.analysisConfidence = 0
-        entry.overallIntensity = 0
-
-        try? context.save()
-
-        // Re-analyze
-        await analyzeEntry(entry)
     }
 
     func deleteEntry(_ entry: JournalEntry) {

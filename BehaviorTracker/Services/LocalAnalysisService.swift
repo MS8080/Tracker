@@ -74,10 +74,10 @@ class LocalAnalysisService {
     }
 
     enum Sentiment: String {
-        case positive = "positive"
-        case negative = "negative"
-        case neutral = "neutral"
-        case mixed = "mixed"
+        case positive
+        case negative
+        case neutral
+        case mixed
     }
 
     struct PatternCategory {
@@ -812,7 +812,7 @@ extension LocalAnalysisService {
         let takenCount = medications.filter { $0.taken }.count
         let skippedCount = medications.count - takenCount
 
-        if medications.count > 0 {
+        if !medications.isEmpty {
             let adherenceRate = Double(takenCount) / Double(medications.count) * 100
             let trend: LocalInsightTrend = adherenceRate >= 80 ? .positive : adherenceRate >= 50 ? .neutral : .negative
 

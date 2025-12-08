@@ -190,7 +190,7 @@ struct DynamicJournalView: View {
                     }
 
                     // End of entries indicator
-                    if !viewModel.hasMoreEntries && viewModel.journalEntries.count > 0 {
+                    if !viewModel.hasMoreEntries && !viewModel.journalEntries.isEmpty {
                         HStack {
                             Spacer()
                             Text("You've reached the beginning")

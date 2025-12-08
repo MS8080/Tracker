@@ -8,7 +8,6 @@ struct MonthlyReportView: View {
         VStack(spacing: Spacing.md) {
             heroStatsRow
             summaryCard
-            topPatternsCard
             if !report.cascadeInsights.isEmpty {
                 cascadeInsightsCard
             }

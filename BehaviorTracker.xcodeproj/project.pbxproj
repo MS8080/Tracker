@@ -102,7 +102,6 @@
 		4E4EF22D2EE5C64200B485E7 /* LifeGoalsRowViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E4EF22B2EE5C64200B485E7 /* LifeGoalsRowViews.swift */; };
 		4E4EF22F2EE5C68600B485E7 /* CelebrationComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E4EF22E2EE5C68600B485E7 /* CelebrationComponents.swift */; };
 		4E4EF2302EE5C68600B485E7 /* CelebrationComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E4EF22E2EE5C68600B485E7 /* CelebrationComponents.swift */; };
-		4E5E76372EDA693900C37C68 /* WhisperKit in Frameworks */ = {isa = PBXBuildFile; productRef = 4E5E76362EDA693900C37C68 /* WhisperKit */; };
 		4E5E76392EDA6A7700C37C68 /* WhisperKit in Frameworks */ = {isa = PBXBuildFile; productRef = 4E5E76382EDA6A7700C37C68 /* WhisperKit */; };
 		4E86BDC42ECD0C9F00AD04F7 /* HealthKitManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E86BDC32ECD0C9F00AD04F7 /* HealthKitManager.swift */; };
 		4EAI00012EE0000000000001 /* GeminiService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EAI00012EE0000000000002 /* GeminiService.swift */; };
@@ -200,6 +199,7 @@
 		99FDF9D27F07A681DD900E89 /* GoalRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6536C0F04AB7D153C4447D3F /* GoalRepository.swift */; };
 		9C02EA58B3F24E6486F08319 /* JournalRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD66769AF1B74950849A2216 /* JournalRepository.swift */; };
 		9D4DADD644A2A3E065929541 /* AddGoalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8888646954F90237FB128F07 /* AddGoalView.swift */; };
+		9E769BF29428223D3E380D9A /* AnalysisCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = F835A82BDB9AB49E8244905D /* AnalysisCoordinator.swift */; };
 		9FA81C6AD3A20C7D507D226F /* HomeViewComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52391ECC087BED3DA582DB89 /* HomeViewComponents.swift */; };
 		A095FC3795D8A2399DF4CF06 /* MedicationRepositoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD42DFAF5F59BB8F69A18695 /* MedicationRepositoryTests.swift */; };
 		A3B6464C00000001 /* BehaviorTrackerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3B6464C00000002 /* BehaviorTrackerApp.swift */; };
@@ -525,13 +525,14 @@
 		E5AA46E8238D41DADA2135C8 /* WishlistRepository.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WishlistRepository.swift; sourceTree = "<group>"; };
 		EBE2D5DF337F8EECE29D154C /* NetworkMonitor.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NetworkMonitor.swift; sourceTree = "<group>"; };
 		EDA9BAC44C059E02E26305AA /* JournalRepositoryTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = JournalRepositoryTests.swift; sourceTree = "<group>"; };
+		F835A82BDB9AB49E8244905D /* AnalysisCoordinator.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AnalysisCoordinator.swift; sourceTree = "<group>"; };
 		FAE83F73EF559E8C7B12D35F /* WishlistItem+CoreDataClass.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "WishlistItem+CoreDataClass.swift"; sourceTree = "<group>"; };
 		FB45C411E92661E1724B6DAC /* JournalUITests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = JournalUITests.swift; sourceTree = "<group>"; };
 		MAC0001000000100 /* BehaviorTracker-macOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "BehaviorTracker-macOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		4E3591E92ED63C04000A5E74 /* Exceptions for "TrackerWidgets" folder in "TrackerWidgetsExtension" target */ = {
+		4E3591E92ED63C04000A5E74 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
@@ -541,18 +542,7 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		4E3591DC2ED63C03000A5E74 /* TrackerWidgets */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				4E3591E92ED63C04000A5E74 /* Exceptions for "TrackerWidgets" folder in "TrackerWidgetsExtension" target */,
-			);
-			explicitFileTypes = {
-			};
-			explicitFolders = (
-			);
-			path = TrackerWidgets;
-			sourceTree = "<group>";
-		};
+		4E3591DC2ED63C03000A5E74 /* TrackerWidgets */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (4E3591E92ED63C04000A5E74 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = TrackerWidgets; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -568,7 +558,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				4E5E76372EDA693900C37C68 /* WhisperKit in Frameworks */,
 				4E3591DB2ED63C03000A5E74 /* SwiftUI.framework in Frameworks */,
 				4E3591D92ED63C03000A5E74 /* WidgetKit.framework in Frameworks */,
 			);
@@ -673,6 +662,7 @@
 				EBE2D5DF337F8EECE29D154C /* NetworkMonitor.swift */,
 				C052858464BD27AD7087F4B7 /* MemoriesGenerator.swift */,
 				5F32BEC675E53B2AB5668910 /* DaySlidesGenerator.swift */,
+				F835A82BDB9AB49E8244905D /* AnalysisCoordinator.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -950,7 +940,6 @@
 				037EE734BA74579E6BCACB46 /* PatternLoggingUITests.swift */,
 				72B92F1F3AE3DFBFBBEE2212 /* LaunchPerformanceUITests.swift */,
 			);
-			name = BehaviorTrackerUITests;
 			path = BehaviorTrackerUITests;
 			sourceTree = "<group>";
 		};
@@ -984,7 +973,6 @@
 				E1A29FDC8750A2A0F23D5D87 /* PatternTypeTests.swift */,
 				4254C51BBC95652F28FDF788 /* ReportGeneratorTests.swift */,
 			);
-			name = BehaviorTrackerTests;
 			path = BehaviorTrackerTests;
 			sourceTree = "<group>";
 		};
@@ -1008,7 +996,6 @@
 			);
 			name = TrackerWidgetsExtension;
 			packageProductDependencies = (
-				4E5E76362EDA693900C37C68 /* WhisperKit */,
 			);
 			productName = TrackerWidgetsExtension;
 			productReference = 4E3591D62ED63C03000A5E74 /* TrackerWidgetsExtension.appex */;
@@ -1140,6 +1127,8 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4EF6DABA2EE719330013869E /* .swiftlint 2.yml in Resources */,
+				4EF6DABC2EE71A070013869E /* .swiftlint 3.yml in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1186,6 +1175,7 @@
 /* Begin PBXShellScriptBuildPhase section */
 		DB1A4D9C1073BF321B0DACE7 /* SwiftLint */ = {
 			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
 			buildActionMask = 2147483647;
 			files = (
 			);
@@ -1197,10 +1187,11 @@
 			outputFileListPaths = (
 			);
 			outputPaths = (
+				"$(DERIVED_FILE_DIR)/swiftlint.log",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "if which swiftlint >/dev/null; then\n  swiftlint\nfi";
+			shellScript = "export PATH=\"$PATH:/opt/homebrew/bin:/usr/local/bin\"\n\nif which swiftlint >/dev/null; then\n  cd \"${SRCROOT}\"\n  if [ -r \".swiftlint.yml\" ]; then\n    swiftlint --config \".swiftlint.yml\"\n  else\n    swiftlint\n  fi\nelse\n  echo \"warning: SwiftLint not installed, download from https://github.com/realm/SwiftLint\"\nfi\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -1380,6 +1371,7 @@
 				C381833EDD8E7F735DB4BF00 /* ProfileMedicationsViews.swift in Sources */,
 				796222326AD62D17993741A4 /* ProfileSettingsViews.swift in Sources */,
 				74BCB96FD47A7278A3541AE7 /* ErrorBannerView.swift in Sources */,
+				9E769BF29428223D3E380D9A /* AnalysisCoordinator.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1795,7 +1787,7 @@
 				DEVELOPMENT_TEAM = MV4GGC9J7K;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -1861,7 +1853,7 @@
 				DEVELOPMENT_TEAM = MV4GGC9J7K;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -2042,11 +2034,6 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		4E5E76362EDA693900C37C68 /* WhisperKit */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 4E5E76352EDA678E00C37C68 /* XCRemoteSwiftPackageReference "WhisperKit" */;
-			productName = WhisperKit;
-		};
 		4E5E76382EDA6A7700C37C68 /* WhisperKit */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 4E5E76352EDA678E00C37C68 /* XCRemoteSwiftPackageReference "WhisperKit" */;

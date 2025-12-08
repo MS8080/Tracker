@@ -41,8 +41,12 @@ final class DemoModeService: ObservableObject {
         let overallIntensity: Int16
     }
 
+    // Helper to safely create demo dates
+    private func demoDate(byAdding component: Calendar.Component, value: Int, to date: Date) -> Date {
+        Calendar.current.date(byAdding: component, value: value, to: date) ?? date
+    }
+
     var demoJournalEntries: [DemoJournalEntry] {
-        let calendar = Calendar.current
         let now = Date()
 
         return [
@@ -51,7 +55,7 @@ final class DemoModeService: ObservableObject {
                 title: "Morning Reflection",
                 content: "Woke up feeling rested today. The new sleep schedule seems to be helping. Had some sensory sensitivity during breakfast - the kitchen lights felt too bright. Used my sunglasses inside which helped. Planning to work on my special interest project this afternoon.",
                 mood: 4,
-                timestamp: calendar.date(byAdding: .hour, value: -2, to: now)!,
+                timestamp: demoDate(byAdding: .hour, value: -2, to: now),
                 isFavorite: true,
                 isAnalyzed: true,
                 analysisSummary: "Good energy with mild sensory sensitivity. Effective coping strategy used.",
@@ -62,7 +66,7 @@ final class DemoModeService: ObservableObject {
                 title: "Afternoon Update",
                 content: "Had a video call that went longer than expected. Feeling drained from the social interaction. Need some quiet time to recharge. The masking was intense today - kept having to remind myself to make eye contact and respond at appropriate times.",
                 mood: 2,
-                timestamp: calendar.date(byAdding: .hour, value: -5, to: now)!,
+                timestamp: demoDate(byAdding: .hour, value: -5, to: now),
                 isFavorite: false,
                 isAnalyzed: true,
                 analysisSummary: "Social fatigue from extended interaction. Masking took significant energy.",
@@ -73,7 +77,7 @@ final class DemoModeService: ObservableObject {
                 title: nil,
                 content: "Spent 3 hours working on my coding project. Lost track of time completely - hyperfocus kicked in. Forgot to eat lunch but feeling accomplished. Need to set better reminders for meals when I'm in the zone.",
                 mood: 5,
-                timestamp: calendar.date(byAdding: .day, value: -1, to: now)!,
+                timestamp: demoDate(byAdding: .day, value: -1, to: now),
                 isFavorite: true,
                 isAnalyzed: true,
                 analysisSummary: "Productive hyperfocus session. Self-care reminder needed for meals.",
@@ -84,7 +88,7 @@ final class DemoModeService: ObservableObject {
                 title: "Difficult Day",
                 content: "Everything felt overwhelming today. Too many unexpected changes to my routine. The construction noise outside made it impossible to focus. Had to use my noise-canceling headphones all day. Feeling exhausted but managed to get through.",
                 mood: 1,
-                timestamp: calendar.date(byAdding: .day, value: -2, to: now)!,
+                timestamp: demoDate(byAdding: .day, value: -2, to: now),
                 isFavorite: false,
                 isAnalyzed: true,
                 analysisSummary: "Sensory overload from environmental factors. Routine disruption increased stress.",
@@ -95,7 +99,7 @@ final class DemoModeService: ObservableObject {
                 title: "Weekend Plans",
                 content: "Looking forward to a quiet weekend. Planning to visit the bookstore during off-peak hours to avoid crowds. Also want to try that new recipe I found - it has very specific steps which I like.",
                 mood: 4,
-                timestamp: calendar.date(byAdding: .day, value: -3, to: now)!,
+                timestamp: demoDate(byAdding: .day, value: -3, to: now),
                 isFavorite: false,
                 isAnalyzed: true,
                 analysisSummary: "Positive anticipation with sensory-aware planning.",
@@ -127,7 +131,7 @@ final class DemoModeService: ObservableObject {
                 category: "Sensory",
                 intensity: 4,
                 duration: 45,
-                timestamp: calendar.date(byAdding: .hour, value: -3, to: now)!,
+                timestamp: demoDate(byAdding: .hour, value: -3, to: now),
                 contextNotes: "Bright lights and loud environment at the store"
             ),
             DemoPatternEntry(
@@ -136,7 +140,7 @@ final class DemoModeService: ObservableObject {
                 category: "Social & Communication",
                 intensity: 5,
                 duration: 120,
-                timestamp: calendar.date(byAdding: .hour, value: -6, to: now)!,
+                timestamp: demoDate(byAdding: .hour, value: -6, to: now),
                 contextNotes: "Long meeting with unfamiliar people"
             ),
             DemoPatternEntry(
@@ -145,7 +149,7 @@ final class DemoModeService: ObservableObject {
                 category: "Executive Function",
                 intensity: 3,
                 duration: 180,
-                timestamp: calendar.date(byAdding: .day, value: -1, to: now)!,
+                timestamp: demoDate(byAdding: .day, value: -1, to: now),
                 contextNotes: "Working on special interest project"
             ),
             DemoPatternEntry(
@@ -154,7 +158,7 @@ final class DemoModeService: ObservableObject {
                 category: "Routine & Change",
                 intensity: 4,
                 duration: 0,
-                timestamp: calendar.date(byAdding: .day, value: -1, to: now)!,
+                timestamp: demoDate(byAdding: .day, value: -1, to: now),
                 contextNotes: "Unexpected schedule change"
             ),
             DemoPatternEntry(
@@ -163,7 +167,7 @@ final class DemoModeService: ObservableObject {
                 category: "Energy & Regulation",
                 intensity: 2,
                 duration: 30,
-                timestamp: calendar.date(byAdding: .day, value: -2, to: now)!,
+                timestamp: demoDate(byAdding: .day, value: -2, to: now),
                 contextNotes: "Self-regulation during stressful moment"
             ),
             DemoPatternEntry(
@@ -172,7 +176,7 @@ final class DemoModeService: ObservableObject {
                 category: "Social & Communication",
                 intensity: 3,
                 duration: 60,
-                timestamp: calendar.date(byAdding: .day, value: -2, to: now)!,
+                timestamp: demoDate(byAdding: .day, value: -2, to: now),
                 contextNotes: "Needed alone time after family gathering"
             )
         ]
@@ -428,7 +432,7 @@ final class DemoModeService: ObservableObject {
                 copingStrategies: ["Used sunglasses", "Found quiet space"],
                 details: "Kitchen lights felt too bright during breakfast",
                 confidence: 0.85,
-                timestamp: calendar.date(byAdding: .hour, value: -3, to: now)!
+                timestamp: demoDate(byAdding: .hour, value: -3, to: now)
             ),
             DemoExtractedPattern(
                 id: UUID(),
@@ -440,7 +444,7 @@ final class DemoModeService: ObservableObject {
                 copingStrategies: ["Scheduled recovery time"],
                 details: "Video call went longer than expected, intense masking required",
                 confidence: 0.92,
-                timestamp: calendar.date(byAdding: .hour, value: -5, to: now)!
+                timestamp: demoDate(byAdding: .hour, value: -5, to: now)
             ),
             DemoExtractedPattern(
                 id: UUID(),
@@ -452,7 +456,7 @@ final class DemoModeService: ObservableObject {
                 copingStrategies: [],
                 details: "Lost track of time working on coding project",
                 confidence: 0.88,
-                timestamp: calendar.date(byAdding: .hour, value: -6, to: now)!
+                timestamp: demoDate(byAdding: .hour, value: -6, to: now)
             ),
             DemoExtractedPattern(
                 id: UUID(),
@@ -464,7 +468,7 @@ final class DemoModeService: ObservableObject {
                 copingStrategies: ["Rest", "Snack break"],
                 details: "Feeling drained after social interaction",
                 confidence: 0.80,
-                timestamp: calendar.date(byAdding: .hour, value: -4, to: now)!
+                timestamp: demoDate(byAdding: .hour, value: -4, to: now)
             )
         ]
     }
@@ -498,6 +502,7 @@ final class DemoModeService: ObservableObject {
 
     // MARK: - Demo Reports Data
 
+    // swiftlint:disable:next large_tuple
     var demoWeeklyReport: (
         totalEntries: Int,
         totalPatterns: Int,
@@ -543,6 +548,7 @@ final class DemoModeService: ObservableObject {
         )
     }
 
+    // swiftlint:disable:next large_tuple
     var demoMonthlyReport: (
         totalEntries: Int,
         totalPatterns: Int,
@@ -758,6 +764,7 @@ final class DemoModeService: ObservableObject {
 
     // MARK: - Demo Life Goals Summary (for Reports)
 
+    // swiftlint:disable:next large_tuple
     var demoLifeGoalsSummary: (
         activeGoals: Int,
         completedGoals: Int,

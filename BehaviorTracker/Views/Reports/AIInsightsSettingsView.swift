@@ -11,6 +11,8 @@ struct AIInsightsSettingsView: View {
         AppTheme(rawValue: selectedThemeRaw) ?? .purple
     }
 
+    @State private var selectedModel: AIModel = AIAnalysisService.shared.selectedModel
+
     var body: some View {
         NavigationStack {
             ZStack {
@@ -18,59 +20,98 @@ struct AIInsightsSettingsView: View {
                     .ignoresSafeArea()
 
                 List {
-                    Section("API Key") {
-                        SecureField("Gemini API Key", text: $viewModel.apiKeyInput)
-                            #if os(iOS)
-                            .autocapitalization(.none)
-                            #endif
-                            .autocorrectionDisabled()
+                    Section("AI Model") {
+                        Picker("Model", selection: $selectedModel) {
+                            ForEach(AIModel.allCases, id: \.self) { model in
+                                HStack {
+                                    Image(systemName: model.icon)
+                                    Text(model.displayName)
+                                }
+                                .tag(model)
+                            }
+                        }
+                        .onChange(of: selectedModel) { _, newValue in
+                            AIAnalysisService.shared.selectedModel = newValue
+                            HapticFeedback.selection.trigger()
+                        }
 
-                        Button {
-                            viewModel.saveAPIKey()
-                            if viewModel.errorMessage == nil {
-                                showSavedFeedback = true
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                                    showSavedFeedback = false
+                        Text(selectedModel == .claude
+                            ? "Claude Opus 4 - Anthropic's most capable model for deep analysis"
+                            : "Gemini 2.5 Flash - Fast and cost-effective for quick insights")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+
+                    if selectedModel == .gemini {
+                        Section("Gemini API Key") {
+                            SecureField("Gemini API Key", text: $viewModel.apiKeyInput)
+                                #if os(iOS)
+                                .autocapitalization(.none)
+                                #endif
+                                .autocorrectionDisabled()
+
+                            Button {
+                                viewModel.saveAPIKey()
+                                if viewModel.errorMessage == nil {
+                                    showSavedFeedback = true
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                                        showSavedFeedback = false
+                                    }
+                                }
+                            } label: {
+                                HStack {
+                                    Text("Save API Key")
+                                    Spacer()
+                                    if showSavedFeedback {
+                                        Image(systemName: "checkmark.circle.fill")
+                                            .foregroundStyle(.green)
+                                    }
                                 }
                             }
-                        } label: {
-                            HStack {
-                                Text("Save API Key")
-                                Spacer()
-                                if showSavedFeedback {
+
+                            if let error = viewModel.errorMessage {
+                                Text(error)
+                                    .font(.caption)
+                                    .foregroundStyle(.red)
+                            }
+
+                            if viewModel.isAPIKeyConfigured && !showSavedFeedback {
+                                HStack {
                                     Image(systemName: "checkmark.circle.fill")
                                         .foregroundStyle(.green)
+                                    Text("API key configured")
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
                                 }
                             }
-                        }
 
-                        if let error = viewModel.errorMessage {
-                            Text(error)
-                                .font(.caption)
-                                .foregroundStyle(.red)
-                        }
+                            if let credentialsURL = URL(string: "https://console.cloud.google.com/apis/credentials") {
+                                Link(destination: credentialsURL) {
+                                    HStack {
+                                        Text("Get a Vertex AI API key")
+                                        Spacer()
+                                        Image(systemName: "arrow.up.right.square")
+                                    }
+                                }
+                            }
 
-                        if viewModel.isAPIKeyConfigured && !showSavedFeedback {
+                            Text("You need a Google Cloud project with Vertex AI API enabled and an API key with appropriate permissions.")
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
+                        }
+                    } else {
+                        Section("Claude Configuration") {
                             HStack {
                                 Image(systemName: "checkmark.circle.fill")
                                     .foregroundStyle(.green)
-                                Text("API key configured")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
+                                Text("Claude is configured via service account")
+                                    .font(.subheadline)
                             }
-                        }
 
-                        Link(destination: URL(string: "https://console.cloud.google.com/apis/credentials")!) {
-                            HStack {
-                                Text("Get a Vertex AI API key")
-                                Spacer()
-                                Image(systemName: "arrow.up.right.square")
-                            }
+                            Text("Claude uses secure service account authentication. No additional configuration needed.")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
                         }
-
-                        Text("You need a Google Cloud project with Vertex AI API enabled and an API key with appropriate permissions.")
-                            .font(.caption2)
-                            .foregroundStyle(.secondary)
                     }
 
                     Section("Privacy") {
@@ -87,7 +128,9 @@ struct AIInsightsSettingsView: View {
                     }
 
                     Section("About") {
-                        Text("AI insights are powered by Google's Gemini AI via Vertex AI. Your API key is stored securely in the device Keychain. Data is processed according to Google's privacy policy.")
+                        Text(selectedModel == .claude
+                            ? "AI insights are powered by Anthropic's Claude via Google Cloud Vertex AI. Authentication uses a secure service account. Data is processed according to Anthropic's and Google's privacy policies."
+                            : "AI insights are powered by Google's Gemini AI via Vertex AI. Your API key is stored securely in the device Keychain. Data is processed according to Google's privacy policy.")
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }

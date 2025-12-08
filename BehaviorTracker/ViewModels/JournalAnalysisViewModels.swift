@@ -48,7 +48,9 @@ class JournalAnalysisViewModel: ObservableObject {
 
     private func fetchRecentPatterns(context: NSManagedObjectContext) -> [PatternEntry] {
         let request = NSFetchRequest<PatternEntry>(entityName: "PatternEntry")
-        let thirtyDaysAgo = Calendar.current.date(byAdding: .day, value: -30, to: Date())!
+        guard let thirtyDaysAgo = Calendar.current.date(byAdding: .day, value: -30, to: Date()) else {
+            return []
+        }
         request.predicate = NSPredicate(format: "timestamp >= %@", thirtyDaysAgo as NSDate)
         request.sortDescriptors = [NSSortDescriptor(keyPath: \PatternEntry.timestamp, ascending: false)]
         request.fetchLimit = 50
@@ -135,7 +137,9 @@ class DayAnalysisViewModel: ObservableObject {
 
     private func fetchRecentPatterns(context: NSManagedObjectContext) -> [PatternEntry] {
         let request = NSFetchRequest<PatternEntry>(entityName: "PatternEntry")
-        let thirtyDaysAgo = Calendar.current.date(byAdding: .day, value: -30, to: Date())!
+        guard let thirtyDaysAgo = Calendar.current.date(byAdding: .day, value: -30, to: Date()) else {
+            return []
+        }
         request.predicate = NSPredicate(format: "timestamp >= %@", thirtyDaysAgo as NSDate)
         request.sortDescriptors = [NSSortDescriptor(keyPath: \PatternEntry.timestamp, ascending: false)]
         request.fetchLimit = 50
