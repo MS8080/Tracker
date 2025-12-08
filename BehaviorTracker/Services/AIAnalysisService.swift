@@ -178,7 +178,7 @@ class AIAnalysisService {
 
         let endDate = Date()
         guard let startDate = Calendar.current.date(byAdding: .day, value: -preferences.timeframeDays, to: endDate) else {
-            throw GeminiError.invalidRequest
+            throw GeminiError.invalidURL
         }
 
         // Pattern data
