@@ -151,16 +151,8 @@ class GeminiService {
     /// Shared singleton instance
     static let shared = GeminiService()
 
-    // Vertex AI configuration
-    private let model = "gemini-2.5-flash-lite"
-    private let region = "europe-west1" // Belgium (better model availability)
-
-    private var baseURL: String? {
-        guard let apiKey = KeychainService.shared.get(.vertexAPIKey) else {
-            return nil
-        }
-        return "https://\(region)-aiplatform.googleapis.com/v1/publishers/google/models/\(model):generateContent?key=\(apiKey)"
-    }
+    // Cloud Run backend URL (handles Vertex AI OAuth2 authentication)
+    private let cloudRunURL = "https://gemini-backend-133812093820.us-central1.run.app/generate"
 
     /// Maximum number of retry attempts for rate-limited requests
     private let maxRetries = 3
@@ -231,9 +223,9 @@ class GeminiService {
         }
     }
 
-    /// Check if the service is configured with a valid API key
+    /// Check if the service is configured (always true now - uses Cloud Run backend)
     var isConfigured: Bool {
-        return KeychainService.shared.exists(.vertexAPIKey)
+        return true
     }
 
     /// Configure the service with an API key
@@ -262,17 +254,12 @@ class GeminiService {
         await requestSemaphore.wait()
         defer { Task { await requestSemaphore.signal() } }
 
-        // Check if API key is configured
-        guard let urlString = baseURL else {
-            throw GeminiError.noAPIKey
-        }
-
         // Client-side rate limiting - wait if we made a request too recently
         await enforceMinRequestInterval()
 
-        print("🔵 Gemini API URL: [configured]") // Don't log the actual URL with key
+        print("🔵 Calling Cloud Run backend")
 
-        guard let url = URL(string: urlString) else {
+        guard let url = URL(string: cloudRunURL) else {
             throw GeminiError.invalidURL
         }
 
@@ -280,23 +267,14 @@ class GeminiService {
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
 
-        // Use Codable structs for proper JSON encoding
-        let requestPayload = GeminiRequestPayload(
-            contents: [
-                GeminiRequestContent(
-                    role: "user",
-                    parts: [GeminiRequestPart(text: prompt)]
-                )
-            ],
-            generationConfig: GeminiGenerationConfig(
-                temperature: 0.7,
-                topK: 40,
-                topP: 0.95,
-                maxOutputTokens: 2048
-            )
-        )
+        // Simple request format for Cloud Run backend
+        let requestPayload: [String: Any] = [
+            "prompt": prompt,
+            "temperature": 0.7,
+            "max_tokens": 2048
+        ]
 
-        let jsonData = try JSONEncoder().encode(requestPayload)
+        let jsonData = try JSONSerialization.data(withJSONObject: requestPayload)
 
         // Debug: print the JSON being sent
         if let jsonString = String(data: jsonData, encoding: .utf8) {
@@ -319,11 +297,12 @@ class GeminiService {
 
                 switch httpResponse.statusCode {
                 case 200:
-                    let geminiResponse = try JSONDecoder().decode(GeminiResponse.self, from: data)
-                    guard let text = geminiResponse.candidates?.first?.content?.parts?.first?.text else {
-                        throw GeminiError.noContent
+                    // Cloud Run backend returns {"text": "..."}
+                    if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                       let text = json["text"] as? String {
+                        return text
                     }
-                    return text
+                    throw GeminiError.noContent
 
                 case 400:
                     // Parse error details
