@@ -393,21 +393,13 @@ struct TranslationShareSheet: View {
     }
 
     private func formatForSharing(_ summary: String) -> String {
-        // Replace user's name with "You" for sharing
-        var text = summary
+        // AI now generates summaries with "You" directly
+        // This is kept as a fallback for older summaries that might have the user's name
+        guard !userName.isEmpty else { return summary }
 
-        // Replace "Name felt/was/had/needed" with "You felt/was/had/needed"
-        if !userName.isEmpty {
-            text = text
-                .replacingOccurrences(of: "\(userName) felt", with: "You felt")
-                .replacingOccurrences(of: "\(userName) was", with: "You were")
-                .replacingOccurrences(of: "\(userName) had", with: "You had")
-                .replacingOccurrences(of: "\(userName) needed", with: "You needed")
-                .replacingOccurrences(of: "\(userName) experienced", with: "You experienced")
-                .replacingOccurrences(of: "\(userName)'s", with: "Your")
-        }
-
-        return text
+        return summary
+            .replacingOccurrences(of: "\(userName) ", with: "You ")
+            .replacingOccurrences(of: "\(userName)'s", with: "Your")
     }
 }
 

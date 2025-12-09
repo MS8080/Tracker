@@ -117,18 +117,10 @@ struct CurrentSetupCard: View {
     }
 
     private func itemChip(_ item: SetupItem) -> some View {
-        HStack(spacing: 4) {
-            Text(item.name)
-                .font(.caption)
-                .fontWeight(.medium)
-                .foregroundStyle(CardText.body)
-
-            if !item.effectTagsArray.isEmpty {
-                Text(item.formattedEffectTags.prefix(2).joined(separator: " "))
-                    .font(.caption2)
-                    .foregroundStyle(item.displayColor)
-            }
-        }
+        Text(item.name)
+            .font(.caption)
+            .fontWeight(.medium)
+            .foregroundStyle(CardText.body)
         .padding(.horizontal, Spacing.sm)
         .padding(.vertical, 4)
         .background(

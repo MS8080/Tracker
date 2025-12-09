@@ -58,10 +58,8 @@ class DailySummaryViewModel: ObservableObject {
 
     private let dataController = DataController.shared
     private let geminiService = GeminiService.shared
-    private let userProfileRepo = UserProfileRepository.shared
-
-    // Cache for generated summaries
-    private var summaryCache: [UUID: String] = [:]
+    private let knowledgeRepo = PersonalKnowledgeRepository.shared
+    private let analysisCoordinator = AnalysisCoordinator.shared
 
     // MARK: - Loading
 
@@ -74,18 +72,19 @@ class DailySummaryViewModel: ObservableObject {
         // Group by day
         let grouped = groupEntriesByDay(entries)
 
-        // Create day summaries with placeholders
+        // Create day summaries - use saved summary if available, otherwise show preview and generate
         daySummaries = grouped.map { date, dayEntries in
             DaySummary(
                 date: date,
                 entries: dayEntries.map { entry in
-                    EntrySummary(
+                    let hasSummary = entry.analysisSummary != nil
+                    return EntrySummary(
                         id: entry.id,
                         originalEntry: entry,
                         timestamp: entry.timestamp,
-                        summary: summaryCache[entry.id] ?? entry.analysisSummary ?? entry.preview,
+                        summary: entry.analysisSummary ?? entry.preview,
                         patterns: entry.patternsArray.map { $0.patternType },
-                        isGenerating: summaryCache[entry.id] == nil && entry.analysisSummary == nil
+                        isGenerating: !hasSummary
                     )
                 }
             )
@@ -93,12 +92,18 @@ class DailySummaryViewModel: ObservableObject {
 
         isLoading = false
 
+        // Queue pattern extraction for unanalyzed entries
+        for (_, dayEntries) in grouped {
+            for entry in dayEntries where !entry.isAnalyzed {
+                analysisCoordinator.queueAnalysis(for: entry)
+            }
+        }
+
         // Generate AI summaries for entries that need them
         await generateMissingSummaries()
     }
 
     func refresh() async {
-        summaryCache.removeAll()
         await loadSummaries()
     }
 
@@ -138,9 +143,6 @@ class DailySummaryViewModel: ObservableObject {
     // MARK: - AI Summary Generation
 
     private func generateMissingSummaries() async {
-        // Get user context for AI
-        let userContext = getUserContext()
-
         for dayIndex in daySummaries.indices {
             for entryIndex in daySummaries[dayIndex].entries.indices {
                 let entry = daySummaries[dayIndex].entries[entryIndex]
@@ -152,13 +154,10 @@ class DailySummaryViewModel: ObservableObject {
 
                 // Generate summary
                 do {
-                    let summary = try await generateSummary(
-                        for: originalEntry,
-                        userContext: userContext
-                    )
+                    let summary = try await generateSummary(for: originalEntry)
 
-                    // Cache and update
-                    summaryCache[entry.id] = summary
+                    // Save to Core Data so we don't regenerate next time
+                    saveSummary(summary, for: originalEntry)
 
                     // Update the view
                     daySummaries[dayIndex].entries[entryIndex].summary = summary
@@ -173,37 +172,50 @@ class DailySummaryViewModel: ObservableObject {
         }
     }
 
-    private func getUserContext() -> String {
-        let profile = userProfileRepo.getCurrentProfile()
-        let name = profile?.name ?? "the user"
-
-        return """
-        Context: \(name) is autistic and uses this app to track their daily experiences, \
-        energy levels, sensory states, and patterns. They want summaries that are clear, \
-        simple, and easy to understand - both for themselves and to share with others \
-        who may not be familiar with autism.
-        """
+    private func saveSummary(_ summary: String, for entry: JournalEntry) {
+        entry.analysisSummary = summary
+        dataController.save()
     }
 
-    private func generateSummary(for entry: JournalEntry, userContext: String) async throws -> String {
+    private func generateSummary(for entry: JournalEntry) async throws -> String {
         let patterns = entry.patternsArray.map { $0.patternType }.joined(separator: ", ")
-        let patternsContext = patterns.isEmpty ? "" : "Patterns detected: \(patterns). "
+        let patternsContext = patterns.isEmpty ? "" : "Patterns: \(patterns). "
+
+        // Get user's personal context from "Teach AI About Me"
+        let userContext = knowledgeRepo.getCombinedContext()
+        let contextSection = userContext.map { """
+        About the person:
+        \($0)
+
+        """
+        } ?? ""
 
         let prompt = """
-        \(userContext)
-
-        Summarize this journal entry in 1-2 short sentences. Use clear, everyday language. \
-        Focus on what happened and how they felt. Don't use clinical terms. \
+        \(contextSection)Summarize this journal entry in 1-2 short sentences.
+        Rules:
+        - Use second person ("You felt...", "You were...", "You needed...")
+        - NEVER use "the user", "they", or third person
+        - Use clear, everyday language
+        - Focus on feelings and what happened
+        - Use the context above to better understand their experiences
         \(patternsContext)
 
-        Entry:
-        \(entry.content)
+        Entry: \(entry.content)
 
-        Summary (1-2 sentences only):
+        Summary:
         """
 
-        let response = try await geminiService.generateContent(prompt: prompt)
-        return response.trimmingCharacters(in: .whitespacesAndNewlines)
+        var response = try await geminiService.generateContent(prompt: prompt)
+        response = response.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        // Fallback: replace any third-person references the AI might have used
+        response = response
+            .replacingOccurrences(of: "The user ", with: "You ")
+            .replacingOccurrences(of: "the user ", with: "you ")
+            .replacingOccurrences(of: "The user's ", with: "Your ")
+            .replacingOccurrences(of: "the user's ", with: "your ")
+
+        return response
     }
 
     // MARK: - Copy Actions

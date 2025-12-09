@@ -191,12 +191,47 @@ class WhisperTranscriptionService: ObservableObject {
         "Betahistine", "Betahistin", "Serc", "Meclizine", "Antivert", "Dramamine", "Dimenhydrinate"
     ]
 
-    /// Whisper special tokens that should be removed from transcription
+    /// Whisper special tokens and annotations that should be removed from transcription
     private let whisperSpecialTokens: [String] = [
-        "[BLANK_AUDIO]", "{blank_audio}", "(blank_audio)", "[NOISE]", "{noise}",
-        "[MUSIC]", "{music}", "[APPLAUSE]", "{applause}", "[LAUGHTER]", "{laughter}",
-        "[SILENCE]", "{silence}", "[INAUDIBLE]", "{inaudible}", "(inaudible)",
-        "[NO_SPEECH]", "{no_speech}", "<|nospeech|>", "<|endoftext|>"
+        // Blank/silence markers
+        "[BLANK_AUDIO]", "{blank_audio}", "(blank_audio)",
+        "[SILENCE]", "{silence}", "(silence)",
+        "[NO_SPEECH]", "{no_speech}", "(no speech)",
+        "<|nospeech|>", "<|endoftext|>", "<|startoftranscript|>",
+        // Noise/inaudible markers
+        "[NOISE]", "{noise}", "(noise)",
+        "[INAUDIBLE]", "{inaudible}", "(inaudible)",
+        "[UNCLEAR]", "{unclear}", "(unclear)",
+        // Breathing/body sounds
+        "[BREATHING]", "{breathing}", "(breathing)",
+        "[HEAVY BREATHING]", "{heavy breathing}", "(heavy breathing)",
+        "[BREATH]", "{breath}", "(breath)",
+        "[SIGHS]", "{sighs}", "(sighs)", "[SIGH]", "{sigh}", "(sigh)",
+        "[COUGHS]", "{coughs}", "(coughs)", "[COUGH]", "{cough}", "(cough)",
+        "[SNIFFS]", "{sniffs}", "(sniffs)", "[SNIFF]", "{sniff}", "(sniff)",
+        "[CLEARS THROAT]", "{clears throat}", "(clears throat)",
+        "[YAWNS]", "{yawns}", "(yawns)", "[YAWN]", "{yawn}", "(yawn)",
+        // Emotional sounds
+        "[LAUGHTER]", "{laughter}", "(laughter)", "[LAUGHS]", "{laughs}", "(laughs)",
+        "[CRYING]", "{crying}", "(crying)", "[CRIES]", "{cries}", "(cries)",
+        "[SOBBING]", "{sobbing}", "(sobbing)",
+        "[GROANS]", "{groans}", "(groans)", "[GROAN]", "{groan}", "(groan)",
+        // Music/applause
+        "[MUSIC]", "{music}", "(music)",
+        "[APPLAUSE]", "{applause}", "(applause)",
+        "[CLAPPING]", "{clapping}", "(clapping)",
+        // Background sounds
+        "[BACKGROUND NOISE]", "{background noise}", "(background noise)",
+        "[STATIC]", "{static}", "(static)",
+        "[BEEP]", "{beep}", "(beep)", "[BEEPS]", "{beeps}", "(beeps)",
+        // Pauses/breaks
+        "[PAUSE]", "{pause}", "(pause)",
+        "[LONG PAUSE]", "{long pause}", "(long pause)",
+        // Filler sounds (sometimes transcribed)
+        "[UM]", "{um}", "(um)",
+        "[UH]", "{uh}", "(uh)",
+        "[MM]", "{mm}", "(mm)",
+        "[HMM]", "{hmm}", "(hmm)"
     ]
 
     private init() {
@@ -288,18 +323,20 @@ class WhisperTranscriptionService: ObservableObject {
         return correctedWords.joined(separator: " ")
     }
 
-    /// Remove Whisper special tokens from transcription (e.g., [BLANK_AUDIO], {blank_audio})
+    /// Remove Whisper special tokens from transcription (e.g., [BLANK_AUDIO], {blank_audio}, *heavy_breathing*)
     private func removeWhisperSpecialTokens(from text: String) -> String {
         var result = text
         for token in whisperSpecialTokens {
             result = result.replacingOccurrences(of: token, with: "", options: .caseInsensitive)
         }
-        // Also remove any remaining bracketed/braced tokens that look like Whisper artifacts
-        // Matches patterns like [SOMETHING], {something}, (something) where content is all caps or lowercase
+        // Also remove any remaining bracketed/braced/asterisk tokens that look like Whisper artifacts
+        // Matches patterns like [SOMETHING], {something}, (something), *something*, with words/underscores/spaces
         let patterns = [
-            "\\[\\w+\\]",      // [WORD]
-            "\\{\\w+\\}",      // {word}
-            "<\\|\\w+\\|>"     // <|word|>
+            "\\[[\\w\\s_]+\\]",      // [WORD] or [HEAVY BREATHING] or [heavy_breathing]
+            "\\{[\\w\\s_]+\\}",      // {word} or {heavy breathing} or {heavy_breathing}
+            "\\([\\w\\s_]+\\)",      // (word) or (heavy breathing)
+            "\\*[\\w_]+\\*",         // *word* or *heavy_breathing*
+            "<\\|[\\w_]+\\|>"        // <|word|>
         ]
         for pattern in patterns {
             if let regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive) {

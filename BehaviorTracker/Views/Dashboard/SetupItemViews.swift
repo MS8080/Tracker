@@ -8,7 +8,7 @@ struct EffectTagChip: View {
     let theme: AppTheme
 
     var body: some View {
-        Text("#\(tag)")
+        Text(tag)
             .font(.caption)
             .padding(.horizontal, Spacing.sm)
             .padding(.vertical, 4)

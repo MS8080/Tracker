@@ -125,11 +125,6 @@ struct SetupManagerView: View {
                     }
                 }
 
-                if !item.effectTagsArray.isEmpty {
-                    Text(item.formattedEffectTags.joined(separator: " "))
-                        .font(.caption)
-                        .foregroundStyle(item.displayColor)
-                }
             }
 
             Spacer()

@@ -10,6 +10,7 @@ struct DynamicJournalView: View {
     @State private var selectedDemoEntry: DemoJournalEntryWrapper?
     @State private var entryToAnalyze: JournalEntry?
     @State private var dayToAnalyze: DayAnalysisData?
+    @State private var showingChat = false
     @Binding var showingProfile: Bool
     @ThemeWrapper var theme
 
@@ -68,10 +69,19 @@ struct DynamicJournalView: View {
             .navigationTitle(NSLocalizedString("journal.title", comment: ""))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button {
+                        showingChat = true
+                    } label: {
+                        Image(systemName: "bubble.left.and.bubble.right")
+                    }
+                }
                 ToolbarItem(placement: .primaryAction) {
                     ProfileButton(showingProfile: $showingProfile)
                 }
-
+            }
+            .sheet(isPresented: $showingChat) {
+                ChatView()
             }
             .sheet(isPresented: $showingNewEntry) {
                 JournalEntryEditorView()

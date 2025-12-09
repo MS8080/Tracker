@@ -40,10 +40,10 @@ struct ContentView: View {
                 }
                 .tag(1)
 
-            PatternsView(showingProfile: $showingProfile)
+            InsightsView(showingProfile: $showingProfile)
                 .themedBackground()
                 .tabItem {
-                    Label("Patterns", systemImage: "point.topleft.down.to.point.bottomright.curvepath.fill")
+                    Label("Insights", systemImage: "sparkles")
                 }
                 .tag(2)
 

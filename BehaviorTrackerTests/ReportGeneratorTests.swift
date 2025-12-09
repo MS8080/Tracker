@@ -18,7 +18,7 @@ final class ReportGeneratorTests: XCTestCase {
         for entityName in ["JournalEntry", "PatternEntry", "ExtractedPattern"] {
             let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: entityName)
             let deleteRequest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
-            try? context.execute(deleteRequest)
+            _ = try? context.execute(deleteRequest)
         }
         try? context.save()
         dataController = nil

@@ -192,8 +192,8 @@ extension SetupItem {
         effectTags = tags.joined(separator: ", ")
     }
 
-    /// Get formatted effect tags for display (with # prefix)
+    /// Get formatted effect tags for display
     var formattedEffectTags: [String] {
-        effectTagsArray.map { "#\($0)" }
+        effectTagsArray
     }
 }

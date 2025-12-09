@@ -84,6 +84,13 @@ enum PatternBank {
     - Capture their insight in user_insight_text
     - This builds on what user already understands
 
+    DETAILS FORMAT:
+    Write details in first-person observation style. Examples:
+    - "Noticed feeling drained after the meeting"
+    - "Experienced difficulty starting the task"
+    - "Felt overwhelmed by the noise level"
+    Do NOT use "User describes..." or "User reports..." - write as observations.
+
     ---
 
     RESPONSE FORMAT:
@@ -99,7 +106,7 @@ enum PatternBank {
           "triggers": ["trigger1"],
           "time_of_day": "morning|afternoon|evening|night|unknown",
           "coping_used": ["strategy1"],
-          "details": "brief description",
+          "details": "brief first-person observation (e.g., 'Noticed feeling drained after...' or 'Experienced difficulty with...')",
           "is_user_insight": false,
           "user_insight_text": null
         }

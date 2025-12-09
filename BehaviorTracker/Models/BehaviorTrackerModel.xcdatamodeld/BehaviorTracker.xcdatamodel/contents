@@ -161,4 +161,18 @@
         <attribute name="title" optional="YES" attributeType="String"/>
         <attribute name="updatedAt" attributeType="Date" usesScalarValueType="NO"/>
     </entity>
+    <entity name="InsightFeedback" representedClassName="InsightFeedback" syncable="YES">
+        <attribute name="createdAt" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="feedbackType" attributeType="String"/>
+        <attribute name="id" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="insightText" attributeType="String"/>
+        <attribute name="relatedFactors" optional="YES" attributeType="String"/>
+    </entity>
+    <entity name="TrackingOutcome" representedClassName="TrackingOutcome" syncable="YES">
+        <attribute name="id" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="loggedAt" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="outcome" attributeType="String"/>
+        <attribute name="patternType" attributeType="String"/>
+        <attribute name="respondedAt" attributeType="Date" usesScalarValueType="NO"/>
+    </entity>
 </model>
