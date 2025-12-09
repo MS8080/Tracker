@@ -27,28 +27,69 @@ enum TouchTarget {
     static let large: CGFloat = 56
 }
 
+// MARK: - Opacity Constants
+
+enum OpacityLevel {
+    /// Very subtle background tints (cards, overlays)
+    static let background: CGFloat = 0.08
+    /// Hover/focus states
+    static let hover: CGFloat = 0.12
+    /// Pressed/active states
+    static let pressed: CGFloat = 0.15
+    /// Borders and dividers
+    static let border: CGFloat = 0.25
+    /// Overlay content (modals, sheets)
+    static let overlay: CGFloat = 0.35
+    /// Text hierarchy
+    static let textPrimary: CGFloat = 0.95
+    static let textSecondary: CGFloat = 0.85
+    static let textTertiary: CGFloat = 0.70
+    static let textDisabled: CGFloat = 0.45
+}
+
+// MARK: - Tab Bar Style Constants
+
+enum TabBarStyle {
+    /// Background opacity for tab bar
+    static let backgroundOpacity: CGFloat = 0.8
+    /// Opacity for unselected tab bar items
+    static let unselectedItemOpacity: CGFloat = 0.5
+}
+
 // MARK: - Card Text Colors
 
+/// Text color hierarchy optimized for dark themed backgrounds
+/// Use these for text displayed on cards with glass/material effects
 enum CardText {
-    static let title: Color = .primary.opacity(0.95)
-    static let body: Color = .primary.opacity(0.85)
-    static let secondary: Color = .primary.opacity(0.7)
-    static let caption: Color = .secondary.opacity(0.8)
-    static let muted: Color = .secondary.opacity(0.6)
+    /// Primary text - headings and important content (95% white)
+    static let title: Color = .white.opacity(OpacityLevel.textPrimary)
+    /// Body text - main content (85% white)
+    static let body: Color = .white.opacity(OpacityLevel.textSecondary)
+    /// Secondary text - supporting information (70% white)
+    static let secondary: Color = .white.opacity(OpacityLevel.textTertiary)
+    /// Caption text - timestamps and metadata (60% white)
+    static let caption: Color = .white.opacity(0.60)
+    /// Muted text - disabled or very subtle content (45% white)
+    static let muted: Color = .white.opacity(OpacityLevel.textDisabled)
 }
 
 // MARK: - Semantic Colors
 
+/// Semantic color tokens for UI states and categories
+/// These are fixed colors (not theme-dependent) for specific meanings
 enum SemanticColor {
-    static let primary = Color.blue
-    static let success = Color.green
-    static let warning = Color.orange
-    static let error = Color.red
-    static let muted = Color.gray
-    static let medication = Color.green
-    static let journal = Color.orange
-    static let calendar = Color.cyan
-    static let ai = Color.purple
+    // UI State Colors
+    static let action = Color.blue       // Interactive elements, links
+    static let success = Color.green     // Success states, confirmations
+    static let warning = Color.orange    // Warnings, caution states
+    static let error = Color.red         // Errors, destructive actions
+    static let neutral = Color.gray      // Neutral, inactive states
+    
+    // Category Colors (for feature identification)
+    static let medication = Color.green  // Medication tracking
+    static let journal = Color.orange    // Journal entries
+    static let calendar = Color.cyan     // Calendar events
+    static let ai = Color.purple         // AI/analysis features
 }
 
 // MARK: - Themed Icon Component
@@ -181,7 +222,7 @@ struct SectionHeaderView: View {
                     Text(actionTitle)
                         .font(.subheadline)
                         .fontWeight(.medium)
-                        .foregroundStyle(SemanticColor.primary)
+                        .foregroundStyle(SemanticColor.action)
                 }
             }
         }
@@ -429,9 +470,9 @@ struct CapsuleLabelModifier: ViewModifier {
 
     private var backgroundColor: Color {
         switch style {
-        case .time: return theme.primaryColor.opacity(0.15)
-        case .title: return theme.primaryColor.opacity(0.2)
-        case .header: return theme.primaryColor.opacity(0.25)
+        case .time: return theme.accentColor.opacity(0.20)  // Use brighter accent color
+        case .title: return theme.accentColor.opacity(0.25)
+        case .header: return theme.accentColor.opacity(0.30)
         }
     }
 }

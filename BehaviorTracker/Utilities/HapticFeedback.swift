@@ -68,3 +68,16 @@ enum HapticFeedback {
         #endif
     }
 }
+
+// MARK: - Notification Names
+
+extension Notification.Name {
+    /// Posted when a new journal entry is successfully created
+    static let journalEntryCreated = Notification.Name("journalEntryCreated")
+
+    /// Posted when a journal entry is updated
+    static let journalEntryUpdated = Notification.Name("journalEntryUpdated")
+
+    /// Posted when a journal entry is deleted
+    static let journalEntryDeleted = Notification.Name("journalEntryDeleted")
+}

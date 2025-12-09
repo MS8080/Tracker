@@ -113,12 +113,7 @@ struct DaySummaryCard: View {
             }
         }
         .padding()
-        .background(.ultraThinMaterial.opacity(0.5))
-        .clipShape(RoundedRectangle(cornerRadius: CornerRadius.lg))
-        .overlay(
-            RoundedRectangle(cornerRadius: CornerRadius.lg)
-                .stroke(Color.white.opacity(0.1), lineWidth: 1)
-        )
+        .cardStyle(theme: theme, cornerRadius: CornerRadius.lg)
     }
 }
 

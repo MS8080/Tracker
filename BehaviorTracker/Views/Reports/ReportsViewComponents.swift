@@ -377,12 +377,11 @@ struct ReportSummaryCard: View {
                             .foregroundStyle(CardText.secondary)
 
                         ForEach(Array(summary.recommendations.enumerated()), id: \.offset) { index, recommendation in
-                            HStack(alignment: .top, spacing: Spacing.sm) {
+                            HStack(alignment: .top, spacing: Spacing.xs) {
                                 Text("\(index + 1).")
                                     .font(.subheadline)
                                     .fontWeight(.bold)
                                     .foregroundStyle(theme.primaryColor)
-                                    .frame(width: 20, alignment: .leading)
 
                                 Text(recommendation)
                                     .font(.subheadline)
@@ -391,20 +390,6 @@ struct ReportSummaryCard: View {
                             }
                         }
                     }
-                }
-
-                // Data sources indicator
-                if !summary.dataSource.isEmpty {
-                    HStack(spacing: Spacing.xs) {
-                        Image(systemName: "checkmark.circle.fill")
-                            .font(.caption2)
-                            .foregroundStyle(.green)
-
-                        Text("Based on: \(summary.dataSource)")
-                            .font(.caption2)
-                            .foregroundStyle(CardText.caption)
-                    }
-                    .padding(.top, Spacing.xs)
                 }
             }
         }

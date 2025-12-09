@@ -261,7 +261,7 @@ struct CalendarView: View {
                     } label: {
                         Text("View Details")
                             .font(.subheadline)
-                            .foregroundStyle(SemanticColor.primary)
+                            .foregroundStyle(SemanticColor.action)
                     }
                 }
             }
@@ -313,7 +313,7 @@ struct CalendarView: View {
                     if !entries.isEmpty {
                         HStack {
                             Image(systemName: "chart.line.uptrend.xyaxis.circle.fill")
-                                .foregroundStyle(SemanticColor.primary)
+                                .foregroundStyle(SemanticColor.action)
                             Text("\(entries.count) pattern\(entries.count == 1 ? "" : "s") logged")
                                 .font(.subheadline)
                                 .foregroundStyle(CardText.body)

@@ -299,6 +299,9 @@ struct JournalEntryEditorView: View {
                 // Queue for background analysis via coordinator
                 analysisCoordinator.queueAnalysis(for: entry)
 
+                // Notify observers that a new entry was created
+                NotificationCenter.default.post(name: .journalEntryCreated, object: entry)
+
                 await MainActor.run {
                     HapticFeedback.success.trigger()
                     dismiss()
@@ -341,6 +344,9 @@ struct JournalEntryEditorView: View {
 
                 // Analyze immediately via coordinator (blocking)
                 try await analysisCoordinator.analyzeNow(entry)
+
+                // Notify observers that a new entry was created
+                NotificationCenter.default.post(name: .journalEntryCreated, object: entry)
 
                 await MainActor.run {
                     isAnalyzing = false

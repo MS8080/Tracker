@@ -1,5 +1,6 @@
 import Foundation
 import SwiftUI
+import Combine
 
 @MainActor
 class ChatViewModel: ObservableObject {
@@ -10,14 +11,46 @@ class ChatViewModel: ObservableObject {
 
     private let geminiService = GeminiService.shared
     private let dataController = DataController.shared
+    private let demoService = DemoModeService.shared
+    private var cancellables = Set<AnyCancellable>()
+
+    var isDemoMode: Bool {
+        demoService.isEnabled
+    }
 
     init() {
-        // Add initial greeting
-        let greeting = ChatMessage(
-            role: .assistant,
-            content: "Hi! I'm your AI assistant. I can help you understand your journal entries, patterns, and provide insights. What would you like to know?"
-        )
-        messages.append(greeting)
+        loadInitialMessages()
+        observeDemoModeChanges()
+    }
+
+    private func observeDemoModeChanges() {
+        NotificationCenter.default.publisher(for: .demoModeChanged)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                self?.loadInitialMessages()
+            }
+            .store(in: &cancellables)
+    }
+
+    private func loadInitialMessages() {
+        messages.removeAll()
+
+        if isDemoMode {
+            // Load demo chat messages
+            for demoMessage in demoService.demoChatMessages {
+                messages.append(ChatMessage(
+                    role: demoMessage.isUser ? .user : .assistant,
+                    content: demoMessage.content
+                ))
+            }
+        } else {
+            // Add initial greeting
+            let greeting = ChatMessage(
+                role: .assistant,
+                content: "Hi! I'm your AI assistant. I can help you understand your journal entries, patterns, and provide insights. What would you like to know?"
+            )
+            messages.append(greeting)
+        }
     }
 
     func sendMessage() async {
@@ -30,6 +63,19 @@ class ChatViewModel: ObservableObject {
         inputText = ""
         isLoading = true
         errorMessage = nil
+
+        if isDemoMode {
+            // Simulate delay for demo mode
+            try? await Task.sleep(nanoseconds: 1_000_000_000)
+
+            let demoResponse = ChatMessage(
+                role: .assistant,
+                content: generateDemoResponse(for: userInput)
+            )
+            messages.append(demoResponse)
+            isLoading = false
+            return
+        }
 
         do {
             // Build context from user's data
@@ -56,6 +102,22 @@ class ChatViewModel: ObservableObject {
         }
 
         isLoading = false
+    }
+
+    private func generateDemoResponse(for input: String) -> String {
+        let lowercased = input.lowercased()
+
+        if lowercased.contains("pattern") || lowercased.contains("trend") {
+            return "Looking at your demo data, I can see patterns of sensory sensitivity in the mornings and social fatigue after video calls. Your hyperfocus sessions tend to be most productive in the afternoon. Would you like more details about any of these patterns?"
+        } else if lowercased.contains("sleep") || lowercased.contains("tired") || lowercased.contains("energy") {
+            return "Based on the demo data, there's a correlation between sleep quality and sensory sensitivity the next day. On days with less than 7 hours of sleep, you tend to experience more sensory overload. Consider tracking your sleep more closely to identify optimal rest patterns."
+        } else if lowercased.contains("social") || lowercased.contains("meeting") || lowercased.contains("people") {
+            return "Your demo data shows that social interactions, especially video calls, require significant energy. After meetings longer than 1 hour, you typically need 30+ minutes of recovery time. Planning buffer time between social commitments could help manage your energy better."
+        } else if lowercased.contains("help") || lowercased.contains("suggest") || lowercased.contains("advice") {
+            return "Here are some insights from your demo data:\n\n1. Morning sensory sensitivity is common - try a gradual wake-up routine\n2. Video calls drain more energy than in-person meetings\n3. Your hyperfocus is a strength - just set meal reminders\n4. Consistent routines correlate with better mood scores"
+        } else {
+            return "This is a demo response. In the full version, I would analyze your actual journal entries, patterns, and personal context to provide personalized insights. Try asking about your patterns, energy levels, or social interactions!"
+        }
     }
 
     private func buildUserContext() -> String {

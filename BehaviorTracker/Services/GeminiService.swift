@@ -215,7 +215,7 @@ class GeminiService {
                     try validateAPIKey(key)
                     try KeychainService.shared.save(key, for: .vertexAPIKey)
                 } catch {
-                    print("Failed to save API key: \(error)")
+                    AppLogger.ai.error("Failed to save API key", error: error)
                 }
             } else {
                 try? KeychainService.shared.delete(.vertexAPIKey)
@@ -257,7 +257,7 @@ class GeminiService {
         // Client-side rate limiting - wait if we made a request too recently
         await enforceMinRequestInterval()
 
-        print("🔵 Calling Cloud Run backend")
+        AppLogger.ai.debug("Calling Gemini Cloud Run backend")
 
         guard let url = URL(string: cloudRunURL) else {
             throw GeminiError.invalidURL
@@ -276,10 +276,11 @@ class GeminiService {
 
         let jsonData = try JSONSerialization.data(withJSONObject: requestPayload)
 
-        // Debug: print the JSON being sent
+        #if DEBUG
         if let jsonString = String(data: jsonData, encoding: .utf8) {
-            print("🔵 Request JSON: \(jsonString)")
+            AppLogger.ai.debug("Gemini request: \(jsonString.prefix(500))")
         }
+        #endif
 
         request.httpBody = jsonData
 

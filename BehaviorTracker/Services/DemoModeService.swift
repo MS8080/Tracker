@@ -782,4 +782,101 @@ final class DemoModeService: ObservableObject {
             wishlistAcquired: 2
         )
     }
+
+    // MARK: - Demo Chat Messages
+
+    struct DemoChatMessage: Identifiable {
+        let id: UUID
+        let content: String
+        let isUser: Bool
+        let timestamp: Date
+    }
+
+    var demoChatMessages: [DemoChatMessage] {
+        let now = Date()
+
+        return [
+            DemoChatMessage(
+                id: UUID(),
+                content: "I've been feeling overwhelmed lately. Can you help me understand my patterns?",
+                isUser: true,
+                timestamp: demoDate(byAdding: .minute, value: -10, to: now)
+            ),
+            DemoChatMessage(
+                id: UUID(),
+                content: "Based on your recent entries, I notice you've been experiencing more sensory overload in the mornings. This often happens after nights with less than 7 hours of sleep. You've also had several back-to-back social commitments this week, which tends to deplete your energy reserves.\n\nA few suggestions:\n1. Try a gradual wake-up routine with dimmed lights\n2. Schedule buffer time between social events\n3. Use your noise-canceling headphones during commutes",
+                isUser: false,
+                timestamp: demoDate(byAdding: .minute, value: -9, to: now)
+            ),
+            DemoChatMessage(
+                id: UUID(),
+                content: "That makes sense. What about my hyperfocus sessions?",
+                isUser: true,
+                timestamp: demoDate(byAdding: .minute, value: -5, to: now)
+            ),
+            DemoChatMessage(
+                id: UUID(),
+                content: "Your hyperfocus is actually one of your strengths! You've logged several productive 3+ hour sessions on your coding projects. The pattern I see is that these work best in the afternoon when you're in a quiet environment.\n\nJust remember to set reminders for meals and breaks - you've mentioned forgetting to eat during these sessions.",
+                isUser: false,
+                timestamp: demoDate(byAdding: .minute, value: -4, to: now)
+            )
+        ]
+    }
+
+    // MARK: - Demo Personal Knowledge (Teach AI About Me)
+
+    struct DemoPersonalKnowledge: Identifiable {
+        let id: UUID
+        let title: String?
+        let content: String
+        let isActive: Bool
+    }
+
+    var demoPersonalKnowledge: [DemoPersonalKnowledge] {
+        [
+            DemoPersonalKnowledge(
+                id: UUID(),
+                title: "Sensory sensitivities",
+                content: "Bright fluorescent lights and loud sudden noises are overwhelming. I cope better with natural light and background white noise.",
+                isActive: true
+            ),
+            DemoPersonalKnowledge(
+                id: UUID(),
+                title: "Social energy",
+                content: "Video calls are more draining than in-person meetings. I need at least 30 minutes of alone time after any social interaction longer than an hour.",
+                isActive: true
+            ),
+            DemoPersonalKnowledge(
+                id: UUID(),
+                title: "Best work times",
+                content: "I'm most productive between 2-6pm. Mornings are for low-demand tasks while I warm up.",
+                isActive: true
+            ),
+            DemoPersonalKnowledge(
+                id: UUID(),
+                title: "Food preferences",
+                content: "I prefer foods with consistent textures. Mixed textures can be difficult.",
+                isActive: true
+            ),
+            DemoPersonalKnowledge(
+                id: UUID(),
+                title: "Special interests",
+                content: "Coding, especially iOS development. Also interested in astronomy and mechanical keyboards.",
+                isActive: true
+            )
+        ]
+    }
+
+    /// Combined context string for demo AI prompts (mirrors PersonalKnowledgeRepository.getCombinedContext())
+    var demoPersonalKnowledgeContext: String {
+        demoPersonalKnowledge
+            .filter { $0.isActive }
+            .map { item in
+                if let title = item.title {
+                    return "- \(title): \(item.content)"
+                }
+                return "- \(item.content)"
+            }
+            .joined(separator: "\n")
+    }
 }

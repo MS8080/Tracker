@@ -59,10 +59,11 @@ class ClaudeService {
 
         let jsonData = try JSONEncoder().encode(requestPayload)
 
-        // Debug
+        #if DEBUG
         if let jsonString = String(data: jsonData, encoding: .utf8) {
-            print("🟣 Claude Request JSON: \(jsonString.prefix(200))...")
+            AppLogger.ai.debug("Claude request: \(jsonString.prefix(200))")
         }
+        #endif
 
         request.httpBody = jsonData
 
@@ -78,7 +79,7 @@ class ClaudeService {
                     throw ClaudeError.invalidResponse
                 }
 
-                print("🟣 Claude Response Status: \(httpResponse.statusCode)")
+                AppLogger.ai.debug("Claude response status: \(httpResponse.statusCode)")
 
                 switch httpResponse.statusCode {
                 case 200:

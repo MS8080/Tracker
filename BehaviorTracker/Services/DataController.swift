@@ -539,7 +539,7 @@ class DataController: ObservableObject, @unchecked Sendable {
                         contextNotes: "Logged from widget"
                     )
                 } catch {
-                    print("Failed to create pattern entry from widget: \(error.localizedDescription)")
+                    AppLogger.data.error("Failed to create pattern entry from widget", error: error)
                 }
             }
         }

@@ -21,7 +21,7 @@ struct AIInsightsView: View {
     }
 
     var body: some View {
-        NavigationView {
+        NavigationStack {
             ScrollView {
                 VStack(spacing: 20) {
                     if viewModel.isDemoMode {
@@ -36,19 +36,23 @@ struct AIInsightsView: View {
                 }
                 .padding()
             }
-            .background(Color(PlatformColor.systemGroupedBackground))
+            .background(theme.gradient.ignoresSafeArea())
             .navigationTitle("Insights")
-            .navigationBarTitleDisplayModeInline()
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbarBackground(.ultraThinMaterial, for: .navigationBar)
+            .toolbarBackground(.visible, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button {
                         showingSettings = true
                     } label: {
                         Image(systemName: "gearshape")
+                            .foregroundStyle(.white)
                     }
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Done") { dismiss() }
+                        .foregroundStyle(.white)
                 }
             }
             .sheet(isPresented: $showingSettings) {
@@ -125,15 +129,16 @@ struct AIInsightsView: View {
         VStack(spacing: 12) {
             Image(systemName: viewModel.analysisMode.icon)
                 .font(.system(size: 50))
-                .foregroundStyle(.purple.gradient)
+                .foregroundStyle(.white.opacity(0.9))
 
             Text(viewModel.analysisMode == .local ? "Local Analysis" : "AI-Powered Analysis")
                 .font(.title2)
                 .fontWeight(.bold)
+                .foregroundStyle(.white)
 
             Text(viewModel.analysisMode.description)
                 .font(.subheadline)
-                .foregroundColor(.secondary)
+                .foregroundStyle(.white.opacity(0.7))
                 .multilineTextAlignment(.center)
         }
         .padding()

@@ -95,6 +95,16 @@ enum AppTheme: String, CaseIterable, Identifiable {
         ThemeColorToken.timeline(for: self).toColor()
     }
 
+    /// High-contrast color for UI elements (tabs, buttons, interactive elements)
+    /// Brighter and more saturated than primaryColor for better visibility
+    var accentColor: Color {
+        HSLColor(
+            hue: ThemeColorToken.baseHue(for: self),
+            saturation: min(0.75, ThemeColorToken.baseSaturation(for: self) + 0.25),
+            lightness: 0.68  // Significantly brighter for high contrast
+        ).toColor()
+    }
+
     /// Professional gradient - visible but refined
     var gradient: LinearGradient {
         LinearGradient(
@@ -223,14 +233,12 @@ struct TrueLiquidGlassCardModifier: ViewModifier {
                         isInteractive ? .regular.interactive() : .regular,
                         in: .rect(corners: .concentric)
                     )
-                    // Inner glow
+                    // Subtle border instead of blurred inner glow (better performance)
                     .overlay(
                         ConcentricRectangle()
-                            .stroke(Color.white.opacity(0.25), lineWidth: 1.5)
-                            .blur(radius: 2)
-                            .mask(ConcentricRectangle())
+                            .stroke(Color.white.opacity(0.2), lineWidth: 1)
                     )
-                    .shadow(color: .black.opacity(0.15), radius: 8, y: 4)
+                    .shadow(color: .black.opacity(0.1), radius: 4, y: 2)
                     .containerShape(.rect(cornerRadius: cornerRadius))
             }
         } else {
@@ -255,18 +263,12 @@ struct TrueLiquidGlassCardModifier: ViewModifier {
                         }
                         .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
                     )
-                    // Inner glow
+                    // Subtle border instead of blurred inner glow (better performance)
                     .overlay(
                         RoundedRectangle(cornerRadius: cornerRadius)
-                            .stroke(Color.white.opacity(0.25), lineWidth: 1.5)
-                            .blur(radius: 2)
-                            .mask(RoundedRectangle(cornerRadius: cornerRadius))
+                            .stroke(Color.white.opacity(0.2), lineWidth: 1)
                     )
-                    .overlay(
-                        RoundedRectangle(cornerRadius: cornerRadius)
-                            .stroke(theme.primaryColor.opacity(0.20), lineWidth: 0.5)
-                    )
-                    .shadow(color: .black.opacity(0.15), radius: 8, y: 4)
+                    .shadow(color: .black.opacity(0.1), radius: 4, y: 2)
             }
         }
     }

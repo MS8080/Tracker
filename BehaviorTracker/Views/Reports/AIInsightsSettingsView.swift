@@ -23,18 +23,20 @@ struct AIInsightsSettingsView: View {
                     Section("Analysis Mode") {
                         Picker("Mode", selection: $viewModel.analysisMode) {
                             ForEach(AnalysisMode.allCases, id: \.self) { mode in
-                                HStack {
-                                    Image(systemName: mode.icon)
-                                    Text(mode == .local ? "Local" : "AI")
-                                }
+                                Label(
+                                    mode == .local ? "Local" : "AI",
+                                    systemImage: mode.icon
+                                )
                                 .tag(mode)
                             }
                         }
                         .pickerStyle(.segmented)
 
-                        Text(viewModel.analysisMode.description)
+                        Text(viewModel.analysisMode == .local
+                            ? "Analyze patterns locally on your device without AI"
+                            : "Use AI to generate deeper insights from your data")
                             .font(.caption)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(.white.opacity(0.7))
                     }
 
                     Section("Analysis Options") {
@@ -179,6 +181,7 @@ struct AIInsightsSettingsView: View {
                     Button("Done") {
                         dismiss()
                     }
+                    .foregroundStyle(.white)
                 }
             }
         }

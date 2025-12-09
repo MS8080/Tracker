@@ -74,6 +74,7 @@ class JournalViewModel: ObservableObject {
     init() {
         loadJournalEntries()
         observeDemoModeChanges()
+        observeJournalChanges()
     }
 
     private func observeDemoModeChanges() {
@@ -81,6 +82,32 @@ class JournalViewModel: ObservableObject {
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
                 self?.resetAndLoad()
+            }
+            .store(in: &cancellables)
+    }
+
+    private func observeJournalChanges() {
+        // Observe when journal entries are created
+        NotificationCenter.default.publisher(for: .journalEntryCreated)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                self?.resetAndLoad()
+            }
+            .store(in: &cancellables)
+        
+        // Observe when journal entries are updated
+        NotificationCenter.default.publisher(for: .journalEntryUpdated)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                self?.loadJournalEntries()
+            }
+            .store(in: &cancellables)
+        
+        // Observe when journal entries are deleted
+        NotificationCenter.default.publisher(for: .journalEntryDeleted)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                self?.loadJournalEntries()
             }
             .store(in: &cancellables)
     }
@@ -235,6 +262,10 @@ class JournalViewModel: ObservableObject {
 
     func updateEntry(_ entry: JournalEntry, reanalyze: Bool = true) {
         dataController.updateJournalEntry(entry)
+        
+        // Notify observers
+        NotificationCenter.default.post(name: .journalEntryUpdated, object: entry)
+        
         loadJournalEntries()
 
         // Re-analyze if content was changed
@@ -266,11 +297,18 @@ class JournalViewModel: ObservableObject {
 
         // Then delete from Core Data
         dataController.deleteJournalEntry(entry)
+        
+        // Notify observers
+        NotificationCenter.default.post(name: .journalEntryDeleted, object: nil)
     }
 
     func toggleFavorite(_ entry: JournalEntry) {
         entry.isFavorite.toggle()
         dataController.updateJournalEntry(entry)
+        
+        // Notify observers
+        NotificationCenter.default.post(name: .journalEntryUpdated, object: entry)
+        
         loadJournalEntries()
     }
 

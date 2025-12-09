@@ -58,7 +58,7 @@ struct ContentView: View {
             configureTabBarAppearance()
         }
         .blueLightFilter()
-        .tint(theme.primaryColor)
+        .tint(theme.accentColor)  // Use brighter accent color for tabs
         .preferredColorScheme(appearance.colorScheme)
         .dynamicTypeSize(dynamicTypeSize)
         .sheet(isPresented: $showingProfile) {
@@ -78,11 +78,23 @@ struct ContentView: View {
         let appearance = UITabBarAppearance()
         appearance.configureWithDefaultBackground()
 
-        // More opaque, darker background
-        appearance.backgroundColor = UIColor.black.withAlphaComponent(0.5)
+        // Darker, more opaque background for better contrast
+        appearance.backgroundColor = UIColor.black.withAlphaComponent(TabBarStyle.backgroundOpacity)
 
-        // Blur effect
+        // Stronger blur effect
         appearance.backgroundEffect = UIBlurEffect(style: .systemUltraThinMaterialDark)
+        
+        // Enhance unselected item appearance
+        let itemAppearance = UITabBarItemAppearance()
+        itemAppearance.normal.iconColor = UIColor.white.withAlphaComponent(TabBarStyle.unselectedItemOpacity)
+        itemAppearance.normal.titleTextAttributes = [
+            .foregroundColor: UIColor.white.withAlphaComponent(TabBarStyle.unselectedItemOpacity)
+        ]
+        
+        // Selected items will use the tint color (theme.accentColor)
+        appearance.stackedLayoutAppearance = itemAppearance
+        appearance.inlineLayoutAppearance = itemAppearance
+        appearance.compactInlineLayoutAppearance = itemAppearance
 
         UITabBar.appearance().standardAppearance = appearance
         if #available(iOS 15.0, *) {

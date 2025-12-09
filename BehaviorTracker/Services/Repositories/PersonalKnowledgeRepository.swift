@@ -41,7 +41,7 @@ final class PersonalKnowledgeRepository: @unchecked Sendable {
         do {
             return try viewContext.fetch(request)
         } catch {
-            print("Failed to fetch personal knowledge: \(error)")
+            AppLogger.data.error("Failed to fetch personal knowledge", error: error)
             return []
         }
     }
@@ -56,7 +56,7 @@ final class PersonalKnowledgeRepository: @unchecked Sendable {
         do {
             return try viewContext.fetch(request)
         } catch {
-            print("Failed to fetch active personal knowledge: \(error)")
+            AppLogger.data.error("Failed to fetch active personal knowledge", error: error)
             return []
         }
     }

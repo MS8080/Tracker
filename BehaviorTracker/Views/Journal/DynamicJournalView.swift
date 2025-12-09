@@ -74,6 +74,7 @@ struct DynamicJournalView: View {
                         showingChat = true
                     } label: {
                         Image(systemName: "bubble.left.and.bubble.right")
+                            .foregroundStyle(.white)
                     }
                 }
                 ToolbarItem(placement: .primaryAction) {
@@ -85,11 +86,6 @@ struct DynamicJournalView: View {
             }
             .sheet(isPresented: $showingNewEntry) {
                 JournalEntryEditorView()
-            }
-            .onChange(of: showingNewEntry) { _, newValue in
-                if !newValue {
-                    viewModel.loadJournalEntries()
-                }
             }
             .sheet(item: $selectedEntry) { entry in
                 JournalEntryDetailView(entry: entry) {
@@ -350,14 +346,14 @@ struct SimpleTimelineEntry: View {
                 // Timeline dot and line
                 VStack(spacing: 0) {
                     Circle()
-                        .fill(theme.timelineColor)
+                        .fill(theme.accentColor)
                         .frame(width: 10, height: 10)
-                        .shadow(color: theme.timelineColor.opacity(0.5), radius: 3)
+                        .shadow(color: theme.accentColor.opacity(0.6), radius: 4)
                         .padding(.top, 4)
 
                     if !isLast {
                         Rectangle()
-                            .fill(theme.timelineColor.opacity(0.3))
+                            .fill(theme.accentColor.opacity(0.4))
                             .frame(width: 2)
                             .frame(maxHeight: .infinity)
                     }
@@ -370,7 +366,7 @@ struct SimpleTimelineEntry: View {
                     Text(timeString)
                         .font(.caption)
                         .fontWeight(.medium)
-                        .foregroundStyle(theme.timelineColor)
+                        .foregroundStyle(theme.accentColor)
                         .capsuleLabel(theme: theme, style: .time)
 
                     // Content - show full text
@@ -493,14 +489,14 @@ struct DemoTimelineEntry: View {
             // Timeline dot and line
             VStack(spacing: 0) {
                 Circle()
-                    .fill(theme.timelineColor)
+                    .fill(theme.accentColor)
                     .frame(width: 10, height: 10)
-                    .shadow(color: theme.timelineColor.opacity(0.5), radius: 3)
+                    .shadow(color: theme.accentColor.opacity(0.6), radius: 4)
                     .padding(.top, 4)
 
                 if !isLast {
                     Rectangle()
-                        .fill(theme.timelineColor.opacity(0.3))
+                        .fill(theme.accentColor.opacity(0.4))
                         .frame(width: 2)
                         .frame(maxHeight: .infinity)
                 }
@@ -513,7 +509,7 @@ struct DemoTimelineEntry: View {
                     Text(timeString)
                         .font(.caption)
                         .fontWeight(.medium)
-                        .foregroundStyle(theme.timelineColor)
+                        .foregroundStyle(theme.accentColor)
                         .capsuleLabel(theme: theme, style: .time)
 
                     if entry.isFavorite {
