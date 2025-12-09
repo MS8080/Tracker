@@ -16,5 +16,9 @@
 	<string>This app uses the microphone to record voice notes in your journal entries and for voice-to-text input when logging patterns.</string>
 	<key>NSSpeechRecognitionUsageDescription</key>
 	<string>This app uses speech recognition to convert your voice into text when logging patterns, making it easier to add notes when typing is difficult.</string>
+	<key>NSRemindersUsageDescription</key>
+	<string>This app can sync your Goals, Wishlist, and Struggles with Apple Reminders, so you can see them alongside your other reminders and access them from any device.</string>
+	<key>NSRemindersFullAccessUsageDescription</key>
+	<string>This app can sync your Goals, Wishlist, and Struggles with Apple Reminders, so you can see them alongside your other reminders and access them from any device.</string>
 </dict>
 </plist>

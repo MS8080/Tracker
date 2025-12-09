@@ -55,6 +55,9 @@ struct HomeView: View {
                             MemoriesSection(memories: viewModel.memories, theme: theme)
                         }
 
+                        // Goals, Struggles, Wishlist
+                        LifeGoalsSection()
+
                         CurrentSetupCard()
                     }
                     .padding(.horizontal, Spacing.lg)

@@ -96,9 +96,6 @@
 		4E3591D92ED63C03000A5E74 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4E3591D82ED63C03000A5E74 /* WidgetKit.framework */; };
 		4E3591DB2ED63C03000A5E74 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4E3591DA2ED63C03000A5E74 /* SwiftUI.framework */; };
 		4E3591E82ED63C04000A5E74 /* TrackerWidgetsExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 4E3591D62ED63C03000A5E74 /* TrackerWidgetsExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
-		4E3896722EE84D9E00433E40 /* InsightGenerationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E3896702EE84D9E00433E40 /* InsightGenerationService.swift */; };
-		4E3896742EE88E6D00433E40 /* PatternChainModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E3896732EE88E6D00433E40 /* PatternChainModels.swift */; };
-		4E3896772EE88EFA00433E40 /* ChainVisualizationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E3896762EE88EFA00433E40 /* ChainVisualizationView.swift */; };
 		4E4295F32ECE39AF006C6B00 /* UserProfile+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E4295F22ECE39AF006C6B00 /* UserProfile+CoreDataClass.swift */; };
 		4E4EF2282EE5C5DA00B485E7 /* CompletedListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E4EF2252EE5C5DA00B485E7 /* CompletedListView.swift */; };
 		4E4EF22A2EE5C5DA00B485E7 /* CompletedListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E4EF2252EE5C5DA00B485E7 /* CompletedListView.swift */; };
@@ -128,7 +125,6 @@
 		4EBA74A02EE8479000D2EDCB /* InsightModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EBA749E2EE8479000D2EDCB /* InsightModels.swift */; };
 		4EBA74A32EE847B300D2EDCB /* InsightsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EBA74A12EE847B300D2EDCB /* InsightsView.swift */; };
 		4EBA74A42EE847B300D2EDCB /* InsightsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EBA74A12EE847B300D2EDCB /* InsightsView.swift */; };
-		4EBA74A72EE847C600D2EDCB /* InsightsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EBA74A52EE847C600D2EDCB /* InsightsViewModel.swift */; };
 		4EC1D7182ED8FBE4003F9272 /* EmptyStateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EC1D7172ED8FBE4003F9272 /* EmptyStateView.swift */; };
 		4EC1D7192ED8FBE4003F9272 /* EmptyStateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EC1D7172ED8FBE4003F9272 /* EmptyStateView.swift */; };
 		4EC1D71E2ED8FF99003F9272 /* ThemeWrapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EC1D71D2ED8FF99003F9272 /* ThemeWrapper.swift */; };
@@ -234,6 +230,7 @@
 		C955C0A9291628AF3E1FD28C /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 008361EC1AF70EB3036A7EA6 /* Foundation.framework */; };
 		CAF03CE415D80CDB4778785B /* MemoriesGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = C052858464BD27AD7087F4B7 /* MemoriesGenerator.swift */; };
 		CB3BD16F5082FB3861A267FE /* Goal+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19A2367145F3B76EE22AA416 /* Goal+CoreDataClass.swift */; };
+		CCAF85C8AFADFF0F644208AF /* RemindersService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1214472E337EE2C28D0D1398 /* RemindersService.swift */; };
 		D589D8A045CAB26F9CF74F75 /* Struggle+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48C54C1F69C5BD96E8054F72 /* Struggle+CoreDataClass.swift */; };
 		D86B5893EE19785B8F823186 /* AddGoalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8888646954F90237FB128F07 /* AddGoalView.swift */; };
 		DFAD4481AD0098935D9C2F4C /* BehaviorTrackerUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B691578565288148399A79FF /* BehaviorTrackerUITests.swift */; };
@@ -372,6 +369,7 @@
 		037EE734BA74579E6BCACB46 /* PatternLoggingUITests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PatternLoggingUITests.swift; sourceTree = "<group>"; };
 		05BA91C15FB3D5E047EE05FE /* CorrelationAnalysisServiceTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CorrelationAnalysisServiceTests.swift; sourceTree = "<group>"; };
 		0E09AF3D7FD8D412BFE5024F /* DataControllerTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DataControllerTests.swift; sourceTree = "<group>"; };
+		1214472E337EE2C28D0D1398 /* RemindersService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RemindersService.swift; sourceTree = "<group>"; };
 		163344DF74EC44EAACC4C5AA /* AIInsightsModelsTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AIInsightsModelsTests.swift; sourceTree = "<group>"; };
 		19A2367145F3B76EE22AA416 /* Goal+CoreDataClass.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "Goal+CoreDataClass.swift"; sourceTree = "<group>"; };
 		1B4F5C96E61EB62998813107 /* StrugglesListView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = StrugglesListView.swift; path = LifeGoals/StrugglesListView.swift; sourceTree = "<group>"; };
@@ -706,6 +704,7 @@
 				C052858464BD27AD7087F4B7 /* MemoriesGenerator.swift */,
 				5F32BEC675E53B2AB5668910 /* DaySlidesGenerator.swift */,
 				F835A82BDB9AB49E8244905D /* AnalysisCoordinator.swift */,
+				1214472E337EE2C28D0D1398 /* RemindersService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -1444,6 +1443,7 @@
 				9E769BF29428223D3E380D9A /* AnalysisCoordinator.swift in Sources */,
 				6CD723D776E1A99E939B5798 /* DailySummaryView.swift in Sources */,
 				12B05AC1C5C8FED4215E561D /* DailySummaryViewModel.swift in Sources */,
+				CCAF85C8AFADFF0F644208AF /* RemindersService.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1483,7 +1483,6 @@
 				MAC0001000000013 /* JournalEntry+CoreDataClass.swift in Sources */,
 				4E1132452ED6574D001C5D0A /* CalendarEventService.swift in Sources */,
 				4EEVTMENTION01 /* EventMentionService.swift in Sources */,
-				4E3896742EE88E6D00433E40 /* PatternChainModels.swift in Sources */,
 				MAC0001000000014 /* BehaviorTrackerModel.xcdatamodeld in Sources */,
 				MAC0001000000015 /* ContributingFactor.swift in Sources */,
 				4E4EF22C2EE5C64200B485E7 /* LifeGoalsRowViews.swift in Sources */,
@@ -1535,13 +1534,11 @@
 				MAC0001000000032 /* PatternEntryFormView.swift in Sources */,
 				MAC0001000000033 /* HealthKitManager.swift in Sources */,
 				MAC0001000000034 /* ReportsView.swift in Sources */,
-				4EBA74A72EE847C600D2EDCB /* InsightsViewModel.swift in Sources */,
 				MAC0001000000035 /* AIInsightsView.swift in Sources */,
 				MAC001AICOMP00001 /* AIInsightsComponents.swift in Sources */,
 				MAC001JRNLCMP0001 /* JournalEditorComponents.swift in Sources */,
 				MAC0001000000036 /* SettingsView.swift in Sources */,
 				MAC0001000000037 /* ExportDataView.swift in Sources */,
-				4E3896722EE84D9E00433E40 /* InsightGenerationService.swift in Sources */,
 				MAC0001000000040 /* JournalEntryDetailView.swift in Sources */,
 				MAC0001000000041 /* JournalEntryEditorView.swift in Sources */,
 				MAC0001000000042 /* MedicationView.swift in Sources */,
@@ -1572,7 +1569,6 @@
 				4E3008502EDBCFA90061A03F /* AIInsightsTabViewModel.swift in Sources */,
 				4E3008512EDBCFA90061A03F /* FeelingFinderViewModel.swift in Sources */,
 				MAC0001000000054 /* Date+Extensions.swift in Sources */,
-				4E3896772EE88EFA00433E40 /* ChainVisualizationView.swift in Sources */,
 				MAC0001000000055 /* HapticFeedback.swift in Sources */,
 				MAC0001000000056 /* BehaviorTrackerApp.swift in Sources */,
 				MAC001JRNLANAV01 /* JournalEntryAnalysisView.swift in Sources */,
@@ -1648,7 +1644,7 @@
 				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "";
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.behaviortracker.tests;
 				PRODUCT_NAME = BehaviorTrackerTests;
 				SDKROOT = iphoneos;
@@ -1667,7 +1663,7 @@
 				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "";
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.behaviortracker.BehaviorTrackerUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
@@ -1760,7 +1756,7 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -1795,7 +1791,7 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -1818,7 +1814,7 @@
 				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "";
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.behaviortracker.BehaviorTrackerUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
@@ -1883,7 +1879,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
@@ -1943,7 +1939,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
@@ -1963,7 +1959,7 @@
 				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "";
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.behaviortracker.tests;
 				PRODUCT_NAME = BehaviorTrackerTests;
 				SDKROOT = iphoneos;

@@ -27,12 +27,13 @@ class LifeGoalsViewModel: ObservableObject {
     @Published var celebratingItem: WishlistItem?
     @Published var showCelebration = false
 
-    // MARK: - Repositories
+    // MARK: - Repositories & Services
 
     private let goalRepository = GoalRepository.shared
     private let wishlistRepository = WishlistRepository.shared
     private let struggleRepository = StruggleRepository.shared
     private let demoService = DemoModeService.shared
+    let remindersService = RemindersService.shared
     private var cancellables = Set<AnyCancellable>()
 
     /// Whether we're currently in demo mode
@@ -174,13 +175,14 @@ class LifeGoalsViewModel: ObservableObject {
         dueDate: Date?
     ) {
         do {
-            _ = try goalRepository.create(
+            let goal = try goalRepository.create(
                 title: title,
                 category: category,
                 priority: priority,
                 notes: notes,
                 dueDate: dueDate
             )
+            remindersService.syncGoal(goal)
             loadData()
         } catch {
             print("Failed to create goal '\(title)': \(error.localizedDescription)")
@@ -193,15 +195,18 @@ class LifeGoalsViewModel: ObservableObject {
         } else {
             goalRepository.markComplete(goal)
         }
+        remindersService.syncGoalCompletion(goal)
         loadData()
     }
 
     func updateGoalProgress(_ goal: Goal, progress: Double) {
         goalRepository.updateProgress(goal, progress: progress)
+        remindersService.syncGoal(goal)
         loadData()
     }
 
     func deleteGoal(_ goal: Goal) {
+        remindersService.deleteGoalReminder(goal.id)
         goalRepository.delete(goal)
         loadData()
     }
@@ -220,12 +225,13 @@ class LifeGoalsViewModel: ObservableObject {
         notes: String?
     ) {
         do {
-            _ = try wishlistRepository.create(
+            let item = try wishlistRepository.create(
                 title: title,
                 category: category,
                 priority: priority,
                 notes: notes
             )
+            remindersService.syncWishlistItem(item)
             loadData()
         } catch {
             print("Failed to create wishlist item '\(title)': \(error.localizedDescription)")
@@ -250,10 +256,12 @@ class LifeGoalsViewModel: ObservableObject {
                 self?.celebratingItem = nil
             }
         }
+        remindersService.syncWishlistCompletion(item)
         loadData()
     }
 
     func deleteWishlistItem(_ item: WishlistItem) {
+        remindersService.deleteWishlistReminder(item.id)
         wishlistRepository.delete(item)
         loadData()
     }
@@ -274,7 +282,7 @@ class LifeGoalsViewModel: ObservableObject {
         notes: String?
     ) {
         do {
-            _ = try struggleRepository.create(
+            let struggle = try struggleRepository.create(
                 title: title,
                 category: category,
                 intensity: intensity,
@@ -282,6 +290,7 @@ class LifeGoalsViewModel: ObservableObject {
                 copingStrategies: copingStrategies,
                 notes: notes
             )
+            remindersService.syncStruggle(struggle)
             loadData()
         } catch {
             print("Failed to create struggle '\(title)': \(error.localizedDescription)")
@@ -290,20 +299,24 @@ class LifeGoalsViewModel: ObservableObject {
 
     func resolveStruggle(_ struggle: Struggle) {
         struggleRepository.markResolved(struggle)
+        remindersService.syncStruggleResolution(struggle)
         loadData()
     }
 
     func reactivateStruggle(_ struggle: Struggle) {
         struggleRepository.reactivate(struggle)
+        remindersService.syncStruggle(struggle)
         loadData()
     }
 
     func updateStruggleIntensity(_ struggle: Struggle, intensity: Struggle.Intensity) {
         struggleRepository.updateIntensity(struggle, intensity: intensity)
+        remindersService.syncStruggle(struggle)
         loadData()
     }
 
     func deleteStruggle(_ struggle: Struggle) {
+        remindersService.deleteStruggleReminder(struggle.id)
         struggleRepository.delete(struggle)
         loadData()
     }
